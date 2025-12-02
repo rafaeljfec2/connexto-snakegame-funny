@@ -51,6 +51,7 @@ export function useGameLoop() {
           ...prev,
           status: GameStatus.GAME_OVER,
           highScore: Math.max(prev.score, prev.highScore),
+          // Keep food visible on game over
         };
       }
 

@@ -17,6 +17,9 @@ export function GameBoard({ snake, food }: GameBoardProps) {
     height: GAME_CONFIG.gridSize * GAME_CONFIG.cellSize,
   };
 
+  // Ensure food always has valid position
+  const foodPosition = food ?? { x: 10, y: 10 };
+
   return (
     <div className={styles.gameBoard} style={gridStyle}>
       {snake.map((segment, index) => (
@@ -26,7 +29,7 @@ export function GameBoard({ snake, food }: GameBoardProps) {
           isHead={index === 0}
         />
       ))}
-      <Food key={`food-${food.x}-${food.y}`} position={food} />
+      <Food key={`food-${foodPosition.x}-${foodPosition.y}`} position={foodPosition} />
     </div>
   );
 }

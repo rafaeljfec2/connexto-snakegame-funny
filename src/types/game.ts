@@ -25,6 +25,8 @@ export interface GameState {
   status: GameStatus;
   score: number;
   highScore: number;
+  level: number;
+  gameSpeed: number;
 }
 
 export interface GameConfig {

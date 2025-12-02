@@ -33,3 +33,17 @@ export const KEYBOARD_MAP: Record<string, Direction> = {
 export const STORAGE_KEYS = {
   HIGH_SCORE: "snake-game-high-score",
 } as const;
+
+// Difficulty progression settings
+export const DIFFICULTY_CONFIG = {
+  // Points needed to advance to next level
+  pointsPerLevel: 50,
+  // Base speed (in milliseconds)
+  baseSpeed: 150,
+  // Minimum speed (fastest the game can get)
+  minSpeed: 50,
+  // Speed reduction per level (how much faster it gets)
+  speedReductionPerLevel: 10,
+  // Initial level
+  initialLevel: 1,
+} as const;

@@ -6,6 +6,7 @@ import {
   INITIAL_SNAKE_POSITION,
 } from "@/constants/game";
 import { generateRandomFood, getHighScore } from "@/utils/gameLogic";
+import { calculateLevel, calculateGameSpeed } from "@/utils/difficulty";
 
 export function useGameState() {
   const [gameState, setGameState] = useState<GameState>(() => {
@@ -13,6 +14,8 @@ export function useGameState() {
       INITIAL_SNAKE_POSITION,
       GAME_CONFIG.gridSize
     );
+    const initialLevel = calculateLevel(0);
+    const initialSpeed = calculateGameSpeed(initialLevel);
 
     return {
       snake: INITIAL_SNAKE_POSITION,
@@ -22,6 +25,8 @@ export function useGameState() {
       status: GameStatus.IDLE,
       score: 0,
       highScore: getHighScore(),
+      level: initialLevel,
+      gameSpeed: initialSpeed,
     };
   });
 
@@ -30,6 +35,8 @@ export function useGameState() {
       INITIAL_SNAKE_POSITION,
       GAME_CONFIG.gridSize
     );
+    const initialLevel = calculateLevel(0);
+    const initialSpeed = calculateGameSpeed(initialLevel);
 
     setGameState({
       snake: INITIAL_SNAKE_POSITION,
@@ -39,6 +46,8 @@ export function useGameState() {
       status: GameStatus.IDLE,
       score: 0,
       highScore: getHighScore(),
+      level: initialLevel,
+      gameSpeed: initialSpeed,
     });
   }, []);
 

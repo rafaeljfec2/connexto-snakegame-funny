@@ -4,10 +4,11 @@ import styles from './GameInfo.module.css'
 interface GameInfoProps {
   score: number
   highScore: number
+  level: number
   status: GameStatus
 }
 
-export function GameInfo({ score, highScore, status }: GameInfoProps) {
+export function GameInfo({ score, highScore, level, status }: GameInfoProps) {
   const getStatusMessage = () => {
     switch (status) {
       case GameStatus.IDLE:
@@ -26,6 +27,10 @@ export function GameInfo({ score, highScore, status }: GameInfoProps) {
   return (
     <div className={styles.gameInfo}>
       <div className={styles.scores}>
+        <div className={styles.scoreItem}>
+          <span className={styles.label}>Level:</span>
+          <span className={styles.value}>{level}</span>
+        </div>
         <div className={styles.scoreItem}>
           <span className={styles.label}>Score:</span>
           <span className={styles.value}>{score}</span>

@@ -9,6 +9,7 @@ import {
   isValidDirectionChange,
   saveHighScore,
 } from "@/utils/gameLogic";
+import { calculateLevel, calculateGameSpeed } from "@/utils/difficulty";
 import { useGameState } from "./useGameState";
 
 export function useGameLoop() {
@@ -66,6 +67,8 @@ export function useGameLoop() {
         : prev.food;
 
       const newScore = ateFood ? prev.score + 10 : prev.score;
+      const newLevel = calculateLevel(newScore);
+      const newGameSpeed = calculateGameSpeed(newLevel);
 
       return {
         ...prev,
@@ -76,6 +79,8 @@ export function useGameLoop() {
         score: newScore,
         highScore:
           ateFood && newScore > prev.highScore ? newScore : prev.highScore,
+        level: newLevel,
+        gameSpeed: newGameSpeed,
       };
     });
   }, [updateGameState]);
@@ -96,7 +101,7 @@ export function useGameLoop() {
 
       const elapsed = currentTime - lastUpdateTimeRef.current;
 
-      if (elapsed >= GAME_CONFIG.gameSpeed) {
+      if (elapsed >= gameState.gameSpeed) {
         updateGame();
         lastUpdateTimeRef.current = currentTime;
       }
@@ -113,7 +118,7 @@ export function useGameLoop() {
       }
       lastUpdateTimeRef.current = 0;
     };
-  }, [gameState.status, updateGame]);
+  }, [gameState.status, gameState.gameSpeed, updateGame]);
 
   const handleKeyPress = useCallback(
     (key: string) => {

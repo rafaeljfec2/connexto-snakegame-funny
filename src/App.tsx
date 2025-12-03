@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useGameLoop } from "@/hooks/useGameLoop";
 import { useKeyboard } from "@/hooks/useKeyboard";
 import { GameBoard } from "./components/GameBoard";
@@ -68,6 +68,10 @@ function App() {
     resetGame();
   };
 
+  const handleLevelUpAnimationEnd = useCallback(() => {
+    setShowLevelUp(false);
+  }, []);
+
   return (
     <div className={styles.app}>
       <header className={styles.header}>
@@ -94,7 +98,7 @@ function App() {
         <LevelUpAnimation
           level={gameState.level}
           show={showLevelUp}
-          onAnimationEnd={() => setShowLevelUp(false)}
+          onAnimationEnd={handleLevelUpAnimationEnd}
         />
 
         <ActivePowerUps powerUps={gameState.activePowerUps} />

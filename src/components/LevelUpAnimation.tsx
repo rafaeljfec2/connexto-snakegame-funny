@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import styles from "./LevelUpAnimation.module.css";
 
 interface LevelUpAnimationProps {
@@ -14,34 +14,58 @@ export function LevelUpAnimation({
 }: LevelUpAnimationProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
+  const onAnimationEndRef = useRef(onAnimationEnd);
+  const timersRef = useRef<{
+    exitTimer?: ReturnType<typeof setTimeout>;
+    removeTimer?: ReturnType<typeof setTimeout>;
+  }>({});
+
+  // Update ref when callback changes
+  useEffect(() => {
+    onAnimationEndRef.current = onAnimationEnd;
+  }, [onAnimationEnd]);
 
   useEffect(() => {
+    // Clear any existing timers
+    if (timersRef.current.exitTimer) {
+      clearTimeout(timersRef.current.exitTimer);
+    }
+    if (timersRef.current.removeTimer) {
+      clearTimeout(timersRef.current.removeTimer);
+    }
+    timersRef.current = {};
+
     if (show) {
       setIsVisible(true);
       setIsExiting(false);
-      
-      // Start exit animation after showing for 800ms
-      const exitTimer = setTimeout(() => {
+
+      // Start exit animation after showing for 1.8s (so fade out completes at 2s)
+      timersRef.current.exitTimer = setTimeout(() => {
         setIsExiting(true);
-      }, 800);
-      
-      // Remove completely after 1s total
-      const removeTimer = setTimeout(() => {
+      }, 1800);
+
+      // Remove completely after 2s total
+      timersRef.current.removeTimer = setTimeout(() => {
         setIsVisible(false);
         setIsExiting(false);
-        onAnimationEnd();
-      }, 1000);
-      
+        onAnimationEndRef.current();
+      }, 2000);
+
       return () => {
-        clearTimeout(exitTimer);
-        clearTimeout(removeTimer);
+        if (timersRef.current.exitTimer) {
+          clearTimeout(timersRef.current.exitTimer);
+        }
+        if (timersRef.current.removeTimer) {
+          clearTimeout(timersRef.current.removeTimer);
+        }
+        timersRef.current = {};
       };
     } else {
       // Immediately hide if show is false
       setIsVisible(false);
       setIsExiting(false);
     }
-  }, [show, onAnimationEnd]);
+  }, [show]);
 
   if (!isVisible) return null;
 

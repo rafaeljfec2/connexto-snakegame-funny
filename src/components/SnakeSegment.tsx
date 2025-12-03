@@ -4,9 +4,10 @@ import styles from "./SnakeSegment.module.css";
 interface SnakeSegmentProps {
   position: Position;
   isHead: boolean;
+  isNew?: boolean;
 }
 
-export function SnakeSegment({ position, isHead }: SnakeSegmentProps) {
+export function SnakeSegment({ position, isHead, isNew }: SnakeSegmentProps) {
   const style = {
     gridColumn: position.x + 1,
     gridRow: position.y + 1,
@@ -14,7 +15,9 @@ export function SnakeSegment({ position, isHead }: SnakeSegmentProps) {
 
   return (
     <div
-      className={`${styles.segment} ${isHead ? styles.head : ""}`}
+      className={`${styles.segment} ${isHead ? styles.head : ""} ${
+        isNew ? styles.new : ""
+      }`}
       style={style}
     />
   );

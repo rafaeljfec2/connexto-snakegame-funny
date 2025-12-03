@@ -1,12 +1,13 @@
-import { useState, useEffect, useRef } from 'react'
-import { useGameLoop } from '@/hooks/useGameLoop'
-import { useKeyboard } from '@/hooks/useKeyboard'
-import { GameBoard } from './components/GameBoard'
-import { GameInfo } from './components/GameInfo'
-import { GameControls } from './components/GameControls'
-import { LevelUpAnimation } from './components/LevelUpAnimation'
-import { GameStatus } from '@/types/game'
-import styles from './App.module.css'
+import { useState, useEffect, useRef } from "react";
+import { useGameLoop } from "@/hooks/useGameLoop";
+import { useKeyboard } from "@/hooks/useKeyboard";
+import { GameBoard } from "./components/GameBoard";
+import { GameInfo } from "./components/GameInfo";
+import { GameControls } from "./components/GameControls";
+import { LevelUpAnimation } from "./components/LevelUpAnimation";
+import { ActivePowerUps } from "./components/ActivePowerUps";
+import { GameStatus } from "@/types/game";
+import styles from "./App.module.css";
 
 function App() {
   const {
@@ -16,17 +17,17 @@ function App() {
     pauseGame,
     setDirection,
     handleKeyPress,
-  } = useGameLoop()
+  } = useGameLoop();
 
-  const [showLevelUp, setShowLevelUp] = useState(false)
-  const previousLevelRef = useRef(gameState.level)
-  const previousScoreRef = useRef(gameState.score)
+  const [showLevelUp, setShowLevelUp] = useState(false);
+  const previousLevelRef = useRef(gameState.level);
+  const previousScoreRef = useRef(gameState.score);
 
   useKeyboard({
     onDirectionChange: setDirection,
     onKeyPress: handleKeyPress,
     enabled: true,
-  })
+  });
 
   // Detect level up
   useEffect(() => {
@@ -34,11 +35,11 @@ function App() {
       gameState.status === GameStatus.PLAYING &&
       gameState.level > previousLevelRef.current
     ) {
-      setShowLevelUp(true)
+      setShowLevelUp(true);
     }
-    previousLevelRef.current = gameState.level
-  }, [gameState.level, gameState.status])
-  
+    previousLevelRef.current = gameState.level;
+  }, [gameState.level, gameState.status]);
+
   // Reset level up animation when game ends, resets, or is paused
   useEffect(() => {
     if (
@@ -46,26 +47,26 @@ function App() {
       gameState.status === GameStatus.IDLE ||
       gameState.status === GameStatus.PAUSED
     ) {
-      setShowLevelUp(false)
+      setShowLevelUp(false);
     }
-  }, [gameState.status])
+  }, [gameState.status]);
 
   const handleStart = () => {
     if (gameState.status === GameStatus.IDLE) {
-      startGame()
+      startGame();
     }
-  }
+  };
 
   const handlePause = () => {
-    pauseGame()
-  }
+    pauseGame();
+  };
 
   const handleReset = () => {
-    previousScoreRef.current = 0
-    previousLevelRef.current = 1
-    setShowLevelUp(false)
-    resetGame()
-  }
+    previousScoreRef.current = 0;
+    previousLevelRef.current = 1;
+    setShowLevelUp(false);
+    resetGame();
+  };
 
   return (
     <div className={styles.app}>
@@ -89,12 +90,14 @@ function App() {
             level={gameState.level}
           />
         </div>
-        
+
         <LevelUpAnimation
           level={gameState.level}
           show={showLevelUp}
           onAnimationEnd={() => setShowLevelUp(false)}
         />
+
+        <ActivePowerUps powerUps={gameState.activePowerUps} />
 
         <GameControls
           onStart={handleStart}
@@ -113,7 +116,7 @@ function App() {
         </div>
       </main>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;

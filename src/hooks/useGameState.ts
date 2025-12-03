@@ -27,6 +27,7 @@ export function useGameState() {
       highScore: getHighScore(),
       level: initialLevel,
       gameSpeed: initialSpeed,
+      activePowerUps: [],
     };
   });
 
@@ -48,6 +49,7 @@ export function useGameState() {
       highScore: getHighScore(),
       level: initialLevel,
       gameSpeed: initialSpeed,
+      activePowerUps: [],
     });
   }, []);
 

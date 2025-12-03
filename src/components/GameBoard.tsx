@@ -1,4 +1,4 @@
-import { Position, GameStatus } from "@/types/game";
+import { Position, GameStatus, Food as FoodType } from "@/types/game";
 import { GAME_CONFIG } from "@/constants/game";
 import { SnakeSegment } from "./SnakeSegment";
 import { Food } from "./Food";
@@ -7,7 +7,7 @@ import styles from "./GameBoard.module.css";
 
 interface GameBoardProps {
   snake: Position[];
-  food: Position;
+  food: FoodType;
   status: GameStatus;
   level: number;
 }
@@ -29,9 +29,6 @@ export function GameBoard({
   const previousLevelRef = useRef(level);
   const [isLevelUp, setIsLevelUp] = useState(false);
   const [newSegmentIndex, setNewSegmentIndex] = useState<number | null>(null);
-
-  // Ensure food always has valid position
-  const foodPosition = food ?? { x: 10, y: 10 };
 
   // Detect snake growth
   useEffect(() => {
@@ -55,6 +52,8 @@ export function GameBoard({
     status === GameStatus.GAME_OVER ? styles.gameOver : ""
   } ${isLevelUp ? styles.levelUp : ""}`;
 
+  const foodKey = `food-${food.position.x}-${food.position.y}-${food.type}`;
+
   return (
     <div className={boardClassName} style={gridStyle}>
       {snake.map((segment, index) => (
@@ -65,10 +64,7 @@ export function GameBoard({
           isNew={newSegmentIndex === index}
         />
       ))}
-      <Food
-        key={`food-${foodPosition.x}-${foodPosition.y}`}
-        position={foodPosition}
-      />
+      <Food key={foodKey} food={food} />
     </div>
   );
 }

@@ -10,6 +10,12 @@ import {
   saveHighScore,
 } from "@/utils/gameLogic";
 import { calculateLevel, calculateGameSpeed } from "@/utils/difficulty";
+import {
+  applyPowerUpEffect,
+  createActivePowerUp,
+  getActivePowerUps,
+  getEffectiveGameSpeed,
+} from "@/utils/powerUps";
 import { useGameState } from "./useGameState";
 
 export function useGameLoop() {
@@ -58,17 +64,45 @@ export function useGameLoop() {
 
       const ateFood = hasFoodCollision(newSnake[0], prev.food);
 
-      const finalSnake = ateFood
-        ? moveSnake(prev.snake, currentDirection, GAME_CONFIG.gridSize, true)
-        : newSnake;
+      let finalSnake = newSnake;
+      let newScore = prev.score;
+      const newActivePowerUps = [...getActivePowerUps(prev.activePowerUps)];
+
+      if (ateFood) {
+        const powerUpEffect = applyPowerUpEffect(
+          prev.food.type,
+          prev.score,
+          prev.snake.length
+        );
+
+        // Apply growth
+        for (let i = 0; i < powerUpEffect.growthAmount; i++) {
+          finalSnake = moveSnake(
+            i === 0 ? prev.snake : finalSnake,
+            currentDirection,
+            GAME_CONFIG.gridSize,
+            true
+          );
+        }
+
+        // Apply score increase
+        newScore = prev.score + powerUpEffect.scoreIncrease;
+
+        // Activate power-up if needed
+        if (powerUpEffect.shouldActivatePowerUp) {
+          newActivePowerUps.push(createActivePowerUp(prev.food.type));
+        }
+      }
 
       const newFood = ateFood
         ? generateRandomFood(finalSnake, GAME_CONFIG.gridSize)
         : prev.food;
 
-      const newScore = ateFood ? prev.score + 10 : prev.score;
       const newLevel = calculateLevel(newScore);
-      const newGameSpeed = calculateGameSpeed(newLevel);
+      const baseGameSpeed = calculateGameSpeed(newLevel);
+
+      // Clean expired power-ups
+      const activePowerUps = getActivePowerUps(newActivePowerUps);
 
       return {
         ...prev,
@@ -80,7 +114,8 @@ export function useGameLoop() {
         highScore:
           ateFood && newScore > prev.highScore ? newScore : prev.highScore,
         level: newLevel,
-        gameSpeed: newGameSpeed,
+        gameSpeed: baseGameSpeed, // Store base speed, effective speed calculated in loop
+        activePowerUps: activePowerUps,
       };
     });
   }, [updateGameState]);
@@ -101,7 +136,14 @@ export function useGameLoop() {
 
       const elapsed = currentTime - lastUpdateTimeRef.current;
 
-      if (elapsed >= gameState.gameSpeed) {
+      // Update active power-ups and get effective speed
+      const activePowerUps = getActivePowerUps(gameState.activePowerUps);
+      const effectiveSpeed = getEffectiveGameSpeed(
+        gameState.gameSpeed,
+        activePowerUps
+      );
+
+      if (elapsed >= effectiveSpeed) {
         updateGame();
         lastUpdateTimeRef.current = currentTime;
       }
@@ -118,7 +160,12 @@ export function useGameLoop() {
       }
       lastUpdateTimeRef.current = 0;
     };
-  }, [gameState.status, gameState.gameSpeed, updateGame]);
+  }, [
+    gameState.status,
+    gameState.gameSpeed,
+    gameState.activePowerUps,
+    updateGame,
+  ]);
 
   const handleKeyPress = useCallback(
     (key: string) => {

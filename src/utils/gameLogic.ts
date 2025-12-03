@@ -1,4 +1,5 @@
-import { Position, Direction } from "@/types/game";
+import { Position, Direction, Food, FoodType } from "@/types/game";
+import { POWER_UP_CONFIG } from "@/constants/powerUps";
 
 export function getOppositeDirection(direction: Direction): Direction {
   const opposites: Record<Direction, Direction> = {
@@ -53,8 +54,8 @@ export function hasSelfCollision(snake: Position[]): boolean {
     .some((segment) => segment.x === head.x && segment.y === head.y);
 }
 
-export function hasFoodCollision(head: Position, food: Position): boolean {
-  return head.x === food.x && head.y === food.y;
+export function hasFoodCollision(head: Position, food: Food): boolean {
+  return head.x === food.position.x && head.y === food.position.y;
 }
 
 export function isValidPosition(position: Position, gridSize: number): boolean {
@@ -66,10 +67,7 @@ export function isValidPosition(position: Position, gridSize: number): boolean {
   );
 }
 
-export function generateRandomFood(
-  snake: Position[],
-  gridSize: number
-): Position {
+function generateRandomPosition(snake: Position[], gridSize: number): Position {
   const availablePositions: Position[] = [];
 
   // Generate all valid positions that are not occupied by snake
@@ -105,6 +103,33 @@ export function generateRandomFood(
   return {
     x: Math.max(0, Math.min(food.x, gridSize - 1)),
     y: Math.max(0, Math.min(food.y, gridSize - 1)),
+  };
+}
+
+function getRandomFoodType(): FoodType {
+  const random = Math.random();
+
+  if (random < POWER_UP_CONFIG.spawnChance) {
+    // Randomly select a power-up type (excluding NORMAL)
+    const powerUpTypes = [
+      FoodType.SPEED_BOOST,
+      FoodType.BONUS_POINTS,
+      FoodType.EXTRA_GROWTH,
+    ];
+    const randomIndex = Math.floor(Math.random() * powerUpTypes.length);
+    return powerUpTypes[randomIndex] ?? FoodType.NORMAL;
+  }
+
+  return FoodType.NORMAL;
+}
+
+export function generateRandomFood(snake: Position[], gridSize: number): Food {
+  const position = generateRandomPosition(snake, gridSize);
+  const type = getRandomFoodType();
+
+  return {
+    position,
+    type,
   };
 }
 

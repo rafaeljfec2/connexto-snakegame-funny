@@ -17,9 +17,27 @@ export interface Position {
   y: number;
 }
 
+export enum FoodType {
+  NORMAL = "NORMAL",
+  SPEED_BOOST = "SPEED_BOOST",
+  BONUS_POINTS = "BONUS_POINTS",
+  EXTRA_GROWTH = "EXTRA_GROWTH",
+}
+
+export interface Food {
+  position: Position;
+  type: FoodType;
+}
+
+export interface ActivePowerUp {
+  type: FoodType;
+  duration: number; // in milliseconds
+  startTime: number;
+}
+
 export interface GameState {
   snake: Position[];
-  food: Position;
+  food: Food;
   direction: Direction;
   nextDirection: Direction;
   status: GameStatus;
@@ -27,6 +45,7 @@ export interface GameState {
   highScore: number;
   level: number;
   gameSpeed: number;
+  activePowerUps: ActivePowerUp[];
 }
 
 export interface GameConfig {

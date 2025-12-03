@@ -109,8 +109,20 @@ function generateRandomPosition(snake: Position[], gridSize: number): Position {
 function getRandomFoodType(): FoodType {
   const random = Math.random();
 
-  if (random < POWER_UP_CONFIG.spawnChance) {
-    // Randomly select a power-up type (excluding NORMAL)
+  // Check for negative power-up first (smaller chance)
+  if (random < POWER_UP_CONFIG.negativeSpawnChance) {
+    const negativeTypes = [
+      FoodType.POISON,
+      FoodType.REVERSE_CONTROLS,
+      FoodType.SLOW_DOWN,
+    ];
+    const randomIndex = Math.floor(Math.random() * negativeTypes.length);
+    return negativeTypes[randomIndex] ?? FoodType.NORMAL;
+  }
+
+  // Check for positive power-up
+  if (random < POWER_UP_CONFIG.spawnChance + POWER_UP_CONFIG.negativeSpawnChance) {
+    // Randomly select a positive power-up type
     const powerUpTypes = [
       FoodType.SPEED_BOOST,
       FoodType.BONUS_POINTS,

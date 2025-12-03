@@ -36,6 +36,23 @@ export function applyPowerUpEffect(
     };
   }
   
+  if (foodType === FoodType.POISON) {
+    const shrinkAmount = effect.shrinkAmount ?? 2;
+    return {
+      scoreIncrease: effect.points ?? -5,
+      growthAmount: -Math.min(shrinkAmount, currentSnakeLength - 1), // Don't shrink below 1 segment
+      shouldActivatePowerUp: false,
+    };
+  }
+  
+  if (foodType === FoodType.REVERSE_CONTROLS || foodType === FoodType.SLOW_DOWN) {
+    return {
+      scoreIncrease: 0, // No points for negative power-ups
+      growthAmount: 0, // No growth for negative power-ups
+      shouldActivatePowerUp: true,
+    };
+  }
+  
   // Normal food
   return {
     scoreIncrease: 10,
@@ -65,14 +82,29 @@ export function getEffectiveGameSpeed(
   baseSpeed: number,
   activePowerUps: ActivePowerUp[]
 ): number {
+  let speed = baseSpeed;
+  
   const speedBoost = activePowerUps.find(
     (p) => p.type === FoodType.SPEED_BOOST
   );
   
   if (speedBoost !== undefined) {
     const effect = POWER_UP_CONFIG.effects[FoodType.SPEED_BOOST];
-    return Math.floor(baseSpeed * (effect.speedMultiplier ?? 0.6));
+    speed = Math.floor(speed * (effect.speedMultiplier ?? 0.6));
   }
   
-  return baseSpeed;
+  const slowDown = activePowerUps.find(
+    (p) => p.type === FoodType.SLOW_DOWN
+  );
+  
+  if (slowDown !== undefined) {
+    const effect = POWER_UP_CONFIG.effects[FoodType.SLOW_DOWN];
+    speed = Math.floor(speed * (effect.speedMultiplier ?? 1.8));
+  }
+  
+  return speed;
+}
+
+export function hasReverseControls(activePowerUps: ActivePowerUp[]): boolean {
+  return activePowerUps.some((p) => p.type === FoodType.REVERSE_CONTROLS);
 }

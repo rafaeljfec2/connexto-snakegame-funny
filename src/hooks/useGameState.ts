@@ -7,6 +7,7 @@ import {
 } from "@/constants/game";
 import { generateRandomFood, getHighScore } from "@/utils/gameLogic";
 import { calculateLevel, calculateGameSpeed } from "@/utils/difficulty";
+import { loadAchievements } from "@/utils/achievements";
 
 export function useGameState() {
   const [gameState, setGameState] = useState<GameState>(() => {
@@ -28,6 +29,14 @@ export function useGameState() {
       level: initialLevel,
       gameSpeed: initialSpeed,
       activePowerUps: [],
+      obstacles: [],
+      combo: {
+        count: 0,
+        multiplier: 1,
+        lastFoodTime: 0,
+      },
+      particles: [],
+      achievements: loadAchievements(),
     };
   });
 
@@ -50,6 +59,14 @@ export function useGameState() {
       level: initialLevel,
       gameSpeed: initialSpeed,
       activePowerUps: [],
+      obstacles: [],
+      combo: {
+        count: 0,
+        multiplier: 1,
+        lastFoodTime: 0,
+      },
+      particles: [],
+      achievements: loadAchievements(),
     });
   }, []);
 

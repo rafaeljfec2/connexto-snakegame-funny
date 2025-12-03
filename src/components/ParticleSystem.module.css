@@ -1,0 +1,23 @@
+.particle {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 200;
+  box-shadow: 0 0 8px currentColor;
+  animation: particleFloat 0.6s ease-out forwards;
+  will-change: transform, opacity;
+}
+
+@keyframes particleFloat {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.5);
+  }
+}
+

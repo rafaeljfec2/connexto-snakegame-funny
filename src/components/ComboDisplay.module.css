@@ -1,0 +1,77 @@
+.comboDisplay {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  min-width: 120px;
+  z-index: 900;
+  border: 2px solid rgba(255, 215, 0, 0.5);
+  box-shadow: 0 4px 16px rgba(255, 215, 0, 0.3);
+}
+
+.comboInfo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.comboLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(255, 215, 0, 0.9);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.comboCount {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #ffd700;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+  animation: pulse 1s ease-in-out infinite;
+}
+
+.comboBar {
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.comboBarFill {
+  height: 100%;
+  background: linear-gradient(90deg, #ffd700 0%, #ffed4e 100%);
+  border-radius: 2px;
+  transition: width 0.1s linear;
+  box-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+@media (max-width: 768px) {
+  .comboDisplay {
+    top: 60px;
+    right: 10px;
+    padding: 0.5rem 0.75rem;
+    min-width: 100px;
+  }
+
+  .comboCount {
+    font-size: 1.25rem;
+  }
+}
+

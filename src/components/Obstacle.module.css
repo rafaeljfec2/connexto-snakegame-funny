@@ -1,0 +1,88 @@
+.obstacle {
+  background-color: #4a5568;
+  border: 2px solid #2d3748;
+  border-radius: 4px;
+  box-shadow: 
+    inset 0 2px 4px rgba(0, 0, 0, 0.3),
+    0 0 8px rgba(74, 85, 104, 0.5);
+  animation: obstacleAppear 0.3s ease-out;
+  position: relative;
+  z-index: 10;
+}
+
+.obstacle::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(0, 0, 0, 0.2) 100%
+  );
+  border-radius: 4px;
+  pointer-events: none;
+}
+
+.obstacle.static {
+  background-color: #4a5568;
+}
+
+.obstacle.moving {
+  background-color: #718096;
+  animation: obstacleMove 2s ease-in-out infinite;
+}
+
+.obstacle.portal {
+  background: radial-gradient(circle, #805ad5 0%, #553c9a 100%);
+  border-color: #9f7aea;
+  box-shadow: 
+    inset 0 2px 4px rgba(0, 0, 0, 0.3),
+    0 0 12px rgba(128, 90, 213, 0.7);
+  animation: portalPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes obstacleAppear {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes obstacleMove {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+
+@keyframes portalPulse {
+  0%,
+  100% {
+    box-shadow: 
+      inset 0 2px 4px rgba(0, 0, 0, 0.3),
+      0 0 12px rgba(128, 90, 213, 0.7);
+  }
+  50% {
+    box-shadow: 
+      inset 0 2px 4px rgba(0, 0, 0, 0.3),
+      0 0 20px rgba(128, 90, 213, 1);
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  .obstacle.static {
+    background-color: #a0aec0;
+    border-color: #718096;
+  }
+}
+

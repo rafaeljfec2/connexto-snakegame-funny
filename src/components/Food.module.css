@@ -42,6 +42,26 @@
     extraGrowthPulse 1s ease-in-out infinite, powerUpRotate 3.5s linear infinite;
 }
 
+.food.poison {
+  animation: foodAppear 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
+    poisonPulse 0.6s ease-in-out infinite, powerUpRotate 2.5s linear infinite;
+  box-shadow: 0 0 16px var(--food-primary), 0 0 24px var(--food-primary),
+    0 0 8px rgba(16, 185, 129, 0.6);
+}
+
+.food.reverse-controls {
+  animation: foodAppear 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
+    reversePulse 0.7s ease-in-out infinite,
+    powerUpRotate 2s linear infinite reverse;
+  box-shadow: 0 0 16px var(--food-primary), 0 0 24px var(--food-primary);
+}
+
+.food.slow-down {
+  animation: foodAppear 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
+    slowDownPulse 1.5s ease-in-out infinite, powerUpRotate 5s linear infinite;
+  box-shadow: 0 0 16px var(--food-primary), 0 0 24px var(--food-primary);
+}
+
 .food::before {
   content: "";
   position: absolute;
@@ -181,6 +201,44 @@
   50% {
     opacity: 0.8;
     transform: scale(1.5);
+  }
+}
+
+@keyframes poisonPulse {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 16px var(--food-primary), 0 0 24px var(--food-primary),
+      0 0 8px rgba(16, 185, 129, 0.6);
+  }
+  50% {
+    transform: scale(1.15);
+    box-shadow: 0 0 20px var(--food-primary), 0 0 30px var(--food-primary),
+      0 0 12px rgba(16, 185, 129, 0.8);
+  }
+}
+
+@keyframes reversePulse {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 16px var(--food-primary), 0 0 24px var(--food-primary);
+  }
+  50% {
+    transform: scale(1.1);
+    box-shadow: 0 0 20px var(--food-primary), 0 0 28px var(--food-primary);
+  }
+}
+
+@keyframes slowDownPulse {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 16px var(--food-primary), 0 0 24px var(--food-primary);
+  }
+  50% {
+    transform: scale(1.1);
+    box-shadow: 0 0 18px var(--food-primary), 0 0 26px var(--food-primary);
   }
 }
 

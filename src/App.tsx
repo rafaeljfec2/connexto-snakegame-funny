@@ -6,6 +6,8 @@ import { GameInfo } from "./components/GameInfo";
 import { GameControls } from "./components/GameControls";
 import { LevelUpAnimation } from "./components/LevelUpAnimation";
 import { ActivePowerUps } from "./components/ActivePowerUps";
+import { ComboDisplay } from "./components/ComboDisplay";
+import { AchievementNotification } from "./components/AchievementNotification";
 import { GameStatus } from "@/types/game";
 import styles from "./App.module.css";
 
@@ -20,8 +22,12 @@ function App() {
   } = useGameLoop();
 
   const [showLevelUp, setShowLevelUp] = useState(false);
+  const [newlyUnlockedAchievements, setNewlyUnlockedAchievements] = useState<
+    string[]
+  >([]);
   const previousLevelRef = useRef(gameState.level);
   const previousScoreRef = useRef(gameState.score);
+  const previousAchievementsRef = useRef(gameState.achievements);
 
   useKeyboard({
     onDirectionChange: setDirection,
@@ -50,6 +56,26 @@ function App() {
       setShowLevelUp(false);
     }
   }, [gameState.status]);
+
+  // Detect newly unlocked achievements
+  useEffect(() => {
+    const currentUnlocked = gameState.achievements
+      .filter((a) => a.unlocked)
+      .map((a) => a.id);
+    const previousUnlocked = previousAchievementsRef.current
+      .filter((a) => a.unlocked)
+      .map((a) => a.id);
+
+    const newlyUnlocked = currentUnlocked.filter(
+      (id) => !previousUnlocked.includes(id)
+    );
+
+    if (newlyUnlocked.length > 0) {
+      setNewlyUnlockedAchievements(newlyUnlocked);
+    }
+
+    previousAchievementsRef.current = gameState.achievements;
+  }, [gameState.achievements]);
 
   const handleStart = () => {
     if (gameState.status === GameStatus.IDLE) {
@@ -92,6 +118,8 @@ function App() {
             food={gameState.food}
             status={gameState.status}
             level={gameState.level}
+            obstacles={gameState.obstacles}
+            particles={gameState.particles}
           />
         </div>
 
@@ -102,6 +130,13 @@ function App() {
         />
 
         <ActivePowerUps powerUps={gameState.activePowerUps} />
+
+        <ComboDisplay combo={gameState.combo} />
+
+        <AchievementNotification
+          newlyUnlocked={newlyUnlockedAchievements}
+          allAchievements={gameState.achievements}
+        />
 
         <GameControls
           onStart={handleStart}

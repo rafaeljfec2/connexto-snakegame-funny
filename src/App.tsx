@@ -121,11 +121,11 @@ function App() {
         <aside className={styles.leftPanel}>
           <div className={styles.panelContent}>
             <div className={styles.panelSection}>
-              <h3 className={styles.panelTitle}>Power-Ups</h3>
-              <ActivePowerUps powerUps={gameState.activePowerUps} />
+              <ComboDisplay combo={gameState.combo} />
             </div>
             <div className={styles.panelSection}>
-              <ComboDisplay combo={gameState.combo} />
+              <h3 className={styles.panelTitle}>Power-Ups</h3>
+              <ActivePowerUps powerUps={gameState.activePowerUps} />
             </div>
           </div>
         </aside>

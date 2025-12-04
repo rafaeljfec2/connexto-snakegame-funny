@@ -58,12 +58,22 @@
   }
 }
 
+.emptyCombo {
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.7rem;
+  font-style: italic;
+}
+
+.emptyCombo span {
+  display: block;
+}
+
 @media (max-width: 768px) {
   .comboDisplay {
-    top: 60px;
-    right: 10px;
-    padding: 0.5rem 0.75rem;
-    min-width: 100px;
+    padding: 0.75rem;
   }
 
   .comboCount {

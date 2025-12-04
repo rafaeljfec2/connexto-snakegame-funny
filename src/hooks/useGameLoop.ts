@@ -39,7 +39,14 @@ import {
 } from '@/utils/portals';
 import { PORTAL_CONFIG } from '@/constants/portals';
 import { getCurrentPhase, getBossForLevel, shouldSpawnBoss } from '@/utils/phases';
-import { getBossPosition, hasBossCollision, handleBossDefeat } from '@/utils/bosses';
+import { handleBossDefeat } from '@/utils/bosses';
+import {
+  initializeBossSnake,
+  moveBossSnake,
+  calculateBossNextDirection,
+  hasBossSnakeCollision,
+  hasPlayerHitBossHead,
+} from '@/utils/bossSnake';
 
 export function useGameLoop() {
   const {
@@ -348,37 +355,83 @@ export function useGameLoop() {
         activeBoss = undefined;
       }
 
-      // Calculate boss position when boss spawns or changes
-      let bossPosition = prev.bossPosition;
+      // Initialize or update boss snake
+      let bossSnake = prev.bossSnake;
       if (activeBoss && (!prev.activeBoss || prev.activeBoss.id !== activeBoss.id)) {
-        // New boss spawned - calculate position
-        const obstaclePositions = newObstacles.map((obs) => obs.position);
-        bossPosition =
-          getBossPosition(activeBoss, finalSnake, obstaclePositions, GAME_CONFIG.gridSize) ??
+        // New boss spawned - initialize boss snake
+        bossSnake =
+          initializeBossSnake(activeBoss, finalSnake, newObstacles, GAME_CONFIG.gridSize) ??
           undefined;
       } else if (shouldClearBoss) {
-        bossPosition = undefined;
+        bossSnake = undefined;
+      } else if (bossSnake && activeBoss) {
+        // Move boss snake based on AI behavior
+        const nextBossDirection = calculateBossNextDirection(
+          activeBoss,
+          bossSnake,
+          finalSnake,
+          newObstacles,
+          prev.food.position,
+          GAME_CONFIG.gridSize,
+        );
+        bossSnake = moveBossSnake(bossSnake, nextBossDirection, GAME_CONFIG.gridSize);
       }
 
-      // Check for boss collision (boss gives points when touched)
-      if (prev.activeBoss && prev.bossPosition && headPosition) {
-        if (hasBossCollision(headPosition, prev.bossPosition)) {
+      // Check for boss collision - player hits boss snake
+      if (bossSnake && headPosition) {
+        if (hasPlayerHitBossHead(finalSnake, bossSnake)) {
           // Boss defeated! Give points and clear boss
-          const bossReward = handleBossDefeat(prev.activeBoss, prev);
-          newScore += bossReward.scoreIncrease;
+          if (activeBoss) {
+            const bossReward = handleBossDefeat(activeBoss, prev);
+            newScore += bossReward.scoreIncrease;
 
-          // Create particles for boss defeat
-          if (GAME_CONFIG.enableParticles) {
-            const bossColor = prev.activeBoss.visual.color;
-            newParticles = [
-              ...newParticles,
-              ...createParticles(prev.bossPosition, bossColor, 20, 1000),
-            ];
+            // Create particles for boss defeat
+            if (GAME_CONFIG.enableParticles && bossSnake.positions[0]) {
+              const bossColor = activeBoss.visual.color;
+              newParticles = [
+                ...newParticles,
+                ...createParticles(bossSnake.positions[0], bossColor, 20, 1000),
+              ];
+            }
+
+            // Clear boss after defeat
+            activeBoss = undefined;
+            bossSnake = undefined;
           }
+        }
+      }
 
-          // Clear boss after defeat
-          activeBoss = undefined;
-          bossPosition = undefined;
+      // Check for collision - player snake hits boss snake body
+      if (bossSnake && headPosition) {
+        if (hasBossSnakeCollision(headPosition, bossSnake)) {
+          // Player hit boss snake body - game over (or lose life)
+          if (isLivesEnabled() && prev.lives > 0) {
+            // Enter dying state
+            return {
+              ...prev,
+              snake: finalSnake,
+              score: newScore,
+              status: GameStatus.DYING,
+              lives: prev.lives,
+              portals: newPortals,
+              statistics,
+              bossSnake,
+            };
+          } else {
+            // No lives left, game over
+            saveHighScore(newScore);
+            saveAchievements(prev.achievements);
+            return {
+              ...prev,
+              snake: finalSnake,
+              score: newScore,
+              status: GameStatus.GAME_OVER,
+              portals: newPortals,
+              highScore: Math.max(newScore, prev.highScore),
+              statistics,
+              bossSnake,
+            };
+          }
         }
       }
 
@@ -451,7 +504,7 @@ export function useGameLoop() {
         currentPhase: currentPhase?.id ?? prev.currentPhase,
         phaseLevelType: currentPhase?.type ?? prev.phaseLevelType,
         activeBoss: activeBoss,
-        bossPosition: bossPosition,
+        bossSnake: bossSnake,
       };
     });
   }, [updateGameState]);

@@ -1,11 +1,11 @@
-import { Position, GameStatus, Food as FoodType, Obstacle, Particle, Portal } from '@/types/game';
+import { Position, GameStatus, Food as FoodType, Obstacle, Particle, Portal, BossSnake } from '@/types/game';
 import { GAME_CONFIG } from '@/constants/game';
 import { SnakeSegment } from './SnakeSegment';
 import { Food } from './Food';
 import { ObstacleComponent } from './Obstacle';
 import { ParticleSystem } from './ParticleSystem';
 import { Portal as PortalComponent } from './Portal';
-import { Boss } from './Boss';
+import { BossSnake as BossSnakeComponent } from './BossSnake';
 import { useEffect, useRef, useState } from 'react';
 import styles from './GameBoard.module.css';
 import { Chef } from '@/types/phases';
@@ -19,7 +19,7 @@ interface GameBoardProps {
   portals?: Portal[];
   particles?: Particle[];
   activeBoss?: Chef;
-  bossPosition?: Position;
+  bossSnake?: BossSnake;
 }
 
 export function GameBoard({
@@ -31,7 +31,7 @@ export function GameBoard({
   portals = [],
   particles = [],
   activeBoss,
-  bossPosition,
+  bossSnake,
 }: GameBoardProps) {
   const gridStyle = {
     gridTemplateColumns: `repeat(${GAME_CONFIG.gridSize}, ${GAME_CONFIG.cellSize}px)`,
@@ -144,8 +144,8 @@ export function GameBoard({
         />
       ))}
       <Food key={foodKey} food={food} />
-      {activeBoss && bossPosition && (
-        <Boss boss={activeBoss} position={bossPosition} gridSize={GAME_CONFIG.gridSize} />
+      {activeBoss && bossSnake && (
+        <BossSnakeComponent bossSnake={bossSnake} boss={activeBoss} />
       )}
       {GAME_CONFIG.enableParticles && <ParticleSystem particles={particles} />}
     </div>

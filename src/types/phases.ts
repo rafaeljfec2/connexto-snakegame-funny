@@ -23,6 +23,8 @@ export interface BossAbility {
   cooldown?: number;
 }
 
+export type BossBehavior = 'chase' | 'flee' | 'patrol' | 'random' | 'aggressive';
+
 export interface Chef {
   id: string;
   name: string;
@@ -35,6 +37,8 @@ export interface Chef {
     size?: number;
   };
   health?: number; // Optional health system for bosses
+  behavior?: BossBehavior; // AI behavior for boss snake
+  initialLength?: number; // Initial snake length (default: 3)
 }
 
 export interface PhaseConfig {

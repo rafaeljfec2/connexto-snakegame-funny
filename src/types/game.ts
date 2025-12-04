@@ -18,6 +18,13 @@ export interface Position {
   y: number;
 }
 
+export interface BossSnake {
+  positions: Position[];
+  direction: Direction;
+  nextDirection: Direction;
+  initialLength: number;
+}
+
 export enum FoodType {
   NORMAL = 'NORMAL',
   SPEED_BOOST = 'SPEED_BOOST',
@@ -104,7 +111,7 @@ export interface GameState {
   currentPhase?: number; // Current phase number (1-10)
   phaseLevelType?: import('./phases').PhaseLevelType; // Type of level in current phase
   activeBoss?: import('./phases').Chef; // Active boss (if in boss level)
-  bossPosition?: Position; // Boss position on the grid
+  bossSnake?: BossSnake; // Boss snake (positions, direction, etc.)
 }
 
 export interface GameConfig {

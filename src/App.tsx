@@ -182,7 +182,7 @@ function App() {
               portals={gameState.portals}
               particles={gameState.particles}
               activeBoss={gameState.activeBoss}
-              bossPosition={gameState.bossPosition}
+              bossSnake={gameState.bossSnake}
             />
           </div>
 

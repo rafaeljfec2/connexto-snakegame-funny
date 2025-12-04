@@ -216,6 +216,8 @@ export const CHEFS: Chef[] = [
     description: 'O primeiro chefe. Simples e direto.',
     phase: 1,
     abilities: [],
+    behavior: 'random',
+    initialLength: 3,
     visual: {
       color: '#22c55e',
       icon: '⚡',
@@ -235,6 +237,8 @@ export const CHEFS: Chef[] = [
         effect: () => {}, // Will be implemented
       },
     ],
+    behavior: 'patrol',
+    initialLength: 4,
     visual: {
       color: '#3b82f6',
       icon: '🛡️',
@@ -254,6 +258,8 @@ export const CHEFS: Chef[] = [
         effect: () => {},
       },
     ],
+    behavior: 'chase',
+    initialLength: 5,
     visual: {
       color: '#f59e0b',
       icon: '⚔️',
@@ -273,6 +279,8 @@ export const CHEFS: Chef[] = [
         effect: () => {},
       },
     ],
+    behavior: 'random',
+    initialLength: 5,
     visual: {
       color: '#8b5cf6',
       icon: '🌀',
@@ -292,6 +300,8 @@ export const CHEFS: Chef[] = [
         effect: () => {},
       },
     ],
+    behavior: 'aggressive',
+    initialLength: 6,
     visual: {
       color: '#ef4444',
       icon: '💨',
@@ -311,6 +321,8 @@ export const CHEFS: Chef[] = [
         effect: () => {},
       },
     ],
+    behavior: 'random',
+    initialLength: 6,
     visual: {
       color: '#ec4899',
       icon: '🎲',
@@ -330,6 +342,8 @@ export const CHEFS: Chef[] = [
         effect: () => {},
       },
     ],
+    behavior: 'patrol',
+    initialLength: 7,
     visual: {
       color: '#6366f1',
       icon: '🏗️',
@@ -350,6 +364,8 @@ export const CHEFS: Chef[] = [
         cooldown: 5000,
       },
     ],
+    behavior: 'flee',
+    initialLength: 7,
     visual: {
       color: '#dc2626',
       icon: '💀',
@@ -369,6 +385,8 @@ export const CHEFS: Chef[] = [
         effect: () => {},
       },
     ],
+    behavior: 'aggressive',
+    initialLength: 8,
     visual: {
       color: '#7c3aed',
       icon: '🌪️',
@@ -388,6 +406,8 @@ export const CHEFS: Chef[] = [
         effect: () => {},
       },
     ],
+    behavior: 'aggressive',
+    initialLength: 10,
     visual: {
       color: '#fbbf24',
       icon: '👑',

@@ -7,6 +7,7 @@ import {
   hasFoodCollision,
   generateRandomFood,
   isValidDirectionChange,
+  isSafeDirectionChange,
   saveHighScore,
   getOppositeDirection,
 } from '@/utils/gameLogic';
@@ -63,15 +64,30 @@ export function useGameLoop() {
         nextDirectionInput = getOppositeDirection(prev.nextDirection);
       }
 
-      // Direction is already applied immediately in setDirection, but double-check here
-      // This ensures smooth transitions even if setDirection didn't catch it
+      // Apply direction change immediately if valid and safe
+      // This provides maximum responsiveness for rapid key presses
       if (
         nextDirectionInput !== prev.direction &&
         isValidDirectionChange(prev.direction, nextDirectionInput)
       ) {
-        currentDirection = nextDirectionInput;
+        // Check if direction change is safe (won't cause collision)
+        const isSafe = isSafeDirectionChange(
+          prev.snake,
+          prev.direction,
+          nextDirectionInput,
+          GAME_CONFIG.gridSize,
+        );
+
+        if (isSafe) {
+          // Apply immediately for instant response to rapid key presses
+          currentDirection = nextDirectionInput;
+        } else {
+          // Not safe yet - keep current direction but queue for next check
+          // This allows rapid changes to be applied as soon as they become safe
+          currentDirection = prev.direction;
+        }
       } else {
-        // Use the current direction (already set immediately if valid)
+        // Use the current direction
         currentDirection = prev.direction;
       }
 

@@ -16,7 +16,11 @@ export function isValidDirectionChange(
   currentDirection: Direction,
   newDirection: Direction,
 ): boolean {
-  return newDirection !== getOppositeDirection(currentDirection);
+  // Cannot move in opposite direction
+  if (newDirection === getOppositeDirection(currentDirection)) {
+    return false;
+  }
+  return true;
 }
 
 export function getNextHeadPosition(
@@ -42,6 +46,62 @@ export function getNextHeadPosition(
   }
 
   return nextPosition;
+}
+
+/**
+ * Check if a direction change would cause immediate collision
+ * This allows quick turns without self-collision
+ */
+export function wouldCauseCollision(
+  snake: Position[],
+  newDirection: Direction,
+  gridSize: number,
+): boolean {
+  if (snake.length < 4) {
+    return false; // Cannot collide with less than 4 segments
+  }
+
+  const head = snake[0];
+  if (!head) {
+    return false;
+  }
+
+  // Calculate where the head would be after moving in new direction
+  const nextHeadPosition = getNextHeadPosition(head, newDirection, gridSize);
+
+  // Check if next position would collide with body segments
+  // Skip first 3 segments (head + 2 body segments) to allow quick turns
+  // This prevents false positives when making rapid direction changes
+  for (let i = 3; i < snake.length; i++) {
+    if (snake[i].x === nextHeadPosition.x && snake[i].y === nextHeadPosition.y) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Check if direction change is safe (won't cause immediate collision)
+ */
+export function isSafeDirectionChange(
+  snake: Position[],
+  currentDirection: Direction,
+  newDirection: Direction,
+  gridSize: number,
+): boolean {
+  // Basic validation - cannot move opposite
+  if (!isValidDirectionChange(currentDirection, newDirection)) {
+    return false;
+  }
+
+  // If same direction, it's safe
+  if (currentDirection === newDirection) {
+    return true;
+  }
+
+  // Check if new direction would cause collision
+  return !wouldCauseCollision(snake, newDirection, gridSize);
 }
 
 export function hasSelfCollision(snake: Position[]): boolean {

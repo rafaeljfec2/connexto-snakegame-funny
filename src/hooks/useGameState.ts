@@ -1,7 +1,12 @@
 import { useState, useCallback } from 'react';
 import { GameState, Direction, GameStatus } from '@/types/game';
 import { GAME_CONFIG, INITIAL_DIRECTION, INITIAL_SNAKE_POSITION } from '@/constants/game';
-import { generateRandomFood, getHighScore, isValidDirectionChange } from '@/utils/gameLogic';
+import {
+  generateRandomFood,
+  getHighScore,
+  isValidDirectionChange,
+  isSafeDirectionChange,
+} from '@/utils/gameLogic';
 import { calculateLevel, calculateGameSpeed } from '@/utils/difficulty';
 import { loadAchievements } from '@/utils/achievements';
 import { LIVES_CONFIG } from '@/constants/lives';
@@ -122,22 +127,30 @@ export function useGameState() {
         return prev;
       }
 
-      // Apply direction change immediately if valid (makes controls more responsive)
+      // Maximum responsiveness: apply direction changes immediately when valid
+      // No debounce, no delays - allows very rapid direction changes
       const isValidChange = isValidDirectionChange(prev.direction, direction);
 
       if (isValidChange) {
+        // Always update nextDirection to allow rapid queuing of direction changes
+        // This ensures that rapid key presses are captured and processed
         return {
           ...prev,
-          direction,
           nextDirection: direction,
+          // If safe, also update current direction immediately for instant response
+          ...(isSafeDirectionChange(
+            prev.snake,
+            prev.direction,
+            direction,
+            GAME_CONFIG.gridSize,
+          ) && {
+            direction,
+          }),
         };
       }
 
-      // Store for next valid frame if not immediately valid
-      return {
-        ...prev,
-        nextDirection: direction,
-      };
+      // Invalid direction (opposite) - ignore
+      return prev;
     });
   }, []);
 

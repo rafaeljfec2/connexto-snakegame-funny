@@ -19,7 +19,9 @@ export function useKeyboard({ onDirectionChange, onKeyPress, enabled = true }: U
       if (direction !== undefined) {
         event.preventDefault();
         event.stopPropagation();
-        // Apply direction change immediately for better responsiveness
+        
+        // Apply direction change immediately - maximum responsiveness
+        // No debounce, no delay - allows rapid direction changes
         onDirectionChange(direction);
         return;
       }
@@ -37,6 +39,7 @@ export function useKeyboard({ onDirectionChange, onKeyPress, enabled = true }: U
     }
 
     // Use capture phase for faster event handling
+    // Capture phase processes events before they bubble, making controls more responsive
     window.addEventListener('keydown', handleKeyDown, { capture: true });
 
     return () => {

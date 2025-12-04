@@ -2,7 +2,7 @@ import { GameConfig, Direction, Position } from "@/types/game";
 
 export const GAME_CONFIG: GameConfig = {
   gridSize: 30, // Increased from 20 to allow more space for obstacles
-  cellSize: 16, // Reduced slightly to accommodate larger grid while maintaining size
+  cellSize: 14, // Reduced to fit better on screen without scroll
   gameSpeed: 150,
   initialSnakeLength: 3,
   enableObstacles: true,

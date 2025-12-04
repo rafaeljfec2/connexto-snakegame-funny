@@ -7,22 +7,30 @@ interface ComboDisplayProps {
 }
 
 export function ComboDisplay({ combo }: ComboDisplayProps) {
-  if (!GAME_CONFIG.enableCombos || combo.count < COMBO_CONFIG.minCombo) {
+  if (!GAME_CONFIG.enableCombos) {
     return null;
   }
 
-  // Calculate remaining time in combo window
+  // Always show combo display
   const now = Date.now();
-  const timeSinceLastFood = now - combo.lastFoodTime;
+  const timeSinceLastFood = combo.lastFoodTime > 0 ? now - combo.lastFoodTime : Infinity;
   const comboWindow = COMBO_CONFIG.comboWindow;
   const remainingTime = Math.max(0, comboWindow - timeSinceLastFood);
-  const progress = (remainingTime / comboWindow) * 100;
+  const progress = combo.count >= COMBO_CONFIG.minCombo 
+    ? (remainingTime / comboWindow) * 100 
+    : 0;
+
+  const isActive = combo.count >= COMBO_CONFIG.minCombo;
 
   return (
     <div className={styles.comboDisplay}>
       <div className={styles.comboInfo}>
         <span className={styles.comboLabel}>COMBO</span>
-        <span className={styles.comboCount}>x{combo.multiplier}</span>
+        <span 
+          className={`${styles.comboCount} ${isActive ? styles.active : ''}`}
+        >
+          x{combo.multiplier}
+        </span>
       </div>
       <div className={styles.comboBar}>
         <div

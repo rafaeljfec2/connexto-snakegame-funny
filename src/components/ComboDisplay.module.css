@@ -27,6 +27,12 @@
 .comboCount {
   font-size: 1.5rem;
   font-weight: 800;
+  color: rgba(255, 215, 0, 0.6);
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
+  transition: all 0.3s ease;
+}
+
+.comboCount.active {
   color: #ffd700;
   text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
   animation: pulse 1s ease-in-out infinite;

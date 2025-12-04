@@ -123,6 +123,7 @@ function App() {
         <aside className={styles.leftPanel}>
           <div className={styles.panelContent}>
             <div className={styles.panelSection}>
+              <h3 className={styles.panelTitle}>Combo</h3>
               <ComboDisplay combo={gameState.combo} />
             </div>
             <div className={styles.panelSection}>

@@ -8,10 +8,14 @@ import { LevelUpAnimation } from "./components/LevelUpAnimation";
 import { ActivePowerUps } from "./components/ActivePowerUps";
 import { ComboDisplay } from "./components/ComboDisplay";
 import { AchievementNotification } from "./components/AchievementNotification";
+import { ThemeToggle } from "./components/ThemeToggle";
+import { DynamicBackground } from "./components/DynamicBackground";
+import { useTheme } from "@/contexts/ThemeContext";
 import { GameStatus } from "@/types/game";
 import styles from "./App.module.css";
 
 function App() {
+  const { effectiveTheme } = useTheme();
   const {
     gameState,
     resetGame,
@@ -99,7 +103,9 @@ function App() {
   }, []);
 
   return (
-    <div className={styles.app}>
+    <div className={styles.app} data-theme={effectiveTheme}>
+      <DynamicBackground level={gameState.level} theme={effectiveTheme} />
+      <ThemeToggle />
       <header className={styles.header}>
         <h1 className={styles.title}>Snake Game</h1>
       </header>

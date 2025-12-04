@@ -4,6 +4,7 @@ import { SnakeSegment } from "./SnakeSegment";
 import { Food } from "./Food";
 import { ObstacleComponent } from "./Obstacle";
 import { ParticleSystem } from "./ParticleSystem";
+import { SnakeTrail } from "./SnakeTrail";
 import { useEffect, useRef, useState } from "react";
 import styles from "./GameBoard.module.css";
 

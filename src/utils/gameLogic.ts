@@ -44,14 +44,23 @@ export function getNextHeadPosition(
 }
 
 export function hasSelfCollision(snake: Position[]): boolean {
+  // Need at least 4 segments to have self-collision (head + 3 body segments)
   if (snake.length < 4) {
     return false;
   }
 
   const head = snake[0];
-  return snake
-    .slice(1)
-    .some((segment) => segment.x === head.x && segment.y === head.y);
+  
+  // Check if head collides with any body segment
+  // Skip index 0 (head) and index 1 (immediate next segment after head)
+  // Index 1 is normally adjacent and not a collision unless snake wraps around
+  for (let i = 2; i < snake.length; i++) {
+    if (snake[i].x === head.x && snake[i].y === head.y) {
+      return true;
+    }
+  }
+  
+  return false;
 }
 
 export function hasFoodCollision(head: Position, food: Food): boolean {

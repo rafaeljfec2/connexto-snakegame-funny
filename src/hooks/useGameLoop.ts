@@ -142,14 +142,14 @@ export function useGameLoop() {
 
         // Apply growth (positive or negative)
         if (powerUpEffect.growthAmount > 0) {
-          // Grow
-          for (let i = 0; i < powerUpEffect.growthAmount; i++) {
-            finalSnake = moveSnake(
-              i === 0 ? prev.snake : finalSnake,
-              currentDirection,
-              GAME_CONFIG.gridSize,
-              true
-            );
+          // Grow: When snake eats, it should grow from the tail
+          // The head has already moved, so we just need to add segments at the end
+          const growthAmount = powerUpEffect.growthAmount;
+          const currentTail = finalSnake[finalSnake.length - 1];
+          
+          // Add new segments at the tail position (they will move next frame)
+          for (let i = 0; i < growthAmount; i++) {
+            finalSnake = [...finalSnake, { ...currentTail }];
           }
         } else if (powerUpEffect.growthAmount < 0) {
           // Shrink (for poison)

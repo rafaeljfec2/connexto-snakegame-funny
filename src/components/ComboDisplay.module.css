@@ -79,10 +79,38 @@
 
 @media (max-width: 768px) {
   .comboDisplay {
-    padding: 0.75rem;
+    padding: 0.5rem;
+    border-radius: 8px;
   }
 
   .comboCount {
-    font-size: 1.25rem;
+    font-size: 1rem;
+  }
+
+  .comboLabel {
+    font-size: 0.65rem;
+  }
+
+  .comboBar {
+    height: 3px;
+  }
+}
+
+@media (max-width: 480px) {
+  .comboDisplay {
+    padding: 0.4rem;
+  }
+
+  .comboCount {
+    font-size: 0.9rem;
+  }
+
+  .comboLabel {
+    font-size: 0.6rem;
+  }
+
+  .comboInfo {
+    gap: 0.3rem;
+    margin-bottom: 0.3rem;
   }
 }

@@ -13,6 +13,7 @@ import { DynamicBackground } from './components/DynamicBackground';
 import { LivesDisplay } from './components/LivesDisplay';
 import { GameStatistics as GameStatisticsComponent } from './components/GameStatistics';
 import { DeathTransition } from './components/DeathTransition';
+import { TouchControls } from './components/TouchControls';
 import { GameStatus } from '@/types/game';
 import { createFinalStatistics, saveGameSession } from '@/utils/statistics';
 import styles from './App.module.css';
@@ -221,6 +222,12 @@ function App() {
 
       {/* Death Transition Animation */}
       <DeathTransition status={gameState.status} lives={gameState.lives} />
+
+      {/* Touch Controls for Mobile */}
+      <TouchControls
+        onDirectionChange={setDirection}
+        enabled={gameState.status === GameStatus.PLAYING}
+      />
 
       {/* Game Statistics Modal */}
       {showStatistics && gameStatistics && (

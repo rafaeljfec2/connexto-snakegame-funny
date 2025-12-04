@@ -190,27 +190,71 @@
 }
 
 @media (max-width: 768px) {
+  .container {
+    gap: 0.4rem;
+  }
+
   .powerUp {
-    padding: 0.6rem;
+    padding: 0.4rem;
+    border-radius: 6px;
   }
 
   .name {
-    font-size: 0.7rem;
+    font-size: 0.65rem;
   }
 
   .timer {
-    font-size: 0.75rem;
-  }
-
-  .powerUpItem {
-    padding: 0.5rem;
-  }
-
-  .itemName {
     font-size: 0.7rem;
   }
 
-  .itemDescription {
+  .icon {
+    font-size: 1.2rem;
+  }
+
+  .powerUpItem {
+    padding: 0.4rem;
+    gap: 0.5rem;
+  }
+
+  .itemName {
     font-size: 0.65rem;
+  }
+
+  .itemDescription {
+    font-size: 0.6rem;
+  }
+
+  .itemIcon {
+    font-size: 1.2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .powerUp {
+    padding: 0.35rem;
+  }
+
+  .name {
+    font-size: 0.6rem;
+  }
+
+  .timer {
+    font-size: 0.65rem;
+  }
+
+  .icon {
+    font-size: 1rem;
+  }
+
+  .powerUpItem {
+    padding: 0.35rem;
+  }
+
+  .itemName {
+    font-size: 0.6rem;
+  }
+
+  .itemIcon {
+    font-size: 1rem;
   }
 }

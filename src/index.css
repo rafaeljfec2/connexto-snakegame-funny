@@ -22,6 +22,10 @@
 html {
   overflow: hidden;
   height: 100%;
+  /* Prevent zoom on mobile */
+  touch-action: manipulation;
+  -webkit-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
 }
 
 body {
@@ -32,6 +36,13 @@ body {
   height: 100vh;
   background-color: #0f172a;
   overflow: hidden;
+  /* Prevent pull-to-refresh on mobile */
+  overscroll-behavior: none;
+  /* Prevent text selection on mobile for better touch experience */
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 #root {

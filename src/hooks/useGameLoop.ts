@@ -26,7 +26,6 @@ import { generateObstacles, hasObstacleCollision } from '@/utils/obstacles';
 import { checkAchievements, saveAchievements } from '@/utils/achievements';
 import { hasFoodExpired } from '@/utils/foodTimer';
 import { loseLife, isLivesEnabled, addLife } from '@/utils/lives';
-import { LIVES_CONFIG } from '@/constants/lives';
 import { POWER_UP_CONFIG } from '@/constants/powerUps';
 import { INITIAL_DIRECTION } from '@/constants/game';
 import { useGameState } from './useGameState';
@@ -449,13 +448,11 @@ export function useGameLoop() {
         };
       }
 
-      // Continue with reduced snake and score
+      // Continue with same snake size - no reduction on death
       // Always reset snake to initial safe position to avoid collision
       // Don't use the snake that just collided, always use safe initial position
-      const targetLength = Math.max(
-        LIVES_CONFIG.minLengthAfterPenalty,
-        Math.min(prev.snake.length - LIVES_CONFIG.lengthPenalty, 10),
-      );
+      // Maintain current snake length - don't reduce size
+      const targetLength = prev.snake.length;
 
       // Always create fresh snake from initial position to avoid any collision
       const safeSnake = INITIAL_SNAKE_POSITION.slice(

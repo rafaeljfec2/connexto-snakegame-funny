@@ -21,7 +21,15 @@
 
 @media (max-width: 768px) {
   .statusMessage {
-    font-size: 0.875rem;
-    padding: 0.5rem 0.75rem;
+    font-size: 0.7rem;
+    padding: 0.4rem 0.6rem;
+    letter-spacing: 0.5px;
+  }
+}
+
+@media (max-width: 480px) {
+  .statusMessage {
+    font-size: 0.65rem;
+    padding: 0.35rem 0.5rem;
   }
 }

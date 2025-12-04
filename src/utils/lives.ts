@@ -11,19 +11,16 @@ export function loseLife(
   newSnake: Array<{ x: number; y: number }>;
 } {
   let newScore = currentScore;
-  let newSnake = [...currentSnake];
+  // Keep snake at current length - no size reduction on death
+  const newSnake = [...currentSnake];
 
   // Apply points penalty
   if (LIVES_CONFIG.pointsPenalty > 0) {
     newScore = Math.max(0, currentScore - LIVES_CONFIG.pointsPenalty);
   }
 
-  // Apply length penalty
-  if (LIVES_CONFIG.lengthPenalty > 0) {
-    const minLength = LIVES_CONFIG.minLengthAfterPenalty;
-    const targetLength = Math.max(minLength, newSnake.length - LIVES_CONFIG.lengthPenalty);
-    newSnake = newSnake.slice(0, targetLength);
-  }
+  // No length penalty - snake maintains its size when continuing after death
+  // This allows players to keep their progress
 
   return { newScore, newSnake };
 }

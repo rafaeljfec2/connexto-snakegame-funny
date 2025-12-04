@@ -24,13 +24,65 @@ export function ActivePowerUps({ powerUps }: ActivePowerUpsProps) {
     return () => clearInterval(interval);
   }, [activePowerUps.length]);
 
-  if (activePowerUps.length === 0) {
-    return (
-      <div className={styles.empty}>
-        <span className={styles.emptyText}>No active power-ups</span>
-      </div>
-    );
-  }
+  const getAllPowerUps = (): Array<{
+    type: FoodType;
+    name: string;
+    description: string;
+    icon: string;
+    isPositive: boolean;
+  }> => {
+    return [
+      {
+        type: FoodType.SPEED_BOOST,
+        name: "Speed Boost",
+        description: "Move faster for 5s",
+        icon: "⚡",
+        isPositive: true,
+      },
+      {
+        type: FoodType.BONUS_POINTS,
+        name: "Bonus Points",
+        description: "+30 points",
+        icon: "💰",
+        isPositive: true,
+      },
+      {
+        type: FoodType.EXTRA_GROWTH,
+        name: "Extra Growth",
+        description: "Grow by 2 segments",
+        icon: "📈",
+        isPositive: true,
+      },
+      {
+        type: FoodType.PHASE_THROUGH,
+        name: "Phase Through",
+        description: "Pass obstacles for 6s",
+        icon: "👻",
+        isPositive: true,
+      },
+      {
+        type: FoodType.POISON,
+        name: "Poison",
+        description: "Lose 2 segments, -5 pts",
+        icon: "☠️",
+        isPositive: false,
+      },
+      {
+        type: FoodType.REVERSE_CONTROLS,
+        name: "Reverse Controls",
+        description: "Controls reversed for 4s",
+        icon: "🔄",
+        isPositive: false,
+      },
+      {
+        type: FoodType.SLOW_DOWN,
+        name: "Slow Down",
+        description: "Move slower for 3s",
+        icon: "🐌",
+        isPositive: false,
+      },
+    ];
+  };
 
   const getPowerUpName = (type: FoodType): string => {
     switch (type) {
@@ -56,6 +108,36 @@ export function ActivePowerUps({ powerUps }: ActivePowerUpsProps) {
     const remaining = powerUp.duration - elapsed;
     return Math.max(0, Math.ceil(remaining / 1000));
   };
+
+  if (activePowerUps.length === 0) {
+    const allPowerUps = getAllPowerUps();
+    
+    return (
+      <div className={styles.container}>
+        <div className={styles.powerUpsList}>
+          {allPowerUps.map((powerUp) => {
+            const colors = POWER_UP_CONFIG.colors[powerUp.type];
+            return (
+              <div
+                key={powerUp.type}
+                className={`${styles.powerUpItem} ${!powerUp.isPositive ? styles.negative : ""}`}
+                style={{
+                  "--powerup-primary": colors.primary,
+                  "--powerup-secondary": colors.secondary,
+                } as React.CSSProperties}
+              >
+                <div className={styles.itemIcon}>{powerUp.icon}</div>
+                <div className={styles.itemInfo}>
+                  <div className={styles.itemName}>{powerUp.name}</div>
+                  <div className={styles.itemDescription}>{powerUp.description}</div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.container}>

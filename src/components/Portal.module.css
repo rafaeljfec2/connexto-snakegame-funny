@@ -9,34 +9,115 @@
   pointer-events: none;
 }
 
-.portalRing {
+.portalFrame {
   position: relative;
-  width: 80%;
-  height: 80%;
-  border-radius: 50%;
-  border: 3px solid var(--portal-primary);
+  width: 90%;
+  height: 90%;
+  border: 4px solid var(--portal-primary);
+  border-radius: 6px;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.8) 100%);
   box-shadow: 
-    0 0 10px var(--portal-glow),
-    0 0 20px var(--portal-glow),
-    inset 0 0 10px var(--portal-glow);
-  animation: portalRotate 3s linear infinite, portalPulse 2s ease-in-out infinite;
+    0 0 15px var(--portal-glow),
+    0 0 30px var(--portal-glow),
+    inset 0 0 10px rgba(0, 0, 0, 0.6),
+    inset 0 3px 6px rgba(255, 255, 255, 0.15);
+  animation: portalFramePulse 2.5s ease-in-out infinite;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 3px;
 }
 
-.portalCore {
-  width: 60%;
-  height: 60%;
-  border-radius: 50%;
+.portalDoor {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    135deg,
+    rgba(0, 0, 0, 0.5) 0%,
+    rgba(0, 0, 0, 0.7) 50%,
+    rgba(0, 0, 0, 0.5) 100%
+  );
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.portalHandle {
+  position: absolute;
+  right: 8%;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 8px;
+  height: 12px;
+  background: linear-gradient(90deg, var(--portal-secondary) 0%, var(--portal-primary) 100%);
+  border-radius: 3px;
+  box-shadow: 
+    0 0 6px var(--portal-glow),
+    inset 0 1px 2px rgba(255, 255, 255, 0.3);
+  z-index: 2;
+}
+
+.portalOpening {
+  width: 70%;
+  height: 70%;
+  border: 3px solid var(--portal-secondary);
+  border-radius: 4px;
   background: radial-gradient(
-    circle,
-    var(--portal-secondary) 0%,
-    var(--portal-primary) 50%,
+    ellipse at center,
+    transparent 10%,
+    var(--portal-primary) 40%,
+    var(--portal-secondary) 70%,
     transparent 100%
   );
-  animation: portalCorePulse 1.5s ease-in-out infinite;
-  opacity: 0.8;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 
+    inset 0 0 25px var(--portal-glow),
+    0 0 20px var(--portal-primary),
+    0 0 40px var(--portal-glow);
+}
+
+.portalVortex {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 120%;
+  height: 120%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    var(--portal-primary) 60deg,
+    var(--portal-secondary) 120deg,
+    var(--portal-primary) 180deg,
+    var(--portal-secondary) 240deg,
+    var(--portal-primary) 300deg,
+    transparent 360deg
+  );
+  animation: portalVortexSpin 2.5s linear infinite;
+  opacity: 0.7;
+  filter: blur(1px);
+}
+
+.portalInnerGlow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80%;
+  height: 80%;
+  background: radial-gradient(
+    circle,
+    var(--portal-primary) 0%,
+    var(--portal-secondary) 50%,
+    transparent 100%
+  );
+  animation: portalInnerPulse 1.5s ease-in-out infinite;
+  opacity: 0.5;
 }
 
 .portalTimer {
@@ -61,34 +142,42 @@
   box-shadow: 0 0 4px var(--portal-glow);
 }
 
-@keyframes portalRotate {
+@keyframes portalFramePulse {
+  0%, 100% {
+    box-shadow: 
+      0 0 15px var(--portal-glow),
+      0 0 30px var(--portal-glow),
+      inset 0 0 10px rgba(0, 0, 0, 0.6),
+      inset 0 3px 6px rgba(255, 255, 255, 0.15);
+    border-color: var(--portal-primary);
+  }
+  50% {
+    box-shadow: 
+      0 0 25px var(--portal-glow),
+      0 0 50px var(--portal-glow),
+      inset 0 0 15px rgba(0, 0, 0, 0.6),
+      inset 0 3px 6px rgba(255, 255, 255, 0.25);
+    border-color: var(--portal-secondary);
+  }
+}
+
+@keyframes portalVortexSpin {
   from {
-    transform: rotate(0deg);
+    transform: translate(-50%, -50%) rotate(0deg);
   }
   to {
-    transform: rotate(360deg);
+    transform: translate(-50%, -50%) rotate(360deg);
   }
 }
 
-@keyframes portalPulse {
+@keyframes portalInnerPulse {
   0%, 100% {
-    transform: scale(1);
-    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.5;
   }
   50% {
-    transform: scale(1.1);
-    opacity: 0.9;
-  }
-}
-
-@keyframes portalCorePulse {
-  0%, 100% {
-    transform: scale(1);
+    transform: translate(-50%, -50%) scale(1.2);
     opacity: 0.8;
-  }
-  50% {
-    transform: scale(1.2);
-    opacity: 1;
   }
 }
 

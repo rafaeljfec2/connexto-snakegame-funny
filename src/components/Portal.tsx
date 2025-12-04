@@ -30,8 +30,14 @@ export function Portal({ portal, isFirst }: PortalProps) {
       }
       aria-label={`Portal at ${x}, ${y}`}
     >
-      <div className={styles.portalRing}>
-        <div className={styles.portalCore}></div>
+      <div className={styles.portalFrame}>
+        <div className={styles.portalDoor}>
+          <div className={styles.portalHandle}></div>
+          <div className={styles.portalOpening}>
+            <div className={styles.portalVortex}></div>
+            <div className={styles.portalInnerGlow}></div>
+          </div>
+        </div>
       </div>
       <div className={styles.portalTimer}>
         <div

@@ -8,6 +8,7 @@ import { LevelUpAnimation } from "./components/LevelUpAnimation";
 import { ActivePowerUps } from "./components/ActivePowerUps";
 import { ComboDisplay } from "./components/ComboDisplay";
 import { AchievementNotification } from "./components/AchievementNotification";
+import { DynamicBackground } from "./components/DynamicBackground";
 import { GameStatus } from "@/types/game";
 import styles from "./App.module.css";
 
@@ -100,6 +101,7 @@ function App() {
 
   return (
     <div className={styles.app}>
+      <DynamicBackground level={gameState.level} />
       {/* Header HUD */}
       <header className={styles.header}>
         <div className={styles.headerContent}>

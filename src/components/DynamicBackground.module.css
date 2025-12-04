@@ -5,6 +5,136 @@
   right: 0;
   bottom: 0;
   pointer-events: none;
-  z-index: -1;
-  transition: background 0.5s ease;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.baseGradient {
+  position: absolute;
+  inset: 0;
+  transition: background 0.8s ease;
+  z-index: 0;
+}
+
+.radialGradients {
+  position: absolute;
+  inset: 0;
+  transition: background 0.8s ease;
+  z-index: 1;
+  opacity: 0.8;
+}
+
+.parallaxLayer1,
+.parallaxLayer2 {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+}
+
+.parallaxLayer1 {
+  animation: parallaxMove1 60s linear infinite;
+}
+
+.parallaxLayer2 {
+  animation: parallaxMove2 40s linear infinite reverse;
+}
+
+.particle {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: 
+    0 0 6px rgba(255, 255, 255, 0.8),
+    0 0 12px rgba(255, 255, 255, 0.4);
+  animation: twinkle 3s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.particle::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  background: inherit;
+  filter: blur(3px);
+  opacity: 0.5;
+}
+
+@keyframes parallaxMove1 {
+  0% {
+    transform: translateY(0) translateX(0);
+  }
+  50% {
+    transform: translateY(-20px) translateX(10px);
+  }
+  100% {
+    transform: translateY(0) translateX(0);
+  }
+}
+
+@keyframes parallaxMove2 {
+  0% {
+    transform: translateY(0) translateX(0);
+  }
+  50% {
+    transform: translateY(15px) translateX(-8px);
+  }
+  100% {
+    transform: translateY(0) translateX(0);
+  }
+}
+
+@keyframes twinkle {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+
+/* Level-based color variations */
+.background[data-level="1"] .particle,
+.background[data-level="2"] .particle,
+.background[data-level="3"] .particle {
+  background: rgba(59, 130, 246, 0.8);
+  box-shadow: 
+    0 0 6px rgba(59, 130, 246, 0.8),
+    0 0 12px rgba(59, 130, 246, 0.4);
+}
+
+.background[data-level="4"] .particle,
+.background[data-level="5"] .particle,
+.background[data-level="6"] .particle {
+  background: rgba(34, 197, 94, 0.8);
+  box-shadow: 
+    0 0 6px rgba(34, 197, 94, 0.8),
+    0 0 12px rgba(34, 197, 94, 0.4);
+}
+
+.background[data-level="7"] .particle,
+.background[data-level="8"] .particle,
+.background[data-level="9"] .particle {
+  background: rgba(139, 92, 246, 0.8);
+  box-shadow: 
+    0 0 6px rgba(139, 92, 246, 0.8),
+    0 0 12px rgba(139, 92, 246, 0.4);
+}
+
+.background[data-level="10"] .particle,
+.background[data-level="11"] .particle,
+.background[data-level="12"] .particle {
+  background: rgba(236, 72, 153, 0.8);
+  box-shadow: 
+    0 0 6px rgba(236, 72, 153, 0.8),
+    0 0 12px rgba(236, 72, 153, 0.4);
+}
+
+.background[data-level="13"] .particle {
+  background: rgba(251, 191, 36, 0.8);
+  box-shadow: 
+    0 0 6px rgba(251, 191, 36, 0.8),
+    0 0 12px rgba(251, 191, 36, 0.4);
 }

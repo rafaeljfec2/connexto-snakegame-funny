@@ -7,7 +7,7 @@ interface ComboDisplayProps {
 }
 
 export function ComboDisplay({ combo }: ComboDisplayProps) {
-  if (!GAME_CONFIG.enableCombos || combo.count < GAME_CONFIG.minCombo) {
+  if (!GAME_CONFIG.enableCombos || combo.count < COMBO_CONFIG.minCombo) {
     return null;
   }
 

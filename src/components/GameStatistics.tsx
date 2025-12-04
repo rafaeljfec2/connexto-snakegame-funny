@@ -1,10 +1,10 @@
-import { GameStatistics } from '@/types/statistics';
+import type { GameStatistics as GameStatisticsType } from '@/types/statistics';
 import { formatTime, formatDate } from '@/utils/statistics';
 import { FoodType } from '@/types/game';
 import styles from './GameStatistics.module.css';
 
 interface GameStatisticsProps {
-  statistics: GameStatistics;
+  statistics: GameStatisticsType;
   onClose: () => void;
 }
 

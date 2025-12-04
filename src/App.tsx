@@ -11,7 +11,9 @@ import { ComboDisplay } from './components/ComboDisplay';
 import { AchievementNotification } from './components/AchievementNotification';
 import { DynamicBackground } from './components/DynamicBackground';
 import { LivesDisplay } from './components/LivesDisplay';
+import { GameStatistics as GameStatisticsComponent } from './components/GameStatistics';
 import { GameStatus } from '@/types/game';
+import { createFinalStatistics, saveGameSession } from '@/utils/statistics';
 import styles from './App.module.css';
 
 function App() {
@@ -19,10 +21,16 @@ function App() {
     useGameLoop();
 
   const [showLevelUp, setShowLevelUp] = useState(false);
+  const [showStatistics, setShowStatistics] = useState(false);
+  const [gameStatistics, setGameStatistics] = useState<ReturnType<
+    typeof createFinalStatistics
+  > | null>(null);
   const [newlyUnlockedAchievements, setNewlyUnlockedAchievements] = useState<string[]>([]);
   const previousLevelRef = useRef(gameState.level);
   const previousScoreRef = useRef(gameState.score);
   const previousAchievementsRef = useRef(gameState.achievements);
+  const previousStatusRef = useRef(gameState.status);
+  const gameStateRef = useRef(gameState);
 
   useKeyboard({
     onDirectionChange: setDirection,
@@ -75,10 +83,40 @@ function App() {
     pauseGame();
   };
 
+  // Keep gameState ref up to date
+  useEffect(() => {
+    gameStateRef.current = gameState;
+  }, [gameState]);
+
+  // Save statistics when game ends
+  useEffect(() => {
+    const wasNotGameOver = previousStatusRef.current !== GameStatus.GAME_OVER;
+    const isNowGameOver = gameState.status === GameStatus.GAME_OVER;
+
+    if (wasNotGameOver && isNowGameOver) {
+      // Use the ref to ensure we have the latest gameState
+      const currentGameState = gameStateRef.current;
+      // Always create statistics, even if they don't exist in state
+      const finalStats = createFinalStatistics(currentGameState);
+      saveGameSession(finalStats);
+      setGameStatistics(finalStats);
+      setShowStatistics(true);
+    }
+
+    previousStatusRef.current = gameState.status;
+  }, [gameState.status]);
+
+  const handleCloseStatistics = useCallback(() => {
+    setShowStatistics(false);
+    setGameStatistics(null);
+  }, []);
+
   const handleReset = () => {
     previousScoreRef.current = 0;
     previousLevelRef.current = 1;
     setShowLevelUp(false);
+    setShowStatistics(false);
+    setGameStatistics(null);
     resetGame();
   };
 
@@ -178,6 +216,11 @@ function App() {
         newlyUnlocked={newlyUnlockedAchievements}
         allAchievements={gameState.achievements}
       />
+
+      {/* Game Statistics Modal */}
+      {showStatistics && gameStatistics && (
+        <GameStatisticsComponent statistics={gameStatistics} onClose={handleCloseStatistics} />
+      )}
     </div>
   );
 }

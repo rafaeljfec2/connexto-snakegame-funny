@@ -1,4 +1,4 @@
-import { GameStatistics, GameSession, StatisticsHistory } from '@/types/statistics';
+import { GameStatistics, GameSession, StatisticsHistory, GameStatisticsTracking } from '@/types/statistics';
 import { GameState, FoodType } from '@/types/game';
 
 const STORAGE_KEY = 'snake-game-statistics';
@@ -6,7 +6,7 @@ const STORAGE_KEY = 'snake-game-statistics';
 /**
  * Initialize statistics for a new game
  */
-export function initializeStatistics(): GameState['statistics'] {
+export function initializeStatistics(): GameStatisticsTracking {
   const foodsByType: Record<FoodType, number> = {
     [FoodType.NORMAL]: 0,
     [FoodType.SPEED_BOOST]: 0,

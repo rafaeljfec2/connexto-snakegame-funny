@@ -3,7 +3,7 @@
  */
 export const LIVES_CONFIG = {
   // Initial number of lives
-  initialLives: 3,
+  initialLives: 1,
 
   // Maximum lives (can't exceed this)
   maxLives: 5,

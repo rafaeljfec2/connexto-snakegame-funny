@@ -45,3 +45,16 @@ export interface StatisticsHistory {
   foodsEatenTotal: number;
   achievementsUnlockedTotal: number;
 }
+
+// Internal statistics tracking (non-optional)
+export interface GameStatisticsTracking {
+  startTime: number;
+  pausedTime: number;
+  lastPauseTime?: number;
+  foodsEaten: number;
+  foodsByType: Record<FoodType, number>;
+  maxSnakeLength: number;
+  maxCombo: number;
+  obstaclesEncountered: number;
+  livesLost: number;
+}

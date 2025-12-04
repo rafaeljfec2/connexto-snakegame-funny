@@ -30,6 +30,7 @@ import { POWER_UP_CONFIG } from '@/constants/powerUps';
 import { INITIAL_DIRECTION } from '@/constants/game';
 import { useGameState } from './useGameState';
 import { initializeStatistics } from '@/utils/statistics';
+import { GameStatisticsTracking } from '@/types/statistics';
 
 export function useGameLoop() {
   const { gameState, resetGame, startGame, pauseGame, setDirection, updateGameState } =
@@ -79,11 +80,13 @@ export function useGameLoop() {
           hasObstacleCollision(newSnake[0], prev.obstacles)) ||
         (newSnake.length >= 4 && hasSelfCollision(newSnake));
 
+      // Initialize statistics if not present (at start of update)
+      let statistics: GameStatisticsTracking = prev.statistics ?? initializeStatistics();
+
       if (hasCollision) {
         // Use lives system if enabled
         if (isLivesEnabled() && prev.lives > 0) {
           // Enter dying state to show death animation
-          const statistics = prev.statistics ?? initializeStatistics();
           return {
             ...prev,
             status: GameStatus.DYING,
@@ -93,7 +96,6 @@ export function useGameLoop() {
           // No lives left, game over
           saveHighScore(prev.score);
           saveAchievements(prev.achievements);
-          const statistics = prev.statistics ?? initializeStatistics();
           return {
             ...prev,
             status: GameStatus.GAME_OVER,
@@ -117,17 +119,15 @@ export function useGameLoop() {
       let atePowerUp = false;
       let newLives = prev.lives;
 
-      // Initialize statistics if not present
-      let statistics = prev.statistics ?? initializeStatistics();
-
       if (ateFood) {
         // Update statistics - food eaten
+        const currentFoodCount = statistics.foodsByType[prev.food.type] ?? 0;
         statistics = {
           ...statistics,
           foodsEaten: statistics.foodsEaten + 1,
           foodsByType: {
             ...statistics.foodsByType,
-            [prev.food.type]: (statistics.foodsByType[prev.food.type] ?? 0) + 1,
+            [prev.food.type]: currentFoodCount + 1,
           },
         };
 
@@ -287,6 +287,7 @@ export function useGameLoop() {
             score: newScore,
             status: GameStatus.DYING,
             lives: prev.lives,
+            statistics,
           };
         } else {
           // No lives left, game over
@@ -298,6 +299,7 @@ export function useGameLoop() {
             score: newScore,
             status: GameStatus.GAME_OVER,
             highScore: Math.max(newScore, prev.highScore),
+            statistics,
           };
         }
       }

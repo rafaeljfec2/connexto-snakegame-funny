@@ -89,17 +89,7 @@ export interface GameState {
   particles: Particle[];
   achievements: Achievement[];
   lives: number; // Number of lives remaining
-  statistics?: {
-    startTime: number;
-    pausedTime: number;
-    lastPauseTime?: number;
-    foodsEaten: number;
-    foodsByType: Record<FoodType, number>;
-    maxSnakeLength: number;
-    maxCombo: number;
-    obstaclesEncountered: number;
-    livesLost: number;
-  };
+  statistics?: import('./statistics').GameStatisticsTracking;
 }
 
 export interface GameConfig {

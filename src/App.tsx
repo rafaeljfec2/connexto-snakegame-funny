@@ -146,12 +146,6 @@ function App() {
             />
           </div>
 
-          <LevelUpAnimation
-            level={gameState.level}
-            show={showLevelUp}
-            onAnimationEnd={handleLevelUpAnimationEnd}
-          />
-
           <div className={styles.gameControls}>
             <GameControls
               onStart={handleStart}
@@ -186,6 +180,13 @@ function App() {
           </div>
         </aside>
       </main>
+
+      {/* Level Up Animation - Outside main layout */}
+      <LevelUpAnimation
+        level={gameState.level}
+        show={showLevelUp}
+        onAnimationEnd={handleLevelUpAnimationEnd}
+      />
 
       {/* Achievement Notifications */}
       <AchievementNotification

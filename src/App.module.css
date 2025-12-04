@@ -5,6 +5,7 @@
   flex-direction: column;
   align-items: center;
   padding: 2rem 1rem;
+  background: #0f172a;
   position: relative;
   overflow-x: hidden;
 }

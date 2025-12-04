@@ -9,7 +9,7 @@ export function getStoredTheme(): Theme {
   } catch (error) {
     console.error("Error loading theme:", error);
   }
-  return "auto";
+  return "dark"; // Dark como padrão
 }
 
 export function saveTheme(theme: Theme): void {

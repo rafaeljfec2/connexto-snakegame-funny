@@ -12,6 +12,7 @@ import { AchievementNotification } from './components/AchievementNotification';
 import { DynamicBackground } from './components/DynamicBackground';
 import { LivesDisplay } from './components/LivesDisplay';
 import { GameStatistics as GameStatisticsComponent } from './components/GameStatistics';
+import { DeathTransition } from './components/DeathTransition';
 import { GameStatus } from '@/types/game';
 import { createFinalStatistics, saveGameSession } from '@/utils/statistics';
 import styles from './App.module.css';
@@ -216,6 +217,9 @@ function App() {
         newlyUnlocked={newlyUnlockedAchievements}
         allAchievements={gameState.achievements}
       />
+
+      {/* Death Transition Animation */}
+      <DeathTransition status={gameState.status} lives={gameState.lives} />
 
       {/* Game Statistics Modal */}
       {showStatistics && gameStatistics && (

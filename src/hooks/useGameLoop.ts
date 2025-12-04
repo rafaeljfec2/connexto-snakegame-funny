@@ -38,6 +38,7 @@ export function useGameLoop() {
 
   const gameLoopRef = useRef<number>();
   const lastUpdateTimeRef = useRef<number>(0);
+  const deathTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const updateGame = useCallback(() => {
     updateGameState((prev: GameState) => {
@@ -452,6 +453,35 @@ export function useGameLoop() {
     });
   }, [updateGameState]);
 
+  // Auto-continue after death with 3 second delay
+  useEffect(() => {
+    if (gameState.status === GameStatus.DYING && gameState.lives > 0) {
+      // Clear any existing timer
+      if (deathTimerRef.current) {
+        clearTimeout(deathTimerRef.current);
+      }
+
+      // Start 3 second countdown
+      deathTimerRef.current = setTimeout(() => {
+        continueAfterDeath();
+        deathTimerRef.current = null;
+      }, 3000);
+
+      return () => {
+        if (deathTimerRef.current) {
+          clearTimeout(deathTimerRef.current);
+          deathTimerRef.current = null;
+        }
+      };
+    } else {
+      // Clear timer if not in DYING state
+      if (deathTimerRef.current) {
+        clearTimeout(deathTimerRef.current);
+        deathTimerRef.current = null;
+      }
+    }
+  }, [gameState.status, gameState.lives, continueAfterDeath]);
+
   const handleKeyPress = useCallback(
     (key: string) => {
       if (key === ' ') {
@@ -463,6 +493,11 @@ export function useGameLoop() {
         ) {
           pauseGame();
         } else if (gameState.status === GameStatus.DYING) {
+          // Allow manual continue (skip the timer)
+          if (deathTimerRef.current) {
+            clearTimeout(deathTimerRef.current);
+            deathTimerRef.current = null;
+          }
           continueAfterDeath();
         } else if (gameState.status === GameStatus.GAME_OVER) {
           resetGame();

@@ -15,7 +15,7 @@ export function StatusMessage({ status }: StatusMessageProps) {
       case GameStatus.PAUSED:
         return 'Paused - Press SPACE to resume';
       case GameStatus.DYING:
-        return 'Press SPACE to continue';
+        return 'Continuing automatically...';
       case GameStatus.GAME_OVER:
         return 'Game Over - Press SPACE to restart';
       default:

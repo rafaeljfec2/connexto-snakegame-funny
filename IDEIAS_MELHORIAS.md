@@ -120,7 +120,7 @@
 - Continue após morte com penalidade
 - Display visual de vidas restantes
 
-### ⏳ 15. **Estatísticas Detalhadas**
+### ✅ 15. **Estatísticas Detalhadas**
 
 **Complexidade:** Média | **Impacto:** Médio
 

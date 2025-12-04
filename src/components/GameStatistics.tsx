@@ -28,7 +28,10 @@ export function GameStatistics({ statistics, onClose }: GameStatisticsProps) {
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.container} onClick={(e) => e.stopPropagation()}>
         <div className={styles.header}>
-          <h2 className={styles.title}>Game Statistics</h2>
+          <h2 className={styles.title}>
+            <span className={styles.titleIcon}>📊</span>
+            Game Statistics
+          </h2>
           <button className={styles.closeButton} onClick={onClose}>
             ×
           </button>
@@ -37,27 +40,33 @@ export function GameStatistics({ statistics, onClose }: GameStatisticsProps) {
         <div className={styles.content}>
           {/* Main Stats Grid */}
           <div className={styles.mainStats}>
-            <div className={styles.statCard}>
+            <div className={`${styles.statCard} ${styles.statCard1}`}>
+              <div className={styles.statIcon}>🏆</div>
               <div className={styles.statValue}>{statistics.score}</div>
               <div className={styles.statLabel}>Final Score</div>
             </div>
-            <div className={styles.statCard}>
+            <div className={`${styles.statCard} ${styles.statCard2}`}>
+              <div className={styles.statIcon}>⏱️</div>
               <div className={styles.statValue}>{formatTime(statistics.playTime)}</div>
               <div className={styles.statLabel}>Play Time</div>
             </div>
-            <div className={styles.statCard}>
+            <div className={`${styles.statCard} ${styles.statCard3}`}>
+              <div className={styles.statIcon}>⭐</div>
               <div className={styles.statValue}>Level {statistics.level}</div>
               <div className={styles.statLabel}>Level Reached</div>
             </div>
-            <div className={styles.statCard}>
+            <div className={`${styles.statCard} ${styles.statCard4}`}>
+              <div className={styles.statIcon}>📏</div>
               <div className={styles.statValue}>{statistics.finalSnakeLength}</div>
               <div className={styles.statLabel}>Final Length</div>
             </div>
-            <div className={styles.statCard}>
+            <div className={`${styles.statCard} ${styles.statCard5}`}>
+              <div className={styles.statIcon}>📈</div>
               <div className={styles.statValue}>{statistics.maxSnakeLength}</div>
               <div className={styles.statLabel}>Max Length</div>
             </div>
-            <div className={styles.statCard}>
+            <div className={`${styles.statCard} ${styles.statCard6}`}>
+              <div className={styles.statIcon}>🔥</div>
               <div className={styles.statValue}>{statistics.maxCombo}x</div>
               <div className={styles.statLabel}>Max Combo</div>
             </div>

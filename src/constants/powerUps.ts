@@ -9,6 +9,7 @@ export const POWER_UP_CONFIG = {
     [FoodType.SPEED_BOOST]: 5000, // 5 seconds
     [FoodType.BONUS_POINTS]: 0, // Instant effect
     [FoodType.EXTRA_GROWTH]: 0, // Instant effect
+    [FoodType.PHASE_THROUGH]: 6000, // 6 seconds
     [FoodType.POISON]: 0, // Instant effect
     [FoodType.REVERSE_CONTROLS]: 4000, // 4 seconds
     [FoodType.SLOW_DOWN]: 3000, // 3 seconds
@@ -34,6 +35,9 @@ export const POWER_UP_CONFIG = {
     },
     [FoodType.SLOW_DOWN]: {
       speedMultiplier: 1.8, // 180% of current speed (slower)
+    },
+    [FoodType.PHASE_THROUGH]: {
+      phaseThrough: true, // Can pass through obstacles
     },
   },
   
@@ -66,6 +70,10 @@ export const POWER_UP_CONFIG = {
     [FoodType.SLOW_DOWN]: {
       primary: "#6366f1",
       secondary: "#4f46e5",
+    },
+    [FoodType.PHASE_THROUGH]: {
+      primary: "#06b6d4",
+      secondary: "#0891b2",
     },
   },
   

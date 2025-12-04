@@ -45,6 +45,14 @@ export function applyPowerUpEffect(
     };
   }
   
+  if (foodType === FoodType.PHASE_THROUGH) {
+    return {
+      scoreIncrease: 10,
+      growthAmount: 1,
+      shouldActivatePowerUp: true,
+    };
+  }
+  
   if (foodType === FoodType.REVERSE_CONTROLS || foodType === FoodType.SLOW_DOWN) {
     return {
       scoreIncrease: 0, // No points for negative power-ups
@@ -107,4 +115,8 @@ export function getEffectiveGameSpeed(
 
 export function hasReverseControls(activePowerUps: ActivePowerUp[]): boolean {
   return activePowerUps.some((p) => p.type === FoodType.REVERSE_CONTROLS);
+}
+
+export function hasPhaseThrough(activePowerUps: ActivePowerUp[]): boolean {
+  return activePowerUps.some((p) => p.type === FoodType.PHASE_THROUGH);
 }

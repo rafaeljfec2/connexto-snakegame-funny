@@ -17,6 +17,7 @@ import {
   getActivePowerUps,
   getEffectiveGameSpeed,
   hasReverseControls,
+  hasPhaseThrough,
 } from "@/utils/powerUps";
 import { updateCombo, calculateComboPoints } from "@/utils/combos";
 import { createParticles, updateParticles } from "@/utils/particles";
@@ -73,8 +74,15 @@ export function useGameLoop() {
         false
       );
 
-      // Check obstacle collision
-      if (GAME_CONFIG.enableObstacles && hasObstacleCollision(newSnake[0], prev.obstacles)) {
+      // Check obstacle collision (ignore if phase through is active)
+      const currentActivePowerUps = getActivePowerUps(prev.activePowerUps);
+      const canPhaseThrough = hasPhaseThrough(currentActivePowerUps);
+      
+      if (
+        GAME_CONFIG.enableObstacles &&
+        !canPhaseThrough &&
+        hasObstacleCollision(newSnake[0], prev.obstacles)
+      ) {
         saveHighScore(prev.score);
         saveAchievements(prev.achievements);
         return {

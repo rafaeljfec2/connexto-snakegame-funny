@@ -36,6 +36,12 @@ export function ActivePowerUps({ powerUps }: ActivePowerUpsProps) {
         return "Bonus Points";
       case FoodType.EXTRA_GROWTH:
         return "Extra Growth";
+      case FoodType.PHASE_THROUGH:
+        return "Phase Through";
+      case FoodType.REVERSE_CONTROLS:
+        return "Reverse Controls";
+      case FoodType.SLOW_DOWN:
+        return "Slow Down";
       default:
         return type;
     }

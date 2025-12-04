@@ -24,6 +24,15 @@ export function SnakeSegment({ position, isHead, isNew }: SnakeSegmentProps) {
         isNew ? styles.new : ""
       }`}
       style={style}
-    />
+    >
+      {isHead && (
+        <>
+          <div className={`${styles.eye} ${styles.eyeLeft}`} />
+          <div className={`${styles.eye} ${styles.eyeRight}`} />
+          <div className={`${styles.antenna} ${styles.antennaLeft}`} />
+          <div className={`${styles.antenna} ${styles.antennaRight}`} />
+        </>
+      )}
+    </div>
   );
 }

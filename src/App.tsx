@@ -112,7 +112,6 @@ function App() {
               score={gameState.score}
               highScore={gameState.highScore}
               level={gameState.level}
-              status={gameState.status}
             />
           </div>
         </div>

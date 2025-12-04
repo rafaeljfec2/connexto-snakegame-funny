@@ -1,31 +1,12 @@
-import { GameStatus } from "@/types/game";
 import styles from "./GameInfo.module.css";
 
 interface GameInfoProps {
   score: number;
   highScore: number;
   level: number;
-  status: GameStatus;
 }
 
-export function GameInfo({ score, highScore, level, status }: GameInfoProps) {
-  const getStatusMessage = () => {
-    switch (status) {
-      case GameStatus.IDLE:
-        return "Press SPACE to start";
-      case GameStatus.PLAYING:
-        return "Playing...";
-      case GameStatus.PAUSED:
-        return "Paused - Press SPACE to resume";
-      case GameStatus.DYING:
-        return "Press SPACE to continue";
-      case GameStatus.GAME_OVER:
-        return "Game Over - Press SPACE to restart";
-      default:
-        return "";
-    }
-  };
-
+export function GameInfo({ score, highScore, level }: GameInfoProps) {
   return (
     <div className={styles.gameInfo}>
       <div className={styles.scores}>
@@ -42,7 +23,6 @@ export function GameInfo({ score, highScore, level, status }: GameInfoProps) {
           <span className={styles.value}>{highScore}</span>
         </div>
       </div>
-      <div className={styles.statusMessage}>{getStatusMessage()}</div>
     </div>
   );
 }

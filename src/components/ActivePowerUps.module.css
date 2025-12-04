@@ -1,12 +1,8 @@
 .container {
-  position: fixed;
-  top: 1rem;
-  right: 1rem;
-  z-index: 100;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  pointer-events: none;
+  gap: 0.75rem;
+  width: 100%;
 }
 
 .powerUp {
@@ -20,25 +16,35 @@
   );
   backdrop-filter: blur(10px);
   border-radius: 8px;
-  padding: 0.5rem 0.75rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  padding: 0.75rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 0.5rem;
-  min-width: 150px;
-  animation: slideInRight 0.3s ease-out;
+  width: 100%;
+  animation: slideIn 0.3s ease-out;
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .icon {
-  font-size: 1.25rem;
+  font-size: 1.5rem;
   line-height: 1;
+  text-align: center;
 }
 
 .info {
   flex: 1;
   display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.nameContainer {
+  flex: 1;
+  display: flex;
   flex-direction: column;
-  gap: 0.125rem;
+  gap: 0.25rem;
 }
 
 .name {
@@ -73,26 +79,44 @@
   transition: width 0.1s linear;
 }
 
-@keyframes slideInRight {
+@keyframes slideIn {
   0% {
-    transform: translateX(100%);
+    transform: translateY(-10px);
     opacity: 0;
   }
   100% {
-    transform: translateX(0);
+    transform: translateY(0);
     opacity: 1;
   }
 }
 
-@media (max-width: 768px) {
-  .container {
-    top: 0.5rem;
-    right: 0.5rem;
-  }
+.empty {
+  padding: 1rem;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.75rem;
+  font-style: italic;
+}
 
+.emptyText {
+  display: block;
+}
+
+.empty {
+  padding: 1rem;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.75rem;
+  font-style: italic;
+}
+
+.emptyText {
+  display: block;
+}
+
+@media (max-width: 768px) {
   .powerUp {
-    min-width: 120px;
-    padding: 0.4rem 0.6rem;
+    padding: 0.6rem;
   }
 
   .name {

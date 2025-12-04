@@ -25,7 +25,11 @@ export function ActivePowerUps({ powerUps }: ActivePowerUpsProps) {
   }, [activePowerUps.length]);
 
   if (activePowerUps.length === 0) {
-    return null;
+    return (
+      <div className={styles.empty}>
+        <span className={styles.emptyText}>No active power-ups</span>
+      </div>
+    );
   }
 
   const getPowerUpName = (type: FoodType): string => {
@@ -72,12 +76,14 @@ export function ActivePowerUps({ powerUps }: ActivePowerUpsProps) {
               "--powerup-secondary": colors.secondary,
             } as React.CSSProperties}
           >
-            <div className={styles.icon}>⚡</div>
             <div className={styles.info}>
-              <div className={styles.name}>{getPowerUpName(powerUp.type)}</div>
-              {remainingTime > 0 && (
-                <div className={styles.timer}>{remainingTime}s</div>
-              )}
+              <div className={styles.icon}>⚡</div>
+              <div className={styles.nameContainer}>
+                <div className={styles.name}>{getPowerUpName(powerUp.type)}</div>
+                {remainingTime > 0 && (
+                  <div className={styles.timer}>{remainingTime}s</div>
+                )}
+              </div>
             </div>
             <div className={styles.progressBar}>
               <div

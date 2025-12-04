@@ -100,60 +100,95 @@ function App() {
 
   return (
     <div className={styles.app}>
+      {/* Header HUD */}
       <header className={styles.header}>
-        <h1 className={styles.title}>Snake Game</h1>
+        <div className={styles.headerContent}>
+          <h1 className={styles.title}>SNAKE GAME</h1>
+          <div className={styles.headerStats}>
+            <GameInfo
+              score={gameState.score}
+              highScore={gameState.highScore}
+              level={gameState.level}
+              status={gameState.status}
+            />
+          </div>
+        </div>
       </header>
 
+      {/* Main Game Area */}
       <main className={styles.main}>
-        <GameInfo
-          score={gameState.score}
-          highScore={gameState.highScore}
-          level={gameState.level}
-          status={gameState.status}
-        />
+        {/* Left Panel */}
+        <aside className={styles.leftPanel}>
+          <div className={styles.panelContent}>
+            <div className={styles.panelSection}>
+              <h3 className={styles.panelTitle}>Power-Ups</h3>
+              <ActivePowerUps powerUps={gameState.activePowerUps} />
+            </div>
+            <div className={styles.panelSection}>
+              <ComboDisplay combo={gameState.combo} />
+            </div>
+          </div>
+        </aside>
 
-        <div className={styles.gameContainer}>
-          <GameBoard
-            snake={gameState.snake}
-            food={gameState.food}
-            status={gameState.status}
+        {/* Center Game Area */}
+        <div className={styles.gameArea}>
+          <div className={styles.gameContainer}>
+            <GameBoard
+              snake={gameState.snake}
+              food={gameState.food}
+              status={gameState.status}
+              level={gameState.level}
+              obstacles={gameState.obstacles}
+              particles={gameState.particles}
+            />
+          </div>
+
+          <LevelUpAnimation
             level={gameState.level}
-            obstacles={gameState.obstacles}
-            particles={gameState.particles}
+            show={showLevelUp}
+            onAnimationEnd={handleLevelUpAnimationEnd}
           />
+
+          <div className={styles.gameControls}>
+            <GameControls
+              onStart={handleStart}
+              onPause={handlePause}
+              onReset={handleReset}
+              status={gameState.status}
+            />
+          </div>
+
+          <div className={styles.instructions}>
+            <p>
+              <kbd>↑↓←→</kbd> or <kbd>WASD</kbd> to move • <kbd>SPACE</kbd> to
+              start/pause
+            </p>
+          </div>
         </div>
 
-        <LevelUpAnimation
-          level={gameState.level}
-          show={showLevelUp}
-          onAnimationEnd={handleLevelUpAnimationEnd}
-        />
-
-        <ActivePowerUps powerUps={gameState.activePowerUps} />
-
-        <ComboDisplay combo={gameState.combo} />
-
-        <AchievementNotification
-          newlyUnlocked={newlyUnlockedAchievements}
-          allAchievements={gameState.achievements}
-        />
-
-        <GameControls
-          onStart={handleStart}
-          onPause={handlePause}
-          onReset={handleReset}
-          status={gameState.status}
-        />
-
-        <div className={styles.instructions}>
-          <p>
-            Use <kbd>Arrow Keys</kbd> or <kbd>WASD</kbd> to move
-          </p>
-          <p>
-            Press <kbd>SPACE</kbd> to start/pause
-          </p>
-        </div>
+        {/* Right Panel - Reserved for future features */}
+        <aside className={styles.rightPanel}>
+          <div className={styles.panelContent}>
+            <div className={styles.panelSection}>
+              <h3 className={styles.panelTitle}>Game Stats</h3>
+              <div className={styles.gameStats}>
+                <div className={styles.statItem}>
+                  <span className={styles.statLabel}>Length</span>
+                  <span className={styles.statValue}>
+                    {gameState.snake.length}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </aside>
       </main>
+
+      {/* Achievement Notifications */}
+      <AchievementNotification
+        newlyUnlocked={newlyUnlockedAchievements}
+        allAchievements={gameState.achievements}
+      />
     </div>
   );
 }

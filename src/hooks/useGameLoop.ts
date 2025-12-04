@@ -29,6 +29,7 @@ import { LIVES_CONFIG } from '@/constants/lives';
 import { POWER_UP_CONFIG } from '@/constants/powerUps';
 import { INITIAL_DIRECTION } from '@/constants/game';
 import { useGameState } from './useGameState';
+import { initializeStatistics } from '@/utils/statistics';
 
 export function useGameLoop() {
   const { gameState, resetGame, startGame, pauseGame, setDirection, updateGameState } =
@@ -82,18 +83,22 @@ export function useGameLoop() {
         // Use lives system if enabled
         if (isLivesEnabled() && prev.lives > 0) {
           // Enter dying state to show death animation
+          const statistics = prev.statistics ?? initializeStatistics();
           return {
             ...prev,
             status: GameStatus.DYING,
+            statistics,
           };
         } else {
           // No lives left, game over
           saveHighScore(prev.score);
           saveAchievements(prev.achievements);
+          const statistics = prev.statistics ?? initializeStatistics();
           return {
             ...prev,
             status: GameStatus.GAME_OVER,
             highScore: Math.max(prev.score, prev.highScore),
+            statistics,
           };
         }
       }
@@ -112,7 +117,20 @@ export function useGameLoop() {
       let atePowerUp = false;
       let newLives = prev.lives;
 
+      // Initialize statistics if not present
+      let statistics = prev.statistics ?? initializeStatistics();
+
       if (ateFood) {
+        // Update statistics - food eaten
+        statistics = {
+          ...statistics,
+          foodsEaten: statistics.foodsEaten + 1,
+          foodsByType: {
+            ...statistics.foodsByType,
+            [prev.food.type]: (statistics.foodsByType[prev.food.type] ?? 0) + 1,
+          },
+        };
+
         // Update combo when food is eaten
         if (GAME_CONFIG.enableCombos) {
           newCombo = updateCombo(prev.combo, true);
@@ -182,6 +200,14 @@ export function useGameLoop() {
 
         newScore = prev.score + Math.floor(finalScoreIncrease);
 
+        // Update statistics - max combo
+        if (newCombo.multiplier > statistics.maxCombo) {
+          statistics = {
+            ...statistics,
+            maxCombo: newCombo.multiplier,
+          };
+        }
+
         // Handle EXTRA_LIFE power-up
         if (prev.food.type === FoodType.EXTRA_LIFE) {
           newLives = addLife(prev.lives);
@@ -204,7 +230,24 @@ export function useGameLoop() {
       // Generate obstacles on level up
       let newObstacles = prev.obstacles;
       if (GAME_CONFIG.enableObstacles && newLevel > prev.level) {
+        const previousObstaclesCount = newObstacles.length;
         newObstacles = generateObstacles(newLevel, finalSnake, newObstacles, GAME_CONFIG.gridSize);
+        // Update statistics - obstacles encountered
+        const newObstaclesCount = newObstacles.length - previousObstaclesCount;
+        if (newObstaclesCount > 0) {
+          statistics = {
+            ...statistics,
+            obstaclesEncountered: statistics.obstaclesEncountered + newObstaclesCount,
+          };
+        }
+      }
+
+      // Update statistics - max snake length
+      if (finalSnake.length > statistics.maxSnakeLength) {
+        statistics = {
+          ...statistics,
+          maxSnakeLength: finalSnake.length,
+        };
       }
 
       // Check if current food has expired
@@ -275,6 +318,7 @@ export function useGameLoop() {
         particles: newParticles,
         achievements: updatedAchievements,
         lives: newLives,
+        statistics,
       };
     });
   }, [updateGameState]);
@@ -328,6 +372,13 @@ export function useGameLoop() {
       const { newScore, newSnake } = loseLife(prev.score, prev.snake);
       const newLives = prev.lives - 1;
 
+      // Update statistics - life lost
+      let statistics = prev.statistics ?? initializeStatistics();
+      statistics = {
+        ...statistics,
+        livesLost: statistics.livesLost + 1,
+      };
+
       // Check if game should end or continue
       if (newLives <= 0) {
         // No more lives, game over
@@ -340,6 +391,7 @@ export function useGameLoop() {
           lives: 0,
           status: GameStatus.GAME_OVER,
           highScore: Math.max(newScore, prev.highScore),
+          statistics,
         };
       }
 
@@ -393,6 +445,7 @@ export function useGameLoop() {
           lastFoodTime: 0,
         },
         particles: [],
+        statistics, // Keep statistics when continuing
       };
     });
   }, [updateGameState]);

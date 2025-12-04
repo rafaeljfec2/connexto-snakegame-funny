@@ -82,10 +82,36 @@ export function useGameState() {
   }, []);
 
   const pauseGame = useCallback(() => {
-    setGameState((prev) => ({
-      ...prev,
-      status: prev.status === GameStatus.PLAYING ? GameStatus.PAUSED : GameStatus.PLAYING,
-    }));
+    setGameState((prev) => {
+      const statistics = prev.statistics ?? initializeStatistics();
+      const now = Date.now();
+
+      if (prev.status === GameStatus.PLAYING) {
+        // Pausing - record pause start time
+        return {
+          ...prev,
+          status: GameStatus.PAUSED,
+          statistics: {
+            ...statistics,
+            lastPauseTime: now,
+          },
+        };
+      } else if (prev.status === GameStatus.PAUSED && statistics.lastPauseTime) {
+        // Resuming - add paused time
+        const pausedDuration = now - statistics.lastPauseTime;
+        return {
+          ...prev,
+          status: GameStatus.PLAYING,
+          statistics: {
+            ...statistics,
+            pausedTime: statistics.pausedTime + pausedDuration,
+            lastPauseTime: undefined,
+          },
+        };
+      }
+
+      return prev;
+    });
   }, []);
 
   const setDirection = useCallback((direction: Direction) => {

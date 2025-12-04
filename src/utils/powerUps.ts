@@ -3,27 +3,36 @@ import { POWER_UP_CONFIG } from '@/constants/powerUps';
 
 export function applyPowerUpEffect(
   foodType: FoodType,
-  currentScore: number,
+  _currentScore: number,
   currentSnakeLength: number,
 ): {
   scoreIncrease: number;
   growthAmount: number;
   shouldActivatePowerUp: boolean;
 } {
-  const effect = POWER_UP_CONFIG.effects[foodType];
+  // Handle NORMAL food type first (not in effects)
+  if (foodType === FoodType.NORMAL) {
+    return {
+      scoreIncrease: 10,
+      growthAmount: 1,
+      shouldActivatePowerUp: false,
+    };
+  }
 
   if (foodType === FoodType.BONUS_POINTS) {
+    const effect = POWER_UP_CONFIG.effects[FoodType.BONUS_POINTS];
     return {
-      scoreIncrease: effect.points ?? 0,
+      scoreIncrease: 'points' in effect ? effect.points ?? 0 : 0,
       growthAmount: 1,
       shouldActivatePowerUp: false,
     };
   }
 
   if (foodType === FoodType.EXTRA_GROWTH) {
+    const effect = POWER_UP_CONFIG.effects[FoodType.EXTRA_GROWTH];
     return {
       scoreIncrease: 10,
-      growthAmount: effect.growth ?? 2,
+      growthAmount: 'growth' in effect ? effect.growth ?? 2 : 2,
       shouldActivatePowerUp: false,
     };
   }
@@ -37,9 +46,11 @@ export function applyPowerUpEffect(
   }
 
   if (foodType === FoodType.POISON) {
-    const shrinkAmount = effect.shrinkAmount ?? 2;
+    const effect = POWER_UP_CONFIG.effects[FoodType.POISON];
+    const shrinkAmount = 'shrinkAmount' in effect ? effect.shrinkAmount ?? 2 : 2;
+    const points = 'points' in effect ? effect.points ?? -5 : -5;
     return {
-      scoreIncrease: effect.points ?? -5,
+      scoreIncrease: points,
       growthAmount: -Math.min(shrinkAmount, currentSnakeLength - 1), // Don't shrink below 1 segment
       shouldActivatePowerUp: false,
     };
@@ -79,6 +90,14 @@ export function applyPowerUpEffect(
     };
   }
 
+  if (foodType === FoodType.PORTAL) {
+    return {
+      scoreIncrease: 15, // Points for portal power-up
+      growthAmount: 1,
+      shouldActivatePowerUp: false, // Portals are created directly, not as active power-up
+    };
+  }
+
   // Normal food
   return {
     scoreIncrease: 10,
@@ -90,7 +109,7 @@ export function applyPowerUpEffect(
 export function createActivePowerUp(type: FoodType): ActivePowerUp {
   return {
     type,
-    duration: POWER_UP_CONFIG.durations[type] ?? 0,
+    duration: POWER_UP_CONFIG.durations[type as keyof typeof POWER_UP_CONFIG.durations] ?? 0,
     startTime: Date.now(),
   };
 }

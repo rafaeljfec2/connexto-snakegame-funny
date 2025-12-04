@@ -15,6 +15,7 @@ export function initializeStatistics(): GameStatisticsTracking {
     [FoodType.PHASE_THROUGH]: 0,
     [FoodType.JOKER]: 0,
     [FoodType.EXTRA_LIFE]: 0,
+    [FoodType.PORTAL]: 0,
     [FoodType.POISON]: 0,
     [FoodType.REVERSE_CONTROLS]: 0,
     [FoodType.SLOW_DOWN]: 0,

@@ -16,6 +16,7 @@ const FOOD_TYPE_NAMES: Record<FoodType, string> = {
   [FoodType.PHASE_THROUGH]: 'Phase Through',
   [FoodType.JOKER]: 'Joker',
   [FoodType.EXTRA_LIFE]: 'Extra Life',
+  [FoodType.PORTAL]: 'Portal',
   [FoodType.POISON]: 'Poison',
   [FoodType.REVERSE_CONTROLS]: 'Reverse Controls',
   [FoodType.SLOW_DOWN]: 'Slow Down',

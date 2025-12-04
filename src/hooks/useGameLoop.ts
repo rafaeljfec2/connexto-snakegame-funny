@@ -31,6 +31,13 @@ import { INITIAL_DIRECTION } from '@/constants/game';
 import { useGameState } from './useGameState';
 import { initializeStatistics } from '@/utils/statistics';
 import { GameStatisticsTracking } from '@/types/statistics';
+import {
+  generatePortalPair,
+  getPortalAtPosition,
+  getPortalPair,
+  getActivePortals,
+} from '@/utils/portals';
+import { PORTAL_CONFIG } from '@/constants/portals';
 
 export function useGameLoop() {
   const { gameState, resetGame, startGame, pauseGame, setDirection, updateGameState } =
@@ -68,7 +75,36 @@ export function useGameLoop() {
         currentDirection = prev.direction;
       }
 
-      const newSnake = moveSnake(prev.snake, currentDirection, GAME_CONFIG.gridSize, false);
+      let newSnake = moveSnake(prev.snake, currentDirection, GAME_CONFIG.gridSize, false);
+
+      // Initialize particles early for portal teleportation
+      let newParticles = GAME_CONFIG.enableParticles
+        ? updateParticles(prev.particles)
+        : prev.particles;
+
+      // Check for portal teleportation BEFORE collision checks
+      const activePortals = getActivePortals(prev.portals);
+      const headPosition = newSnake[0];
+      if (headPosition) {
+        const portalAtHead = getPortalAtPosition(headPosition, activePortals);
+        if (portalAtHead) {
+          const pairedPortal = getPortalPair(portalAtHead, activePortals);
+          if (pairedPortal) {
+            // Teleport to paired portal, maintaining direction
+            newSnake = [{ ...pairedPortal.position }, ...newSnake.slice(1)];
+
+            // Create teleportation particles
+            if (GAME_CONFIG.enableParticles) {
+              const portalColor = PORTAL_CONFIG.colors.portal1.primary;
+              newParticles = [
+                ...newParticles,
+                ...createParticles(headPosition, portalColor, 12, 800),
+                ...createParticles(pairedPortal.position, portalColor, 12, 800),
+              ];
+            }
+          }
+        }
+      }
 
       // Check obstacle collision (ignore if phase through is active)
       const currentActivePowerUps = getActivePowerUps(prev.activePowerUps);
@@ -107,11 +143,6 @@ export function useGameLoop() {
       }
 
       const ateFood = hasFoodCollision(newSnake[0], prev.food);
-
-      // Update particles every frame
-      let newParticles = GAME_CONFIG.enableParticles
-        ? updateParticles(prev.particles)
-        : prev.particles;
 
       let finalSnake = newSnake;
       let newScore = prev.score;
@@ -259,6 +290,15 @@ export function useGameLoop() {
           ? generateRandomFood(finalSnake, GAME_CONFIG.gridSize, newObstacles)
           : prev.food;
 
+      // Handle PORTAL power-up - create portal pair when food is eaten
+      let newPortals = getActivePortals(prev.portals);
+      if (ateFood && prev.food.type === FoodType.PORTAL) {
+        const portalPair = generatePortalPair(finalSnake, newObstacles, GAME_CONFIG.gridSize);
+        if (portalPair) {
+          newPortals = [...newPortals, ...portalPair];
+        }
+      }
+
       // Clean expired power-ups
       const activePowerUps = getActivePowerUps(newActivePowerUps);
 
@@ -288,6 +328,7 @@ export function useGameLoop() {
             score: newScore,
             status: GameStatus.DYING,
             lives: prev.lives,
+            portals: newPortals,
             statistics,
           };
         } else {
@@ -299,6 +340,7 @@ export function useGameLoop() {
             snake: finalSnake,
             score: newScore,
             status: GameStatus.GAME_OVER,
+            portals: newPortals,
             highScore: Math.max(newScore, prev.highScore),
             statistics,
           };
@@ -317,6 +359,7 @@ export function useGameLoop() {
         gameSpeed: baseGameSpeed,
         activePowerUps: activePowerUps,
         obstacles: newObstacles,
+        portals: newPortals,
         combo: newCombo,
         particles: newParticles,
         achievements: updatedAchievements,

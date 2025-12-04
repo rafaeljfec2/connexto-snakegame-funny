@@ -26,6 +26,7 @@ export enum FoodType {
   PHASE_THROUGH = 'PHASE_THROUGH',
   JOKER = 'JOKER',
   EXTRA_LIFE = 'EXTRA_LIFE',
+  PORTAL = 'PORTAL',
   // Negative power-ups (debuffs)
   POISON = 'POISON',
   REVERSE_CONTROLS = 'REVERSE_CONTROLS',
@@ -49,6 +50,14 @@ export interface Obstacle {
   position: Position;
   type: 'static' | 'moving' | 'portal';
   id: string;
+}
+
+export interface Portal {
+  id: string;
+  position: Position;
+  pairId: string; // ID to connect portals in pairs
+  spawnTime: number; // Timestamp when portal was created
+  duration: number; // Duration in milliseconds before portal expires
 }
 
 export interface ComboState {
@@ -85,6 +94,7 @@ export interface GameState {
   gameSpeed: number;
   activePowerUps: ActivePowerUp[];
   obstacles: Obstacle[];
+  portals: Portal[]; // Active portals
   combo: ComboState;
   particles: Particle[];
   achievements: Achievement[];

@@ -29,6 +29,7 @@ export function useGameState() {
       gameSpeed: initialSpeed,
       activePowerUps: [],
       obstacles: [],
+      portals: [],
       combo: {
         count: 0,
         multiplier: 1,
@@ -62,6 +63,7 @@ export function useGameState() {
       gameSpeed: initialSpeed,
       activePowerUps: [],
       obstacles: [],
+      portals: [],
       combo: {
         count: 0,
         multiplier: 1,

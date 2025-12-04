@@ -168,6 +168,7 @@ function App() {
               status={gameState.status}
               level={gameState.level}
               obstacles={gameState.obstacles}
+              portals={gameState.portals}
               particles={gameState.particles}
             />
           </div>

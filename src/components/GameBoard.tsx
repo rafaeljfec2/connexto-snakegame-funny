@@ -1,9 +1,10 @@
-import { Position, GameStatus, Food as FoodType, Obstacle, Particle } from '@/types/game';
+import { Position, GameStatus, Food as FoodType, Obstacle, Particle, Portal } from '@/types/game';
 import { GAME_CONFIG } from '@/constants/game';
 import { SnakeSegment } from './SnakeSegment';
 import { Food } from './Food';
 import { ObstacleComponent } from './Obstacle';
 import { ParticleSystem } from './ParticleSystem';
+import { Portal as PortalComponent } from './Portal';
 import { useEffect, useRef, useState } from 'react';
 import styles from './GameBoard.module.css';
 
@@ -13,6 +14,7 @@ interface GameBoardProps {
   status: GameStatus;
   level: number;
   obstacles?: Obstacle[];
+  portals?: Portal[];
   particles?: Particle[];
 }
 
@@ -22,6 +24,7 @@ export function GameBoard({
   status,
   level,
   obstacles = [],
+  portals = [],
   particles = [],
 }: GameBoardProps) {
   const gridStyle = {
@@ -107,10 +110,23 @@ export function GameBoard({
 
   const foodKey = `food-${food.position.x}-${food.position.y}-${food.type}`;
 
+  // Group portals by pairId to determine which is first/second
+  const portalPairs = new Map<string, Portal[]>();
+  portals.forEach((portal) => {
+    const pair = portalPairs.get(portal.pairId) ?? [];
+    pair.push(portal);
+    portalPairs.set(portal.pairId, pair);
+  });
+
   return (
     <div className={boardClassName} style={gridStyle}>
       {GAME_CONFIG.enableObstacles &&
         obstacles.map((obstacle) => <ObstacleComponent key={obstacle.id} obstacle={obstacle} />)}
+      {portals.map((portal) => {
+        const pair = portalPairs.get(portal.pairId) ?? [];
+        const isFirst = pair.length > 0 && pair[0]?.id === portal.id;
+        return <PortalComponent key={portal.id} portal={portal} isFirst={isFirst} />;
+      })}
       {snake.map((segment, index) => (
         <SnakeSegment
           key={`snake-${index}`}

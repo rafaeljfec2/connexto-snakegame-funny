@@ -161,7 +161,7 @@
 - "Use 5 power-ups em uma partida"
 - Sistema de recompensas
 
-### ⏳ 19. **Teleport/Portal**
+### ✅ 19. **Teleport/Portal**
 
 **Complexidade:** Alta | **Impacto:** Alto
 

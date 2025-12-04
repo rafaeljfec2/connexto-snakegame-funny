@@ -1,0 +1,94 @@
+.portal {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.portalRing {
+  position: relative;
+  width: 80%;
+  height: 80%;
+  border-radius: 50%;
+  border: 3px solid var(--portal-primary);
+  box-shadow: 
+    0 0 10px var(--portal-glow),
+    0 0 20px var(--portal-glow),
+    inset 0 0 10px var(--portal-glow);
+  animation: portalRotate 3s linear infinite, portalPulse 2s ease-in-out infinite;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.portalCore {
+  width: 60%;
+  height: 60%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    var(--portal-secondary) 0%,
+    var(--portal-primary) 50%,
+    transparent 100%
+  );
+  animation: portalCorePulse 1.5s ease-in-out infinite;
+  opacity: 0.8;
+}
+
+.portalTimer {
+  position: absolute;
+  bottom: -8px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.portalTimerFill {
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    var(--portal-primary),
+    var(--portal-secondary)
+  );
+  transition: width 0.1s linear;
+  box-shadow: 0 0 4px var(--portal-glow);
+}
+
+@keyframes portalRotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes portalPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.9;
+  }
+}
+
+@keyframes portalCorePulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+}
+

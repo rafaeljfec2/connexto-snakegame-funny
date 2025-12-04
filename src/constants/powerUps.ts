@@ -12,6 +12,7 @@ export const POWER_UP_CONFIG = {
     [FoodType.PHASE_THROUGH]: 6000, // 6 seconds
     [FoodType.JOKER]: 0, // Instant effect (random)
     [FoodType.EXTRA_LIFE]: 0, // Instant effect
+    [FoodType.PORTAL]: 0, // Instant effect (creates portals)
     [FoodType.POISON]: 0, // Instant effect
     [FoodType.REVERSE_CONTROLS]: 4000, // 4 seconds
     [FoodType.SLOW_DOWN]: 3000, // 3 seconds
@@ -46,6 +47,9 @@ export const POWER_UP_CONFIG = {
     },
     [FoodType.EXTRA_LIFE]: {
       extraLife: true, // Add one life
+    },
+    [FoodType.PORTAL]: {
+      createPortals: true, // Creates a pair of portals
     },
   },
 
@@ -90,6 +94,10 @@ export const POWER_UP_CONFIG = {
     [FoodType.EXTRA_LIFE]: {
       primary: '#f43f5e',
       secondary: '#e11d48',
+    },
+    [FoodType.PORTAL]: {
+      primary: '#6366f1', // Indigo
+      secondary: '#4f46e5',
     },
   },
 

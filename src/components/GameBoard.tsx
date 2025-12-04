@@ -1,17 +1,11 @@
-import {
-  Position,
-  GameStatus,
-  Food as FoodType,
-  Obstacle,
-  Particle,
-} from "@/types/game";
-import { GAME_CONFIG } from "@/constants/game";
-import { SnakeSegment } from "./SnakeSegment";
-import { Food } from "./Food";
-import { ObstacleComponent } from "./Obstacle";
-import { ParticleSystem } from "./ParticleSystem";
-import { useEffect, useRef, useState } from "react";
-import styles from "./GameBoard.module.css";
+import { Position, GameStatus, Food as FoodType, Obstacle, Particle } from '@/types/game';
+import { GAME_CONFIG } from '@/constants/game';
+import { SnakeSegment } from './SnakeSegment';
+import { Food } from './Food';
+import { ObstacleComponent } from './Obstacle';
+import { ParticleSystem } from './ParticleSystem';
+import { useEffect, useRef, useState } from 'react';
+import styles from './GameBoard.module.css';
 
 interface GameBoardProps {
   snake: Position[];
@@ -39,9 +33,7 @@ export function GameBoard({
 
   const previousSnakeLengthRef = useRef(snake.length);
   const previousLevelRef = useRef(level);
-  const previousFoodKeyRef = useRef(
-    `${food.position.x}-${food.position.y}-${food.type}`
-  );
+  const previousFoodKeyRef = useRef(`${food.position.x}-${food.position.y}-${food.type}`);
   const [isLevelUp, setIsLevelUp] = useState(false);
   const [newSegmentIndex, setNewSegmentIndex] = useState<number | null>(null);
   const [isEating, setIsEating] = useState(false);
@@ -110,17 +102,15 @@ export function GameBoard({
   }, [level]);
 
   const boardClassName = `${styles.gameBoard} ${
-    status === GameStatus.GAME_OVER ? styles.gameOver : ""
-  } ${isLevelUp ? styles.levelUp : ""}`;
+    status === GameStatus.GAME_OVER ? styles.gameOver : ''
+  } ${isLevelUp ? styles.levelUp : ''}`;
 
   const foodKey = `food-${food.position.x}-${food.position.y}-${food.type}`;
 
   return (
     <div className={boardClassName} style={gridStyle}>
       {GAME_CONFIG.enableObstacles &&
-        obstacles.map((obstacle) => (
-          <ObstacleComponent key={obstacle.id} obstacle={obstacle} />
-        ))}
+        obstacles.map((obstacle) => <ObstacleComponent key={obstacle.id} obstacle={obstacle} />)}
       {snake.map((segment, index) => (
         <SnakeSegment
           key={`snake-${index}`}

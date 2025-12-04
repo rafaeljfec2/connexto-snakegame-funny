@@ -1,33 +1,25 @@
-import { useState, useEffect, useRef, useCallback } from "react";
-import { useGameLoop } from "@/hooks/useGameLoop";
-import { useKeyboard } from "@/hooks/useKeyboard";
-import { GameBoard } from "./components/GameBoard";
-import { GameInfo } from "./components/GameInfo";
-import { StatusMessage } from "./components/StatusMessage";
-import { GameControls } from "./components/GameControls";
-import { LevelUpAnimation } from "./components/LevelUpAnimation";
-import { ActivePowerUps } from "./components/ActivePowerUps";
-import { ComboDisplay } from "./components/ComboDisplay";
-import { AchievementNotification } from "./components/AchievementNotification";
-import { DynamicBackground } from "./components/DynamicBackground";
-import { LivesDisplay } from "./components/LivesDisplay";
-import { GameStatus } from "@/types/game";
-import styles from "./App.module.css";
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { useGameLoop } from '@/hooks/useGameLoop';
+import { useKeyboard } from '@/hooks/useKeyboard';
+import { GameBoard } from './components/GameBoard';
+import { GameInfo } from './components/GameInfo';
+import { StatusMessage } from './components/StatusMessage';
+import { GameControls } from './components/GameControls';
+import { LevelUpAnimation } from './components/LevelUpAnimation';
+import { ActivePowerUps } from './components/ActivePowerUps';
+import { ComboDisplay } from './components/ComboDisplay';
+import { AchievementNotification } from './components/AchievementNotification';
+import { DynamicBackground } from './components/DynamicBackground';
+import { LivesDisplay } from './components/LivesDisplay';
+import { GameStatus } from '@/types/game';
+import styles from './App.module.css';
 
 function App() {
-  const {
-    gameState,
-    resetGame,
-    startGame,
-    pauseGame,
-    setDirection,
-    handleKeyPress,
-  } = useGameLoop();
+  const { gameState, resetGame, startGame, pauseGame, setDirection, handleKeyPress } =
+    useGameLoop();
 
   const [showLevelUp, setShowLevelUp] = useState(false);
-  const [newlyUnlockedAchievements, setNewlyUnlockedAchievements] = useState<
-    string[]
-  >([]);
+  const [newlyUnlockedAchievements, setNewlyUnlockedAchievements] = useState<string[]>([]);
   const previousLevelRef = useRef(gameState.level);
   const previousScoreRef = useRef(gameState.score);
   const previousAchievementsRef = useRef(gameState.achievements);
@@ -40,10 +32,7 @@ function App() {
 
   // Detect level up
   useEffect(() => {
-    if (
-      gameState.status === GameStatus.PLAYING &&
-      gameState.level > previousLevelRef.current
-    ) {
+    if (gameState.status === GameStatus.PLAYING && gameState.level > previousLevelRef.current) {
       setShowLevelUp(true);
     }
     previousLevelRef.current = gameState.level;
@@ -62,16 +51,12 @@ function App() {
 
   // Detect newly unlocked achievements
   useEffect(() => {
-    const currentUnlocked = gameState.achievements
-      .filter((a) => a.unlocked)
-      .map((a) => a.id);
+    const currentUnlocked = gameState.achievements.filter((a) => a.unlocked).map((a) => a.id);
     const previousUnlocked = previousAchievementsRef.current
       .filter((a) => a.unlocked)
       .map((a) => a.id);
 
-    const newlyUnlocked = currentUnlocked.filter(
-      (id) => !previousUnlocked.includes(id)
-    );
+    const newlyUnlocked = currentUnlocked.filter((id) => !previousUnlocked.includes(id));
 
     if (newlyUnlocked.length > 0) {
       setNewlyUnlockedAchievements(newlyUnlocked);
@@ -159,8 +144,7 @@ function App() {
 
           <div className={styles.instructions}>
             <p>
-              <kbd>↑↓←→</kbd> or <kbd>WASD</kbd> to move • <kbd>SPACE</kbd> to
-              start/pause
+              <kbd>↑↓←→</kbd> or <kbd>WASD</kbd> to move • <kbd>SPACE</kbd> to start/pause
             </p>
           </div>
         </div>
@@ -173,9 +157,7 @@ function App() {
               <div className={styles.gameStats}>
                 <div className={styles.statItem}>
                   <span className={styles.statLabel}>Length</span>
-                  <span className={styles.statValue}>
-                    {gameState.snake.length}
-                  </span>
+                  <span className={styles.statValue}>{gameState.snake.length}</span>
                 </div>
                 <LivesDisplay lives={gameState.lives} />
               </div>

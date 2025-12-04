@@ -1,6 +1,6 @@
-import { Position, Direction, Food, FoodType, Obstacle } from "@/types/game";
-import { POWER_UP_CONFIG } from "@/constants/powerUps";
-import { applyFoodTimer } from "@/utils/foodTimer";
+import { Position, Direction, Food, FoodType, Obstacle } from '@/types/game';
+import { POWER_UP_CONFIG } from '@/constants/powerUps';
+import { applyFoodTimer } from '@/utils/foodTimer';
 
 export function getOppositeDirection(direction: Direction): Direction {
   const opposites: Record<Direction, Direction> = {
@@ -14,7 +14,7 @@ export function getOppositeDirection(direction: Direction): Direction {
 
 export function isValidDirectionChange(
   currentDirection: Direction,
-  newDirection: Direction
+  newDirection: Direction,
 ): boolean {
   return newDirection !== getOppositeDirection(currentDirection);
 }
@@ -22,7 +22,7 @@ export function isValidDirectionChange(
 export function getNextHeadPosition(
   head: Position,
   direction: Direction,
-  gridSize: number
+  gridSize: number,
 ): Position {
   const nextPosition = { ...head };
 
@@ -71,18 +71,13 @@ export function hasFoodCollision(head: Position, food: Food): boolean {
 }
 
 export function isValidPosition(position: Position, gridSize: number): boolean {
-  return (
-    position.x >= 0 &&
-    position.x < gridSize &&
-    position.y >= 0 &&
-    position.y < gridSize
-  );
+  return position.x >= 0 && position.x < gridSize && position.y >= 0 && position.y < gridSize;
 }
 
 function generateRandomPosition(
   snake: Position[],
   gridSize: number,
-  obstacles: Obstacle[] = []
+  obstacles: Obstacle[] = [],
 ): Position {
   const availablePositions: Position[] = [];
 
@@ -91,11 +86,11 @@ function generateRandomPosition(
     for (let y = 0; y < gridSize; y++) {
       const position: Position = { x, y };
       const isOccupiedBySnake = snake.some(
-        (segment) => segment.x === position.x && segment.y === position.y
+        (segment) => segment.x === position.x && segment.y === position.y,
       );
-      
+
       const isOccupiedByObstacle = obstacles.some(
-        (obstacle) => obstacle.position.x === position.x && obstacle.position.y === position.y
+        (obstacle) => obstacle.position.x === position.x && obstacle.position.y === position.y,
       );
 
       if (!isOccupiedBySnake && !isOccupiedByObstacle) {
@@ -112,10 +107,7 @@ function generateRandomPosition(
       x: Math.floor(gridSize / 2),
       y: Math.floor(gridSize / 2),
     };
-    const fallbackX = Math.max(
-      0,
-      Math.min((head.x + 1) % gridSize, gridSize - 1)
-    );
+    const fallbackX = Math.max(0, Math.min((head.x + 1) % gridSize, gridSize - 1));
     const fallbackY = Math.max(0, Math.min(head.y, gridSize - 1));
     return {
       x: fallbackX,
@@ -149,11 +141,7 @@ function getRandomFoodType(): FoodType {
 
   // Check for negative power-up
   if (random < jokerChance + negativeChance) {
-    const negativeTypes = [
-      FoodType.POISON,
-      FoodType.REVERSE_CONTROLS,
-      FoodType.SLOW_DOWN,
-    ];
+    const negativeTypes = [FoodType.POISON, FoodType.REVERSE_CONTROLS, FoodType.SLOW_DOWN];
     const randomIndex = Math.floor(Math.random() * negativeTypes.length);
     return negativeTypes[randomIndex] ?? FoodType.NORMAL;
   }
@@ -178,7 +166,7 @@ function getRandomFoodType(): FoodType {
 export function generateRandomFood(
   snake: Position[],
   gridSize: number,
-  obstacles: Obstacle[] = []
+  obstacles: Obstacle[] = [],
 ): Food {
   const position = generateRandomPosition(snake, gridSize, obstacles);
   const type = getRandomFoodType();
@@ -198,7 +186,7 @@ export function moveSnake(
   snake: Position[],
   direction: Direction,
   gridSize: number,
-  grow: boolean = false
+  grow: boolean = false,
 ): Position[] {
   const head = snake[0];
   const newHead = getNextHeadPosition(head, direction, gridSize);
@@ -212,7 +200,7 @@ export function moveSnake(
 }
 
 export function getHighScore(): number {
-  const stored = localStorage.getItem("snake-game-high-score");
+  const stored = localStorage.getItem('snake-game-high-score');
   if (stored === null) {
     return 0;
   }
@@ -223,6 +211,6 @@ export function getHighScore(): number {
 export function saveHighScore(score: number): void {
   const currentHighScore = getHighScore();
   if (score > currentHighScore) {
-    localStorage.setItem("snake-game-high-score", score.toString());
+    localStorage.setItem('snake-game-high-score', score.toString());
   }
 }

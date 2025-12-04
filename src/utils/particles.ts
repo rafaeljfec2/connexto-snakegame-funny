@@ -1,10 +1,10 @@
-import { Particle, Position } from "@/types/game";
+import { Particle, Position } from '@/types/game';
 
 export function createParticles(
   position: Position,
   color: string,
   count: number = 5,
-  lifetime: number = 500
+  lifetime: number = 500,
 ): Particle[] {
   const particles: Particle[] = [];
   const now = Date.now();
@@ -27,7 +27,5 @@ export function createParticles(
 
 export function updateParticles(particles: Particle[]): Particle[] {
   const now = Date.now();
-  return particles.filter(
-    (particle) => now - particle.startTime < particle.lifetime
-  );
+  return particles.filter((particle) => now - particle.startTime < particle.lifetime);
 }

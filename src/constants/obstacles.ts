@@ -1,4 +1,4 @@
-import { Position } from "@/types/game";
+import { Position } from '@/types/game';
 
 export interface ObstaclePattern {
   name: string;
@@ -8,7 +8,7 @@ export interface ObstaclePattern {
 
 export const OBSTACLE_PATTERNS: ObstaclePattern[] = [
   {
-    name: "Simple Wall",
+    name: 'Simple Wall',
     levelThreshold: 3,
     positions: [
       { x: 10, y: 10 },
@@ -17,7 +17,7 @@ export const OBSTACLE_PATTERNS: ObstaclePattern[] = [
     ],
   },
   {
-    name: "L Shape",
+    name: 'L Shape',
     levelThreshold: 5,
     positions: [
       { x: 5, y: 5 },
@@ -28,7 +28,7 @@ export const OBSTACLE_PATTERNS: ObstaclePattern[] = [
     ],
   },
   {
-    name: "Box",
+    name: 'Box',
     levelThreshold: 7,
     positions: [
       { x: 15, y: 15 },

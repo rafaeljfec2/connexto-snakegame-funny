@@ -1,5 +1,5 @@
-import { LIVES_CONFIG } from "@/constants/lives";
-import styles from "./LivesDisplay.module.css";
+import { LIVES_CONFIG } from '@/constants/lives';
+import styles from './LivesDisplay.module.css';
 
 interface LivesDisplayProps {
   lives: number;
@@ -17,10 +17,8 @@ export function LivesDisplay({ lives }: LivesDisplayProps) {
         {Array.from({ length: LIVES_CONFIG.maxLives }, (_, index) => (
           <span
             key={index}
-            className={`${styles.lifeIcon} ${
-              index < lives ? styles.active : styles.inactive
-            }`}
-            aria-label={index < lives ? "Life remaining" : "Life lost"}
+            className={`${styles.lifeIcon} ${index < lives ? styles.active : styles.inactive}`}
+            aria-label={index < lives ? 'Life remaining' : 'Life lost'}
           >
             ❤️
           </span>
@@ -29,5 +27,3 @@ export function LivesDisplay({ lives }: LivesDisplayProps) {
     </div>
   );
 }
-
-

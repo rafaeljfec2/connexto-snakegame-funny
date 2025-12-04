@@ -1,6 +1,6 @@
-import { useEffect, useRef, useCallback } from "react";
-import { GameStatus, GameState, Direction, FoodType } from "@/types/game";
-import { GAME_CONFIG, INITIAL_SNAKE_POSITION } from "@/constants/game";
+import { useEffect, useRef, useCallback } from 'react';
+import { GameStatus, GameState, FoodType } from '@/types/game';
+import { GAME_CONFIG, INITIAL_SNAKE_POSITION } from '@/constants/game';
 import {
   moveSnake,
   hasSelfCollision,
@@ -9,8 +9,8 @@ import {
   isValidDirectionChange,
   saveHighScore,
   getOppositeDirection,
-} from "@/utils/gameLogic";
-import { calculateLevel, calculateGameSpeed } from "@/utils/difficulty";
+} from '@/utils/gameLogic';
+import { calculateLevel, calculateGameSpeed } from '@/utils/difficulty';
 import {
   applyPowerUpEffect,
   createActivePowerUp,
@@ -18,27 +18,21 @@ import {
   getEffectiveGameSpeed,
   hasReverseControls,
   hasPhaseThrough,
-} from "@/utils/powerUps";
-import { updateCombo, calculateComboPoints } from "@/utils/combos";
-import { createParticles, updateParticles } from "@/utils/particles";
-import { generateObstacles, hasObstacleCollision } from "@/utils/obstacles";
-import { checkAchievements, saveAchievements } from "@/utils/achievements";
-import { hasFoodExpired } from "@/utils/foodTimer";
-import { loseLife, isLivesEnabled, addLife } from "@/utils/lives";
-import { LIVES_CONFIG } from "@/constants/lives";
-import { POWER_UP_CONFIG } from "@/constants/powerUps";
-import { INITIAL_DIRECTION } from "@/constants/game";
-import { useGameState } from "./useGameState";
+} from '@/utils/powerUps';
+import { updateCombo, calculateComboPoints } from '@/utils/combos';
+import { createParticles, updateParticles } from '@/utils/particles';
+import { generateObstacles, hasObstacleCollision } from '@/utils/obstacles';
+import { checkAchievements, saveAchievements } from '@/utils/achievements';
+import { hasFoodExpired } from '@/utils/foodTimer';
+import { loseLife, isLivesEnabled, addLife } from '@/utils/lives';
+import { LIVES_CONFIG } from '@/constants/lives';
+import { POWER_UP_CONFIG } from '@/constants/powerUps';
+import { INITIAL_DIRECTION } from '@/constants/game';
+import { useGameState } from './useGameState';
 
 export function useGameLoop() {
-  const {
-    gameState,
-    resetGame,
-    startGame,
-    pauseGame,
-    setDirection,
-    updateGameState,
-  } = useGameState();
+  const { gameState, resetGame, startGame, pauseGame, setDirection, updateGameState } =
+    useGameState();
 
   const gameLoopRef = useRef<number>();
   const lastUpdateTimeRef = useRef<number>(0);
@@ -71,19 +65,14 @@ export function useGameLoop() {
         currentDirection = prev.direction;
       }
 
-      const newSnake = moveSnake(
-        prev.snake,
-        currentDirection,
-        GAME_CONFIG.gridSize,
-        false
-      );
+      const newSnake = moveSnake(prev.snake, currentDirection, GAME_CONFIG.gridSize, false);
 
       // Check obstacle collision (ignore if phase through is active)
       const currentActivePowerUps = getActivePowerUps(prev.activePowerUps);
       const canPhaseThrough = hasPhaseThrough(currentActivePowerUps);
 
       // Check for collisions
-      const hasCollision = 
+      const hasCollision =
         (GAME_CONFIG.enableObstacles &&
           !canPhaseThrough &&
           hasObstacleCollision(newSnake[0], prev.obstacles)) ||
@@ -137,14 +126,12 @@ export function useGameLoop() {
             FoodType.EXTRA_GROWTH,
             FoodType.PHASE_THROUGH,
           ];
-          actualFoodType = positiveTypes[Math.floor(Math.random() * positiveTypes.length)] ?? FoodType.BONUS_POINTS;
+          actualFoodType =
+            positiveTypes[Math.floor(Math.random() * positiveTypes.length)] ??
+            FoodType.BONUS_POINTS;
         }
 
-        const powerUpEffect = applyPowerUpEffect(
-          actualFoodType,
-          prev.score,
-          prev.snake.length
-        );
+        const powerUpEffect = applyPowerUpEffect(actualFoodType, prev.score, prev.snake.length);
 
         // Add bonus points if JOKER was eaten
         if (prev.food.type === FoodType.JOKER) {
@@ -158,12 +145,8 @@ export function useGameLoop() {
 
         // Create particles
         if (GAME_CONFIG.enableParticles) {
-          const foodColor =
-            POWER_UP_CONFIG.colors[prev.food.type]?.primary || "#ef4444";
-          newParticles = [
-            ...newParticles,
-            ...createParticles(newSnake[0], foodColor, 8, 600),
-          ];
+          const foodColor = POWER_UP_CONFIG.colors[prev.food.type]?.primary || '#ef4444';
+          newParticles = [...newParticles, ...createParticles(newSnake[0], foodColor, 8, 600)];
         }
 
         // Apply growth (positive or negative)
@@ -181,20 +164,17 @@ export function useGameLoop() {
           // Shrink (for poison)
           const shrinkAmount = Math.abs(powerUpEffect.growthAmount);
           const minLength = 1;
-          const newLength = Math.max(
-            minLength,
-            finalSnake.length - shrinkAmount
-          );
+          const newLength = Math.max(minLength, finalSnake.length - shrinkAmount);
           finalSnake = finalSnake.slice(0, newLength);
         }
 
         // Calculate base score with length and combo multipliers
         const baseScoreIncrease = powerUpEffect.scoreIncrease;
-        
+
         // Apply length-based multiplier (points × (1 + length/10))
         const lengthMultiplier = 1 + finalSnake.length / 10;
-        let scoreWithLength = baseScoreIncrease * lengthMultiplier;
-        
+        const scoreWithLength = baseScoreIncrease * lengthMultiplier;
+
         // Apply combo multiplier if enabled
         const finalScoreIncrease = GAME_CONFIG.enableCombos
           ? calculateComboPoints(scoreWithLength, newCombo)
@@ -224,20 +204,16 @@ export function useGameLoop() {
       // Generate obstacles on level up
       let newObstacles = prev.obstacles;
       if (GAME_CONFIG.enableObstacles && newLevel > prev.level) {
-        newObstacles = generateObstacles(
-          newLevel,
-          finalSnake,
-          newObstacles,
-          GAME_CONFIG.gridSize
-        );
+        newObstacles = generateObstacles(newLevel, finalSnake, newObstacles, GAME_CONFIG.gridSize);
       }
 
       // Check if current food has expired
       const foodExpired = hasFoodExpired(prev.food);
-      
-      const newFood = ateFood || foodExpired
-        ? generateRandomFood(finalSnake, GAME_CONFIG.gridSize, newObstacles)
-        : prev.food;
+
+      const newFood =
+        ateFood || foodExpired
+          ? generateRandomFood(finalSnake, GAME_CONFIG.gridSize, newObstacles)
+          : prev.food;
 
       // Clean expired power-ups
       const activePowerUps = getActivePowerUps(newActivePowerUps);
@@ -290,8 +266,7 @@ export function useGameLoop() {
         direction: currentDirection,
         nextDirection: currentDirection,
         score: newScore,
-        highScore:
-          ateFood && newScore > prev.highScore ? newScore : prev.highScore,
+        highScore: ateFood && newScore > prev.highScore ? newScore : prev.highScore,
         level: newLevel,
         gameSpeed: baseGameSpeed,
         activePowerUps: activePowerUps,
@@ -322,10 +297,7 @@ export function useGameLoop() {
 
       // Update active power-ups and get effective speed
       const activePowerUps = getActivePowerUps(gameState.activePowerUps);
-      const effectiveSpeed = getEffectiveGameSpeed(
-        gameState.gameSpeed,
-        activePowerUps
-      );
+      const effectiveSpeed = getEffectiveGameSpeed(gameState.gameSpeed, activePowerUps);
 
       if (elapsed >= effectiveSpeed) {
         updateGame();
@@ -344,12 +316,7 @@ export function useGameLoop() {
       }
       lastUpdateTimeRef.current = 0;
     };
-  }, [
-    gameState.status,
-    gameState.gameSpeed,
-    gameState.activePowerUps,
-    updateGame,
-  ]);
+  }, [gameState.status, gameState.gameSpeed, gameState.activePowerUps, updateGame]);
 
   const continueAfterDeath = useCallback(() => {
     updateGameState((prev) => {
@@ -381,19 +348,22 @@ export function useGameLoop() {
       // Don't use the snake that just collided, always use safe initial position
       const targetLength = Math.max(
         LIVES_CONFIG.minLengthAfterPenalty,
-        Math.min(prev.snake.length - LIVES_CONFIG.lengthPenalty, 10)
+        Math.min(prev.snake.length - LIVES_CONFIG.lengthPenalty, 10),
       );
-      
+
       // Always create fresh snake from initial position to avoid any collision
-      const safeSnake = INITIAL_SNAKE_POSITION.slice(0, Math.min(targetLength, INITIAL_SNAKE_POSITION.length));
-      
+      const safeSnake = INITIAL_SNAKE_POSITION.slice(
+        0,
+        Math.min(targetLength, INITIAL_SNAKE_POSITION.length),
+      );
+
       // If we need longer snake, extend from initial position
       if (targetLength > INITIAL_SNAKE_POSITION.length) {
         const lastPos = INITIAL_SNAKE_POSITION[INITIAL_SNAKE_POSITION.length - 1];
         for (let i = INITIAL_SNAKE_POSITION.length; i < targetLength; i++) {
-          safeSnake.push({ 
+          safeSnake.push({
             x: Math.max(0, lastPos.x - (i - INITIAL_SNAKE_POSITION.length + 1)),
-            y: lastPos.y 
+            y: lastPos.y,
           });
         }
       }
@@ -429,7 +399,7 @@ export function useGameLoop() {
 
   const handleKeyPress = useCallback(
     (key: string) => {
-      if (key === " ") {
+      if (key === ' ') {
         if (gameState.status === GameStatus.IDLE) {
           startGame();
         } else if (
@@ -446,7 +416,7 @@ export function useGameLoop() {
         return;
       }
 
-      if (key === "Enter" || key === "Escape") {
+      if (key === 'Enter' || key === 'Escape') {
         if (gameState.status === GameStatus.GAME_OVER) {
           resetGame();
         } else if (
@@ -458,7 +428,7 @@ export function useGameLoop() {
         return;
       }
     },
-    [gameState.status, startGame, pauseGame, resetGame]
+    [gameState.status, startGame, pauseGame, resetGame, continueAfterDeath],
   );
 
   return {

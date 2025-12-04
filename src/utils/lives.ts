@@ -1,11 +1,11 @@
-import { LIVES_CONFIG } from "@/constants/lives";
+import { LIVES_CONFIG } from '@/constants/lives';
 
 /**
  * Handle losing a life - apply penalties and return new state values
  */
 export function loseLife(
   currentScore: number,
-  currentSnake: Array<{ x: number; y: number }>
+  currentSnake: Array<{ x: number; y: number }>,
 ): {
   newScore: number;
   newSnake: Array<{ x: number; y: number }>;
@@ -21,10 +21,7 @@ export function loseLife(
   // Apply length penalty
   if (LIVES_CONFIG.lengthPenalty > 0) {
     const minLength = LIVES_CONFIG.minLengthAfterPenalty;
-    const targetLength = Math.max(
-      minLength,
-      newSnake.length - LIVES_CONFIG.lengthPenalty
-    );
+    const targetLength = Math.max(minLength, newSnake.length - LIVES_CONFIG.lengthPenalty);
     newSnake = newSnake.slice(0, targetLength);
   }
 

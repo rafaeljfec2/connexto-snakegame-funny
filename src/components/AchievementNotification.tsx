@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
-import { Achievement } from "@/types/game";
-import styles from "./AchievementNotification.module.css";
+import { useEffect, useState } from 'react';
+import { Achievement } from '@/types/game';
+import styles from './AchievementNotification.module.css';
 
 interface AchievementNotificationProps {
   newlyUnlocked: string[];
@@ -11,9 +11,7 @@ export function AchievementNotification({
   newlyUnlocked,
   allAchievements,
 }: AchievementNotificationProps) {
-  const [visibleAchievement, setVisibleAchievement] = useState<string | null>(
-    null
-  );
+  const [visibleAchievement, setVisibleAchievement] = useState<string | null>(null);
 
   useEffect(() => {
     if (newlyUnlocked.length > 0) {

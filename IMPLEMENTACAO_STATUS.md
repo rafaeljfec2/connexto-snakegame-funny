@@ -65,33 +65,27 @@
 ### Componentes que precisam ser criados:
 
 1. **ComboDisplay.tsx**
-
    - Mostrar contador de combo atual
    - Mostrar multiplicador
    - Barra de tempo do combo
 
 2. **Obstacle.tsx**
-
    - Renderizar obstáculos no grid
    - Visual para cada tipo de obstáculo
 
 3. **ParticleSystem.tsx**
-
    - Renderizar partículas
    - Animações de partículas
 
 4. **AchievementNotification.tsx**
-
    - Notificação quando conquista é desbloqueada
    - Lista de conquistas
 
 5. **GameBoard.tsx** (atualizar)
-
    - Renderizar obstáculos
    - Integrar sistema de partículas
 
 6. **Food.tsx** (atualizar)
-
    - Cores para power-ups negativos já configuradas
 
 7. **GameInfo.tsx** (atualizar)

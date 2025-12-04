@@ -1,6 +1,6 @@
-import { Position } from "@/types/game";
-import { useEffect, useRef, useState } from "react";
-import styles from "./SnakeTrail.module.css";
+import { Position } from '@/types/game';
+import { useEffect, useRef, useState } from 'react';
+import styles from './SnakeTrail.module.css';
 
 interface SnakeTrailProps {
   snake: Position[];
@@ -29,11 +29,7 @@ export function SnakeTrail({ snake, enabled }: SnakeTrailProps) {
     const previousHead = previousSnakeRef.current[0];
 
     // Add new trail point if head moved
-    if (
-      !previousHead ||
-      head.x !== previousHead.x ||
-      head.y !== previousHead.y
-    ) {
+    if (!previousHead || head.x !== previousHead.x || head.y !== previousHead.y) {
       setTrailPoints((prev) => [
         ...prev,
         {

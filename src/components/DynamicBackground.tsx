@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import styles from "./DynamicBackground.module.css";
+import { useEffect, useState } from 'react';
+import styles from './DynamicBackground.module.css';
 
 interface BackgroundParticle {
   id: number;
@@ -17,17 +17,14 @@ interface DynamicBackgroundProps {
 // Background gradients that change with level
 const getBackgroundGradient = (level: number): string => {
   const baseColors = [
-    { start: "#0a0a0f", mid: "#1a1a2e", end: "#16213e" }, // Level 1-3: Dark blue
-    { start: "#1a1a2e", mid: "#16213e", end: "#0f3460" }, // Level 4-6: Darker blue
-    { start: "#16213e", mid: "#0f3460", end: "#1a2332" }, // Level 7-9: Deep blue
-    { start: "#0f3460", mid: "#1a2332", end: "#2d1b3d" }, // Level 10-12: Purple-blue
-    { start: "#1a2332", mid: "#2d1b3d", end: "#3d1b4d" }, // Level 13-15: Dark purple
+    { start: '#0a0a0f', mid: '#1a1a2e', end: '#16213e' }, // Level 1-3: Dark blue
+    { start: '#1a1a2e', mid: '#16213e', end: '#0f3460' }, // Level 4-6: Darker blue
+    { start: '#16213e', mid: '#0f3460', end: '#1a2332' }, // Level 7-9: Deep blue
+    { start: '#0f3460', mid: '#1a2332', end: '#2d1b3d' }, // Level 10-12: Purple-blue
+    { start: '#1a2332', mid: '#2d1b3d', end: '#3d1b4d' }, // Level 13-15: Dark purple
   ];
 
-  const colorIndex = Math.min(
-    Math.floor((level - 1) / 3),
-    baseColors.length - 1
-  );
+  const colorIndex = Math.min(Math.floor((level - 1) / 3), baseColors.length - 1);
   const colors = baseColors[colorIndex];
 
   return `linear-gradient(135deg, ${colors.start} 0%, ${colors.mid} 50%, ${colors.end} 100%)`;
@@ -44,8 +41,8 @@ const getRadialGradients = (level: number): string => {
       (hue + 120) % 360
     }, 70%, 60%, ${intensity}) 0%, transparent 50%),
     radial-gradient(circle at 50% 20%, hsla(${(hue + 240) % 360}, 70%, 60%, ${
-    intensity * 0.5
-  }) 0%, transparent 60%)
+      intensity * 0.5
+    }) 0%, transparent 60%)
   `;
 };
 
@@ -82,7 +79,7 @@ export function DynamicBackground({ level }: DynamicBackgroundProps) {
             particle.x = Math.random() * 100;
           }
           return { ...particle, y: newY };
-        })
+        }),
       );
     }, 50);
 
@@ -94,14 +91,8 @@ export function DynamicBackground({ level }: DynamicBackgroundProps) {
 
   return (
     <div className={styles.background}>
-      <div
-        className={styles.baseGradient}
-        style={{ background: backgroundGradient }}
-      />
-      <div
-        className={styles.radialGradients}
-        style={{ background: radialGradients }}
-      />
+      <div className={styles.baseGradient} style={{ background: backgroundGradient }} />
+      <div className={styles.radialGradients} style={{ background: radialGradients }} />
 
       {/* Parallax layer 1 - Slow moving stars */}
       <div className={styles.parallaxLayer1}>

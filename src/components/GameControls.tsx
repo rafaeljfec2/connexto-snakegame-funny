@@ -1,18 +1,13 @@
-import styles from './GameControls.module.css'
+import styles from './GameControls.module.css';
 
 interface GameControlsProps {
-  onStart: () => void
-  onPause: () => void
-  onReset: () => void
-  status: 'IDLE' | 'PLAYING' | 'PAUSED' | 'DYING' | 'GAME_OVER'
+  onStart: () => void;
+  onPause: () => void;
+  onReset: () => void;
+  status: 'IDLE' | 'PLAYING' | 'PAUSED' | 'DYING' | 'GAME_OVER';
 }
 
-export function GameControls({
-  onStart,
-  onPause,
-  onReset,
-  status,
-}: GameControlsProps) {
+export function GameControls({ onStart, onPause, onReset, status }: GameControlsProps) {
   return (
     <div className={styles.controls}>
       {status === 'IDLE' && (
@@ -41,5 +36,5 @@ export function GameControls({
         </button>
       )}
     </div>
-  )
+  );
 }

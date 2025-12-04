@@ -1,12 +1,11 @@
-import { DIFFICULTY_CONFIG } from "@/constants/game";
+import { DIFFICULTY_CONFIG } from '@/constants/game';
 
 /**
  * Calculate the current level based on score
  */
 export function calculateLevel(score: number): number {
   const level =
-    Math.floor(score / DIFFICULTY_CONFIG.pointsPerLevel) +
-    DIFFICULTY_CONFIG.initialLevel;
+    Math.floor(score / DIFFICULTY_CONFIG.pointsPerLevel) + DIFFICULTY_CONFIG.initialLevel;
   return level;
 }
 
@@ -16,11 +15,9 @@ export function calculateLevel(score: number): number {
  */
 export function calculateGameSpeed(level: number): number {
   const speedReduction =
-    (level - DIFFICULTY_CONFIG.initialLevel) *
-    DIFFICULTY_CONFIG.speedReductionPerLevel;
-  const calculatedSpeed =
-    DIFFICULTY_CONFIG.baseSpeed - speedReduction;
-  
+    (level - DIFFICULTY_CONFIG.initialLevel) * DIFFICULTY_CONFIG.speedReductionPerLevel;
+  const calculatedSpeed = DIFFICULTY_CONFIG.baseSpeed - speedReduction;
+
   // Ensure we never go below minimum speed
   return Math.max(calculatedSpeed, DIFFICULTY_CONFIG.minSpeed);
 }

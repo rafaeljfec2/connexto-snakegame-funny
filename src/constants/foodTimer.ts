@@ -1,4 +1,4 @@
-import { FoodType } from "@/types/game";
+import { FoodType } from '@/types/game';
 
 /**
  * Food timer configuration

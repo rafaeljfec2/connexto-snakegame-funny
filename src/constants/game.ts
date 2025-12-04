@@ -1,4 +1,4 @@
-import { GameConfig, Direction, Position } from "@/types/game";
+import { GameConfig, Direction, Position } from '@/types/game';
 
 export const GAME_CONFIG: GameConfig = {
   gridSize: 40, // Increased grid size for more gameplay space
@@ -36,8 +36,8 @@ export const KEYBOARD_MAP: Record<string, Direction> = {
 };
 
 export const STORAGE_KEYS = {
-  HIGH_SCORE: "snake-game-high-score",
-  ACHIEVEMENTS: "snake-game-achievements",
+  HIGH_SCORE: 'snake-game-high-score',
+  ACHIEVEMENTS: 'snake-game-achievements',
 } as const;
 
 // Combo system configuration

@@ -1,10 +1,10 @@
-import { Food as FoodType, FoodType as FoodTypeEnum } from "@/types/game";
-import { GAME_CONFIG } from "@/constants/game";
-import { POWER_UP_CONFIG } from "@/constants/powerUps";
-import { getFoodRemainingPercentage } from "@/utils/foodTimer";
-import { FOOD_TIMER_CONFIG } from "@/constants/foodTimer";
-import { useEffect, useState } from "react";
-import styles from "./Food.module.css";
+import { Food as FoodType, FoodType as FoodTypeEnum } from '@/types/game';
+import { GAME_CONFIG } from '@/constants/game';
+import { POWER_UP_CONFIG } from '@/constants/powerUps';
+import { getFoodRemainingPercentage } from '@/utils/foodTimer';
+import { FOOD_TIMER_CONFIG } from '@/constants/foodTimer';
+import { useEffect, useState } from 'react';
+import styles from './Food.module.css';
 
 interface FoodProps {
   food: FoodType;
@@ -15,17 +15,11 @@ export function Food({ food, wasEaten }: FoodProps) {
   const [jokerColorIndex, setJokerColorIndex] = useState(0);
 
   // Ensure position is within grid bounds
-  const x = Math.max(
-    0,
-    Math.min(food.position.x ?? 0, GAME_CONFIG.gridSize - 1)
-  );
-  const y = Math.max(
-    0,
-    Math.min(food.position.y ?? 0, GAME_CONFIG.gridSize - 1)
-  );
+  const x = Math.max(0, Math.min(food.position.x ?? 0, GAME_CONFIG.gridSize - 1));
+  const y = Math.max(0, Math.min(food.position.y ?? 0, GAME_CONFIG.gridSize - 1));
 
   const isJoker = food.type === FoodTypeEnum.JOKER;
-  const isPowerUp = food.type !== "NORMAL" && !isJoker;
+  const isPowerUp = food.type !== 'NORMAL' && !isJoker;
   const hasTimer = food.duration !== undefined && FOOD_TIMER_CONFIG.enabled;
   const remainingPercentage = hasTimer ? getFoodRemainingPercentage(food) : 1;
   const isWarning =
@@ -74,37 +68,31 @@ export function Food({ food, wasEaten }: FoodProps) {
   let colors;
   if (isJoker && !wasEaten) {
     const currentJokerType = jokerTypes[jokerColorIndex];
-    colors =
-      POWER_UP_CONFIG.colors[currentJokerType] ||
-      POWER_UP_CONFIG.colors[FoodTypeEnum.JOKER];
+    colors = POWER_UP_CONFIG.colors[currentJokerType] || POWER_UP_CONFIG.colors[FoodTypeEnum.JOKER];
   } else {
     colors = POWER_UP_CONFIG.colors[food.type];
   }
 
   // Convert enum to CSS class name (SPEED_BOOST -> speed-boost)
-  const foodTypeClass = food.type.toLowerCase().replace(/_/g, "-");
+  const foodTypeClass = food.type.toLowerCase().replace(/_/g, '-');
 
   return (
     <div
-      className={`${styles.food} ${wasEaten ? styles.eaten : ""} ${
-        isPowerUp ? styles.powerUp : ""
-      } ${isJoker ? styles.joker : ""} ${
-        isWarning ? styles.timerWarning : ""
-      } ${isCritical ? styles.timerCritical : ""} ${
-        styles[foodTypeClass] ?? ""
-      }`}
+      className={`${styles.food} ${wasEaten ? styles.eaten : ''} ${
+        isPowerUp ? styles.powerUp : ''
+      } ${isJoker ? styles.joker : ''} ${
+        isWarning ? styles.timerWarning : ''
+      } ${isCritical ? styles.timerCritical : ''} ${styles[foodTypeClass] ?? ''}`}
       style={
         {
           gridColumn: x + 1,
           gridRow: y + 1,
-          "--food-primary": colors.primary,
-          "--food-secondary": colors.secondary,
-          "--timer-progress": `${remainingPercentage * 100}%`,
+          '--food-primary': colors.primary,
+          '--food-secondary': colors.secondary,
+          '--timer-progress': `${remainingPercentage * 100}%`,
         } as React.CSSProperties
       }
-      aria-label={
-        isPowerUp ? `Power-up: ${food.type}` : isJoker ? "Joker Food" : "Food"
-      }
+      aria-label={isPowerUp ? `Power-up: ${food.type}` : isJoker ? 'Joker Food' : 'Food'}
     >
       {hasTimer && !wasEaten && FOOD_TIMER_CONFIG.showIndicator && (
         <div className={styles.timerIndicator}>

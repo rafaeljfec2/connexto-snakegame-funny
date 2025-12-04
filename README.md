@@ -19,6 +19,7 @@ npm install
 ## 🎮 Como Jogar
 
 1. Inicie o servidor de desenvolvimento:
+
    ```bash
    npm run dev
    ```

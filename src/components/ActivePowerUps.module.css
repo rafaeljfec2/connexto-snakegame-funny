@@ -9,11 +9,7 @@
   --powerup-primary: #3b82f6;
   --powerup-secondary: #2563eb;
 
-  background: linear-gradient(
-    135deg,
-    var(--powerup-primary) 0%,
-    var(--powerup-secondary) 100%
-  );
+  background: linear-gradient(135deg, var(--powerup-primary) 0%, var(--powerup-secondary) 100%);
   backdrop-filter: blur(10px);
   border-radius: 8px;
   padding: 0.75rem;

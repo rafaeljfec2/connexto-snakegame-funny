@@ -1,19 +1,19 @@
-import { useTheme } from "@/contexts/ThemeContext";
-import styles from "./ThemeToggle.module.css";
+import { useTheme } from '@/contexts/ThemeContext';
+import styles from './ThemeToggle.module.css';
 
 export function ThemeToggle() {
   const { theme, toggleTheme } = useTheme();
 
   const getIcon = () => {
     switch (theme) {
-      case "dark":
-        return "🌙";
-      case "light":
-        return "☀️";
-      case "auto":
-        return "🔄";
+      case 'dark':
+        return '🌙';
+      case 'light':
+        return '☀️';
+      case 'auto':
+        return '🔄';
       default:
-        return "🔄";
+        return '🔄';
     }
   };
 

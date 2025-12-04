@@ -1,10 +1,7 @@
-import { ComboState } from "@/types/game";
-import { COMBO_CONFIG } from "@/constants/game";
+import { ComboState } from '@/types/game';
+import { COMBO_CONFIG } from '@/constants/game';
 
-export function updateCombo(
-  currentCombo: ComboState,
-  ateFood: boolean
-): ComboState {
+export function updateCombo(currentCombo: ComboState, ateFood: boolean): ComboState {
   const now = Date.now();
 
   if (!ateFood) {
@@ -25,7 +22,7 @@ export function updateCombo(
     const newCount = currentCombo.count + 1;
     const multiplier = Math.min(
       Math.floor(newCount / COMBO_CONFIG.minCombo) + 1,
-      COMBO_CONFIG.maxMultiplier
+      COMBO_CONFIG.maxMultiplier,
     );
 
     return {
@@ -43,9 +40,6 @@ export function updateCombo(
   }
 }
 
-export function calculateComboPoints(
-  basePoints: number,
-  combo: ComboState
-): number {
+export function calculateComboPoints(basePoints: number, combo: ComboState): number {
   return basePoints * combo.multiplier;
 }

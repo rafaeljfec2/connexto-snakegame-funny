@@ -1,6 +1,6 @@
-import { useEffect, useCallback } from "react";
-import { Direction } from "@/types/game";
-import { KEYBOARD_MAP } from "@/constants/game";
+import { useEffect, useCallback } from 'react';
+import { Direction } from '@/types/game';
+import { KEYBOARD_MAP } from '@/constants/game';
 
 interface UseKeyboardProps {
   onDirectionChange: (direction: Direction) => void;
@@ -8,11 +8,7 @@ interface UseKeyboardProps {
   enabled?: boolean;
 }
 
-export function useKeyboard({
-  onDirectionChange,
-  onKeyPress,
-  enabled = true,
-}: UseKeyboardProps) {
+export function useKeyboard({ onDirectionChange, onKeyPress, enabled = true }: UseKeyboardProps) {
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
       if (!enabled) {
@@ -32,7 +28,7 @@ export function useKeyboard({
         onKeyPress(event.key);
       }
     },
-    [enabled, onDirectionChange, onKeyPress]
+    [enabled, onDirectionChange, onKeyPress],
   );
 
   useEffect(() => {
@@ -41,10 +37,10 @@ export function useKeyboard({
     }
 
     // Use capture phase for faster event handling
-    window.addEventListener("keydown", handleKeyDown, { capture: true });
+    window.addEventListener('keydown', handleKeyDown, { capture: true });
 
     return () => {
-      window.removeEventListener("keydown", handleKeyDown, { capture: true });
+      window.removeEventListener('keydown', handleKeyDown, { capture: true });
     };
   }, [enabled, handleKeyDown]);
 }

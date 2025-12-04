@@ -1,21 +1,18 @@
-import { useState, useCallback } from "react";
-import { GameState, Direction, GameStatus } from "@/types/game";
-import {
-  GAME_CONFIG,
-  INITIAL_DIRECTION,
-  INITIAL_SNAKE_POSITION,
-} from "@/constants/game";
-import { generateRandomFood, getHighScore, isValidDirectionChange } from "@/utils/gameLogic";
-import { calculateLevel, calculateGameSpeed } from "@/utils/difficulty";
-import { loadAchievements } from "@/utils/achievements";
-import { LIVES_CONFIG } from "@/constants/lives";
+import { useState, useCallback } from 'react';
+import { GameState, Direction, GameStatus } from '@/types/game';
+import { GAME_CONFIG, INITIAL_DIRECTION, INITIAL_SNAKE_POSITION } from '@/constants/game';
+import { generateRandomFood, getHighScore, isValidDirectionChange } from '@/utils/gameLogic';
+import { calculateLevel, calculateGameSpeed } from '@/utils/difficulty';
+import { loadAchievements } from '@/utils/achievements';
+import { LIVES_CONFIG } from '@/constants/lives';
+import { initializeStatistics } from '@/utils/statistics';
 
 export function useGameState() {
   const [gameState, setGameState] = useState<GameState>(() => {
     const initialFood = generateRandomFood(
       INITIAL_SNAKE_POSITION,
       GAME_CONFIG.gridSize,
-      [] // No obstacles at game start/reset
+      [], // No obstacles at game start/reset
     );
     const initialLevel = calculateLevel(0);
     const initialSpeed = calculateGameSpeed(initialLevel);
@@ -40,6 +37,7 @@ export function useGameState() {
       particles: [],
       achievements: loadAchievements(),
       lives: LIVES_CONFIG.initialLives,
+      statistics: initializeStatistics(),
     };
   });
 
@@ -47,7 +45,7 @@ export function useGameState() {
     const initialFood = generateRandomFood(
       INITIAL_SNAKE_POSITION,
       GAME_CONFIG.gridSize,
-      [] // No obstacles at game start/reset
+      [], // No obstacles at game start/reset
     );
     const initialLevel = calculateLevel(0);
     const initialSpeed = calculateGameSpeed(initialLevel);
@@ -72,6 +70,7 @@ export function useGameState() {
       particles: [],
       achievements: loadAchievements(),
       lives: LIVES_CONFIG.initialLives,
+      statistics: initializeStatistics(),
     });
   }, []);
 
@@ -85,10 +84,7 @@ export function useGameState() {
   const pauseGame = useCallback(() => {
     setGameState((prev) => ({
       ...prev,
-      status:
-        prev.status === GameStatus.PLAYING
-          ? GameStatus.PAUSED
-          : GameStatus.PLAYING,
+      status: prev.status === GameStatus.PLAYING ? GameStatus.PAUSED : GameStatus.PLAYING,
     }));
   }, []);
 
@@ -97,10 +93,10 @@ export function useGameState() {
       if (prev.status !== GameStatus.PLAYING) {
         return prev;
       }
-      
+
       // Apply direction change immediately if valid (makes controls more responsive)
       const isValidChange = isValidDirectionChange(prev.direction, direction);
-      
+
       if (isValidChange) {
         return {
           ...prev,
@@ -108,7 +104,7 @@ export function useGameState() {
           nextDirection: direction,
         };
       }
-      
+
       // Store for next valid frame if not immediately valid
       return {
         ...prev,
@@ -117,12 +113,9 @@ export function useGameState() {
     });
   }, []);
 
-  const updateGameState = useCallback(
-    (updater: (prev: GameState) => GameState) => {
-      setGameState(updater);
-    },
-    []
-  );
+  const updateGameState = useCallback((updater: (prev: GameState) => GameState) => {
+    setGameState(updater);
+  }, []);
 
   return {
     gameState,

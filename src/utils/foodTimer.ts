@@ -1,5 +1,5 @@
-import { Food } from "@/types/game";
-import { FOOD_TIMER_CONFIG } from "@/constants/foodTimer";
+import { Food } from '@/types/game';
+import { FOOD_TIMER_CONFIG } from '@/constants/foodTimer';
 
 /**
  * Check if food has expired based on its timer
@@ -76,9 +76,8 @@ export function applyFoodTimer(food: Food): Food {
 
   // Get duration for this food type
   const duration =
-    FOOD_TIMER_CONFIG.durations[
-      food.type as keyof typeof FOOD_TIMER_CONFIG.durations
-    ] ?? FOOD_TIMER_CONFIG.baseDuration;
+    FOOD_TIMER_CONFIG.durations[food.type as keyof typeof FOOD_TIMER_CONFIG.durations] ??
+    FOOD_TIMER_CONFIG.baseDuration;
 
   return {
     ...food,

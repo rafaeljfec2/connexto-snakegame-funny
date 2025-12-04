@@ -1,5 +1,5 @@
-import { useEffect, useState, useRef } from "react";
-import styles from "./LevelUpAnimation.module.css";
+import { useEffect, useState, useRef } from 'react';
+import styles from './LevelUpAnimation.module.css';
 
 interface LevelUpAnimationProps {
   level: number;
@@ -7,11 +7,7 @@ interface LevelUpAnimationProps {
   onAnimationEnd: () => void;
 }
 
-export function LevelUpAnimation({
-  level,
-  show,
-  onAnimationEnd,
-}: LevelUpAnimationProps) {
+export function LevelUpAnimation({ level, show, onAnimationEnd }: LevelUpAnimationProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
   const onAnimationEndRef = useRef(onAnimationEnd);
@@ -71,7 +67,7 @@ export function LevelUpAnimation({
 
   return (
     <div className={styles.overlay}>
-      <div className={`${styles.levelUp} ${isExiting ? styles.exiting : ""}`}>
+      <div className={`${styles.levelUp} ${isExiting ? styles.exiting : ''}`}>
         <div className={styles.levelUpTitle}>Level Up!</div>
         <div className={styles.levelUpNumber}>Level {level}</div>
       </div>

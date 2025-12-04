@@ -1,16 +1,16 @@
 export enum GameStatus {
-  IDLE = "IDLE",
-  PLAYING = "PLAYING",
-  PAUSED = "PAUSED",
-  DYING = "DYING", // Snake is dying, waiting to consume life
-  GAME_OVER = "GAME_OVER",
+  IDLE = 'IDLE',
+  PLAYING = 'PLAYING',
+  PAUSED = 'PAUSED',
+  DYING = 'DYING', // Snake is dying, waiting to consume life
+  GAME_OVER = 'GAME_OVER',
 }
 
 export enum Direction {
-  UP = "UP",
-  DOWN = "DOWN",
-  LEFT = "LEFT",
-  RIGHT = "RIGHT",
+  UP = 'UP',
+  DOWN = 'DOWN',
+  LEFT = 'LEFT',
+  RIGHT = 'RIGHT',
 }
 
 export interface Position {
@@ -19,17 +19,17 @@ export interface Position {
 }
 
 export enum FoodType {
-  NORMAL = "NORMAL",
-  SPEED_BOOST = "SPEED_BOOST",
-  BONUS_POINTS = "BONUS_POINTS",
-  EXTRA_GROWTH = "EXTRA_GROWTH",
-  PHASE_THROUGH = "PHASE_THROUGH",
-  JOKER = "JOKER",
-  EXTRA_LIFE = "EXTRA_LIFE",
+  NORMAL = 'NORMAL',
+  SPEED_BOOST = 'SPEED_BOOST',
+  BONUS_POINTS = 'BONUS_POINTS',
+  EXTRA_GROWTH = 'EXTRA_GROWTH',
+  PHASE_THROUGH = 'PHASE_THROUGH',
+  JOKER = 'JOKER',
+  EXTRA_LIFE = 'EXTRA_LIFE',
   // Negative power-ups (debuffs)
-  POISON = "POISON",
-  REVERSE_CONTROLS = "REVERSE_CONTROLS",
-  SLOW_DOWN = "SLOW_DOWN",
+  POISON = 'POISON',
+  REVERSE_CONTROLS = 'REVERSE_CONTROLS',
+  SLOW_DOWN = 'SLOW_DOWN',
 }
 
 export interface Food {
@@ -47,7 +47,7 @@ export interface ActivePowerUp {
 
 export interface Obstacle {
   position: Position;
-  type: "static" | "moving" | "portal";
+  type: 'static' | 'moving' | 'portal';
   id: string;
 }
 
@@ -89,6 +89,17 @@ export interface GameState {
   particles: Particle[];
   achievements: Achievement[];
   lives: number; // Number of lives remaining
+  statistics?: {
+    startTime: number;
+    pausedTime: number;
+    lastPauseTime?: number;
+    foodsEaten: number;
+    foodsByType: Record<FoodType, number>;
+    maxSnakeLength: number;
+    maxCombo: number;
+    obstaclesEncountered: number;
+    livesLost: number;
+  };
 }
 
 export interface GameConfig {

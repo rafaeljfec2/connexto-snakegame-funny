@@ -1,4 +1,4 @@
-import styles from "./GameInfo.module.css";
+import styles from './GameInfo.module.css';
 
 interface GameInfoProps {
   score: number;

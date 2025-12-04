@@ -1,20 +1,18 @@
-import { Obstacle, Position } from "@/types/game";
-import { OBSTACLE_PATTERNS, OBSTACLE_CONFIG } from "@/constants/obstacles";
-import { GAME_CONFIG } from "@/constants/game";
+import { Obstacle, Position } from '@/types/game';
+import { OBSTACLE_PATTERNS, OBSTACLE_CONFIG } from '@/constants/obstacles';
+import { GAME_CONFIG } from '@/constants/game';
 
 export function generateObstacles(
   level: number,
   snake: Position[],
   existingObstacles: Obstacle[],
-  gridSize: number
+  gridSize: number,
 ): Obstacle[] {
   if (!GAME_CONFIG.enableObstacles || level < 3) {
     return [];
   }
 
-  const availablePatterns = OBSTACLE_PATTERNS.filter(
-    (pattern) => level >= pattern.levelThreshold
-  );
+  const availablePatterns = OBSTACLE_PATTERNS.filter((pattern) => level >= pattern.levelThreshold);
 
   if (availablePatterns.length === 0) {
     return [];
@@ -28,8 +26,7 @@ export function generateObstacles(
   }
 
   // Select a random pattern
-  const pattern =
-    availablePatterns[Math.floor(Math.random() * availablePatterns.length)];
+  const pattern = availablePatterns[Math.floor(Math.random() * availablePatterns.length)];
 
   // Try to place the pattern randomly on the grid
   const attempts = 10;
@@ -57,16 +54,14 @@ export function generateObstacles(
 
       // Check if overlaps with existing obstacles
       const overlaps = obstacles.some(
-        (obs) => obs.position.x === pos.x && obs.position.y === pos.y
+        (obs) => obs.position.x === pos.x && obs.position.y === pos.y,
       );
       if (overlaps) {
         return false;
       }
 
       // Check if overlaps with snake
-      const onSnake = snake.some(
-        (segment) => segment.x === pos.x && segment.y === pos.y
-      );
+      const onSnake = snake.some((segment) => segment.x === pos.x && segment.y === pos.y);
       return !onSnake;
     });
 
@@ -76,7 +71,7 @@ export function generateObstacles(
         obstacles.push({
           id: `obstacle-${Date.now()}-${index}`,
           position: pos,
-          type: "static",
+          type: 'static',
         });
       });
 
@@ -88,12 +83,8 @@ export function generateObstacles(
   return obstacles.slice(-OBSTACLE_CONFIG.maxObstacles * 10);
 }
 
-export function hasObstacleCollision(
-  head: Position,
-  obstacles: Obstacle[]
-): boolean {
+export function hasObstacleCollision(head: Position, obstacles: Obstacle[]): boolean {
   return obstacles.some(
-    (obstacle) =>
-      obstacle.position.x === head.x && obstacle.position.y === head.y
+    (obstacle) => obstacle.position.x === head.x && obstacle.position.y === head.y,
   );
 }

@@ -10,6 +10,7 @@ export const POWER_UP_CONFIG = {
     [FoodType.BONUS_POINTS]: 0, // Instant effect
     [FoodType.EXTRA_GROWTH]: 0, // Instant effect
     [FoodType.PHASE_THROUGH]: 6000, // 6 seconds
+    [FoodType.JOKER]: 0, // Instant effect (random)
     [FoodType.POISON]: 0, // Instant effect
     [FoodType.REVERSE_CONTROLS]: 4000, // 4 seconds
     [FoodType.SLOW_DOWN]: 3000, // 3 seconds
@@ -38,6 +39,9 @@ export const POWER_UP_CONFIG = {
     },
     [FoodType.PHASE_THROUGH]: {
       phaseThrough: true, // Can pass through obstacles
+    },
+    [FoodType.JOKER]: {
+      random: true, // Random effect (will be handled specially)
     },
   },
   
@@ -75,8 +79,15 @@ export const POWER_UP_CONFIG = {
       primary: "#06b6d4",
       secondary: "#0891b2",
     },
+    [FoodType.JOKER]: {
+      primary: "#fbbf24",
+      secondary: "#f59e0b",
+    },
   },
   
   // Negative power-up spawn chance (separate from positive)
   negativeSpawnChance: 0.15, // 15% chance of spawning negative power-up
+  
+  // Joker spawn chance (very rare, special power-up)
+  jokerSpawnChance: 0.05, // 5% chance of spawning joker
 } as const;

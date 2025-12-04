@@ -61,6 +61,16 @@ export function applyPowerUpEffect(
     };
   }
   
+  // Joker - randomly choose a positive power-up effect
+  if (foodType === FoodType.JOKER) {
+    // Return effect that will trigger random selection in game loop
+    return {
+      scoreIncrease: 15, // Base points for joker
+      growthAmount: 1,
+      shouldActivatePowerUp: false, // Will be handled specially
+    };
+  }
+  
   // Normal food
   return {
     scoreIncrease: 10,

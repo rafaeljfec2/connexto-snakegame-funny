@@ -53,13 +53,20 @@ export function ActivePowerUps({ powerUps }: ActivePowerUpsProps) {
         icon: "📈",
         isPositive: true,
       },
-      {
-        type: FoodType.PHASE_THROUGH,
-        name: "Phase Through",
-        description: "Pass obstacles for 6s",
-        icon: "👻",
-        isPositive: true,
-      },
+            {
+              type: FoodType.PHASE_THROUGH,
+              name: "Phase Through",
+              description: "Pass obstacles for 6s",
+              icon: "👻",
+              isPositive: true,
+            },
+            {
+              type: FoodType.JOKER,
+              name: "Joker",
+              description: "Random positive effect",
+              icon: "🎴",
+              isPositive: true,
+            },
       {
         type: FoodType.POISON,
         name: "Poison",

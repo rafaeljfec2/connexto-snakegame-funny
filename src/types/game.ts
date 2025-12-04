@@ -23,6 +23,7 @@ export enum FoodType {
   BONUS_POINTS = "BONUS_POINTS",
   EXTRA_GROWTH = "EXTRA_GROWTH",
   PHASE_THROUGH = "PHASE_THROUGH",
+  JOKER = "JOKER",
   // Negative power-ups (debuffs)
   POISON = "POISON",
   REVERSE_CONTROLS = "REVERSE_CONTROLS",

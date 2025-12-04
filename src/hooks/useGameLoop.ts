@@ -122,11 +122,28 @@ export function useGameLoop() {
         if (GAME_CONFIG.enableCombos) {
           newCombo = updateCombo(prev.combo, true);
         }
+        // Handle JOKER - randomly choose a positive power-up before applying effects
+        let actualFoodType = prev.food.type;
+        if (prev.food.type === FoodType.JOKER) {
+          const positiveTypes = [
+            FoodType.SPEED_BOOST,
+            FoodType.BONUS_POINTS,
+            FoodType.EXTRA_GROWTH,
+            FoodType.PHASE_THROUGH,
+          ];
+          actualFoodType = positiveTypes[Math.floor(Math.random() * positiveTypes.length)] ?? FoodType.BONUS_POINTS;
+        }
+
         const powerUpEffect = applyPowerUpEffect(
-          prev.food.type,
+          actualFoodType,
           prev.score,
           prev.snake.length
         );
+
+        // Add bonus points if JOKER was eaten
+        if (prev.food.type === FoodType.JOKER) {
+          powerUpEffect.scoreIncrease += 15; // Bonus for eating joker
+        }
 
         // Track if power-up was eaten
         if (prev.food.type !== FoodType.NORMAL) {
@@ -175,7 +192,7 @@ export function useGameLoop() {
 
         // Activate power-up if needed
         if (powerUpEffect.shouldActivatePowerUp) {
-          newActivePowerUps.push(createActivePowerUp(prev.food.type));
+          newActivePowerUps.push(createActivePowerUp(actualFoodType));
         }
       } else {
         // Update combo expiration when no food eaten

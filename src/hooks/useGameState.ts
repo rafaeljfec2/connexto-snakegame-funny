@@ -14,7 +14,8 @@ export function useGameState() {
   const [gameState, setGameState] = useState<GameState>(() => {
     const initialFood = generateRandomFood(
       INITIAL_SNAKE_POSITION,
-      GAME_CONFIG.gridSize
+      GAME_CONFIG.gridSize,
+      [] // No obstacles at game start/reset
     );
     const initialLevel = calculateLevel(0);
     const initialSpeed = calculateGameSpeed(initialLevel);
@@ -45,7 +46,8 @@ export function useGameState() {
   const resetGame = useCallback(() => {
     const initialFood = generateRandomFood(
       INITIAL_SNAKE_POSITION,
-      GAME_CONFIG.gridSize
+      GAME_CONFIG.gridSize,
+      [] // No obstacles at game start/reset
     );
     const initialLevel = calculateLevel(0);
     const initialSpeed = calculateGameSpeed(initialLevel);

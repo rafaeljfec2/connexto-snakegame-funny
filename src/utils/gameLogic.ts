@@ -1,4 +1,4 @@
-import { Position, Direction, Food, FoodType } from "@/types/game";
+import { Position, Direction, Food, FoodType, Obstacle } from "@/types/game";
 import { POWER_UP_CONFIG } from "@/constants/powerUps";
 import { applyFoodTimer } from "@/utils/foodTimer";
 
@@ -79,18 +79,26 @@ export function isValidPosition(position: Position, gridSize: number): boolean {
   );
 }
 
-function generateRandomPosition(snake: Position[], gridSize: number): Position {
+function generateRandomPosition(
+  snake: Position[],
+  gridSize: number,
+  obstacles: Obstacle[] = []
+): Position {
   const availablePositions: Position[] = [];
 
-  // Generate all valid positions that are not occupied by snake
+  // Generate all valid positions that are not occupied by snake or obstacles
   for (let x = 0; x < gridSize; x++) {
     for (let y = 0; y < gridSize; y++) {
       const position: Position = { x, y };
-      const isOccupied = snake.some(
+      const isOccupiedBySnake = snake.some(
         (segment) => segment.x === position.x && segment.y === position.y
       );
+      
+      const isOccupiedByObstacle = obstacles.some(
+        (obstacle) => obstacle.position.x === position.x && obstacle.position.y === position.y
+      );
 
-      if (!isOccupied) {
+      if (!isOccupiedBySnake && !isOccupiedByObstacle) {
         availablePositions.push(position);
       }
     }
@@ -167,8 +175,12 @@ function getRandomFoodType(): FoodType {
   return FoodType.NORMAL;
 }
 
-export function generateRandomFood(snake: Position[], gridSize: number): Food {
-  const position = generateRandomPosition(snake, gridSize);
+export function generateRandomFood(
+  snake: Position[],
+  gridSize: number,
+  obstacles: Obstacle[] = []
+): Food {
+  const position = generateRandomPosition(snake, gridSize, obstacles);
   const type = getRandomFoodType();
 
   const food: Food = {

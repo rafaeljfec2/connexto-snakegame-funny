@@ -218,13 +218,6 @@ export function useGameLoop() {
         }
       }
 
-      // Check if current food has expired
-      const foodExpired = hasFoodExpired(prev.food);
-      
-      const newFood = ateFood || foodExpired
-        ? generateRandomFood(finalSnake, GAME_CONFIG.gridSize)
-        : prev.food;
-
       const newLevel = calculateLevel(newScore);
       const baseGameSpeed = calculateGameSpeed(newLevel);
 
@@ -238,6 +231,13 @@ export function useGameLoop() {
           GAME_CONFIG.gridSize
         );
       }
+
+      // Check if current food has expired
+      const foodExpired = hasFoodExpired(prev.food);
+      
+      const newFood = ateFood || foodExpired
+        ? generateRandomFood(finalSnake, GAME_CONFIG.gridSize, newObstacles)
+        : prev.food;
 
       // Clean expired power-ups
       const activePowerUps = getActivePowerUps(newActivePowerUps);
@@ -398,8 +398,8 @@ export function useGameLoop() {
         }
       }
 
-      // Generate new food
-      const newFood = generateRandomFood(safeSnake, GAME_CONFIG.gridSize);
+      // Generate new food (no obstacles at this point since we reset)
+      const newFood = generateRandomFood(safeSnake, GAME_CONFIG.gridSize, []);
 
       // Reset combo and active power-ups
       const newLevel = calculateLevel(newScore);

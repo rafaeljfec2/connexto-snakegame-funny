@@ -105,19 +105,62 @@
   padding: 0.625rem;
   background: rgba(0, 0, 0, 0.3);
   border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-left: 3px solid transparent;
+  border: 2px solid transparent;
   transition: all 0.2s ease;
 }
 
 .powerUpItem:hover {
   background: rgba(0, 0, 0, 0.5);
-  border-color: rgba(255, 255, 255, 0.2);
   transform: translateX(4px);
+  /* Keep border color on hover - don't override */
 }
 
-.powerUpItem.negative {
-  border-left-color: var(--powerup-primary, #ec4899);
+/* Border colors for all power-ups - Positive */
+.powerUpItem.speed-boost {
+  border-color: #fb923c !important; /* Orange border */
+  border-width: 2px;
+}
+
+.powerUpItem.bonus-points {
+  border-color: #f59e0b !important; /* Gold border */
+  border-width: 2px;
+}
+
+.powerUpItem.extra-growth {
+  border-color: #60a5fa !important; /* Light blue border */
+  border-width: 2px;
+}
+
+.powerUpItem.phase-through {
+  border-color: #a855f7 !important; /* Purple border */
+  border-width: 2px;
+}
+
+.powerUpItem.joker {
+  border-color: #ec4899 !important; /* Pink border */
+  border-width: 2px;
+}
+
+.powerUpItem.extra-life {
+  border-color: #f43f5e !important; /* Red-pink border */
+  border-width: 2px;
+}
+
+/* Border colors for negative power-ups */
+.powerUpItem.poison {
+  border-color: #10b981 !important; /* Green border for poison */
+  border-width: 2px;
+}
+
+.powerUpItem.reverse-controls {
+  border-color: #ec4899 !important; /* Pink border for reverse controls */
+  border-width: 2px;
+}
+
+.powerUpItem.slow-down {
+  border: 2px solid;
+  border-image: linear-gradient(135deg, #6366f1, #a855f7) 1;
+  border-image-slice: 1;
 }
 
 .itemIcon {

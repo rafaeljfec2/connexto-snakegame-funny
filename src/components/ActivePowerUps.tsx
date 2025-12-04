@@ -67,6 +67,13 @@ export function ActivePowerUps({ powerUps }: ActivePowerUpsProps) {
               icon: "🎴",
               isPositive: true,
             },
+            {
+              type: FoodType.EXTRA_LIFE,
+              name: "Extra Life",
+              description: "Add one life",
+              icon: "❤️",
+              isPositive: true,
+            },
       {
         type: FoodType.POISON,
         name: "Poison",
@@ -105,6 +112,10 @@ export function ActivePowerUps({ powerUps }: ActivePowerUpsProps) {
         return "Reverse Controls";
       case FoodType.SLOW_DOWN:
         return "Slow Down";
+      case FoodType.JOKER:
+        return "Joker";
+      case FoodType.EXTRA_LIFE:
+        return "Extra Life";
       default:
         return type;
     }
@@ -124,10 +135,11 @@ export function ActivePowerUps({ powerUps }: ActivePowerUpsProps) {
         <div className={styles.powerUpsList}>
           {allPowerUps.map((powerUp) => {
             const colors = POWER_UP_CONFIG.colors[powerUp.type];
+            const powerUpTypeClass = powerUp.type.toLowerCase().replace(/_/g, "-");
             return (
               <div
                 key={powerUp.type}
-                className={`${styles.powerUpItem} ${!powerUp.isPositive ? styles.negative : ""}`}
+                className={`${styles.powerUpItem} ${!powerUp.isPositive ? styles.negative : ""} ${styles[powerUpTypeClass] ?? ""}`}
                 style={{
                   "--powerup-primary": colors.primary,
                   "--powerup-secondary": colors.secondary,

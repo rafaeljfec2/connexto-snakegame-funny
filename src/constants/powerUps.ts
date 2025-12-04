@@ -56,36 +56,36 @@ export const POWER_UP_CONFIG = {
       secondary: "#dc2626",
     },
     [FoodType.SPEED_BOOST]: {
-      primary: "#3b82f6",
-      secondary: "#2563eb",
+      primary: "#fb923c", // Laranja/bright orange (lightning bolt)
+      secondary: "#f97316",
     },
     [FoodType.BONUS_POINTS]: {
-      primary: "#f59e0b",
+      primary: "#f59e0b", // Dourado/gold (money bag)
       secondary: "#d97706",
     },
     [FoodType.EXTRA_GROWTH]: {
-      primary: "#8b5cf6",
-      secondary: "#7c3aed",
+      primary: "#60a5fa", // Azul claro/light blue (graph)
+      secondary: "#3b82f6",
     },
     [FoodType.POISON]: {
-      primary: "#10b981",
+      primary: "#10b981", // Verde/green (skull)
       secondary: "#059669",
     },
     [FoodType.REVERSE_CONTROLS]: {
-      primary: "#ec4899",
-      secondary: "#db2777",
+      primary: "#60a5fa", // Azul claro com borda rosa/light blue with pink border
+      secondary: "#3b82f6",
     },
     [FoodType.SLOW_DOWN]: {
-      primary: "#6366f1",
-      secondary: "#4f46e5",
+      primary: "#d97706", // Marrom/brown (snail)
+      secondary: "#b45309",
     },
     [FoodType.PHASE_THROUGH]: {
-      primary: "#06b6d4",
-      secondary: "#0891b2",
+      primary: "#a855f7", // Roxo/white-purple (ghost)
+      secondary: "#9333ea",
     },
     [FoodType.JOKER]: {
-      primary: "#fbbf24",
-      secondary: "#f59e0b",
+      primary: "#ec4899", // Rosa/pink (card)
+      secondary: "#db2777",
     },
     [FoodType.EXTRA_LIFE]: {
       primary: "#f43f5e",

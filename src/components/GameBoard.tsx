@@ -98,7 +98,7 @@ export function GameBoard({
     } else {
       setDyingSegments(new Set());
     }
-  }, [status, snake.length]);
+  }, [status, snake.length, snake]);
 
   // Detect level up for board animation
   useEffect(() => {

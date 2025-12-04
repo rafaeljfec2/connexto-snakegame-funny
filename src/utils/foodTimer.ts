@@ -76,7 +76,9 @@ export function applyFoodTimer(food: Food): Food {
 
   // Get duration for this food type
   const duration =
-    FOOD_TIMER_CONFIG.durations[food.type] ?? FOOD_TIMER_CONFIG.baseDuration;
+    FOOD_TIMER_CONFIG.durations[
+      food.type as keyof typeof FOOD_TIMER_CONFIG.durations
+    ] ?? FOOD_TIMER_CONFIG.baseDuration;
 
   return {
     ...food,

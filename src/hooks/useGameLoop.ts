@@ -49,12 +49,12 @@ export function useGameLoop() {
       const reverseControls = hasReverseControls(prev.activePowerUps);
       let currentDirection = prev.direction;
       let nextDirectionInput = prev.nextDirection;
-      
+
       // Reverse the input direction if reverse controls are active
       if (reverseControls && prev.nextDirection !== prev.direction) {
         nextDirectionInput = getOppositeDirection(prev.nextDirection);
       }
-      
+
       // Direction is already applied immediately in setDirection, but double-check here
       // This ensures smooth transitions even if setDirection didn't catch it
       if (
@@ -77,7 +77,7 @@ export function useGameLoop() {
       // Check obstacle collision (ignore if phase through is active)
       const currentActivePowerUps = getActivePowerUps(prev.activePowerUps);
       const canPhaseThrough = hasPhaseThrough(currentActivePowerUps);
-      
+
       if (
         GAME_CONFIG.enableObstacles &&
         !canPhaseThrough &&
@@ -91,8 +91,10 @@ export function useGameLoop() {
           highScore: Math.max(prev.score, prev.highScore),
         };
       }
-      
-      if (hasSelfCollision(newSnake)) {
+
+      // Check self-collision BEFORE applying food growth to avoid false positives
+      // Only check if snake is long enough
+      if (newSnake.length >= 4 && hasSelfCollision(newSnake)) {
         saveHighScore(prev.score);
         saveAchievements(prev.achievements);
         return {
@@ -133,7 +135,8 @@ export function useGameLoop() {
 
         // Create particles
         if (GAME_CONFIG.enableParticles) {
-          const foodColor = POWER_UP_CONFIG.colors[prev.food.type]?.primary || "#ef4444";
+          const foodColor =
+            POWER_UP_CONFIG.colors[prev.food.type]?.primary || "#ef4444";
           newParticles = [
             ...newParticles,
             ...createParticles(newSnake[0], foodColor, 8, 600),
@@ -146,7 +149,7 @@ export function useGameLoop() {
           // The head has already moved, so we just need to add segments at the end
           const growthAmount = powerUpEffect.growthAmount;
           const currentTail = finalSnake[finalSnake.length - 1];
-          
+
           // Add new segments at the tail position (they will move next frame)
           for (let i = 0; i < growthAmount; i++) {
             finalSnake = [...finalSnake, { ...currentTail }];
@@ -155,7 +158,10 @@ export function useGameLoop() {
           // Shrink (for poison)
           const shrinkAmount = Math.abs(powerUpEffect.growthAmount);
           const minLength = 1;
-          const newLength = Math.max(minLength, finalSnake.length - shrinkAmount);
+          const newLength = Math.max(
+            minLength,
+            finalSnake.length - shrinkAmount
+          );
           finalSnake = finalSnake.slice(0, newLength);
         }
 
@@ -210,6 +216,20 @@ export function useGameLoop() {
           atePowerUp,
         });
         updatedAchievements = achievementResult.achievements;
+      }
+
+      // Final collision check after all modifications (growth, achievements, etc.)
+      // This ensures no false positives from temporary states during updates
+      if (finalSnake.length >= 4 && hasSelfCollision(finalSnake)) {
+        saveHighScore(newScore);
+        saveAchievements(updatedAchievements);
+        return {
+          ...prev,
+          snake: finalSnake,
+          score: newScore,
+          status: GameStatus.GAME_OVER,
+          highScore: Math.max(newScore, prev.highScore),
+        };
       }
 
       return {

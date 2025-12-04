@@ -50,16 +50,18 @@ export function hasSelfCollision(snake: Position[]): boolean {
   }
 
   const head = snake[0];
-  
+
   // Check if head collides with any body segment
-  // Skip index 0 (head) and index 1 (immediate next segment after head)
-  // Index 1 is normally adjacent and not a collision unless snake wraps around
-  for (let i = 2; i < snake.length; i++) {
+  // Skip the first 3 segments (head at index 0, and first 2 body segments at indices 1 and 2)
+  // This prevents false positives when snake makes tight turns or quick direction changes
+  // In a normal turn, the head and the first 1-2 body segments can temporarily be close
+  // without being a real collision
+  for (let i = 3; i < snake.length; i++) {
     if (snake[i].x === head.x && snake[i].y === head.y) {
       return true;
     }
   }
-  
+
   return false;
 }
 
@@ -97,8 +99,14 @@ function generateRandomPosition(snake: Position[], gridSize: number): Position {
   // try to find any position not occupied by snake head
   if (availablePositions.length === 0) {
     // Fallback: return a position near the head if possible, ensuring it's within bounds
-    const head = snake[0] ?? { x: Math.floor(gridSize / 2), y: Math.floor(gridSize / 2) };
-    const fallbackX = Math.max(0, Math.min((head.x + 1) % gridSize, gridSize - 1));
+    const head = snake[0] ?? {
+      x: Math.floor(gridSize / 2),
+      y: Math.floor(gridSize / 2),
+    };
+    const fallbackX = Math.max(
+      0,
+      Math.min((head.x + 1) % gridSize, gridSize - 1)
+    );
     const fallbackY = Math.max(0, Math.min(head.y, gridSize - 1));
     return {
       x: fallbackX,
@@ -115,7 +123,7 @@ function generateRandomPosition(snake: Position[], gridSize: number): Position {
     x: Math.max(0, Math.min(food.x, gridSize - 1)),
     y: Math.max(0, Math.min(food.y, gridSize - 1)),
   };
-  
+
   return finalPosition;
 }
 
@@ -134,7 +142,10 @@ function getRandomFoodType(): FoodType {
   }
 
   // Check for positive power-up
-  if (random < POWER_UP_CONFIG.spawnChance + POWER_UP_CONFIG.negativeSpawnChance) {
+  if (
+    random <
+    POWER_UP_CONFIG.spawnChance + POWER_UP_CONFIG.negativeSpawnChance
+  ) {
     // Randomly select a positive power-up type
     const powerUpTypes = [
       FoodType.SPEED_BOOST,

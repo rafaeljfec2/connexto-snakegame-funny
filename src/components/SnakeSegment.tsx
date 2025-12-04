@@ -1,4 +1,5 @@
 import { Position } from "@/types/game";
+import { GAME_CONFIG } from "@/constants/game";
 import styles from "./SnakeSegment.module.css";
 
 interface SnakeSegmentProps {
@@ -8,9 +9,13 @@ interface SnakeSegmentProps {
 }
 
 export function SnakeSegment({ position, isHead, isNew }: SnakeSegmentProps) {
+  // Ensure position is within grid bounds
+  const x = Math.max(0, Math.min(position.x, GAME_CONFIG.gridSize - 1));
+  const y = Math.max(0, Math.min(position.y, GAME_CONFIG.gridSize - 1));
+  
   const style = {
-    gridColumn: position.x + 1,
-    gridRow: position.y + 1,
+    gridColumn: x + 1,
+    gridRow: y + 1,
   };
 
   return (

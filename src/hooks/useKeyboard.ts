@@ -22,6 +22,8 @@ export function useKeyboard({
       const direction = KEYBOARD_MAP[event.key];
       if (direction !== undefined) {
         event.preventDefault();
+        event.stopPropagation();
+        // Apply direction change immediately for better responsiveness
         onDirectionChange(direction);
         return;
       }
@@ -38,10 +40,11 @@ export function useKeyboard({
       return;
     }
 
-    window.addEventListener("keydown", handleKeyDown);
+    // Use capture phase for faster event handling
+    window.addEventListener("keydown", handleKeyDown, { capture: true });
 
     return () => {
-      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keydown", handleKeyDown, { capture: true });
     };
   }, [enabled, handleKeyDown]);
 }

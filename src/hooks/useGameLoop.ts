@@ -54,11 +54,16 @@ export function useGameLoop() {
         nextDirectionInput = getOppositeDirection(prev.nextDirection);
       }
       
+      // Direction is already applied immediately in setDirection, but double-check here
+      // This ensures smooth transitions even if setDirection didn't catch it
       if (
         nextDirectionInput !== prev.direction &&
         isValidDirectionChange(prev.direction, nextDirectionInput)
       ) {
         currentDirection = nextDirectionInput;
+      } else {
+        // Use the current direction (already set immediately if valid)
+        currentDirection = prev.direction;
       }
 
       const newSnake = moveSnake(

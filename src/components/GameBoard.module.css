@@ -1,16 +1,47 @@
 .gameBoard {
   display: grid;
-  gap: 1px;
-  background-color: #1a1a2e;
-  border: 3px solid #16213e;
-  border-radius: 8px;
-  padding: 2px;
-  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+  gap: 0px;
+  background: 
+    linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 100%),
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.03) 0px,
+      rgba(255, 255, 255, 0.03) 1px,
+      transparent 1px,
+      transparent 20px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.03) 0px,
+      rgba(255, 255, 255, 0.03) 1px,
+      transparent 1px,
+      transparent 20px
+    );
+  border: none;
+  border-radius: 0px;
+  padding: 0px;
+  margin: 0px;
+  box-shadow: 
+    inset 0 0 40px rgba(0, 0, 0, 0.8),
+    inset 0 0 80px rgba(34, 197, 94, 0.1);
   position: relative;
-  overflow: visible;
-  box-sizing: border-box;
+  overflow: hidden;
+  box-sizing: content-box;
   transition: all 0.3s ease;
   isolation: isolate;
+}
+
+
+@keyframes borderFlow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 .gameBoard.levelUp {
@@ -24,13 +55,32 @@
 
 @keyframes levelUpFlash {
   0% {
-    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+    box-shadow: 
+      inset 0 0 40px rgba(0, 0, 0, 0.8),
+      inset 0 0 80px rgba(34, 197, 94, 0.1),
+      0 0 30px rgba(0, 0, 0, 0.6);
   }
   50% {
-    box-shadow: inset 0 0 30px rgba(34, 197, 94, 0.8), 0 0 20px rgba(34, 197, 94, 0.6);
+    box-shadow: 
+      inset 0 0 60px rgba(34, 197, 94, 0.8), 
+      inset 0 0 120px rgba(34, 197, 94, 0.6),
+      0 0 50px rgba(34, 197, 94, 0.8),
+      0 0 80px rgba(34, 197, 94, 0.6);
   }
   100% {
-    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+    box-shadow: 
+      inset 0 0 40px rgba(0, 0, 0, 0.8),
+      inset 0 0 80px rgba(34, 197, 94, 0.1),
+      0 0 30px rgba(0, 0, 0, 0.6);
+  }
+}
+
+@keyframes levelUpBorderFlash {
+  0%, 100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
   }
 }
 
@@ -56,13 +106,23 @@
 
 @keyframes gameOverPulse {
   0% {
-    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+    box-shadow: 
+      inset 0 0 40px rgba(0, 0, 0, 0.8),
+      inset 0 0 80px rgba(239, 68, 68, 0.2),
+      0 0 30px rgba(0, 0, 0, 0.6);
   }
   50% {
-    box-shadow: inset 0 0 40px rgba(239, 68, 68, 0.6), 0 0 30px rgba(239, 68, 68, 0.4);
+    box-shadow: 
+      inset 0 0 60px rgba(239, 68, 68, 0.8), 
+      inset 0 0 120px rgba(239, 68, 68, 0.6),
+      0 0 50px rgba(239, 68, 68, 0.8),
+      0 0 80px rgba(239, 68, 68, 0.6);
   }
   100% {
-    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+    box-shadow: 
+      inset 0 0 40px rgba(0, 0, 0, 0.8),
+      inset 0 0 80px rgba(239, 68, 68, 0.2),
+      0 0 30px rgba(0, 0, 0, 0.6);
   }
 }
 

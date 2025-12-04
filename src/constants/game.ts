@@ -1,9 +1,9 @@
 import { GameConfig, Direction, Position } from "@/types/game";
 
 export const GAME_CONFIG: GameConfig = {
-  gridSize: 30, // Increased from 20 to allow more space for obstacles
-  cellSize: 14, // Reduced to fit better on screen without scroll
-  gameSpeed: 150,
+  gridSize: 40, // Increased grid size for more gameplay space
+  cellSize: 12, // Optimized size for better space utilization
+  gameSpeed: 120,
   initialSnakeLength: 3,
   enableObstacles: true,
   enableCombos: true,
@@ -14,9 +14,9 @@ export const GAME_CONFIG: GameConfig = {
 export const INITIAL_DIRECTION = Direction.RIGHT;
 
 export const INITIAL_SNAKE_POSITION: Position[] = [
-  { x: 7, y: 15 },
-  { x: 6, y: 15 },
-  { x: 5, y: 15 },
+  { x: 10, y: 20 },
+  { x: 9, y: 20 },
+  { x: 8, y: 20 },
 ];
 
 export const KEYBOARD_MAP: Record<string, Direction> = {
@@ -55,12 +55,12 @@ export const COMBO_CONFIG = {
 export const DIFFICULTY_CONFIG = {
   // Points needed to advance to next level
   pointsPerLevel: 50,
-  // Base speed (in milliseconds)
-  baseSpeed: 150,
+  // Base speed (in milliseconds) - lower is faster
+  baseSpeed: 120,
   // Minimum speed (fastest the game can get)
-  minSpeed: 50,
+  minSpeed: 40,
   // Speed reduction per level (how much faster it gets)
-  speedReductionPerLevel: 10,
+  speedReductionPerLevel: 8,
   // Initial level
   initialLevel: 1,
 } as const;

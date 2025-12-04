@@ -5,7 +5,7 @@ import {
   INITIAL_DIRECTION,
   INITIAL_SNAKE_POSITION,
 } from "@/constants/game";
-import { generateRandomFood, getHighScore } from "@/utils/gameLogic";
+import { generateRandomFood, getHighScore, isValidDirectionChange } from "@/utils/gameLogic";
 import { calculateLevel, calculateGameSpeed } from "@/utils/difficulty";
 import { loadAchievements } from "@/utils/achievements";
 
@@ -92,6 +92,19 @@ export function useGameState() {
       if (prev.status !== GameStatus.PLAYING) {
         return prev;
       }
+      
+      // Apply direction change immediately if valid (makes controls more responsive)
+      const isValidChange = isValidDirectionChange(prev.direction, direction);
+      
+      if (isValidChange) {
+        return {
+          ...prev,
+          direction,
+          nextDirection: direction,
+        };
+      }
+      
+      // Store for next valid frame if not immediately valid
       return {
         ...prev,
         nextDirection: direction,

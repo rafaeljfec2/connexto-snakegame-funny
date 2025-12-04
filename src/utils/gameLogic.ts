@@ -87,23 +87,27 @@ function generateRandomPosition(snake: Position[], gridSize: number): Position {
   // If there are no available positions (snake fills entire grid),
   // try to find any position not occupied by snake head
   if (availablePositions.length === 0) {
-    // Fallback: return a position near the head if possible
-    const head = snake[0] ?? { x: 0, y: 0 };
+    // Fallback: return a position near the head if possible, ensuring it's within bounds
+    const head = snake[0] ?? { x: Math.floor(gridSize / 2), y: Math.floor(gridSize / 2) };
+    const fallbackX = Math.max(0, Math.min((head.x + 1) % gridSize, gridSize - 1));
+    const fallbackY = Math.max(0, Math.min(head.y, gridSize - 1));
     return {
-      x: (head.x + 1) % gridSize,
-      y: head.y,
+      x: fallbackX,
+      y: fallbackY,
     };
   }
 
   // Randomly select from available positions
   const randomIndex = Math.floor(Math.random() * availablePositions.length);
-  const food = availablePositions[randomIndex];
+  const food = availablePositions[randomIndex] ?? { x: 0, y: 0 };
 
-  // Double-check bounds (should already be valid)
-  return {
+  // Double-check bounds (ensure it's always within grid limits)
+  const finalPosition = {
     x: Math.max(0, Math.min(food.x, gridSize - 1)),
     y: Math.max(0, Math.min(food.y, gridSize - 1)),
   };
+  
+  return finalPosition;
 }
 
 function getRandomFoodType(): FoodType {

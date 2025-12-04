@@ -275,11 +275,26 @@ export function useGameLoop() {
       const newLevel = calculateLevel(newScore);
       const baseGameSpeed = calculateGameSpeed(newLevel);
 
-      // Generate obstacles on level up
+      // Phase system: Detect phase changes and update phase state (before obstacles and food generation)
+      const currentPhase = getCurrentPhase(newLevel);
+      const phaseConfig = currentPhase?.config;
+
+      // Generate obstacles on level up (respecting phase configuration)
       let newObstacles = prev.obstacles;
-      if (GAME_CONFIG.enableObstacles && newLevel > prev.level) {
+      if (
+        GAME_CONFIG.enableObstacles &&
+        newLevel > prev.level &&
+        phaseConfig?.obstaclesEnabled !== false
+      ) {
         const previousObstaclesCount = newObstacles.length;
-        newObstacles = generateObstacles(newLevel, finalSnake, newObstacles, GAME_CONFIG.gridSize);
+        newObstacles = generateObstacles(
+          newLevel,
+          finalSnake,
+          newObstacles,
+          GAME_CONFIG.gridSize,
+          phaseConfig?.obstaclesEnabled,
+          phaseConfig?.obstaclesFrequency,
+        );
         // Update statistics - obstacles encountered
         const newObstaclesCount = newObstacles.length - previousObstaclesCount;
         if (newObstaclesCount > 0) {
@@ -288,6 +303,9 @@ export function useGameLoop() {
             obstaclesEncountered: statistics.obstaclesEncountered + newObstaclesCount,
           };
         }
+      } else if (phaseConfig?.obstaclesEnabled === false) {
+        // Clear obstacles if phase doesn't allow them
+        newObstacles = [];
       }
 
       // Update statistics - max snake length
@@ -301,22 +319,27 @@ export function useGameLoop() {
       // Check if current food has expired
       const foodExpired = hasFoodExpired(prev.food);
 
+      // Generate food with phase-specific configurations
       const newFood =
         ateFood || foodExpired
-          ? generateRandomFood(finalSnake, GAME_CONFIG.gridSize, newObstacles)
+          ? generateRandomFood(
+              finalSnake,
+              GAME_CONFIG.gridSize,
+              newObstacles,
+              phaseConfig?.powerUpsFrequency,
+              phaseConfig?.timedFoodFrequency,
+            )
           : prev.food;
 
       // Handle PORTAL power-up - create portal pair when food is eaten
+      // Only if portals are enabled in current phase
       let newPortals = getActivePortals(prev.portals);
-      if (ateFood && prev.food.type === FoodType.PORTAL) {
+      if (ateFood && prev.food.type === FoodType.PORTAL && phaseConfig?.portalsEnabled) {
         const portalPair = generatePortalPair(finalSnake, newObstacles, GAME_CONFIG.gridSize);
         if (portalPair) {
           newPortals = [...newPortals, ...portalPair];
         }
       }
-
-      // Phase system: Detect phase changes and update phase state
-      const currentPhase = getCurrentPhase(newLevel);
       // Update boss for boss levels (levels 10, 20, 30, etc.)
       let activeBoss = shouldSpawnBoss(newLevel) ? getBossForLevel(newLevel) : prev.activeBoss;
       // Clear boss when leaving boss level

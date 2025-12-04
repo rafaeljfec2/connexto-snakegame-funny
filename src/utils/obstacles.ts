@@ -7,7 +7,14 @@ export function generateObstacles(
   snake: Position[],
   existingObstacles: Obstacle[],
   gridSize: number,
+  obstaclesEnabled?: boolean,
+  obstaclesFrequency?: number,
 ): Obstacle[] {
+  // Check phase configuration first
+  if (obstaclesEnabled === false) {
+    return [];
+  }
+
   if (!GAME_CONFIG.enableObstacles || level < 3) {
     return [];
   }
@@ -20,8 +27,11 @@ export function generateObstacles(
 
   const obstacles: Obstacle[] = [...existingObstacles];
 
+  // Use phase-specific frequency if provided, otherwise use default
+  const spawnChance = obstaclesFrequency ?? OBSTACLE_CONFIG.spawnChance;
+
   // Check if we should spawn new obstacles
-  if (Math.random() > OBSTACLE_CONFIG.spawnChance) {
+  if (Math.random() > spawnChance) {
     return obstacles;
   }
 

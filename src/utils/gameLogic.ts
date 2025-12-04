@@ -188,11 +188,12 @@ function generateRandomPosition(
   return finalPosition;
 }
 
-function getRandomFoodType(): FoodType {
+function getRandomFoodType(powerUpFrequency?: number): FoodType {
   const random = Math.random();
   const jokerChance = POWER_UP_CONFIG.jokerSpawnChance ?? 0.05;
   const negativeChance = POWER_UP_CONFIG.negativeSpawnChance;
-  const positiveChance = POWER_UP_CONFIG.spawnChance;
+  // Use phase-specific frequency if provided, otherwise use default
+  const positiveChance = powerUpFrequency ?? POWER_UP_CONFIG.spawnChance;
 
   // Check for joker first (very rare, special)
   if (random < jokerChance) {
@@ -228,9 +229,11 @@ export function generateRandomFood(
   snake: Position[],
   gridSize: number,
   obstacles: Obstacle[] = [],
+  powerUpFrequency?: number,
+  timedFoodFrequency?: number,
 ): Food {
   const position = generateRandomPosition(snake, gridSize, obstacles);
-  const type = getRandomFoodType();
+  const type = getRandomFoodType(powerUpFrequency);
 
   const food: Food = {
     position,
@@ -239,7 +242,18 @@ export function generateRandomFood(
     duration: undefined,
   };
 
-  // Apply timer configuration if enabled
+  // Apply timer configuration based on phase settings
+  if (timedFoodFrequency !== undefined && timedFoodFrequency > 0) {
+    // Phase-specific timed food frequency
+    const shouldHaveTimer = Math.random() < timedFoodFrequency;
+    if (shouldHaveTimer) {
+      return applyFoodTimer(food);
+    }
+    // No timer for this food based on phase config
+    return food;
+  }
+
+  // Apply default timer configuration
   return applyFoodTimer(food);
 }
 

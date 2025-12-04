@@ -214,7 +214,7 @@ export function useGameLoop() {
         }
 
         // Calculate score: base points only (no multipliers for now)
-        // First food should give exactly 5 points
+        // First food should give exactly 10 points
         const baseScoreIncrease = powerUpEffect.scoreIncrease;
         newScore = prev.score + baseScoreIncrease;
 

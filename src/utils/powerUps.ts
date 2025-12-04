@@ -13,7 +13,7 @@ export function applyPowerUpEffect(
   // Handle NORMAL food type first (not in effects)
   if (foodType === FoodType.NORMAL) {
     return {
-      scoreIncrease: 5,
+      scoreIncrease: 10,
       growthAmount: 1,
       shouldActivatePowerUp: false,
     };
@@ -22,7 +22,7 @@ export function applyPowerUpEffect(
   if (foodType === FoodType.BONUS_POINTS) {
     const effect = POWER_UP_CONFIG.effects[FoodType.BONUS_POINTS];
     return {
-      scoreIncrease: 'points' in effect ? effect.points ?? 0 : 0,
+      scoreIncrease: 'points' in effect ? (effect.points ?? 0) : 0,
       growthAmount: 1,
       shouldActivatePowerUp: false,
     };
@@ -32,7 +32,7 @@ export function applyPowerUpEffect(
     const effect = POWER_UP_CONFIG.effects[FoodType.EXTRA_GROWTH];
     return {
       scoreIncrease: 10,
-      growthAmount: 'growth' in effect ? effect.growth ?? 2 : 2,
+      growthAmount: 'growth' in effect ? (effect.growth ?? 2) : 2,
       shouldActivatePowerUp: false,
     };
   }
@@ -47,8 +47,8 @@ export function applyPowerUpEffect(
 
   if (foodType === FoodType.POISON) {
     const effect = POWER_UP_CONFIG.effects[FoodType.POISON];
-    const shrinkAmount = 'shrinkAmount' in effect ? effect.shrinkAmount ?? 2 : 2;
-    const points = 'points' in effect ? effect.points ?? -5 : -5;
+    const shrinkAmount = 'shrinkAmount' in effect ? (effect.shrinkAmount ?? 2) : 2;
+    const points = 'points' in effect ? (effect.points ?? -5) : -5;
     return {
       scoreIncrease: points,
       growthAmount: -Math.min(shrinkAmount, currentSnakeLength - 1), // Don't shrink below 1 segment

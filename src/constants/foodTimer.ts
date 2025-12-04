@@ -36,3 +36,4 @@ export const FOOD_TIMER_CONFIG = {
   criticalThreshold: 0.1, // Show critical when 10% time remaining
 } as const;
 
+

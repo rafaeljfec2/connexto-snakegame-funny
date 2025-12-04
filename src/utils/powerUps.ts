@@ -71,6 +71,14 @@ export function applyPowerUpEffect(
     };
   }
   
+  if (foodType === FoodType.EXTRA_LIFE) {
+    return {
+      scoreIncrease: 20, // Bonus points for extra life
+      growthAmount: 1,
+      shouldActivatePowerUp: false,
+    };
+  }
+  
   // Normal food
   return {
     scoreIncrease: 10,

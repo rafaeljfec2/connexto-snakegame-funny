@@ -47,3 +47,4 @@ export function calculateComboPoints(basePoints: number, combo: ComboState): num
   return basePoints * combo.multiplier;
 }
 
+

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useCallback } from "react";
 import { GameStatus, GameState, Direction, FoodType } from "@/types/game";
-import { GAME_CONFIG } from "@/constants/game";
+import { GAME_CONFIG, INITIAL_SNAKE_POSITION } from "@/constants/game";
 import {
   moveSnake,
   hasSelfCollision,
@@ -24,7 +24,10 @@ import { createParticles, updateParticles } from "@/utils/particles";
 import { generateObstacles, hasObstacleCollision } from "@/utils/obstacles";
 import { checkAchievements, saveAchievements } from "@/utils/achievements";
 import { hasFoodExpired } from "@/utils/foodTimer";
+import { loseLife, isLivesEnabled, addLife } from "@/utils/lives";
+import { LIVES_CONFIG } from "@/constants/lives";
 import { POWER_UP_CONFIG } from "@/constants/powerUps";
+import { INITIAL_DIRECTION } from "@/constants/game";
 import { useGameState } from "./useGameState";
 
 export function useGameLoop() {
@@ -79,30 +82,31 @@ export function useGameLoop() {
       const currentActivePowerUps = getActivePowerUps(prev.activePowerUps);
       const canPhaseThrough = hasPhaseThrough(currentActivePowerUps);
 
-      if (
-        GAME_CONFIG.enableObstacles &&
-        !canPhaseThrough &&
-        hasObstacleCollision(newSnake[0], prev.obstacles)
-      ) {
-        saveHighScore(prev.score);
-        saveAchievements(prev.achievements);
-        return {
-          ...prev,
-          status: GameStatus.GAME_OVER,
-          highScore: Math.max(prev.score, prev.highScore),
-        };
-      }
+      // Check for collisions
+      const hasCollision = 
+        (GAME_CONFIG.enableObstacles &&
+          !canPhaseThrough &&
+          hasObstacleCollision(newSnake[0], prev.obstacles)) ||
+        (newSnake.length >= 4 && hasSelfCollision(newSnake));
 
-      // Check self-collision BEFORE applying food growth to avoid false positives
-      // Only check if snake is long enough
-      if (newSnake.length >= 4 && hasSelfCollision(newSnake)) {
-        saveHighScore(prev.score);
-        saveAchievements(prev.achievements);
-        return {
-          ...prev,
-          status: GameStatus.GAME_OVER,
-          highScore: Math.max(prev.score, prev.highScore),
-        };
+      if (hasCollision) {
+        // Use lives system if enabled
+        if (isLivesEnabled() && prev.lives > 0) {
+          // Enter dying state to show death animation
+          return {
+            ...prev,
+            status: GameStatus.DYING,
+          };
+        } else {
+          // No lives left, game over
+          saveHighScore(prev.score);
+          saveAchievements(prev.achievements);
+          return {
+            ...prev,
+            status: GameStatus.GAME_OVER,
+            highScore: Math.max(prev.score, prev.highScore),
+          };
+        }
       }
 
       const ateFood = hasFoodCollision(newSnake[0], prev.food);
@@ -117,6 +121,7 @@ export function useGameLoop() {
       const newActivePowerUps = [...getActivePowerUps(prev.activePowerUps)];
       let newCombo = prev.combo;
       let atePowerUp = false;
+      let newLives = prev.lives;
 
       if (ateFood) {
         // Update combo when food is eaten
@@ -197,6 +202,11 @@ export function useGameLoop() {
 
         newScore = prev.score + Math.floor(finalScoreIncrease);
 
+        // Handle EXTRA_LIFE power-up
+        if (prev.food.type === FoodType.EXTRA_LIFE) {
+          newLives = addLife(prev.lives);
+        }
+
         // Activate power-up if needed
         if (powerUpEffect.shouldActivatePowerUp) {
           newActivePowerUps.push(createActivePowerUp(actualFoodType));
@@ -247,16 +257,30 @@ export function useGameLoop() {
 
       // Final collision check after all modifications (growth, achievements, etc.)
       // This ensures no false positives from temporary states during updates
-      if (finalSnake.length >= 4 && hasSelfCollision(finalSnake)) {
-        saveHighScore(newScore);
-        saveAchievements(updatedAchievements);
-        return {
-          ...prev,
-          snake: finalSnake,
-          score: newScore,
-          status: GameStatus.GAME_OVER,
-          highScore: Math.max(newScore, prev.highScore),
-        };
+      const finalHasCollision = finalSnake.length >= 4 && hasSelfCollision(finalSnake);
+      if (finalHasCollision) {
+        // Use lives system if enabled
+        if (isLivesEnabled() && prev.lives > 0) {
+          // Enter dying state to show death animation
+          return {
+            ...prev,
+            snake: finalSnake,
+            score: newScore,
+            status: GameStatus.DYING,
+            lives: prev.lives,
+          };
+        } else {
+          // No lives left, game over
+          saveHighScore(newScore);
+          saveAchievements(updatedAchievements);
+          return {
+            ...prev,
+            snake: finalSnake,
+            score: newScore,
+            status: GameStatus.GAME_OVER,
+            highScore: Math.max(newScore, prev.highScore),
+          };
+        }
       }
 
       return {
@@ -275,6 +299,7 @@ export function useGameLoop() {
         combo: newCombo,
         particles: newParticles,
         achievements: updatedAchievements,
+        lives: newLives,
       };
     });
   }, [updateGameState]);
@@ -326,6 +351,82 @@ export function useGameLoop() {
     updateGame,
   ]);
 
+  const continueAfterDeath = useCallback(() => {
+    updateGameState((prev) => {
+      if (prev.status !== GameStatus.DYING || prev.lives <= 0) {
+        return prev;
+      }
+
+      // Apply penalties
+      const { newScore, newSnake } = loseLife(prev.score, prev.snake);
+      const newLives = prev.lives - 1;
+
+      // Check if game should end or continue
+      if (newLives <= 0) {
+        // No more lives, game over
+        saveHighScore(newScore);
+        saveAchievements(prev.achievements);
+        return {
+          ...prev,
+          snake: newSnake,
+          score: newScore,
+          lives: 0,
+          status: GameStatus.GAME_OVER,
+          highScore: Math.max(newScore, prev.highScore),
+        };
+      }
+
+      // Continue with reduced snake and score
+      // Always reset snake to initial safe position to avoid collision
+      // Don't use the snake that just collided, always use safe initial position
+      const targetLength = Math.max(
+        LIVES_CONFIG.minLengthAfterPenalty,
+        Math.min(prev.snake.length - LIVES_CONFIG.lengthPenalty, 10)
+      );
+      
+      // Always create fresh snake from initial position to avoid any collision
+      const safeSnake = INITIAL_SNAKE_POSITION.slice(0, Math.min(targetLength, INITIAL_SNAKE_POSITION.length));
+      
+      // If we need longer snake, extend from initial position
+      if (targetLength > INITIAL_SNAKE_POSITION.length) {
+        const lastPos = INITIAL_SNAKE_POSITION[INITIAL_SNAKE_POSITION.length - 1];
+        for (let i = INITIAL_SNAKE_POSITION.length; i < targetLength; i++) {
+          safeSnake.push({ 
+            x: Math.max(0, lastPos.x - (i - INITIAL_SNAKE_POSITION.length + 1)),
+            y: lastPos.y 
+          });
+        }
+      }
+
+      // Generate new food
+      const newFood = generateRandomFood(safeSnake, GAME_CONFIG.gridSize);
+
+      // Reset combo and active power-ups
+      const newLevel = calculateLevel(newScore);
+      const baseGameSpeed = calculateGameSpeed(newLevel);
+
+      return {
+        ...prev,
+        snake: safeSnake,
+        food: newFood,
+        score: newScore,
+        lives: newLives,
+        level: newLevel,
+        gameSpeed: baseGameSpeed,
+        direction: INITIAL_DIRECTION,
+        nextDirection: INITIAL_DIRECTION,
+        status: GameStatus.PLAYING,
+        activePowerUps: [], // Clear all power-ups on death
+        combo: {
+          count: 0,
+          multiplier: 1,
+          lastFoodTime: 0,
+        },
+        particles: [],
+      };
+    });
+  }, [updateGameState]);
+
   const handleKeyPress = useCallback(
     (key: string) => {
       if (key === " ") {
@@ -336,6 +437,8 @@ export function useGameLoop() {
           gameState.status === GameStatus.PAUSED
         ) {
           pauseGame();
+        } else if (gameState.status === GameStatus.DYING) {
+          continueAfterDeath();
         } else if (gameState.status === GameStatus.GAME_OVER) {
           resetGame();
           startGame();

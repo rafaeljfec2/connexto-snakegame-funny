@@ -8,6 +8,7 @@ import {
 import { generateRandomFood, getHighScore, isValidDirectionChange } from "@/utils/gameLogic";
 import { calculateLevel, calculateGameSpeed } from "@/utils/difficulty";
 import { loadAchievements } from "@/utils/achievements";
+import { LIVES_CONFIG } from "@/constants/lives";
 
 export function useGameState() {
   const [gameState, setGameState] = useState<GameState>(() => {
@@ -37,6 +38,7 @@ export function useGameState() {
       },
       particles: [],
       achievements: loadAchievements(),
+      lives: LIVES_CONFIG.initialLives,
     };
   });
 
@@ -67,6 +69,7 @@ export function useGameState() {
       },
       particles: [],
       achievements: loadAchievements(),
+      lives: LIVES_CONFIG.initialLives,
     });
   }, []);
 

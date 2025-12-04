@@ -2,6 +2,7 @@ export enum GameStatus {
   IDLE = "IDLE",
   PLAYING = "PLAYING",
   PAUSED = "PAUSED",
+  DYING = "DYING", // Snake is dying, waiting to consume life
   GAME_OVER = "GAME_OVER",
 }
 
@@ -24,6 +25,7 @@ export enum FoodType {
   EXTRA_GROWTH = "EXTRA_GROWTH",
   PHASE_THROUGH = "PHASE_THROUGH",
   JOKER = "JOKER",
+  EXTRA_LIFE = "EXTRA_LIFE",
   // Negative power-ups (debuffs)
   POISON = "POISON",
   REVERSE_CONTROLS = "REVERSE_CONTROLS",
@@ -86,6 +88,7 @@ export interface GameState {
   combo: ComboState;
   particles: Particle[];
   achievements: Achievement[];
+  lives: number; // Number of lives remaining
 }
 
 export interface GameConfig {

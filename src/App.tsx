@@ -9,6 +9,7 @@ import { ActivePowerUps } from "./components/ActivePowerUps";
 import { ComboDisplay } from "./components/ComboDisplay";
 import { AchievementNotification } from "./components/AchievementNotification";
 import { DynamicBackground } from "./components/DynamicBackground";
+import { LivesDisplay } from "./components/LivesDisplay";
 import { GameStatus } from "@/types/game";
 import styles from "./App.module.css";
 
@@ -175,6 +176,7 @@ function App() {
                     {gameState.snake.length}
                   </span>
                 </div>
+                <LivesDisplay lives={gameState.lives} />
               </div>
             </div>
           </div>

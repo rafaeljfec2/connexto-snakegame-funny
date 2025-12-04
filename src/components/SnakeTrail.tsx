@@ -90,3 +90,4 @@ export function SnakeTrail({ snake, enabled }: SnakeTrailProps) {
   );
 }
 
+

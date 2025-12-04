@@ -50,3 +50,4 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, "unlocked" | "unlockedAt
 
 export const ACHIEVEMENT_STORAGE_KEY = "snake-game-achievements";
 
+

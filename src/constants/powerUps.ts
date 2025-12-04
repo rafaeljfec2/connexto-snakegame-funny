@@ -11,6 +11,7 @@ export const POWER_UP_CONFIG = {
     [FoodType.EXTRA_GROWTH]: 0, // Instant effect
     [FoodType.PHASE_THROUGH]: 6000, // 6 seconds
     [FoodType.JOKER]: 0, // Instant effect (random)
+    [FoodType.EXTRA_LIFE]: 0, // Instant effect
     [FoodType.POISON]: 0, // Instant effect
     [FoodType.REVERSE_CONTROLS]: 4000, // 4 seconds
     [FoodType.SLOW_DOWN]: 3000, // 3 seconds
@@ -42,6 +43,9 @@ export const POWER_UP_CONFIG = {
     },
     [FoodType.JOKER]: {
       random: true, // Random effect (will be handled specially)
+    },
+    [FoodType.EXTRA_LIFE]: {
+      extraLife: true, // Add one life
     },
   },
   
@@ -82,6 +86,10 @@ export const POWER_UP_CONFIG = {
     [FoodType.JOKER]: {
       primary: "#fbbf24",
       secondary: "#f59e0b",
+    },
+    [FoodType.EXTRA_LIFE]: {
+      primary: "#f43f5e",
+      secondary: "#e11d48",
     },
   },
   

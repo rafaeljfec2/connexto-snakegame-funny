@@ -8,3 +8,4 @@ export const STORAGE_KEYS = {
   THEME: "snake-game-theme",
 } as const;
 
+

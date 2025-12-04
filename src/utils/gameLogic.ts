@@ -158,6 +158,7 @@ function getRandomFoodType(): FoodType {
       FoodType.BONUS_POINTS,
       FoodType.EXTRA_GROWTH,
       FoodType.PHASE_THROUGH,
+      FoodType.EXTRA_LIFE,
     ];
     const randomIndex = Math.floor(Math.random() * powerUpTypes.length);
     return powerUpTypes[randomIndex] ?? FoodType.NORMAL;

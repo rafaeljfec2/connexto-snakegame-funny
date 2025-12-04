@@ -4,7 +4,7 @@ interface GameControlsProps {
   onStart: () => void
   onPause: () => void
   onReset: () => void
-  status: 'IDLE' | 'PLAYING' | 'PAUSED' | 'GAME_OVER'
+  status: 'IDLE' | 'PLAYING' | 'PAUSED' | 'DYING' | 'GAME_OVER'
 }
 
 export function GameControls({

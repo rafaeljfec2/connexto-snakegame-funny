@@ -17,6 +17,8 @@ export function GameInfo({ score, highScore, level, status }: GameInfoProps) {
         return 'Playing...'
       case GameStatus.PAUSED:
         return 'Paused - Press SPACE to resume'
+      case GameStatus.DYING:
+        return 'Press SPACE to continue'
       case GameStatus.GAME_OVER:
         return 'Game Over - Press SPACE to restart'
       default:

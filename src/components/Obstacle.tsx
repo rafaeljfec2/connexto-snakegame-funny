@@ -30,3 +30,4 @@ export function ObstacleComponent({ obstacle }: ObstacleProps) {
   );
 }
 
+

@@ -52,3 +52,4 @@ export const OBSTACLE_CONFIG = {
   minDistanceFromStart: 5,
 } as const;
 
+

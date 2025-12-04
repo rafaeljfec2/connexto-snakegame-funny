@@ -100,6 +100,7 @@ export interface GameState {
   achievements: Achievement[];
   lives: number; // Number of lives remaining
   statistics?: import('./statistics').GameStatisticsTracking;
+  isSpeedBoosted?: boolean; // Speed boost when direction key is held
 }
 
 export interface GameConfig {

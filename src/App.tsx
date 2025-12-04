@@ -19,8 +19,15 @@ import { createFinalStatistics, saveGameSession } from '@/utils/statistics';
 import styles from './App.module.css';
 
 function App() {
-  const { gameState, resetGame, startGame, pauseGame, setDirection, handleKeyPress } =
-    useGameLoop();
+  const {
+    gameState,
+    resetGame,
+    startGame,
+    pauseGame,
+    setDirection,
+    setSpeedBoost,
+    handleKeyPress,
+  } = useGameLoop();
 
   const [showLevelUp, setShowLevelUp] = useState(false);
   const [showStatistics, setShowStatistics] = useState(false);
@@ -36,8 +43,9 @@ function App() {
 
   useKeyboard({
     onDirectionChange: setDirection,
+    onSpeedBoost: setSpeedBoost,
     onKeyPress: handleKeyPress,
-    enabled: true,
+    enabled: gameState.status === GameStatus.PLAYING,
   });
 
   // Detect level up
@@ -226,6 +234,7 @@ function App() {
       {/* Touch Controls for Mobile */}
       <TouchControls
         onDirectionChange={setDirection}
+        onSpeedBoost={setSpeedBoost}
         enabled={gameState.status === GameStatus.PLAYING}
       />
 

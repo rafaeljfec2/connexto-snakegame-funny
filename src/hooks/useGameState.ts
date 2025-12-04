@@ -44,6 +44,7 @@ export function useGameState() {
       achievements: loadAchievements(),
       lives: LIVES_CONFIG.initialLives,
       statistics: initializeStatistics(),
+      isSpeedBoosted: false,
     };
   });
 
@@ -78,6 +79,7 @@ export function useGameState() {
       achievements: loadAchievements(),
       lives: LIVES_CONFIG.initialLives,
       statistics: initializeStatistics(),
+      isSpeedBoosted: false,
     });
   }, []);
 
@@ -158,6 +160,13 @@ export function useGameState() {
     setGameState(updater);
   }, []);
 
+  const setSpeedBoost = useCallback((isBoosted: boolean) => {
+    setGameState((prev) => ({
+      ...prev,
+      isSpeedBoosted: isBoosted,
+    }));
+  }, []);
+
   return {
     gameState,
     resetGame,
@@ -165,5 +174,6 @@ export function useGameState() {
     pauseGame,
     setDirection,
     updateGameState,
+    setSpeedBoost,
   };
 }

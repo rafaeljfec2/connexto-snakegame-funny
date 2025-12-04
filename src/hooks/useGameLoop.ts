@@ -40,8 +40,15 @@ import {
 import { PORTAL_CONFIG } from '@/constants/portals';
 
 export function useGameLoop() {
-  const { gameState, resetGame, startGame, pauseGame, setDirection, updateGameState } =
-    useGameState();
+  const {
+    gameState,
+    resetGame,
+    startGame,
+    pauseGame,
+    setDirection,
+    updateGameState,
+    setSpeedBoost,
+  } = useGameState();
 
   const gameLoopRef = useRef<number>();
   const lastUpdateTimeRef = useRef<number>(0);
@@ -394,7 +401,12 @@ export function useGameLoop() {
 
       // Update active power-ups and get effective speed
       const activePowerUps = getActivePowerUps(gameState.activePowerUps);
-      const effectiveSpeed = getEffectiveGameSpeed(gameState.gameSpeed, activePowerUps);
+      let effectiveSpeed = getEffectiveGameSpeed(gameState.gameSpeed, activePowerUps);
+
+      // Apply 3x speed boost if direction key is held
+      if (gameState.isSpeedBoosted) {
+        effectiveSpeed = Math.floor(effectiveSpeed / 3);
+      }
 
       if (elapsed >= effectiveSpeed) {
         updateGame();
@@ -413,7 +425,13 @@ export function useGameLoop() {
       }
       lastUpdateTimeRef.current = 0;
     };
-  }, [gameState.status, gameState.gameSpeed, gameState.activePowerUps, updateGame]);
+  }, [
+    gameState.status,
+    gameState.gameSpeed,
+    gameState.activePowerUps,
+    gameState.isSpeedBoosted,
+    updateGame,
+  ]);
 
   const continueAfterDeath = useCallback(() => {
     updateGameState((prev) => {
@@ -575,6 +593,7 @@ export function useGameLoop() {
     startGame,
     pauseGame,
     setDirection,
+    setSpeedBoost,
     handleKeyPress,
   };
 }

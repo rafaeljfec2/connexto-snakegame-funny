@@ -4,12 +4,18 @@ import styles from './TouchControls.module.css';
 
 interface TouchControlsProps {
   onDirectionChange: (direction: Direction) => void;
+  onSpeedBoost?: (isBoosted: boolean) => void;
   enabled?: boolean;
 }
 
-export function TouchControls({ onDirectionChange, enabled = true }: TouchControlsProps) {
+export function TouchControls({
+  onDirectionChange,
+  onSpeedBoost,
+  enabled = true,
+}: TouchControlsProps) {
   const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
   const lastDirectionRef = useRef<Direction | null>(null);
+  const pressedButtonsRef = useRef<Set<Direction>>(new Set());
   const MIN_SWIPE_DISTANCE = 30; // Minimum distance in pixels for a swipe
   const MAX_SWIPE_TIME = 300; // Maximum time in ms for a swipe
 
@@ -49,7 +55,10 @@ export function TouchControls({ onDirectionChange, enabled = true }: TouchContro
       const absDeltaY = Math.abs(deltaY);
 
       // Only process if swipe is fast enough and long enough
-      if (deltaTime > MAX_SWIPE_TIME || (absDeltaX < MIN_SWIPE_DISTANCE && absDeltaY < MIN_SWIPE_DISTANCE)) {
+      if (
+        deltaTime > MAX_SWIPE_TIME ||
+        (absDeltaX < MIN_SWIPE_DISTANCE && absDeltaY < MIN_SWIPE_DISTANCE)
+      ) {
         touchStartRef.current = null;
         return;
       }
@@ -76,6 +85,42 @@ export function TouchControls({ onDirectionChange, enabled = true }: TouchContro
     [enabled, onDirectionChange],
   );
 
+  const handleButtonTouchStart = useCallback(
+    (direction: Direction) => (e: React.TouchEvent) => {
+      if (!enabled) return;
+      e.preventDefault();
+
+      // Add to pressed buttons
+      if (!pressedButtonsRef.current.has(direction)) {
+        pressedButtonsRef.current.add(direction);
+      }
+
+      // Activate speed boost if button is held
+      if (pressedButtonsRef.current.size > 0 && onSpeedBoost) {
+        onSpeedBoost(true);
+      }
+
+      onDirectionChange(direction);
+    },
+    [enabled, onDirectionChange, onSpeedBoost],
+  );
+
+  const handleButtonTouchEnd = useCallback(
+    (direction: Direction) => (e: React.TouchEvent) => {
+      if (!enabled) return;
+      e.preventDefault();
+
+      // Remove from pressed buttons
+      pressedButtonsRef.current.delete(direction);
+
+      // Deactivate speed boost if no buttons are pressed
+      if (pressedButtonsRef.current.size === 0 && onSpeedBoost) {
+        onSpeedBoost(false);
+      }
+    },
+    [enabled, onSpeedBoost],
+  );
+
   const handleButtonClick = useCallback(
     (direction: Direction) => {
       if (!enabled) return;
@@ -97,9 +142,12 @@ export function TouchControls({ onDirectionChange, enabled = true }: TouchContro
         {/* Top Row - Up Button */}
         <button
           className={`${styles.directionButton} ${styles.upButton}`}
+          onTouchStart={handleButtonTouchStart(Direction.UP)}
+          onTouchEnd={handleButtonTouchEnd(Direction.UP)}
+          onTouchCancel={handleButtonTouchEnd(Direction.UP)}
           onClick={() => handleButtonClick(Direction.UP)}
-          aria-label="Move Up"
-          type="button"
+          aria-label='Move Up'
+          type='button'
         >
           <span className={styles.buttonIcon}>↑</span>
         </button>
@@ -107,9 +155,12 @@ export function TouchControls({ onDirectionChange, enabled = true }: TouchContro
         {/* Middle Row - Left, Center, Right */}
         <button
           className={`${styles.directionButton} ${styles.leftButton}`}
+          onTouchStart={handleButtonTouchStart(Direction.LEFT)}
+          onTouchEnd={handleButtonTouchEnd(Direction.LEFT)}
+          onTouchCancel={handleButtonTouchEnd(Direction.LEFT)}
           onClick={() => handleButtonClick(Direction.LEFT)}
-          aria-label="Move Left"
-          type="button"
+          aria-label='Move Left'
+          type='button'
         >
           <span className={styles.buttonIcon}>←</span>
         </button>
@@ -118,9 +169,12 @@ export function TouchControls({ onDirectionChange, enabled = true }: TouchContro
 
         <button
           className={`${styles.directionButton} ${styles.rightButton}`}
+          onTouchStart={handleButtonTouchStart(Direction.RIGHT)}
+          onTouchEnd={handleButtonTouchEnd(Direction.RIGHT)}
+          onTouchCancel={handleButtonTouchEnd(Direction.RIGHT)}
           onClick={() => handleButtonClick(Direction.RIGHT)}
-          aria-label="Move Right"
-          type="button"
+          aria-label='Move Right'
+          type='button'
         >
           <span className={styles.buttonIcon}>→</span>
         </button>
@@ -128,9 +182,12 @@ export function TouchControls({ onDirectionChange, enabled = true }: TouchContro
         {/* Bottom Row - Down Button */}
         <button
           className={`${styles.directionButton} ${styles.downButton}`}
+          onTouchStart={handleButtonTouchStart(Direction.DOWN)}
+          onTouchEnd={handleButtonTouchEnd(Direction.DOWN)}
+          onTouchCancel={handleButtonTouchEnd(Direction.DOWN)}
           onClick={() => handleButtonClick(Direction.DOWN)}
-          aria-label="Move Down"
-          type="button"
+          aria-label='Move Down'
+          type='button'
         >
           <span className={styles.buttonIcon}>↓</span>
         </button>

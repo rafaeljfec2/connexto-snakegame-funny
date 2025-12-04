@@ -104,6 +104,7 @@ export interface GameState {
   currentPhase?: number; // Current phase number (1-10)
   phaseLevelType?: import('./phases').PhaseLevelType; // Type of level in current phase
   activeBoss?: import('./phases').Chef; // Active boss (if in boss level)
+  bossPosition?: Position; // Boss position on the grid
 }
 
 export interface GameConfig {

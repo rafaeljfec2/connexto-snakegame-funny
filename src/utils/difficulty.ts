@@ -1,4 +1,5 @@
 import { DIFFICULTY_CONFIG } from '@/constants/game';
+import { getPhaseSpeedModifier } from './phaseMechanics';
 
 /**
  * Calculate the current level based on score
@@ -12,6 +13,7 @@ export function calculateLevel(score: number): number {
 /**
  * Calculate the current game speed based on level
  * Lower values = faster game
+ * Now considers phase-specific speed modifiers
  */
 export function calculateGameSpeed(level: number): number {
   const speedReduction =
@@ -19,7 +21,14 @@ export function calculateGameSpeed(level: number): number {
   const calculatedSpeed = DIFFICULTY_CONFIG.baseSpeed - speedReduction;
 
   // Ensure we never go below minimum speed
-  return Math.max(calculatedSpeed, DIFFICULTY_CONFIG.minSpeed);
+  const baseSpeed = Math.max(calculatedSpeed, DIFFICULTY_CONFIG.minSpeed);
+
+  // Apply phase-specific speed modifier
+  const phaseModifier = getPhaseSpeedModifier(level);
+  const phaseAdjustedSpeed = Math.floor(baseSpeed * phaseModifier);
+
+  // Ensure we still respect minimum speed
+  return Math.max(phaseAdjustedSpeed, DIFFICULTY_CONFIG.minSpeed);
 }
 
 /**

@@ -39,6 +39,7 @@ import {
 } from '@/utils/portals';
 import { PORTAL_CONFIG } from '@/constants/portals';
 import { getCurrentPhase, getBossForLevel, shouldSpawnBoss } from '@/utils/phases';
+import { getBossPosition, hasBossCollision, handleBossDefeat } from '@/utils/bosses';
 
 export function useGameLoop() {
   const {
@@ -274,13 +275,6 @@ export function useGameLoop() {
       const newLevel = calculateLevel(newScore);
       const baseGameSpeed = calculateGameSpeed(newLevel);
 
-      // Phase system: Detect phase changes and update phase state
-      const currentPhase = getCurrentPhase(newLevel);
-      // Update boss for boss levels (levels 10, 20, 30, etc.)
-      const activeBoss = shouldSpawnBoss(newLevel) ? getBossForLevel(newLevel) : undefined;
-      // Clear boss when leaving boss level
-      const shouldClearBoss = prev.activeBoss && !shouldSpawnBoss(newLevel);
-
       // Generate obstacles on level up
       let newObstacles = prev.obstacles;
       if (GAME_CONFIG.enableObstacles && newLevel > prev.level) {
@@ -318,6 +312,50 @@ export function useGameLoop() {
         const portalPair = generatePortalPair(finalSnake, newObstacles, GAME_CONFIG.gridSize);
         if (portalPair) {
           newPortals = [...newPortals, ...portalPair];
+        }
+      }
+
+      // Phase system: Detect phase changes and update phase state
+      const currentPhase = getCurrentPhase(newLevel);
+      // Update boss for boss levels (levels 10, 20, 30, etc.)
+      let activeBoss = shouldSpawnBoss(newLevel) ? getBossForLevel(newLevel) : prev.activeBoss;
+      // Clear boss when leaving boss level
+      const shouldClearBoss = prev.activeBoss && !shouldSpawnBoss(newLevel);
+      if (shouldClearBoss) {
+        activeBoss = undefined;
+      }
+
+      // Calculate boss position when boss spawns or changes
+      let bossPosition = prev.bossPosition;
+      if (activeBoss && (!prev.activeBoss || prev.activeBoss.id !== activeBoss.id)) {
+        // New boss spawned - calculate position
+        const obstaclePositions = newObstacles.map((obs) => obs.position);
+        bossPosition =
+          getBossPosition(activeBoss, finalSnake, obstaclePositions, GAME_CONFIG.gridSize) ??
+          undefined;
+      } else if (shouldClearBoss) {
+        bossPosition = undefined;
+      }
+
+      // Check for boss collision (boss gives points when touched)
+      if (prev.activeBoss && prev.bossPosition && headPosition) {
+        if (hasBossCollision(headPosition, prev.bossPosition)) {
+          // Boss defeated! Give points and clear boss
+          const bossReward = handleBossDefeat(prev.activeBoss, prev);
+          newScore += bossReward.scoreIncrease;
+
+          // Create particles for boss defeat
+          if (GAME_CONFIG.enableParticles) {
+            const bossColor = prev.activeBoss.visual.color;
+            newParticles = [
+              ...newParticles,
+              ...createParticles(prev.bossPosition, bossColor, 20, 1000),
+            ];
+          }
+
+          // Clear boss after defeat
+          activeBoss = undefined;
+          bossPosition = undefined;
         }
       }
 
@@ -389,7 +427,8 @@ export function useGameLoop() {
         statistics,
         currentPhase: currentPhase?.id ?? prev.currentPhase,
         phaseLevelType: currentPhase?.type ?? prev.phaseLevelType,
-        activeBoss: shouldClearBoss ? undefined : (activeBoss ?? prev.activeBoss),
+        activeBoss: activeBoss,
+        bossPosition: bossPosition,
       };
     });
   }, [updateGameState]);
@@ -413,6 +452,8 @@ export function useGameLoop() {
       // Update active power-ups and get effective speed
       const activePowerUps = getActivePowerUps(gameState.activePowerUps);
       let effectiveSpeed = getEffectiveGameSpeed(gameState.gameSpeed, activePowerUps);
+
+      // Apply phase speed modifier (already included in calculateGameSpeed, but keep for clarity)
 
       // Apply 3x speed boost if direction key is held
       if (gameState.isSpeedBoosted) {

@@ -181,6 +181,8 @@ function App() {
               obstacles={gameState.obstacles}
               portals={gameState.portals}
               particles={gameState.particles}
+              activeBoss={gameState.activeBoss}
+              bossPosition={gameState.bossPosition}
             />
           </div>
 

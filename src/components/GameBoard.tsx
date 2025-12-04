@@ -5,8 +5,10 @@ import { Food } from './Food';
 import { ObstacleComponent } from './Obstacle';
 import { ParticleSystem } from './ParticleSystem';
 import { Portal as PortalComponent } from './Portal';
+import { Boss } from './Boss';
 import { useEffect, useRef, useState } from 'react';
 import styles from './GameBoard.module.css';
+import { Chef } from '@/types/phases';
 
 interface GameBoardProps {
   snake: Position[];
@@ -16,6 +18,8 @@ interface GameBoardProps {
   obstacles?: Obstacle[];
   portals?: Portal[];
   particles?: Particle[];
+  activeBoss?: Chef;
+  bossPosition?: Position;
 }
 
 export function GameBoard({
@@ -26,6 +30,8 @@ export function GameBoard({
   obstacles = [],
   portals = [],
   particles = [],
+  activeBoss,
+  bossPosition,
 }: GameBoardProps) {
   const gridStyle = {
     gridTemplateColumns: `repeat(${GAME_CONFIG.gridSize}, ${GAME_CONFIG.cellSize}px)`,
@@ -138,6 +144,9 @@ export function GameBoard({
         />
       ))}
       <Food key={foodKey} food={food} />
+      {activeBoss && bossPosition && (
+        <Boss boss={activeBoss} position={bossPosition} gridSize={GAME_CONFIG.gridSize} />
+      )}
       {GAME_CONFIG.enableParticles && <ParticleSystem particles={particles} />}
     </div>
   );

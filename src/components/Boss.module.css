@@ -1,0 +1,82 @@
+.boss {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  pointer-events: none;
+  transform: scale(var(--boss-size, 1));
+}
+
+.bossIcon {
+  font-size: 2rem;
+  filter: drop-shadow(0 0 10px var(--boss-color, #3b82f6));
+  animation: bossPulse 2s ease-in-out infinite;
+  z-index: 2;
+  position: relative;
+}
+
+.bossGlow {
+  position: absolute;
+  inset: -20%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    var(--boss-color, #3b82f6) 0%,
+    transparent 70%
+  );
+  opacity: 0.6;
+  animation: bossGlow 2s ease-in-out infinite;
+  z-index: 1;
+}
+
+.bossName {
+  position: absolute;
+  top: -1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: var(--boss-color, #3b82f6);
+  white-space: nowrap;
+  text-shadow: 0 0 8px var(--boss-color, #3b82f6);
+  opacity: 0.9;
+  z-index: 3;
+  pointer-events: none;
+}
+
+@keyframes bossPulse {
+  0%,
+  100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 10px var(--boss-color, #3b82f6));
+  }
+  50% {
+    transform: scale(1.1);
+    filter: drop-shadow(0 0 20px var(--boss-color, #3b82f6));
+  }
+}
+
+@keyframes bossGlow {
+  0%,
+  100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.2);
+  }
+}
+
+@media (max-width: 768px) {
+  .bossIcon {
+    font-size: 1.5rem;
+  }
+
+  .bossName {
+    font-size: 0.5rem;
+    top: -1.2rem;
+  }
+}
+

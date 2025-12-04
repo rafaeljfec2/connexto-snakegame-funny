@@ -11,6 +11,7 @@ import { calculateLevel, calculateGameSpeed } from '@/utils/difficulty';
 import { loadAchievements } from '@/utils/achievements';
 import { LIVES_CONFIG } from '@/constants/lives';
 import { initializeStatistics } from '@/utils/statistics';
+import { getCurrentPhase, getBossForLevel, shouldSpawnBoss } from '@/utils/phases';
 
 export function useGameState() {
   const [gameState, setGameState] = useState<GameState>(() => {
@@ -21,6 +22,7 @@ export function useGameState() {
     );
     const initialLevel = calculateLevel(0);
     const initialSpeed = calculateGameSpeed(initialLevel);
+    const initialPhase = getCurrentPhase(initialLevel);
 
     return {
       snake: INITIAL_SNAKE_POSITION,
@@ -45,6 +47,9 @@ export function useGameState() {
       lives: LIVES_CONFIG.initialLives,
       statistics: initializeStatistics(),
       isSpeedBoosted: false,
+      currentPhase: initialPhase?.id,
+      phaseLevelType: initialPhase?.type,
+      activeBoss: shouldSpawnBoss(initialLevel) ? getBossForLevel(initialLevel) : undefined,
     };
   });
 
@@ -56,6 +61,7 @@ export function useGameState() {
     );
     const initialLevel = calculateLevel(0);
     const initialSpeed = calculateGameSpeed(initialLevel);
+    const initialPhase = getCurrentPhase(initialLevel);
 
     setGameState({
       snake: INITIAL_SNAKE_POSITION,
@@ -80,6 +86,9 @@ export function useGameState() {
       lives: LIVES_CONFIG.initialLives,
       statistics: initializeStatistics(),
       isSpeedBoosted: false,
+      currentPhase: initialPhase?.id,
+      phaseLevelType: initialPhase?.type,
+      activeBoss: shouldSpawnBoss(initialLevel) ? getBossForLevel(initialLevel) : undefined,
     });
   }, []);
 

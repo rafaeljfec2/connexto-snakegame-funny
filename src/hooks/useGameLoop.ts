@@ -38,6 +38,7 @@ import {
   getActivePortals,
 } from '@/utils/portals';
 import { PORTAL_CONFIG } from '@/constants/portals';
+import { getCurrentPhase, getBossForLevel, shouldSpawnBoss } from '@/utils/phases';
 
 export function useGameLoop() {
   const {
@@ -273,6 +274,13 @@ export function useGameLoop() {
       const newLevel = calculateLevel(newScore);
       const baseGameSpeed = calculateGameSpeed(newLevel);
 
+      // Phase system: Detect phase changes and update phase state
+      const currentPhase = getCurrentPhase(newLevel);
+      // Update boss for boss levels (levels 10, 20, 30, etc.)
+      const activeBoss = shouldSpawnBoss(newLevel) ? getBossForLevel(newLevel) : undefined;
+      // Clear boss when leaving boss level
+      const shouldClearBoss = prev.activeBoss && !shouldSpawnBoss(newLevel);
+
       // Generate obstacles on level up
       let newObstacles = prev.obstacles;
       if (GAME_CONFIG.enableObstacles && newLevel > prev.level) {
@@ -379,6 +387,9 @@ export function useGameLoop() {
         achievements: updatedAchievements,
         lives: newLives,
         statistics,
+        currentPhase: currentPhase?.id ?? prev.currentPhase,
+        phaseLevelType: currentPhase?.type ?? prev.phaseLevelType,
+        activeBoss: shouldClearBoss ? undefined : (activeBoss ?? prev.activeBoss),
       };
     });
   }, [updateGameState]);

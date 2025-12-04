@@ -101,6 +101,9 @@ export interface GameState {
   lives: number; // Number of lives remaining
   statistics?: import('./statistics').GameStatisticsTracking;
   isSpeedBoosted?: boolean; // Speed boost when direction key is held
+  currentPhase?: number; // Current phase number (1-10)
+  phaseLevelType?: import('./phases').PhaseLevelType; // Type of level in current phase
+  activeBoss?: import('./phases').Chef; // Active boss (if in boss level)
 }
 
 export interface GameConfig {

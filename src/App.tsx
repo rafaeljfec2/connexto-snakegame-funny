@@ -14,6 +14,7 @@ import { LivesDisplay } from './components/LivesDisplay';
 import { GameStatistics as GameStatisticsComponent } from './components/GameStatistics';
 import { DeathTransition } from './components/DeathTransition';
 import { TouchControls } from './components/TouchControls';
+import { PhaseDisplay } from './components/PhaseDisplay';
 import { GameStatus } from '@/types/game';
 import { createFinalStatistics, saveGameSession } from '@/utils/statistics';
 import styles from './App.module.css';
@@ -169,6 +170,7 @@ function App() {
 
         {/* Center Game Area */}
         <div className={styles.gameArea}>
+          <PhaseDisplay level={gameState.level} currentPhase={gameState.currentPhase} />
           <StatusMessage status={gameState.status} />
           <div className={styles.gameContainer}>
             <GameBoard

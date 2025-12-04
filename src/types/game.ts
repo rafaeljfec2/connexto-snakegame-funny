@@ -33,6 +33,8 @@ export enum FoodType {
 export interface Food {
   position: Position;
   type: FoodType;
+  spawnTime?: number; // Timestamp when food was spawned
+  duration?: number; // Duration in milliseconds before food expires (undefined = no timer)
 }
 
 export interface ActivePowerUp {
@@ -95,4 +97,5 @@ export interface GameConfig {
   enableCombos: boolean;
   enableParticles: boolean;
   enableAchievements: boolean;
+  enableLengthMultiplier?: boolean;
 }

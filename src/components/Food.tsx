@@ -1,6 +1,8 @@
 import { Food as FoodType, FoodType as FoodTypeEnum } from "@/types/game";
 import { GAME_CONFIG } from "@/constants/game";
 import { POWER_UP_CONFIG } from "@/constants/powerUps";
+import { getFoodRemainingPercentage } from "@/utils/foodTimer";
+import { FOOD_TIMER_CONFIG } from "@/constants/foodTimer";
 import { useEffect, useState } from "react";
 import styles from "./Food.module.css";
 
@@ -24,6 +26,12 @@ export function Food({ food, wasEaten }: FoodProps) {
 
   const isJoker = food.type === FoodTypeEnum.JOKER;
   const isPowerUp = food.type !== "NORMAL" && !isJoker;
+  const hasTimer = food.duration !== undefined && FOOD_TIMER_CONFIG.enabled;
+  const remainingPercentage = hasTimer ? getFoodRemainingPercentage(food) : 1;
+  const isWarning =
+    remainingPercentage <= FOOD_TIMER_CONFIG.warningThreshold &&
+    remainingPercentage > FOOD_TIMER_CONFIG.criticalThreshold;
+  const isCritical = remainingPercentage <= FOOD_TIMER_CONFIG.criticalThreshold;
 
   // List of positive power-up types for joker animation
   const jokerTypes = [
@@ -47,6 +55,21 @@ export function Food({ food, wasEaten }: FoodProps) {
     return () => clearInterval(interval);
   }, [isJoker, wasEaten, jokerTypes.length]);
 
+  // Force re-render for timer updates to show progress bar
+  const [, setTimerTick] = useState(0);
+
+  useEffect(() => {
+    if (!hasTimer || wasEaten) {
+      return;
+    }
+
+    const interval = setInterval(() => {
+      setTimerTick((prev) => prev + 1);
+    }, 100); // Update every 100ms
+
+    return () => clearInterval(interval);
+  }, [food, hasTimer, wasEaten]);
+
   // Get colors based on type
   let colors;
   if (isJoker && !wasEaten) {
@@ -65,18 +88,36 @@ export function Food({ food, wasEaten }: FoodProps) {
     <div
       className={`${styles.food} ${wasEaten ? styles.eaten : ""} ${
         isPowerUp ? styles.powerUp : ""
-      } ${isJoker ? styles.joker : ""} ${styles[foodTypeClass] ?? ""}`}
+      } ${isJoker ? styles.joker : ""} ${
+        isWarning ? styles.timerWarning : ""
+      } ${isCritical ? styles.timerCritical : ""} ${
+        styles[foodTypeClass] ?? ""
+      }`}
       style={
         {
           gridColumn: x + 1,
           gridRow: y + 1,
           "--food-primary": colors.primary,
           "--food-secondary": colors.secondary,
+          "--timer-progress": `${remainingPercentage * 100}%`,
         } as React.CSSProperties
       }
       aria-label={
         isPowerUp ? `Power-up: ${food.type}` : isJoker ? "Joker Food" : "Food"
       }
-    />
+    >
+      {hasTimer && !wasEaten && FOOD_TIMER_CONFIG.showIndicator && (
+        <div className={styles.timerIndicator}>
+          <div
+            className={styles.timerProgress}
+            style={
+              {
+                width: `${remainingPercentage * 100}%`,
+              } as React.CSSProperties
+            }
+          />
+        </div>
+      )}
+    </div>
   );
 }

@@ -1,5 +1,6 @@
 import { Position, Direction, Food, FoodType } from "@/types/game";
 import { POWER_UP_CONFIG } from "@/constants/powerUps";
+import { applyFoodTimer } from "@/utils/foodTimer";
 
 export function getOppositeDirection(direction: Direction): Direction {
   const opposites: Record<Direction, Direction> = {
@@ -169,10 +170,15 @@ export function generateRandomFood(snake: Position[], gridSize: number): Food {
   const position = generateRandomPosition(snake, gridSize);
   const type = getRandomFoodType();
 
-  return {
+  const food: Food = {
     position,
     type,
+    spawnTime: Date.now(),
+    duration: undefined,
   };
+
+  // Apply timer configuration if enabled
+  return applyFoodTimer(food);
 }
 
 export function moveSnake(

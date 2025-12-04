@@ -9,6 +9,7 @@ export const GAME_CONFIG: GameConfig = {
   enableCombos: true,
   enableParticles: true,
   enableAchievements: true,
+  enableLengthMultiplier: true, // Enable length-based score multiplier
 };
 
 export const INITIAL_DIRECTION = Direction.RIGHT;

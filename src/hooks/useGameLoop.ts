@@ -23,6 +23,7 @@ import { updateCombo, calculateComboPoints } from "@/utils/combos";
 import { createParticles, updateParticles } from "@/utils/particles";
 import { generateObstacles, hasObstacleCollision } from "@/utils/obstacles";
 import { checkAchievements, saveAchievements } from "@/utils/achievements";
+import { hasFoodExpired } from "@/utils/foodTimer";
 import { POWER_UP_CONFIG } from "@/constants/powerUps";
 import { useGameState } from "./useGameState";
 
@@ -182,13 +183,19 @@ export function useGameLoop() {
           finalSnake = finalSnake.slice(0, newLength);
         }
 
-        // Calculate base score with combo multiplier
+        // Calculate base score with length and combo multipliers
         const baseScoreIncrease = powerUpEffect.scoreIncrease;
+        
+        // Apply length-based multiplier (points × (1 + length/10))
+        const lengthMultiplier = 1 + finalSnake.length / 10;
+        let scoreWithLength = baseScoreIncrease * lengthMultiplier;
+        
+        // Apply combo multiplier if enabled
         const finalScoreIncrease = GAME_CONFIG.enableCombos
-          ? calculateComboPoints(baseScoreIncrease, newCombo)
-          : baseScoreIncrease;
+          ? calculateComboPoints(scoreWithLength, newCombo)
+          : scoreWithLength;
 
-        newScore = prev.score + finalScoreIncrease;
+        newScore = prev.score + Math.floor(finalScoreIncrease);
 
         // Activate power-up if needed
         if (powerUpEffect.shouldActivatePowerUp) {
@@ -201,7 +208,10 @@ export function useGameLoop() {
         }
       }
 
-      const newFood = ateFood
+      // Check if current food has expired
+      const foodExpired = hasFoodExpired(prev.food);
+      
+      const newFood = ateFood || foodExpired
         ? generateRandomFood(finalSnake, GAME_CONFIG.gridSize)
         : prev.food;
 

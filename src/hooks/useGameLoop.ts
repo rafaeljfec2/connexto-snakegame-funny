@@ -19,7 +19,7 @@ import {
   hasReverseControls,
   hasPhaseThrough,
 } from '@/utils/powerUps';
-import { updateCombo, calculateComboPoints } from '@/utils/combos';
+import { updateCombo } from '@/utils/combos';
 import { createParticles, updateParticles } from '@/utils/particles';
 import { generateObstacles, hasObstacleCollision } from '@/utils/obstacles';
 import { checkAchievements, saveAchievements } from '@/utils/achievements';
@@ -163,10 +163,6 @@ export function useGameLoop() {
           },
         };
 
-        // Update combo when food is eaten
-        if (GAME_CONFIG.enableCombos) {
-          newCombo = updateCombo(prev.combo, true);
-        }
         // Handle JOKER - randomly choose a positive power-up before applying effects
         let actualFoodType = prev.food.type;
         if (prev.food.type === FoodType.JOKER) {
@@ -193,6 +189,16 @@ export function useGameLoop() {
           atePowerUp = true;
         }
 
+        // Calculate score: base points only (no multipliers for now)
+        // First food should give exactly 5 points
+        const baseScoreIncrease = powerUpEffect.scoreIncrease;
+        newScore = prev.score + baseScoreIncrease;
+
+        // Update combo AFTER calculating score (for next food)
+        if (GAME_CONFIG.enableCombos) {
+          newCombo = updateCombo(prev.combo, true);
+        }
+
         // Create particles
         if (GAME_CONFIG.enableParticles) {
           const foodColor = POWER_UP_CONFIG.colors[prev.food.type]?.primary || '#ef4444';
@@ -217,20 +223,6 @@ export function useGameLoop() {
           const newLength = Math.max(minLength, finalSnake.length - shrinkAmount);
           finalSnake = finalSnake.slice(0, newLength);
         }
-
-        // Calculate base score with length and combo multipliers
-        const baseScoreIncrease = powerUpEffect.scoreIncrease;
-
-        // Apply length-based multiplier (points × (1 + length/10))
-        const lengthMultiplier = 1 + finalSnake.length / 10;
-        const scoreWithLength = baseScoreIncrease * lengthMultiplier;
-
-        // Apply combo multiplier if enabled
-        const finalScoreIncrease = GAME_CONFIG.enableCombos
-          ? calculateComboPoints(scoreWithLength, newCombo)
-          : scoreWithLength;
-
-        newScore = prev.score + Math.floor(finalScoreIncrease);
 
         // Update statistics - max combo
         if (newCombo.multiplier > statistics.maxCombo) {

@@ -13,7 +13,7 @@ export function applyPowerUpEffect(
   // Handle NORMAL food type first (not in effects)
   if (foodType === FoodType.NORMAL) {
     return {
-      scoreIncrease: 10,
+      scoreIncrease: 5,
       growthAmount: 1,
       shouldActivatePowerUp: false,
     };
@@ -98,9 +98,9 @@ export function applyPowerUpEffect(
     };
   }
 
-  // Normal food
+  // Normal food (fallback)
   return {
-    scoreIncrease: 10,
+    scoreIncrease: 5,
     growthAmount: 1,
     shouldActivatePowerUp: false,
   };

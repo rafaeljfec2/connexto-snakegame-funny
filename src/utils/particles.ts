@@ -8,7 +8,7 @@ export function createParticles(
 ): Particle[] {
   const particles: Particle[] = [];
   const now = Date.now();
-  
+
   for (let i = 0; i < count; i++) {
     particles.push({
       id: `particle-${now}-${i}`,
@@ -21,7 +21,7 @@ export function createParticles(
       startTime: now,
     });
   }
-  
+
   return particles;
 }
 
@@ -31,5 +31,3 @@ export function updateParticles(particles: Particle[]): Particle[] {
     (particle) => now - particle.startTime < particle.lifetime
   );
 }
-
-

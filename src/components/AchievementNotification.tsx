@@ -19,7 +19,7 @@ export function AchievementNotification({
     if (newlyUnlocked.length > 0) {
       const firstUnlocked = newlyUnlocked[0];
       setVisibleAchievement(firstUnlocked);
-      
+
       const timer = setTimeout(() => {
         setVisibleAchievement(null);
       }, 3000);
@@ -44,5 +44,3 @@ export function AchievementNotification({
     </div>
   );
 }
-
-

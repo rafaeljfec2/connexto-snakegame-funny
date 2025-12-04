@@ -1,4 +1,10 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
 import { Theme } from "@/types/theme";
 import { getStoredTheme, saveTheme, getEffectiveTheme } from "@/utils/theme";
 
@@ -61,5 +67,3 @@ export function useTheme() {
   }
   return context;
 }
-
-

@@ -6,7 +6,7 @@ export function updateCombo(
   ateFood: boolean
 ): ComboState {
   const now = Date.now();
-  
+
   if (!ateFood) {
     // Check if combo expired
     if (now - currentCombo.lastFoodTime > COMBO_CONFIG.comboWindow) {
@@ -18,7 +18,7 @@ export function updateCombo(
     }
     return currentCombo;
   }
-  
+
   // Ate food - check if within combo window
   if (now - currentCombo.lastFoodTime <= COMBO_CONFIG.comboWindow) {
     // Continue combo
@@ -27,7 +27,7 @@ export function updateCombo(
       Math.floor(newCount / COMBO_CONFIG.minCombo) + 1,
       COMBO_CONFIG.maxMultiplier
     );
-    
+
     return {
       count: newCount,
       multiplier,
@@ -43,8 +43,9 @@ export function updateCombo(
   }
 }
 
-export function calculateComboPoints(basePoints: number, combo: ComboState): number {
+export function calculateComboPoints(
+  basePoints: number,
+  combo: ComboState
+): number {
   return basePoints * combo.multiplier;
 }
-
-

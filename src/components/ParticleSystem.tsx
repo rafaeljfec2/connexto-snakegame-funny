@@ -36,8 +36,10 @@ export function ParticleSystem({ particles }: ParticleSystemProps) {
         if (progress >= 1 || opacity <= 0) return null;
 
         // Convert grid position to pixel position
-        const pixelX = particle.position.x * GAME_CONFIG.cellSize + GAME_CONFIG.cellSize / 2;
-        const pixelY = particle.position.y * GAME_CONFIG.cellSize + GAME_CONFIG.cellSize / 2;
+        const pixelX =
+          particle.position.x * GAME_CONFIG.cellSize + GAME_CONFIG.cellSize / 2;
+        const pixelY =
+          particle.position.y * GAME_CONFIG.cellSize + GAME_CONFIG.cellSize / 2;
 
         return (
           <div
@@ -58,4 +60,3 @@ export function ParticleSystem({ particles }: ParticleSystemProps) {
     </>
   );
 }
-

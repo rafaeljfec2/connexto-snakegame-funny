@@ -8,14 +8,14 @@ export function hasFoodExpired(food: Food): boolean {
   if (!FOOD_TIMER_CONFIG.enabled) {
     return false;
   }
-  
+
   if (food.duration === undefined || food.spawnTime === undefined) {
     return false; // No timer set, food doesn't expire
   }
-  
+
   const now = Date.now();
   const elapsed = now - food.spawnTime;
-  
+
   return elapsed >= food.duration;
 }
 
@@ -27,15 +27,15 @@ export function getFoodRemainingTime(food: Food): number {
   if (!FOOD_TIMER_CONFIG.enabled) {
     return 0;
   }
-  
+
   if (food.duration === undefined || food.spawnTime === undefined) {
     return 0; // No timer
   }
-  
+
   const now = Date.now();
   const elapsed = now - food.spawnTime;
   const remaining = food.duration - elapsed;
-  
+
   return Math.max(0, remaining);
 }
 
@@ -46,11 +46,11 @@ export function getFoodRemainingPercentage(food: Food): number {
   if (!FOOD_TIMER_CONFIG.enabled) {
     return 1;
   }
-  
+
   if (food.duration === undefined || food.spawnTime === undefined) {
     return 1; // No timer, always 100%
   }
-  
+
   const remaining = getFoodRemainingTime(food);
   return remaining / food.duration;
 }
@@ -62,10 +62,10 @@ export function applyFoodTimer(food: Food): Food {
   if (!FOOD_TIMER_CONFIG.enabled) {
     return food;
   }
-  
+
   // Check if this food type should have a timer
   const shouldHaveTimer = Math.random() < FOOD_TIMER_CONFIG.timerChance;
-  
+
   if (!shouldHaveTimer) {
     return {
       ...food,
@@ -73,15 +73,14 @@ export function applyFoodTimer(food: Food): Food {
       duration: undefined,
     };
   }
-  
+
   // Get duration for this food type
-  const duration = FOOD_TIMER_CONFIG.durations[food.type] ?? FOOD_TIMER_CONFIG.baseDuration;
-  
+  const duration =
+    FOOD_TIMER_CONFIG.durations[food.type] ?? FOOD_TIMER_CONFIG.baseDuration;
+
   return {
     ...food,
     spawnTime: food.spawnTime ?? Date.now(),
     duration,
   };
 }
-
-

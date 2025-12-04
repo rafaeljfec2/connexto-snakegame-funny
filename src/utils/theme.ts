@@ -28,4 +28,3 @@ export function getEffectiveTheme(theme: Theme): "dark" | "light" {
   }
   return theme;
 }
-

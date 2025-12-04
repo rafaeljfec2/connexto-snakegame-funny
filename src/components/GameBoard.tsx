@@ -1,4 +1,10 @@
-import { Position, GameStatus, Food as FoodType, Obstacle, Particle } from "@/types/game";
+import {
+  Position,
+  GameStatus,
+  Food as FoodType,
+  Obstacle,
+  Particle,
+} from "@/types/game";
 import { GAME_CONFIG } from "@/constants/game";
 import { SnakeSegment } from "./SnakeSegment";
 import { Food } from "./Food";
@@ -33,7 +39,9 @@ export function GameBoard({
 
   const previousSnakeLengthRef = useRef(snake.length);
   const previousLevelRef = useRef(level);
-  const previousFoodKeyRef = useRef(`${food.position.x}-${food.position.y}-${food.type}`);
+  const previousFoodKeyRef = useRef(
+    `${food.position.x}-${food.position.y}-${food.type}`
+  );
   const [isLevelUp, setIsLevelUp] = useState(false);
   const [newSegmentIndex, setNewSegmentIndex] = useState<number | null>(null);
   const [isEating, setIsEating] = useState(false);
@@ -52,13 +60,13 @@ export function GameBoard({
   useEffect(() => {
     const currentFoodKey = `${food.position.x}-${food.position.y}-${food.type}`;
     const foodChanged = currentFoodKey !== previousFoodKeyRef.current;
-    
+
     // Food was eaten if position changed OR type changed while playing
     if (foodChanged && status === GameStatus.PLAYING && snake.length > 0) {
       setIsEating(true);
       setTimeout(() => setIsEating(false), 400);
     }
-    
+
     previousFoodKeyRef.current = currentFoodKey;
   }, [food.position, food.type, status, snake.length]);
 
@@ -67,7 +75,7 @@ export function GameBoard({
     if (status === GameStatus.GAME_OVER && snake.length > 0) {
       const segmentsToDie = new Set<number>();
       const timeouts: ReturnType<typeof setTimeout>[] = [];
-      
+
       // Start explosion animation from tail to head
       snake.forEach((_, index) => {
         const timeout = setTimeout(() => {
@@ -124,9 +132,7 @@ export function GameBoard({
         />
       ))}
       <Food key={foodKey} food={food} />
-      {GAME_CONFIG.enableParticles && (
-        <ParticleSystem particles={particles} />
-      )}
+      {GAME_CONFIG.enableParticles && <ParticleSystem particles={particles} />}
     </div>
   );
 }

@@ -94,7 +94,7 @@
 
 ## 📋 FASE 3: Funcionalidades de Jogabilidade Básicas
 
-### ⏳ 12. **Multiplicador de Pontos Baseado em Comprimento**
+### ✅ 12. **Multiplicador de Pontos Baseado em Comprimento**
 
 **Complexidade:** Baixa | **Impacto:** Médio
 
@@ -102,7 +102,7 @@
 - Incentiva estratégia de crescimento
 - Fórmula: pontos base × (1 + comprimento/10)
 
-### ⏳ 13. **Comida com Timer**
+### ✅ 13. **Comida com Timer**
 
 **Complexidade:** Média | **Impacto:** Alto
 
@@ -111,7 +111,7 @@
 - Pressão adicional e estratégia
 - Indicador visual do tempo restante
 
-### ⏳ 14. **Sistema de Vidas**
+### ✅ 14. **Sistema de Vidas**
 
 **Complexidade:** Média | **Impacto:** Alto
 
@@ -387,6 +387,6 @@ Começar pela **Fase 2** (Sons e Música, Animações) para polir o jogo atual a
 - [ ] Background Dinâmico
 - [ ] Modo Dark/Light
 - [ ] Comida com Timer
-- [ ] Sistema de Vidas
+- [x] Sistema de Vidas
 - [ ] Estatísticas Detalhadas
 - [ ] Sistema de Skins/Temas

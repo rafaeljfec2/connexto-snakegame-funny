@@ -1,5 +1,4 @@
 import { Position } from "@/types/game";
-import { GAME_CONFIG } from "@/constants/game";
 import { useEffect, useRef, useState } from "react";
 import styles from "./SnakeTrail.module.css";
 
@@ -89,5 +88,3 @@ export function SnakeTrail({ snake, enabled }: SnakeTrailProps) {
     </>
   );
 }
-
-

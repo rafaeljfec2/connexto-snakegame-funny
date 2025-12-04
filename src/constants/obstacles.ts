@@ -51,5 +51,3 @@ export const OBSTACLE_CONFIG = {
   // Minimum spacing from snake start
   minDistanceFromStart: 5,
 } as const;
-
-

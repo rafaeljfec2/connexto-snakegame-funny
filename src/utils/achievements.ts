@@ -1,6 +1,8 @@
 import { Achievement } from "@/types/game";
-import { ACHIEVEMENT_DEFINITIONS, ACHIEVEMENT_STORAGE_KEY } from "@/constants/achievements";
-import { STORAGE_KEYS } from "@/constants/game";
+import {
+  ACHIEVEMENT_DEFINITIONS,
+  ACHIEVEMENT_STORAGE_KEY,
+} from "@/constants/achievements";
 
 export function loadAchievements(): Achievement[] {
   try {
@@ -8,14 +10,16 @@ export function loadAchievements(): Achievement[] {
     if (stored) {
       const parsed = JSON.parse(stored);
       return ACHIEVEMENT_DEFINITIONS.map((def) => {
-        const storedAchievement = parsed.find((a: Achievement) => a.id === def.id);
+        const storedAchievement = parsed.find(
+          (a: Achievement) => a.id === def.id
+        );
         return storedAchievement || { ...def, unlocked: false };
       });
     }
   } catch (error) {
     console.error("Error loading achievements:", error);
   }
-  
+
   return ACHIEVEMENT_DEFINITIONS.map((def) => ({
     ...def,
     unlocked: false,
@@ -58,7 +62,7 @@ export function checkAchievements(
 ): { achievements: Achievement[]; newlyUnlocked: string[] } {
   const newlyUnlocked: string[] = [];
   let updatedAchievements = [...achievements];
-  
+
   // Check each achievement condition
   if (gameState.score >= 100) {
     const achievement = updatedAchievements.find((a) => a.id === "score_100");
@@ -67,7 +71,7 @@ export function checkAchievements(
       newlyUnlocked.push("score_100");
     }
   }
-  
+
   if (gameState.score >= 500) {
     const achievement = updatedAchievements.find((a) => a.id === "score_500");
     if (achievement && !achievement.unlocked) {
@@ -75,7 +79,7 @@ export function checkAchievements(
       newlyUnlocked.push("score_500");
     }
   }
-  
+
   if (gameState.level >= 5) {
     const achievement = updatedAchievements.find((a) => a.id === "level_5");
     if (achievement && !achievement.unlocked) {
@@ -83,7 +87,7 @@ export function checkAchievements(
       newlyUnlocked.push("level_5");
     }
   }
-  
+
   if (gameState.level >= 10) {
     const achievement = updatedAchievements.find((a) => a.id === "level_10");
     if (achievement && !achievement.unlocked) {
@@ -91,7 +95,7 @@ export function checkAchievements(
       newlyUnlocked.push("level_10");
     }
   }
-  
+
   if (gameState.comboMultiplier >= 5) {
     const achievement = updatedAchievements.find((a) => a.id === "combo_5");
     if (achievement && !achievement.unlocked) {
@@ -99,24 +103,30 @@ export function checkAchievements(
       newlyUnlocked.push("combo_5");
     }
   }
-  
+
   if (gameState.snakeLength >= 20) {
-    const achievement = updatedAchievements.find((a) => a.id === "snake_length_20");
+    const achievement = updatedAchievements.find(
+      (a) => a.id === "snake_length_20"
+    );
     if (achievement && !achievement.unlocked) {
-      updatedAchievements = unlockAchievement(updatedAchievements, "snake_length_20");
+      updatedAchievements = unlockAchievement(
+        updatedAchievements,
+        "snake_length_20"
+      );
       newlyUnlocked.push("snake_length_20");
     }
   }
-  
+
   if (gameState.atePowerUp) {
     const achievement = updatedAchievements.find((a) => a.id === "eat_powerup");
     if (achievement && !achievement.unlocked) {
-      updatedAchievements = unlockAchievement(updatedAchievements, "eat_powerup");
+      updatedAchievements = unlockAchievement(
+        updatedAchievements,
+        "eat_powerup"
+      );
       newlyUnlocked.push("eat_powerup");
     }
   }
-  
+
   return { achievements: updatedAchievements, newlyUnlocked };
 }
-
-

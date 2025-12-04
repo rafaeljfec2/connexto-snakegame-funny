@@ -1,6 +1,9 @@
 import { Achievement } from "@/types/game";
 
-export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, "unlocked" | "unlockedAt">[] = [
+export const ACHIEVEMENT_DEFINITIONS: Omit<
+  Achievement,
+  "unlocked" | "unlockedAt"
+>[] = [
   {
     id: "first_food",
     name: "First Bite",
@@ -49,5 +52,3 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, "unlocked" | "unlockedAt
 ];
 
 export const ACHIEVEMENT_STORAGE_KEY = "snake-game-achievements";
-
-

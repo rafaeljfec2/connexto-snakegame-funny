@@ -13,12 +13,14 @@ export function ComboDisplay({ combo }: ComboDisplayProps) {
 
   // Always show combo display
   const now = Date.now();
-  const timeSinceLastFood = combo.lastFoodTime > 0 ? now - combo.lastFoodTime : Infinity;
+  const timeSinceLastFood =
+    combo.lastFoodTime > 0 ? now - combo.lastFoodTime : Infinity;
   const comboWindow = COMBO_CONFIG.comboWindow;
   const remainingTime = Math.max(0, comboWindow - timeSinceLastFood);
-  const progress = combo.count >= COMBO_CONFIG.minCombo 
-    ? (remainingTime / comboWindow) * 100 
-    : 0;
+  const progress =
+    combo.count >= COMBO_CONFIG.minCombo
+      ? (remainingTime / comboWindow) * 100
+      : 0;
 
   const isActive = combo.count >= COMBO_CONFIG.minCombo;
 
@@ -26,8 +28,8 @@ export function ComboDisplay({ combo }: ComboDisplayProps) {
     <div className={styles.comboDisplay}>
       <div className={styles.comboInfo}>
         <span className={styles.comboLabel}>COMBO</span>
-        <span 
-          className={`${styles.comboCount} ${isActive ? styles.active : ''}`}
+        <span
+          className={`${styles.comboCount} ${isActive ? styles.active : ""}`}
         >
           x{combo.multiplier}
         </span>
@@ -41,4 +43,3 @@ export function ComboDisplay({ combo }: ComboDisplayProps) {
     </div>
   );
 }
-

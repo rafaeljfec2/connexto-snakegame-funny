@@ -21,7 +21,10 @@ export function loseLife(
   // Apply length penalty
   if (LIVES_CONFIG.lengthPenalty > 0) {
     const minLength = LIVES_CONFIG.minLengthAfterPenalty;
-    const targetLength = Math.max(minLength, newSnake.length - LIVES_CONFIG.lengthPenalty);
+    const targetLength = Math.max(
+      minLength,
+      newSnake.length - LIVES_CONFIG.lengthPenalty
+    );
     newSnake = newSnake.slice(0, targetLength);
   }
 
@@ -56,5 +59,3 @@ export function addLife(currentLives: number): number {
   const maxLives = getMaxLives();
   return Math.min(maxLives, currentLives + 1);
 }
-
-

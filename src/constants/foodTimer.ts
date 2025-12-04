@@ -7,10 +7,10 @@ import { FoodType } from "@/types/game";
 export const FOOD_TIMER_CONFIG = {
   // Enable food timers
   enabled: true,
-  
+
   // Base duration for normal food (in milliseconds)
   baseDuration: 10000, // 10 seconds
-  
+
   // Duration multipliers for different food types
   durations: {
     [FoodType.NORMAL]: 10000, // 10 seconds
@@ -23,17 +23,15 @@ export const FOOD_TIMER_CONFIG = {
     [FoodType.REVERSE_CONTROLS]: 12000, // 12 seconds
     [FoodType.SLOW_DOWN]: 12000, // 12 seconds
   },
-  
+
   // Chance that a food will have a timer (0-1)
   // Set to 1.0 for all foods, or lower for some foods to have no timer
   timerChance: 1.0,
-  
+
   // Show timer indicator (progress bar/countdown)
   showIndicator: true,
-  
+
   // Warning thresholds (when to change visual indicator)
   warningThreshold: 0.3, // Show warning when 30% time remaining
   criticalThreshold: 0.1, // Show critical when 10% time remaining
 } as const;
-
-

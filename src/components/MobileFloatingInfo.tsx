@@ -1,7 +1,6 @@
 import { ActivePowerUp, ComboState, FoodType } from '@/types/game';
 import { getActivePowerUps } from '@/utils/powerUps';
 import { useEffect, useState, useRef } from 'react';
-import { getCurrentPhase } from '@/utils/phases';
 import { COMBO_CONFIG } from '@/constants/game';
 import { PowerUpToast } from './PowerUpToast';
 import styles from './MobileFloatingInfo.module.css';
@@ -25,13 +24,12 @@ interface Toast {
 export function MobileFloatingInfo({
   activePowerUps,
   combo,
-  snakeLength,
-  lives,
-  level,
+  snakeLength: _snakeLength,
+  lives: _lives,
+  level: _level,
 }: MobileFloatingInfoProps) {
   const [toasts, setToasts] = useState<Toast[]>([]);
   const previousPowerUpsRef = useRef<ActivePowerUp[]>([]);
-  const phase = getCurrentPhase(level);
 
   // Get power-up info
   const getPowerUpInfo = (type: FoodType) => {
@@ -118,38 +116,17 @@ export function MobileFloatingInfo({
         ))}
       </div>
 
-      {/* Top Right - Stats & Combo */}
-      <div className={`${styles.mobileOverlay} ${styles.statsOverlay}`}>
-        {/* Combo */}
-        {combo.count >= COMBO_CONFIG.minCombo && (
+      {/* Top Right - Combo Only */}
+      {combo.count >= COMBO_CONFIG.minCombo && (
+        <div className={`${styles.mobileOverlay} ${styles.statsOverlay}`}>
           <div className={styles.floatingCard}>
             <div className={styles.compactCombo}>
               <span className={styles.compactComboLabel}>Combo</span>
               <span className={styles.compactComboValue}>x{combo.multiplier}</span>
             </div>
           </div>
-        )}
-
-        {/* Stats */}
-        <div className={styles.floatingCard}>
-          <div className={styles.compactStatItem}>
-            <span className={styles.compactStatLabel}>Length</span>
-            <span className={styles.compactStatValue}>{snakeLength}</span>
-          </div>
-          {lives > 0 && (
-            <div className={styles.compactStatItem}>
-              <span className={styles.compactStatLabel}>Lives</span>
-              <span className={styles.compactStatValue}>{lives}</span>
-            </div>
-          )}
-          {phase && (
-            <div className={styles.compactStatItem}>
-              <span className={styles.compactStatLabel}>Phase</span>
-              <span className={styles.compactStatValue}>{phase.name}</span>
-            </div>
-          )}
         </div>
-      </div>
+      )}
     </div>
   );
 }

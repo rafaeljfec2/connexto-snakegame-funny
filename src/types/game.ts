@@ -4,6 +4,8 @@ export enum GameStatus {
   PAUSED = 'PAUSED',
   DYING = 'DYING', // Snake is dying, waiting to consume life
   GAME_OVER = 'GAME_OVER',
+  PHASE_COMPLETE = 'PHASE_COMPLETE', // Phase completed, showing statistics
+  PHASE_INTRO = 'PHASE_INTRO', // Showing phase introduction with countdown
 }
 
 export enum Direction {
@@ -127,6 +129,7 @@ export interface GameState {
   bossSnake?: BossSnake; // Boss snake (positions, direction, etc.)
   guardianFlag?: Food | null; // Special flag food for Guardian boss (capture the flag mechanic)
   guardianFlagSide?: -1 | 1; // Which side the flag is on (-1 = left, 1 = right)
+  phaseStartSnapshot?: import('@/utils/phaseStatistics').PhaseStartSnapshot; // Snapshot when phase started
 }
 
 export interface GameConfig {

@@ -1,0 +1,190 @@
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 3000;
+  pointer-events: none;
+  overflow: hidden;
+  background: radial-gradient(
+    circle at center,
+    rgba(0, 0, 0, 0.8) 0%,
+    rgba(0, 0, 0, 0.95) 100%
+  );
+}
+
+.particleBackground {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+}
+
+.particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  animation: floatUp 3s ease-out infinite;
+  box-shadow: 0 0 10px currentColor;
+}
+
+@keyframes floatUp {
+  0% {
+    transform: translateY(100vh) translateX(0) scale(0);
+    opacity: 1;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-100px) translateX(50px) scale(1);
+    opacity: 0;
+  }
+}
+
+.explosion {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 200px;
+  height: 200px;
+  transition: transform 0.5s ease-out, opacity 0.5s ease-out;
+}
+
+.explosionRing {
+  width: 100%;
+  height: 100%;
+  border: 8px solid;
+  border-radius: 50%;
+  animation: expandRing 1s ease-out;
+  box-shadow:
+    0 0 30px currentColor,
+    inset 0 0 30px currentColor;
+}
+
+@keyframes expandRing {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+.victoryText {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  z-index: 10;
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.victoryTitle {
+  font-size: 5rem;
+  font-weight: 900;
+  color: #ffd700;
+  text-shadow:
+    0 0 20px rgba(255, 215, 0, 0.8),
+    0 0 40px rgba(255, 215, 0, 0.6),
+    0 0 60px rgba(255, 215, 0, 0.4),
+    0 6px 12px rgba(0, 0, 0, 0.8);
+  letter-spacing: 0.2em;
+  margin-bottom: 1rem;
+  animation: victoryPulse 1.5s ease-in-out infinite;
+  font-family: 'Courier New', monospace;
+  text-transform: uppercase;
+}
+
+.bossName {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #ffffff;
+  text-shadow:
+    0 0 15px rgba(255, 255, 255, 0.5),
+    0 4px 8px rgba(0, 0, 0, 0.8);
+  letter-spacing: 0.1em;
+  font-family: 'Courier New', monospace;
+}
+
+@keyframes victoryPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+.results {
+  position: absolute;
+  top: 60%;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  z-index: 10;
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.scoreGained {
+  font-size: 3rem;
+  font-weight: 900;
+  color: #00ff00;
+  text-shadow:
+    0 0 20px rgba(0, 255, 0, 0.8),
+    0 0 40px rgba(0, 255, 0, 0.6),
+    0 4px 8px rgba(0, 0, 0, 0.8);
+  margin-bottom: 1rem;
+  font-family: 'Courier New', monospace;
+  animation: scoreGlow 1s ease-in-out infinite;
+}
+
+.continueHint {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+  font-family: 'Courier New', monospace;
+}
+
+@keyframes scoreGlow {
+  0%, 100% {
+    text-shadow:
+      0 0 20px rgba(0, 255, 0, 0.8),
+      0 0 40px rgba(0, 255, 0, 0.6),
+      0 4px 8px rgba(0, 0, 0, 0.8);
+  }
+  50% {
+    text-shadow:
+      0 0 30px rgba(0, 255, 0, 1),
+      0 0 60px rgba(0, 255, 0, 0.8),
+      0 4px 8px rgba(0, 0, 0, 0.8);
+  }
+}
+
+@media (max-width: 768px) {
+  .victoryTitle {
+    font-size: 3rem;
+  }
+
+  .bossName {
+    font-size: 1.5rem;
+  }
+
+  .scoreGained {
+    font-size: 2rem;
+  }
+
+  .continueHint {
+    font-size: 1rem;
+  }
+}
+

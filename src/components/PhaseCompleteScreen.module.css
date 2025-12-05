@@ -1,0 +1,233 @@
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 4000;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.container {
+  background: linear-gradient(135deg, rgba(20, 10, 30, 0.95) 0%, rgba(40, 20, 50, 0.95) 100%);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  border: 3px solid rgba(0, 217, 255, 0.5);
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.8),
+    0 0 40px rgba(0, 217, 255, 0.3),
+    inset 0 0 60px rgba(0, 217, 255, 0.1);
+  padding: 3rem;
+  max-width: 800px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: slideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(50px) scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.title {
+  font-size: 3rem;
+  font-weight: 900;
+  color: #00d9ff;
+  text-shadow:
+    0 0 20px rgba(0, 217, 255, 0.8),
+    0 0 40px rgba(0, 217, 255, 0.6),
+    0 4px 8px rgba(0, 0, 0, 0.8);
+  letter-spacing: 0.2em;
+  margin-bottom: 0.5rem;
+  font-family: 'Courier New', monospace;
+  text-transform: uppercase;
+  animation: textGlow 2s ease-in-out infinite;
+}
+
+@keyframes textGlow {
+  0%, 100% {
+    text-shadow:
+      0 0 20px rgba(0, 217, 255, 0.8),
+      0 0 40px rgba(0, 217, 255, 0.6),
+      0 4px 8px rgba(0, 0, 0, 0.8);
+  }
+  50% {
+    text-shadow:
+      0 0 30px rgba(0, 217, 255, 1),
+      0 0 60px rgba(0, 217, 255, 0.8),
+      0 4px 8px rgba(0, 0, 0, 0.8);
+  }
+}
+
+.subtitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.9);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+  font-family: 'Courier New', monospace;
+}
+
+.statsContainer {
+  margin-bottom: 2rem;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+}
+
+.statCard {
+  background: rgba(0, 0, 0, 0.4);
+  border: 2px solid rgba(0, 217, 255, 0.3);
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: center;
+  transition: transform 0.2s, border-color 0.2s;
+  animation: cardFloat 2s ease-in-out infinite;
+}
+
+.statCard:nth-child(odd) {
+  animation-delay: 0s;
+}
+
+.statCard:nth-child(even) {
+  animation-delay: 0.5s;
+}
+
+@keyframes cardFloat {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.statCard:hover {
+  transform: translateY(-5px) scale(1.05);
+  border-color: rgba(0, 217, 255, 0.6);
+  box-shadow: 0 0 20px rgba(0, 217, 255, 0.4);
+}
+
+.statLabel {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.statValue {
+  font-size: 2rem;
+  font-weight: 900;
+  color: #00d9ff;
+  text-shadow: 0 0 10px rgba(0, 217, 255, 0.6);
+  font-family: 'Courier New', monospace;
+}
+
+.nextPhaseButton {
+  width: 100%;
+  padding: 1.5rem 2rem;
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: #ffffff;
+  background: linear-gradient(135deg, #00d9ff 0%, #0099cc 100%);
+  border: 3px solid rgba(0, 217, 255, 0.5);
+  border-radius: 12px;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  font-family: 'Courier New', monospace;
+  transition: all 0.3s ease;
+  box-shadow:
+    0 4px 15px rgba(0, 217, 255, 0.4),
+    inset 0 0 20px rgba(255, 255, 255, 0.1);
+  animation: buttonPulse 2s ease-in-out infinite;
+}
+
+@keyframes buttonPulse {
+  0%, 100% {
+    box-shadow:
+      0 4px 15px rgba(0, 217, 255, 0.4),
+      inset 0 0 20px rgba(255, 255, 255, 0.1);
+  }
+  50% {
+    box-shadow:
+      0 4px 25px rgba(0, 217, 255, 0.6),
+      inset 0 0 30px rgba(255, 255, 255, 0.2);
+  }
+}
+
+.nextPhaseButton:hover {
+  transform: translateY(-3px) scale(1.02);
+  background: linear-gradient(135deg, #00ffff 0%, #00aaff 100%);
+  box-shadow:
+    0 6px 20px rgba(0, 217, 255, 0.6),
+    inset 0 0 30px rgba(255, 255, 255, 0.2);
+}
+
+.nextPhaseButton:active {
+  transform: translateY(-1px) scale(0.98);
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 2rem;
+    max-width: 95%;
+  }
+
+  .title {
+    font-size: 2rem;
+  }
+
+  .subtitle {
+    font-size: 1.2rem;
+  }
+
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+
+  .statCard {
+    padding: 1rem;
+  }
+
+  .statValue {
+    font-size: 1.5rem;
+  }
+
+  .nextPhaseButton {
+    padding: 1.2rem;
+    font-size: 1.2rem;
+  }
+}
+

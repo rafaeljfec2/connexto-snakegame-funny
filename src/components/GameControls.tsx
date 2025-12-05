@@ -1,26 +1,27 @@
 import styles from './GameControls.module.css';
+import { GameStatus } from '@/types/game';
 
 interface GameControlsProps {
   onStart: () => void;
   onPause: () => void;
   onReset: () => void;
-  status: 'IDLE' | 'PLAYING' | 'PAUSED' | 'DYING' | 'GAME_OVER';
+  status: GameStatus;
 }
 
 export function GameControls({ onStart, onPause, onReset, status }: GameControlsProps) {
   return (
     <div className={styles.controls}>
-      {status === 'IDLE' && (
+      {status === GameStatus.IDLE && (
         <button className={styles.button} onClick={onStart}>
           Start
         </button>
       )}
-      {status === 'PLAYING' && (
+      {status === GameStatus.PLAYING && (
         <button className={styles.button} onClick={onPause}>
           Pause
         </button>
       )}
-      {status === 'PAUSED' && (
+      {status === GameStatus.PAUSED && (
         <>
           <button className={styles.button} onClick={onPause}>
             Resume
@@ -30,10 +31,14 @@ export function GameControls({ onStart, onPause, onReset, status }: GameControls
           </button>
         </>
       )}
-      {status === 'GAME_OVER' && (
+      {status === GameStatus.GAME_OVER && (
         <button className={styles.button} onClick={onReset}>
           Play Again
         </button>
+      )}
+      {(status === GameStatus.PHASE_INTRO || status === GameStatus.PHASE_COMPLETE) && (
+        // Hide controls during phase transitions
+        null
       )}
     </div>
   );

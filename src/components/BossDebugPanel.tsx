@@ -86,7 +86,7 @@ export function BossDebugPanel({
 
           <div className={styles.footer}>
             <p className={styles.hint}>
-              Pressione <kbd>F12</kbd> ou <kbd>Ctrl+D</kbd> para abrir/fechar este painel
+              Pressione <kbd>F1</kbd> ou <kbd>Ctrl+D</kbd> para abrir/fechar este painel
             </p>
           </div>
         </div>

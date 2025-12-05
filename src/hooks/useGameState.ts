@@ -97,10 +97,20 @@ export function useGameState() {
   }, []);
 
   const startGame = useCallback(() => {
-    setGameState((prev) => ({
-      ...prev,
-      status: GameStatus.PLAYING,
-    }));
+    setGameState((prev) => {
+      // If starting from IDLE, show phase intro first
+      if (prev.status === GameStatus.IDLE) {
+        return {
+          ...prev,
+          status: GameStatus.PHASE_INTRO,
+        };
+      }
+      // Otherwise, start playing directly
+      return {
+        ...prev,
+        status: GameStatus.PLAYING,
+      };
+    });
   }, []);
 
   const pauseGame = useCallback(() => {

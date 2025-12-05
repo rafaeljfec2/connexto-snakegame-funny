@@ -12,8 +12,12 @@ import { DynamicBackground } from './components/DynamicBackground';
 import { GameStatistics as GameStatisticsComponent } from './components/GameStatistics';
 import { DeathTransition } from './components/DeathTransition';
 import { TouchControls } from './components/TouchControls';
+import { PhaseTransition } from './components/PhaseTransition';
+import { BossDefeatTransition } from './components/BossDefeatTransition';
+import { PhaseIntroScreen } from './components/PhaseIntroScreen';
 import { GameStatus } from '@/types/game';
 import { createFinalStatistics, saveGameSession } from '@/utils/statistics';
+import { didPhaseChange, getPhaseNumber } from '@/utils/phases';
 import styles from './App.module.css';
 import { PhaseDisplay } from './components/PhaseDisplay';
 import { MobileFloatingInfo } from './components/MobileFloatingInfo';
@@ -42,10 +46,17 @@ function App() {
   > | null>(null);
   const [newlyUnlockedAchievements, setNewlyUnlockedAchievements] = useState<string[]>([]);
   const [showBossDebug, setShowBossDebug] = useState(false);
+  const [showPhaseTransition, setShowPhaseTransition] = useState(false);
+  const [phaseTransitionNumber, setPhaseTransitionNumber] = useState<number | null>(null);
+  const [showBossDefeatTransition, setShowBossDefeatTransition] = useState(false);
+  const [defeatedBoss, setDefeatedBoss] = useState<Chef | null>(null);
+  const [bossDefeatScore, setBossDefeatScore] = useState(0);
   const previousLevelRef = useRef(gameState.level);
   const previousScoreRef = useRef(gameState.score);
   const previousAchievementsRef = useRef(gameState.achievements);
   const previousStatusRef = useRef(gameState.status);
+  const previousPhaseRef = useRef<number | undefined>(gameState.currentPhase);
+  const previousActiveBossRef = useRef<Chef | undefined>(gameState.activeBoss);
   const gameStateRef = useRef(gameState);
 
   useKeyboard({
@@ -64,6 +75,37 @@ function App() {
     }
     previousLevelRef.current = gameState.level;
   }, [gameState.level, gameState.status]);
+
+  // Detect phase change - show transition when phase changes
+  useEffect(() => {
+    if (
+      gameState.status === GameStatus.PLAYING &&
+      previousLevelRef.current > 0 &&
+      didPhaseChange(previousLevelRef.current, gameState.level)
+    ) {
+      const newPhaseNumber = getPhaseNumber(gameState.level);
+      setPhaseTransitionNumber(newPhaseNumber);
+      setShowPhaseTransition(true);
+    }
+    previousPhaseRef.current = gameState.currentPhase;
+  }, [gameState.level, gameState.status, gameState.currentPhase]);
+
+  // Detect boss defeat - show transition when boss is defeated
+  useEffect(() => {
+    if (
+      gameState.status === GameStatus.PLAYING &&
+      previousActiveBossRef.current &&
+      !gameState.activeBoss
+    ) {
+      // Boss was defeated (went from having a boss to no boss)
+      const scoreIncrease = gameState.score - previousScoreRef.current;
+      setDefeatedBoss(previousActiveBossRef.current);
+      setBossDefeatScore(scoreIncrease);
+      setShowBossDefeatTransition(true);
+    }
+    previousActiveBossRef.current = gameState.activeBoss;
+    previousScoreRef.current = gameState.score;
+  }, [gameState.activeBoss, gameState.score, gameState.status]);
 
   // Reset level up animation when game ends, resets, or is paused
   useEffect(() => {
@@ -141,7 +183,7 @@ function App() {
     const handleKeyDown = (e: KeyboardEvent) => {
       // F12 key or Ctrl+D (when not typing in input)
       if (
-        e.key === 'F12' ||
+        e.key === 'F1' ||
         (e.key === 'd' &&
           e.ctrlKey &&
           e.target === document.body &&
@@ -199,9 +241,16 @@ function App() {
   const handleReset = () => {
     previousScoreRef.current = 0;
     previousLevelRef.current = 1;
+    previousPhaseRef.current = undefined;
+    previousActiveBossRef.current = undefined;
     setShowLevelUp(false);
     setShowStatistics(false);
     setGameStatistics(null);
+    setShowPhaseTransition(false);
+    setPhaseTransitionNumber(null);
+    setShowBossDefeatTransition(false);
+    setDefeatedBoss(null);
+    setBossDefeatScore(0);
     resetGame();
   };
 
@@ -311,6 +360,42 @@ function App() {
 
       {/* Death Transition Animation */}
       <DeathTransition status={gameState.status} lives={gameState.lives} />
+
+      {/* Phase Transition Animation - Sonic Style */}
+      {showPhaseTransition && phaseTransitionNumber && (
+        <PhaseTransition
+          phaseNumber={phaseTransitionNumber}
+          level={gameState.level}
+          onComplete={() => {
+            setShowPhaseTransition(false);
+            setPhaseTransitionNumber(null);
+          }}
+        />
+      )}
+
+      {/* Boss Defeat Transition Animation - Sonic Style */}
+      {showBossDefeatTransition && defeatedBoss && (
+        <BossDefeatTransition
+          boss={defeatedBoss}
+          score={bossDefeatScore}
+          onComplete={() => {
+            setShowBossDefeatTransition(false);
+            setDefeatedBoss(null);
+            setBossDefeatScore(0);
+          }}
+        />
+      )}
+
+      {/* Phase Intro Screen - Shows when starting game or new phase */}
+      {gameState.status === GameStatus.PHASE_INTRO && (
+        <PhaseIntroScreen
+          phaseNumber={getPhaseNumber(gameState.level)}
+          level={gameState.level}
+          onComplete={() => {
+            startGame(); // Start game after intro countdown
+          }}
+        />
+      )}
 
       {/* Touch Controls for Mobile */}
       <TouchControls

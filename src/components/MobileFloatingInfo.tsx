@@ -1,8 +1,9 @@
 import { ActivePowerUp, ComboState, FoodType } from '@/types/game';
 import { getActivePowerUps } from '@/utils/powerUps';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { getCurrentPhase } from '@/utils/phases';
 import { COMBO_CONFIG } from '@/constants/game';
+import { PowerUpToast } from './PowerUpToast';
 import styles from './MobileFloatingInfo.module.css';
 
 interface MobileFloatingInfoProps {
@@ -13,6 +14,14 @@ interface MobileFloatingInfoProps {
   level: number;
 }
 
+interface Toast {
+  id: string;
+  type: FoodType;
+  name: string;
+  icon: string;
+  duration: number;
+}
+
 export function MobileFloatingInfo({
   activePowerUps,
   combo,
@@ -20,78 +29,94 @@ export function MobileFloatingInfo({
   lives,
   level,
 }: MobileFloatingInfoProps) {
-  const [currentTime, setCurrentTime] = useState(Date.now());
-  const activePowerUpsList = getActivePowerUps(activePowerUps);
+  const [toasts, setToasts] = useState<Toast[]>([]);
+  const previousPowerUpsRef = useRef<ActivePowerUp[]>([]);
   const phase = getCurrentPhase(level);
 
+  // Get power-up info
+  const getPowerUpInfo = (type: FoodType) => {
+    switch (type) {
+      case FoodType.SPEED_BOOST:
+        return { name: 'Speed Boost', icon: '⚡' };
+      case FoodType.BONUS_POINTS:
+        return { name: 'Bonus Points', icon: '💰' };
+      case FoodType.EXTRA_GROWTH:
+        return { name: 'Extra Growth', icon: '📈' };
+      case FoodType.PHASE_THROUGH:
+        return { name: 'Phase Through', icon: '👻' };
+      case FoodType.JOKER:
+        return { name: 'Joker', icon: '🎴' };
+      case FoodType.EXTRA_LIFE:
+        return { name: 'Extra Life', icon: '❤️' };
+      case FoodType.POISON:
+        return { name: 'Poison', icon: '☠️' };
+      case FoodType.REVERSE_CONTROLS:
+        return { name: 'Reverse', icon: '🔄' };
+      case FoodType.SLOW_DOWN:
+        return { name: 'Slow Down', icon: '🐌' };
+      default:
+        return { name: 'Power-Up', icon: '✨' };
+    }
+  };
+
+  // Detect new power-ups and show toasts
   useEffect(() => {
-    if (activePowerUpsList.length === 0) {
-      return;
+    const currentPowerUps = getActivePowerUps(activePowerUps);
+    const previousPowerUps = previousPowerUpsRef.current;
+
+    // Create a map of previous power-ups by their unique identifier
+    const previousPowerUpMap = new Map<string, ActivePowerUp>();
+    previousPowerUps.forEach((powerUp) => {
+      const key = `${powerUp.type}-${powerUp.startTime}`;
+      previousPowerUpMap.set(key, powerUp);
+    });
+
+    // Find newly activated power-ups (those not in previous list)
+    const newPowerUps = currentPowerUps.filter((current) => {
+      const key = `${current.type}-${current.startTime}`;
+      return !previousPowerUpMap.has(key);
+    });
+
+    // Create toasts for new power-ups
+    if (newPowerUps.length > 0) {
+      const newToasts: Toast[] = newPowerUps
+        .filter((powerUp) => powerUp.type !== FoodType.NORMAL)
+        .map((powerUp) => {
+          const info = getPowerUpInfo(powerUp.type);
+          return {
+            id: `${powerUp.type}-${powerUp.startTime}`,
+            type: powerUp.type,
+            name: info.name,
+            icon: info.icon,
+            duration: powerUp.duration,
+          };
+        });
+
+      setToasts((prev) => [...prev, ...newToasts]);
     }
 
-    const interval = setInterval(() => {
-      setCurrentTime(Date.now());
-    }, 100);
+    previousPowerUpsRef.current = currentPowerUps;
+  }, [activePowerUps]);
 
-    return () => clearInterval(interval);
-  }, [activePowerUpsList.length]);
+  const removeToast = (id: string) => {
+    setToasts((prev) => prev.filter((toast) => toast.id !== id));
+  };
 
   return (
     <div className={styles.mobileFloatingInfo}>
-      {/* Top Left - Active Power-Ups */}
-      {activePowerUpsList.length > 0 && (
-        <div className={`${styles.mobileOverlay} ${styles.powerUpsOverlay}`}>
-          <div className={styles.floatingCard}>
-            <h4 className={styles.floatingCardTitle}>Power-Ups</h4>
-            <div>
-              {activePowerUpsList.map((powerUp) => {
-                // Skip NORMAL food type - it's not a power-up
-                if (powerUp.type === FoodType.NORMAL) return null;
-
-                const elapsed = currentTime - powerUp.startTime;
-                const remaining = Math.max(0, powerUp.duration - elapsed);
-                const seconds = Math.ceil(remaining / 1000);
-
-                // Get power-up name and icon
-                const getPowerUpInfo = (type: FoodType) => {
-                  switch (type) {
-                    case FoodType.SPEED_BOOST:
-                      return { name: 'Speed Boost', icon: '⚡' };
-                    case FoodType.BONUS_POINTS:
-                      return { name: 'Bonus Points', icon: '💰' };
-                    case FoodType.EXTRA_GROWTH:
-                      return { name: 'Extra Growth', icon: '📈' };
-                    case FoodType.PHASE_THROUGH:
-                      return { name: 'Phase Through', icon: '👻' };
-                    case FoodType.JOKER:
-                      return { name: 'Joker', icon: '🎴' };
-                    case FoodType.EXTRA_LIFE:
-                      return { name: 'Extra Life', icon: '❤️' };
-                    case FoodType.POISON:
-                      return { name: 'Poison', icon: '☠️' };
-                    case FoodType.REVERSE_CONTROLS:
-                      return { name: 'Reverse', icon: '🔄' };
-                    case FoodType.SLOW_DOWN:
-                      return { name: 'Slow Down', icon: '🐌' };
-                    default:
-                      return { name: 'Power-Up', icon: '✨' };
-                  }
-                };
-
-                const powerUpInfo = getPowerUpInfo(powerUp.type);
-
-                return (
-                  <div key={powerUp.type} className={styles.compactPowerUp}>
-                    <span className={styles.compactPowerUpIcon}>{powerUpInfo.icon}</span>
-                    <span className={styles.compactPowerUpName}>{powerUpInfo.name}</span>
-                    {seconds > 0 && <span className={styles.compactPowerUpTimer}>{seconds}s</span>}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Power-Up Toasts */}
+      <div className={styles.toastContainer}>
+        {toasts.map((toast) => (
+          <PowerUpToast
+            key={toast.id}
+            type={toast.type}
+            name={toast.name}
+            icon={toast.icon}
+            duration={toast.duration}
+            onComplete={() => removeToast(toast.id)}
+          />
+        ))}
+      </div>
 
       {/* Top Right - Stats & Combo */}
       <div className={`${styles.mobileOverlay} ${styles.statsOverlay}`}>

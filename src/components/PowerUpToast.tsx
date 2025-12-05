@@ -7,39 +7,50 @@ interface PowerUpToastProps {
   name: string;
   icon: string;
   duration: number;
+  startTime: number;
   onComplete: () => void;
 }
 
-export function PowerUpToast({ type, name, icon, duration, onComplete }: PowerUpToastProps) {
+export function PowerUpToast({
+  type,
+  name,
+  icon,
+  duration,
+  startTime,
+  onComplete,
+}: PowerUpToastProps) {
   const [isVisible, setIsVisible] = useState(true);
-  const [remaining, setRemaining] = useState(duration);
+  const [remaining, setRemaining] = useState(0);
 
   useEffect(() => {
-    // Auto-dismiss after 3 seconds or when duration ends
-    const dismissTime = Math.min(3000, duration);
+    // Calculate remaining time based on startTime and duration
+    const calculateRemaining = () => {
+      const now = Date.now();
+      const elapsed = now - startTime;
+      const remainingTime = Math.max(0, duration - elapsed);
+      return remainingTime;
+    };
 
-    const timer = setTimeout(() => {
-      setIsVisible(false);
-      setTimeout(onComplete, 300); // Wait for fade-out animation
-    }, dismissTime);
+    // Initialize remaining time
+    setRemaining(calculateRemaining());
 
-    // Update remaining time
+    // Update remaining time every 100ms
     const interval = setInterval(() => {
-      setRemaining((prev) => {
-        const newRemaining = prev - 100;
-        if (newRemaining <= 0) {
-          clearInterval(interval);
-          return 0;
-        }
-        return newRemaining;
-      });
+      const remainingTime = calculateRemaining();
+      setRemaining(remainingTime);
+
+      // When time expires, hide and remove toast
+      if (remainingTime <= 0) {
+        setIsVisible(false);
+        clearInterval(interval);
+        setTimeout(onComplete, 300); // Wait for fade-out animation
+      }
     }, 100);
 
     return () => {
-      clearTimeout(timer);
       clearInterval(interval);
     };
-  }, [duration, onComplete]);
+  }, [duration, startTime, onComplete]);
 
   const isNegative =
     type === FoodType.POISON || type === FoodType.REVERSE_CONTROLS || type === FoodType.SLOW_DOWN;

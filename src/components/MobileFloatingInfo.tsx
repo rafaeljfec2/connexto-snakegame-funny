@@ -19,6 +19,7 @@ interface Toast {
   name: string;
   icon: string;
   duration: number;
+  startTime: number;
 }
 
 export function MobileFloatingInfo({
@@ -87,11 +88,18 @@ export function MobileFloatingInfo({
             name: info.name,
             icon: info.icon,
             duration: powerUp.duration,
+            startTime: powerUp.startTime,
           };
         });
 
       setToasts((prev) => [...prev, ...newToasts]);
     }
+
+    // Remove toasts for expired power-ups
+    const activePowerUpIds = new Set(
+      currentPowerUps.map((powerUp) => `${powerUp.type}-${powerUp.startTime}`),
+    );
+    setToasts((prev) => prev.filter((toast) => activePowerUpIds.has(toast.id)));
 
     previousPowerUpsRef.current = currentPowerUps;
   }, [activePowerUps]);
@@ -111,6 +119,7 @@ export function MobileFloatingInfo({
             name={toast.name}
             icon={toast.icon}
             duration={toast.duration}
+            startTime={toast.startTime}
             onComplete={() => removeToast(toast.id)}
           />
         ))}

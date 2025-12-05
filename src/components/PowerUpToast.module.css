@@ -120,7 +120,6 @@
 /* Mobile specific adjustments */
 @media (max-width: 768px) {
   .toast {
-    top: 0.75rem;
     max-width: 85%;
   }
 

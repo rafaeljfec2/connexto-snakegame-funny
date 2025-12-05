@@ -9,11 +9,30 @@
   left: 0;
   width: 100%;
   pointer-events: none;
-  z-index: 1000;
+  z-index: 20;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.5rem;
+}
+
+/* Show only on mobile */
+@media (max-width: 768px) {
+  .mobileFloatingInfo {
+    display: block;
+  }
+
+  .toastContainer {
+    top: 10.5rem; /* Below header (~50px) + StatusBar (~60px) + margin + padding + extra space */
+    z-index: 20; /* Above StatusBar (15) but below other overlays */
+  }
+}
+
+@media (max-width: 480px) {
+  .toastContainer {
+    top: 9.5rem; /* Below header + StatusBar on smaller screens + extra space */
+    z-index: 20;
+  }
 }
 
 /* Mobile Floating Elements */
@@ -173,13 +192,6 @@
   font-weight: 900;
   color: #ffd700;
   text-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
-}
-
-/* Show only on mobile */
-@media (max-width: 768px) {
-  .mobileFloatingInfo {
-    display: block;
-  }
 }
 
 /* Even more compact on small screens */

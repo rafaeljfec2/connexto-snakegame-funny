@@ -1,14 +1,14 @@
 import { PhaseType, PhaseLevelType, Chef } from '@/types/phases';
 
 /**
- * Phase configurations - 10 phases with 10 levels each (100 levels total)
+ * Phase configurations - 10 phases with 5 levels each (50 levels total)
  */
 export const PHASES: PhaseType[] = [
   {
     id: 1,
     name: 'Classic Snake',
     description: 'O jogo clássico sem obstáculos. Perfeito para começar!',
-    levelRange: [1, 10],
+    levelRange: [1, 5],
     type: PhaseLevelType.CLASSIC,
     chefId: 'classic',
     config: {
@@ -28,7 +28,7 @@ export const PHASES: PhaseType[] = [
     id: 2,
     name: 'Obstacle Course',
     description: 'Obstáculos estáticos aparecem. Cuidado com as paredes!',
-    levelRange: [11, 20],
+    levelRange: [6, 10],
     type: PhaseLevelType.OBSTACLE_COURSE,
     chefId: 'guardian',
     config: {
@@ -48,7 +48,7 @@ export const PHASES: PhaseType[] = [
     id: 3,
     name: 'Moving Hazards',
     description: 'Obstáculos que se movem pelo grid. Fique alerta!',
-    levelRange: [21, 30],
+    levelRange: [11, 15],
     type: PhaseLevelType.MOVING_HAZARDS,
     chefId: 'challenger',
     config: {
@@ -68,7 +68,7 @@ export const PHASES: PhaseType[] = [
     id: 4,
     name: 'Portal Mastery',
     description: 'Domine o teletransporte através dos portais!',
-    levelRange: [31, 40],
+    levelRange: [16, 20],
     type: PhaseLevelType.PORTAL_MASTERY,
     chefId: 'portal',
     config: {
@@ -88,7 +88,7 @@ export const PHASES: PhaseType[] = [
     id: 5,
     name: 'Speed Challenge',
     description: 'Alta velocidade e obstáculos complexos. Reação rápida necessária!',
-    levelRange: [41, 50],
+    levelRange: [21, 25],
     type: PhaseLevelType.SPEED_CHALLENGE,
     chefId: 'speed',
     config: {
@@ -108,7 +108,7 @@ export const PHASES: PhaseType[] = [
     id: 6,
     name: 'Power-Up Chaos',
     description: 'Caos de power-ups! Use-os com sabedoria.',
-    levelRange: [51, 60],
+    levelRange: [26, 30],
     type: PhaseLevelType.POWER_UP_CHAOS,
     chefId: 'chaos',
     config: {
@@ -128,7 +128,7 @@ export const PHASES: PhaseType[] = [
     id: 7,
     name: 'Maze Master',
     description: 'Labirintos complexos testarão suas habilidades de navegação.',
-    levelRange: [61, 70],
+    levelRange: [31, 35],
     type: PhaseLevelType.MAZE_MASTER,
     chefId: 'architect',
     config: {
@@ -148,7 +148,7 @@ export const PHASES: PhaseType[] = [
     id: 8,
     name: 'Survival Mode',
     description: 'Modo sobrevivência extremo. Cada movimento conta!',
-    levelRange: [71, 80],
+    levelRange: [36, 40],
     type: PhaseLevelType.SURVIVAL_MODE,
     chefId: 'survivor',
     config: {
@@ -168,7 +168,7 @@ export const PHASES: PhaseType[] = [
     id: 9,
     name: 'Vortex Challenge',
     description: 'Múltiplas mecânicas combinadas. O desafio definitivo!',
-    levelRange: [81, 90],
+    levelRange: [41, 45],
     type: PhaseLevelType.VORTEX_CHALLENGE,
     chefId: 'vortex',
     config: {
@@ -188,7 +188,7 @@ export const PHASES: PhaseType[] = [
     id: 10,
     name: 'Ultimate Challenge',
     description: 'Todas as mecânicas combinadas. A prova final de maestria!',
-    levelRange: [91, 100],
+    levelRange: [46, 50],
     type: PhaseLevelType.ULTIMATE_CHALLENGE,
     chefId: 'supreme',
     config: {
@@ -435,18 +435,18 @@ export function getChefByPhase(phase: number): Chef | undefined {
 }
 
 export function isBossLevel(level: number): boolean {
-  // Boss appears at level 10 of each phase (levels 10, 20, 30, etc.)
-  return level % 10 === 0 && level <= 100;
+  // Boss appears at level 5 of each phase (levels 5, 10, 15, etc.)
+  return level % 5 === 0 && level <= 50;
 }
 
 export function getChefByLevel(level: number): Chef | undefined {
   if (!isBossLevel(level)) {
     return undefined;
   }
-  const phase = Math.floor((level - 1) / 10) + 1;
+  const phase = Math.floor((level - 1) / 5) + 1;
   return getChefByPhase(phase);
 }
 
 export function getCurrentPhaseNumber(level: number): number {
-  return Math.floor((level - 1) / 10) + 1;
+  return Math.floor((level - 1) / 5) + 1;
 }

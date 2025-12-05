@@ -19,7 +19,7 @@ export function getCurrentPhase(level: number): PhaseType | undefined {
  * Get phase configuration
  */
 export function getPhaseConfig(phase: number): PhaseType | undefined {
-  return getPhaseByLevel((phase - 1) * 10 + 1); // Get first level of phase
+  return getPhaseByLevel((phase - 1) * 5 + 1); // Get first level of phase
 }
 
 /**
@@ -67,11 +67,11 @@ export function getPhaseProgress(level: number): number {
 }
 
 /**
- * Get level within phase (1-10)
+ * Get level within phase (1-5)
  */
 export function getLevelInPhase(level: number): number {
   const phaseNumber = getPhaseNumber(level);
-  return ((level - 1) % 10) + 1;
+  return ((level - 1) % 5) + 1;
 }
 
 /**

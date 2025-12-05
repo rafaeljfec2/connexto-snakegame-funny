@@ -1,10 +1,9 @@
 import { Obstacle, Portal, Position } from '@/types/game';
-import { Chef, PhaseType } from '@/types/phases';
+import { Chef } from '@/types/phases';
 import { GAME_CONFIG } from '@/constants/game';
 import { generateObstacles } from './obstacles';
 import { generatePortalPair } from './portals';
 import { getPhaseByBoss } from './phases';
-import { OBSTACLE_CONFIG } from '@/constants/obstacles';
 
 /**
  * Generate initial resources for boss when it spawns
@@ -28,7 +27,7 @@ export function generateBossInitialResources(
     const numPatterns = 3 + Math.floor(Math.random() * 3); // 3-5 patterns
     for (let i = 0; i < numPatterns; i++) {
       const newObstacles = generateObstacles(
-        boss.phase * 10, // Use boss phase level
+        boss.phase * 5, // Use boss phase level (5 levels per phase)
         playerSnake,
         obstacles,
         gridSize,

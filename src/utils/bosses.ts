@@ -1,13 +1,12 @@
 import { Chef } from '@/types/phases';
 import { GameState, Position } from '@/types/game';
-import { GAME_CONFIG } from '@/constants/game';
 import { getBossForLevel } from './phases';
 
 /**
  * Check if boss should spawn at current level
  */
 export function shouldSpawnBoss(level: number): boolean {
-  return level % 10 === 0 && level <= 100;
+  return level % 5 === 0 && level <= 50;
 }
 
 /**
@@ -79,4 +78,3 @@ export function handleBossDefeat(
 export function getBossByLevel(level: number): Chef | undefined {
   return getBossForLevel(level);
 }
-

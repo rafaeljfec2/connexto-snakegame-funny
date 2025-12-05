@@ -1,5 +1,5 @@
 import { PoisonShot, Position, Direction, Obstacle, BossSnake } from '@/types/game';
-import { GAME_CONFIG, POISON_CONFIG } from '@/constants/game';
+import { POISON_CONFIG } from '@/constants/game';
 
 // Counter to ensure unique poison shot IDs
 let poisonCounter = 0;
@@ -23,59 +23,145 @@ export function createPoisonShot(headPosition: Position, direction: Direction): 
 }
 
 /**
- * Move a poison shot in its direction
- * Poison shot moves 5x faster than snake (snake moves 1 cell/frame, poison moves 5 cells/frame)
+ * Get all positions between start and end position (all cells the shot will travel through)
+ * Used to check for collisions in all cells the poison shot travels through
+ * Since poison moves in cardinal directions only, we check each cell step by step
  */
-export function movePoisonShot(shot: PoisonShot, gridSize: number): PoisonShot | null {
+function getPositionsBetween(start: Position, end: Position): Position[] {
+  const positions: Position[] = [];
+  const dx = end.x - start.x;
+  const dy = end.y - start.y;
+  const steps = Math.max(Math.abs(dx), Math.abs(dy));
+
+  if (steps === 0) {
+    return [start];
+  }
+
+  // Since movement is cardinal (horizontal or vertical), check each step
+  for (let i = 1; i <= steps; i++) {
+    let x = start.x;
+    let y = start.y;
+
+    if (dx !== 0) {
+      // Horizontal movement
+      x = start.x + (dx > 0 ? i : -i);
+    } else if (dy !== 0) {
+      // Vertical movement
+      y = start.y + (dy > 0 ? i : -i);
+    }
+
+    positions.push({ x, y });
+  }
+
+  return positions;
+}
+
+/**
+ * Move a poison shot in its direction, checking for obstacles in all cells it travels through
+ * Poison shot moves 5x faster than snake (snake moves 1 cell/frame, poison moves 5 cells/frame)
+ * Returns the new shot position and information about any obstacle hit
+ */
+export function movePoisonShot(
+  shot: PoisonShot,
+  gridSize: number,
+  obstacles: Obstacle[] = [],
+): { shot: PoisonShot | null; hitObstacle: Obstacle | null } {
   // Poison moves 5 cells per frame (5x faster than snake which moves 1 cell per frame)
   const poisonSpeed = POISON_CONFIG.speedMultiplier;
-  const newPosition = { ...shot.position };
+  const currentPosition = shot.position;
+  const targetPosition = { ...currentPosition };
 
   switch (shot.direction) {
     case Direction.UP:
-      newPosition.y -= poisonSpeed;
+      targetPosition.y -= poisonSpeed;
       break;
     case Direction.DOWN:
-      newPosition.y += poisonSpeed;
+      targetPosition.y += poisonSpeed;
       break;
     case Direction.LEFT:
-      newPosition.x -= poisonSpeed;
+      targetPosition.x -= poisonSpeed;
       break;
     case Direction.RIGHT:
-      newPosition.x += poisonSpeed;
+      targetPosition.x += poisonSpeed;
       break;
   }
 
-  // Check if out of bounds - poison travels until it hits the edge of the field
+  // Check if target is out of bounds
   if (
-    newPosition.x < 0 ||
-    newPosition.x >= gridSize ||
-    newPosition.y < 0 ||
-    newPosition.y >= gridSize
+    targetPosition.x < 0 ||
+    targetPosition.x >= gridSize ||
+    targetPosition.y < 0 ||
+    targetPosition.y >= gridSize
   ) {
-    return null; // Remove shot if out of bounds
+    return { shot: null, hitObstacle: null }; // Remove shot if out of bounds
   }
 
-  // Poison travels across entire field - no distance limit, only stops at boundaries
-  // Calculate distance traveled for tracking (but no limit is enforced)
+  // Check all cells between current position and target position for obstacles
+  // This ensures no obstacle is skipped when poison moves multiple cells per frame
+  // The function returns all intermediate positions including the target position
+  const cellsToCheck = getPositionsBetween(currentPosition, targetPosition);
+
+  // Check each cell in the path for obstacles (in order)
+  for (const cell of cellsToCheck) {
+    // Check bounds for each cell
+    if (cell.x < 0 || cell.x >= gridSize || cell.y < 0 || cell.y >= gridSize) {
+      return { shot: null, hitObstacle: null };
+    }
+
+    // Check for obstacle collision at this cell
+    const hitObstacle = obstacles.find(
+      (obstacle) => obstacle.position.x === cell.x && obstacle.position.y === cell.y,
+    );
+
+    if (hitObstacle) {
+      // Obstacle hit - remove the shot (return null) and return the hit obstacle
+      return {
+        shot: null,
+        hitObstacle,
+      };
+    }
+  }
+
+  // No obstacle found in path - move to target position
   const distanceTraveled =
-    Math.abs(newPosition.x - shot.startPosition.x) + Math.abs(newPosition.y - shot.startPosition.y);
+    Math.abs(targetPosition.x - shot.startPosition.x) +
+    Math.abs(targetPosition.y - shot.startPosition.y);
 
   return {
-    ...shot,
-    position: newPosition,
-    distanceTraveled,
+    shot: {
+      ...shot,
+      position: targetPosition,
+      distanceTraveled,
+    },
+    hitObstacle: null,
   };
 }
 
 /**
  * Update all poison shots, removing ones that are out of bounds
  * Poison travels across entire field until it hits the edge
+ * Returns updated shots and information about any obstacles hit
  */
-export function updatePoisonShots(shots: PoisonShot[], gridSize: number): PoisonShot[] {
-  return shots
-    .map((shot) => movePoisonShot(shot, gridSize))
-    .filter((shot): shot is PoisonShot => shot !== null);
+export function updatePoisonShots(
+  shots: PoisonShot[],
+  gridSize: number,
+  obstacles: Obstacle[] = [],
+): { shots: PoisonShot[]; hitObstacles: Obstacle[] } {
+  const hitObstacles: Obstacle[] = [];
+  const updatedShots: PoisonShot[] = [];
+
+  shots.forEach((shot) => {
+    const result = movePoisonShot(shot, gridSize, obstacles);
+    if (result.hitObstacle) {
+      // Shot hit an obstacle - remove it (don't add to updatedShots) and track the hit obstacle
+      hitObstacles.push(result.hitObstacle);
+    } else if (result.shot) {
+      // Shot didn't hit obstacle and is still valid - keep it
+      updatedShots.push(result.shot);
+    }
+  });
+
+  return { shots: updatedShots, hitObstacles };
 }
 
 /**

@@ -70,9 +70,10 @@ export function wouldCauseCollision(
   const nextHeadPosition = getNextHeadPosition(head, newDirection, gridSize);
 
   // Check if next position would collide with body segments
-  // Skip first 3 segments (head + 2 body segments) to allow quick turns
-  // This prevents false positives when making rapid direction changes
-  for (let i = 3; i < snake.length; i++) {
+  // Skip first 4 segments (head + 3 body segments) to allow very quick turns
+  // This makes left/right turns much more responsive and fluid
+  // Increased from 3 to 4 for better responsiveness on turns
+  for (let i = 4; i < snake.length; i++) {
     if (snake[i].x === nextHeadPosition.x && snake[i].y === nextHeadPosition.y) {
       return true;
     }

@@ -10,6 +10,7 @@ import {
   isSafeDirectionChange,
   saveHighScore,
   getOppositeDirection,
+  getNextHeadPosition,
 } from '@/utils/gameLogic';
 import { calculateLevel, calculateGameSpeed } from '@/utils/difficulty';
 import {
@@ -59,10 +60,8 @@ import { generateBossInitialResources } from '@/utils/bossResources';
 import {
   createPoisonShot,
   updatePoisonShots,
-  hasObstacleCollision as hasPoisonObstacleCollision,
   hasBossHeadCollision,
   hasBossBodyCollision,
-  getHitObstacle,
 } from '@/utils/poison';
 import { POISON_CONFIG } from '@/constants/game';
 
@@ -124,9 +123,29 @@ export function useGameLoop() {
           // Apply immediately for instant response to rapid key presses
           currentDirection = nextDirectionInput;
         } else {
-          // Not safe yet - keep current direction but queue for next check
-          // This allows rapid changes to be applied as soon as they become safe
-          currentDirection = prev.direction;
+          // For turns (left/right when going up/down or vice versa), be more lenient
+          // Allow the turn if it won't cause immediate collision with the next segment
+          // This makes left/right turns much more responsive and fluid
+          const head = prev.snake[0];
+          if (head) {
+            const nextPos = getNextHeadPosition(head, nextDirectionInput, GAME_CONFIG.gridSize);
+            // Only block if it would collide with the very next body segment
+            // This allows much more responsive turns, especially left/right
+            const wouldHitNextSegment =
+              prev.snake.length > 1 &&
+              prev.snake[1]?.x === nextPos.x &&
+              prev.snake[1]?.y === nextPos.y;
+
+            if (!wouldHitNextSegment) {
+              // Safe to turn - apply immediately for instant responsiveness
+              currentDirection = nextDirectionInput;
+            } else {
+              // Would hit next segment - keep current direction but queue for next check
+              currentDirection = prev.direction;
+            }
+          } else {
+            currentDirection = prev.direction;
+          }
         }
       } else {
         // Use the current direction
@@ -760,29 +779,34 @@ export function useGameLoop() {
       }
 
       // Update poison shots: move them and check collisions
-      let newPoisonShots = updatePoisonShots(prev.poisonShots ?? [], GAME_CONFIG.gridSize);
+      // Pass obstacles to ensure collisions are detected in all cells the shot travels through
+      const poisonUpdateResult = updatePoisonShots(
+        prev.poisonShots ?? [],
+        GAME_CONFIG.gridSize,
+        newObstacles,
+      );
+      let newPoisonShots = poisonUpdateResult.shots;
       const shotsToRemove: string[] = [];
 
-      // Check poison collisions with obstacles (destroy obstacles)
-      if (POISON_CONFIG.canDestroyObstacles) {
-        newPoisonShots.forEach((shot) => {
-          if (hasPoisonObstacleCollision(shot, newObstacles)) {
-            const hitObstacle = getHitObstacle(shot, newObstacles);
-            if (hitObstacle) {
-              // Remove the obstacle
-              newObstacles = newObstacles.filter((obs) => obs.id !== hitObstacle.id);
-              shotsToRemove.push(shot.id);
-              // Create destruction particles
-              if (GAME_CONFIG.enableParticles) {
-                newParticles = [
-                  ...newParticles,
-                  ...createParticles(shot.position, '#ef4444', 8, 400),
-                ];
-              }
-            }
+      // Process obstacles hit by poison shots (destroy obstacles)
+      if (POISON_CONFIG.canDestroyObstacles && poisonUpdateResult.hitObstacles.length > 0) {
+        // Get IDs of obstacles that were hit
+        const hitObstacleIds = new Set(poisonUpdateResult.hitObstacles.map((obs) => obs.id));
+
+        // Remove all hit obstacles
+        newObstacles = newObstacles.filter((obs) => !hitObstacleIds.has(obs.id));
+
+        // Create destruction particles for each hit obstacle
+        poisonUpdateResult.hitObstacles.forEach((hitObstacle) => {
+          if (GAME_CONFIG.enableParticles) {
+            newParticles = [
+              ...newParticles,
+              ...createParticles(hitObstacle.position, '#ef4444', 8, 400),
+            ];
           }
         });
       }
+      // Note: Shots that hit obstacles are already removed in updatePoisonShots
 
       // Check poison collisions with boss (defeat or weaken)
       if (POISON_CONFIG.canDefeatBoss && bossSnake) {
@@ -976,34 +1000,33 @@ export function useGameLoop() {
         currentGameState.nextDirection !== currentGameState.direction &&
         isValidDirectionChange(currentGameState.direction, currentGameState.nextDirection);
 
+      // CRITICAL: Process pending direction changes immediately for maximum responsiveness
+      // This ensures turns (especially left/right) are instant and fluid
+      if (hasPendingDirectionChange) {
+        // Process immediately - no waiting for direction changes
+        // This makes turns feel instant and responsive
+        const minWaitTime = 1; // Minimum 1ms for browser compatibility
+        if (elapsed >= minWaitTime) {
+          updateGame();
+          lastUpdateTimeRef.current = currentTime;
+          gameLoopRef.current = requestAnimationFrame(loop);
+          return;
+        }
+      }
+
       // Apply speed boost if direction key is held
       if (currentGameState.isSpeedBoosted) {
         // Increase speed boost multiplier for more responsive and fluid movement
-        // Higher multiplier when there's a pending direction change for instant response
-        const speedMultiplier = hasPendingDirectionChange ? 10 : 4; // Increased from 8/3 for smoother movement
+        const speedMultiplier = 4; // Consistent 4x speed boost
         effectiveSpeed = Math.floor(effectiveSpeed / speedMultiplier);
 
-        // For pending direction changes or speed boost active, process more frequently
-        // This ensures maximum fluidity and responsiveness
-        if (hasPendingDirectionChange) {
-          // Process immediately for maximum responsiveness (minimum 2ms wait)
-          const minWaitTime = 2; // Further reduced for ultra-responsive movement
-          if (elapsed >= minWaitTime) {
-            updateGame();
-            lastUpdateTimeRef.current = currentTime;
-            gameLoopRef.current = requestAnimationFrame(loop);
-            return;
-          }
-        } else {
-          // Even without pending direction change, allow faster updates during speed boost
-          // This makes the movement feel smoother and more fluid
-          const minWaitTime = Math.max(2, effectiveSpeed / 2);
-          if (elapsed >= minWaitTime) {
-            updateGame();
-            lastUpdateTimeRef.current = currentTime;
-            gameLoopRef.current = requestAnimationFrame(loop);
-            return;
-          }
+        // Allow faster updates during speed boost for smoother movement
+        const minWaitTime = Math.max(1, effectiveSpeed / 2);
+        if (elapsed >= minWaitTime) {
+          updateGame();
+          lastUpdateTimeRef.current = currentTime;
+          gameLoopRef.current = requestAnimationFrame(loop);
+          return;
         }
       }
 

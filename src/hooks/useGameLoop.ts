@@ -284,7 +284,7 @@ export function useGameLoop() {
       }
 
       const newLevel = calculateLevel(newScore);
-      const baseGameSpeed = calculateGameSpeed(newLevel);
+      let baseGameSpeed = calculateGameSpeed(newLevel);
 
       // Phase system: Detect phase changes and update phase state (before obstacles and food generation)
       // If there's an active boss that doesn't match the level (debug boss), use boss phase

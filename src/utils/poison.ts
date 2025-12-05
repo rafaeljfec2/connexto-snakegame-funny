@@ -24,22 +24,25 @@ export function createPoisonShot(headPosition: Position, direction: Direction): 
 
 /**
  * Move a poison shot in its direction
+ * Poison shot moves 5x faster than snake (snake moves 1 cell/frame, poison moves 5 cells/frame)
  */
 export function movePoisonShot(shot: PoisonShot, gridSize: number): PoisonShot | null {
+  // Poison moves 5 cells per frame (5x faster than snake which moves 1 cell per frame)
+  const poisonSpeed = POISON_CONFIG.speedMultiplier;
   const newPosition = { ...shot.position };
 
   switch (shot.direction) {
     case Direction.UP:
-      newPosition.y -= POISON_CONFIG.speed;
+      newPosition.y -= poisonSpeed;
       break;
     case Direction.DOWN:
-      newPosition.y += POISON_CONFIG.speed;
+      newPosition.y += poisonSpeed;
       break;
     case Direction.LEFT:
-      newPosition.x -= POISON_CONFIG.speed;
+      newPosition.x -= poisonSpeed;
       break;
     case Direction.RIGHT:
-      newPosition.x += POISON_CONFIG.speed;
+      newPosition.x += poisonSpeed;
       break;
   }
 

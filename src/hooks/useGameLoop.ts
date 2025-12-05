@@ -1301,24 +1301,7 @@ export function useGameLoop() {
       const activePowerUps = getActivePowerUps(currentGameState.activePowerUps);
       let effectiveSpeed = getEffectiveGameSpeed(currentGameState.gameSpeed, activePowerUps);
 
-      // Check if there's a pending direction change
-      const hasPendingDirectionChange =
-        currentGameState.nextDirection !== currentGameState.direction &&
-        isValidDirectionChange(currentGameState.direction, currentGameState.nextDirection);
-
-      // CRITICAL: Process pending direction changes immediately for maximum responsiveness
-      // This ensures turns (especially left/right) are instant and fluid
-      if (hasPendingDirectionChange) {
-        // Process immediately - no waiting for direction changes
-        // This makes turns feel instant and responsive
-        const minWaitTime = 1; // Minimum 1ms for browser compatibility
-        if (elapsed >= minWaitTime) {
-          updateGame();
-          lastUpdateTimeRef.current = currentTime;
-          gameLoopRef.current = requestAnimationFrame(loop);
-          return;
-        }
-      }
+      // Process direction changes at normal game speed to avoid snake advancing too much
 
       // Apply speed boost if direction key is held
       if (currentGameState.isSpeedBoosted) {

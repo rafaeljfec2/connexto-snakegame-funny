@@ -66,10 +66,10 @@ export const COMBO_CONFIG = {
 export const DIFFICULTY_CONFIG = {
   // Points needed to advance to next level
   pointsPerLevel: 50,
-  // Base speed (in milliseconds) - lower is faster - reduced for smoother movement
-  baseSpeed: 90, // Reduced from 120 for faster, more fluid movement
-  // Minimum speed (fastest the game can get) - reduced for maximum fluidity
-  minSpeed: 25, // Reduced from 40 for smoother, more responsive movement
+  // Base speed (in milliseconds) - lower is faster
+  baseSpeed: 120, // Initial speed at level 1
+  // Minimum speed (fastest the game can get)
+  minSpeed: 40, // Minimum speed limit
   // Speed reduction per level (how much faster it gets)
   speedReductionPerLevel: 8,
   // Initial level
@@ -82,4 +82,10 @@ export const PERFORMANCE_CONFIG = {
   maxParticles: 100,
   // Maximum number of portals allowed at once (performance optimization)
   maxPortals: 6, // 3 pairs
+} as const;
+
+// Control responsiveness configuration
+export const CONTROL_CONFIG = {
+  // Minimum time between direction changes (in milliseconds) - reduces sensitivity
+  directionChangeCooldown: 50, // 50ms cooldown between direction changes - reduces sensitivity slightly
 } as const;

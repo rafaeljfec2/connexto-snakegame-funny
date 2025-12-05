@@ -144,17 +144,16 @@ export function useGameState() {
         return prev;
       }
 
-      // Maximum responsiveness: apply direction changes immediately when valid
-      // No debounce, no delays - allows very rapid direction changes
+      // Only allow direction change if it's valid (not opposite direction)
       const isValidChange = isValidDirectionChange(prev.direction, direction);
 
       if (isValidChange) {
-        // Always update nextDirection to allow rapid queuing of direction changes
-        // This ensures that rapid key presses are captured and processed
+        // Update nextDirection for queued direction changes
+        // Only update current direction if safe to prevent collision
         return {
           ...prev,
           nextDirection: direction,
-          // If safe, also update current direction immediately for instant response
+          // Only update current direction if safe to avoid immediate collision
           ...(isSafeDirectionChange(
             prev.snake,
             prev.direction,

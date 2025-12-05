@@ -34,18 +34,12 @@ export function useKeyboard({
         event.preventDefault();
         event.stopPropagation();
 
-        // Track pressed keys for speed boost
+        // Track pressed keys (for future use, not for automatic speed boost)
         if (!pressedKeysRef.current.has(event.key)) {
           pressedKeysRef.current.add(event.key);
         }
 
-        // Activate speed boost if direction key is held
-        if (!speedBoostActiveRef.current && onSpeedBoost) {
-          speedBoostActiveRef.current = true;
-          onSpeedBoost(true);
-        }
-
-        // Apply direction change immediately - maximum responsiveness
+        // Apply direction change - no automatic speed boost
         onDirectionChange(direction);
         return;
       }

@@ -49,6 +49,7 @@ import {
   canDefeatBoss,
 } from '@/utils/bossSnake';
 import { Chef } from '@/types/phases';
+import { processBossAbilities } from '@/utils/bossAbilities';
 
 export function useGameLoop() {
   const {
@@ -64,6 +65,7 @@ export function useGameLoop() {
   const gameLoopRef = useRef<number>();
   const lastUpdateTimeRef = useRef<number>(0);
   const deathTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const bossAbilityCooldownsRef = useRef<Map<string, number>>(new Map());
 
   const updateGame = useCallback(() => {
     updateGameState((prev: GameState) => {
@@ -383,9 +385,13 @@ export function useGameLoop() {
         bossSnake =
           initializeBossSnake(activeBoss, finalSnake, newObstacles, GAME_CONFIG.gridSize) ??
           undefined;
+        // Clear cooldowns for new boss
+        bossAbilityCooldownsRef.current = new Map();
       } else if (!activeBoss) {
         // Boss was removed or not active - clear boss snake
         bossSnake = undefined;
+        // Clear cooldowns when boss is removed
+        bossAbilityCooldownsRef.current = new Map();
       } else if (bossSnake && activeBoss) {
         // Move boss snake based on AI behavior
         const nextBossDirection = calculateBossNextDirection(
@@ -397,6 +403,57 @@ export function useGameLoop() {
           GAME_CONFIG.gridSize,
         );
         bossSnake = moveBossSnake(bossSnake, nextBossDirection, GAME_CONFIG.gridSize);
+
+        // Process boss abilities
+        const currentGameState: GameState = {
+          ...prev,
+          snake: finalSnake,
+          obstacles: newObstacles,
+          portals: newPortals,
+          bossSnake,
+        };
+        const abilityResult = processBossAbilities(
+          activeBoss,
+          currentGameState,
+          bossAbilityCooldownsRef.current,
+        );
+        bossAbilityCooldownsRef.current = abilityResult.updatedCooldowns;
+
+        // Apply ability effects
+        if (abilityResult.result.obstacles) {
+          // Check if it's new obstacles to add or a complete replacement
+          const resultObstacles = abilityResult.result.obstacles;
+          // If the result has obstacles and they're different from current, apply
+          // For abilities like move_obstacles, it returns the full array
+          // For abilities like create_obstacles, it returns new ones to add
+          if (resultObstacles.length > 0) {
+            // Check if first obstacle ID starts with "boss-" or "maze-" (new ones)
+            const isNewObstacles = resultObstacles.some(
+              (obs) => obs.id.includes('boss-') || obs.id.includes('maze-'),
+            );
+            if (isNewObstacles) {
+              // New obstacles to add
+              newObstacles = [...newObstacles, ...resultObstacles];
+            } else {
+              // Complete replacement (e.g., moved obstacles)
+              newObstacles = resultObstacles;
+            }
+          }
+        }
+
+        if (abilityResult.result.portals) {
+          newPortals = [...newPortals, ...abilityResult.result.portals];
+        }
+
+        if (abilityResult.result.gameSpeed !== undefined) {
+          baseGameSpeed = abilityResult.result.gameSpeed;
+        }
+
+        if (abilityResult.result.lives !== undefined) {
+          newLives = abilityResult.result.lives;
+        }
+
+        // Note: chaos_powerups foodType is handled during food generation below
       }
 
       // Check for boss collision - new strategic battle system
@@ -423,6 +480,8 @@ export function useGameLoop() {
               // Clear boss after defeat
               activeBoss = undefined;
               bossSnake = undefined;
+              // Clear ability cooldowns
+              bossAbilityCooldownsRef.current = new Map();
             }
           } else {
             // Boss is still too strong - player loses life/game over
@@ -485,6 +544,8 @@ export function useGameLoop() {
               // Clear boss after defeat
               activeBoss = undefined;
               bossSnake = undefined;
+              // Clear ability cooldowns
+              bossAbilityCooldownsRef.current = new Map();
             }
           }
         }

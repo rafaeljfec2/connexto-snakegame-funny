@@ -49,7 +49,7 @@ import {
   canDefeatBoss,
 } from '@/utils/bossSnake';
 import { Chef } from '@/types/phases';
-import { processBossAbilities } from '@/utils/bossAbilities';
+import { processBossAbilities, generateGuardianFlagPosition } from '@/utils/bossAbilities';
 import { generateBossInitialResources } from '@/utils/bossResources';
 
 export function useGameLoop() {
@@ -121,7 +121,7 @@ export function useGameLoop() {
 
       // Check for portal teleportation BEFORE collision checks
       const activePortals = getActivePortals(prev.portals);
-      const headPosition = newSnake[0];
+      let headPosition = newSnake[0];
       if (headPosition) {
         const portalAtHead = getPortalAtPosition(headPosition, activePortals);
         if (portalAtHead) {
@@ -129,6 +129,7 @@ export function useGameLoop() {
           if (pairedPortal) {
             // Teleport to paired portal, maintaining direction
             newSnake = [{ ...pairedPortal.position }, ...newSnake.slice(1)];
+            headPosition = newSnake[0]; // Update head position after teleportation
 
             // Create teleportation particles
             if (GAME_CONFIG.enableParticles) {
@@ -151,7 +152,7 @@ export function useGameLoop() {
       const hasCollision =
         (GAME_CONFIG.enableObstacles &&
           !canPhaseThrough &&
-          hasObstacleCollision(newSnake[0], prev.obstacles)) ||
+          hasObstacleCollision(headPosition ?? newSnake[0], prev.obstacles)) ||
         (newSnake.length >= 4 && hasSelfCollision(newSnake));
 
       // Initialize statistics if not present (at start of update)
@@ -179,11 +180,15 @@ export function useGameLoop() {
         }
       }
 
-      const ateFood = hasFoodCollision(newSnake[0], prev.food);
+      // Use the head position after portal teleportation (if any)
+      const ateFood = headPosition ? hasFoodCollision(headPosition, prev.food) : false;
+
+      // Check flag capture - must check AFTER portal teleportation
       const capturedFlag =
         prev.guardianFlag &&
-        newSnake[0].x === prev.guardianFlag.position.x &&
-        newSnake[0].y === prev.guardianFlag.position.y;
+        headPosition &&
+        headPosition.x === prev.guardianFlag.position.x &&
+        headPosition.y === prev.guardianFlag.position.y;
 
       let finalSnake = newSnake;
       let newScore = prev.score;
@@ -283,30 +288,6 @@ export function useGameLoop() {
           newLives = addLife(prev.lives);
         }
 
-        // Handle Guardian flag capture - instant boss defeat!
-        if (capturedFlag && activeBoss && activeBoss.id === 'guardian') {
-          // Player captured the flag - boss is defeated!
-          const bossReward = handleBossDefeat(activeBoss, prev);
-          newScore += bossReward.scoreIncrease;
-          newLives = addLife(prev.lives); // Flag gives extra life
-          newGuardianFlag = null; // Clear flag
-          activeBoss = undefined; // Remove boss
-          bossSnake = undefined; // Remove boss snake
-
-          // Create particles for flag capture
-          if (GAME_CONFIG.enableParticles && prev.guardianFlag) {
-            const flagColor = '#10b981'; // Green for success
-            newParticles = [
-              ...newParticles,
-              ...createParticles(prev.guardianFlag.position, flagColor, 30, 1500),
-            ];
-          }
-
-          // Clear boss ability cooldowns
-          bossAbilityCooldownsRef.current = new Map();
-          forcedFoodTypeRef.current = null;
-        }
-
         // Activate power-up if needed
         if (powerUpEffect.shouldActivatePowerUp) {
           newActivePowerUps.push(createActivePowerUp(actualFoodType));
@@ -316,6 +297,56 @@ export function useGameLoop() {
         if (GAME_CONFIG.enableCombos) {
           newCombo = updateCombo(prev.combo, false);
         }
+      }
+
+      // Handle Guardian flag capture - instant boss defeat!
+      // Check this OUTSIDE the ateFood block so it works independently
+      if (capturedFlag && activeBoss && activeBoss.id === 'guardian') {
+        // Player captured the flag - boss is defeated!
+        const bossReward = handleBossDefeat(activeBoss, prev);
+        newScore += bossReward.scoreIncrease;
+        newLives = addLife(prev.lives); // Flag gives extra life
+        newGuardianFlag = null; // Clear flag
+        activeBoss = undefined; // Remove boss
+        bossSnake = undefined; // Remove boss snake
+
+        // Create particles for flag capture
+        if (GAME_CONFIG.enableParticles && prev.guardianFlag) {
+          const flagColor = '#10b981'; // Green for success
+          newParticles = [
+            ...newParticles,
+            ...createParticles(prev.guardianFlag.position, flagColor, 30, 1500),
+          ];
+        }
+
+        // Clear boss ability cooldowns
+        bossAbilityCooldownsRef.current = new Map();
+        forcedFoodTypeRef.current = null;
+      }
+
+      // Handle Guardian flag capture - instant boss defeat!
+      // Check this OUTSIDE the ateFood block so it works independently
+      if (capturedFlag && activeBoss && activeBoss.id === 'guardian') {
+        // Player captured the flag - boss is defeated!
+        const bossReward = handleBossDefeat(activeBoss, prev);
+        newScore += bossReward.scoreIncrease;
+        newLives = addLife(prev.lives); // Flag gives extra life
+        newGuardianFlag = null; // Clear flag
+        activeBoss = undefined; // Remove boss
+        bossSnake = undefined; // Remove boss snake
+
+        // Create particles for flag capture
+        if (GAME_CONFIG.enableParticles && prev.guardianFlag) {
+          const flagColor = '#10b981'; // Green for success
+          newParticles = [
+            ...newParticles,
+            ...createParticles(prev.guardianFlag.position, flagColor, 30, 1500),
+          ];
+        }
+
+        // Clear boss ability cooldowns
+        bossAbilityCooldownsRef.current = new Map();
+        forcedFoodTypeRef.current = null;
       }
 
       const newLevel = calculateLevel(newScore);
@@ -442,6 +473,24 @@ export function useGameLoop() {
         // Clear cooldowns for new boss
         bossAbilityCooldownsRef.current = new Map();
         forcedFoodTypeRef.current = null;
+
+        // For Guardian boss, create the flag immediately when boss spawns
+        if (activeBoss.id === 'guardian' && !prev.guardianFlag) {
+          const flagPosition = generateGuardianFlagPosition(
+            finalSnake,
+            bossSnake?.positions ?? [],
+            newObstacles,
+            GAME_CONFIG.gridSize,
+          );
+          if (flagPosition) {
+            newGuardianFlag = {
+              position: flagPosition,
+              type: FoodType.EXTRA_LIFE,
+              spawnTime: Date.now(),
+              duration: undefined,
+            };
+          }
+        }
       } else if (!activeBoss) {
         // Boss was removed or not active - clear boss snake
         bossSnake = undefined;
@@ -449,25 +498,14 @@ export function useGameLoop() {
         bossAbilityCooldownsRef.current = new Map();
         forcedFoodTypeRef.current = null;
       } else if (bossSnake && activeBoss) {
-        // Move boss snake based on AI behavior
-        const nextBossDirection = calculateBossNextDirection(
-          activeBoss,
-          bossSnake,
-          finalSnake,
-          newObstacles,
-          prev.food.position,
-          GAME_CONFIG.gridSize,
-          prev.guardianFlag?.position ?? null,
-        );
-        bossSnake = moveBossSnake(bossSnake, nextBossDirection, GAME_CONFIG.gridSize);
-
-        // Process boss abilities
+        // Process boss abilities FIRST (to create flag if needed)
         const currentGameState: GameState = {
           ...prev,
           snake: finalSnake,
           obstacles: newObstacles,
           portals: newPortals,
           bossSnake,
+          guardianFlag: newGuardianFlag, // Include current flag state
         };
         const abilityResult = processBossAbilities(
           activeBoss,
@@ -475,6 +513,23 @@ export function useGameLoop() {
           bossAbilityCooldownsRef.current,
         );
         bossAbilityCooldownsRef.current = abilityResult.updatedCooldowns;
+
+        // Handle guardian flag spawn BEFORE boss movement
+        if (abilityResult.result.guardianFlag !== undefined) {
+          newGuardianFlag = abilityResult.result.guardianFlag;
+        }
+
+        // Move boss snake based on AI behavior (now with updated flag position)
+        const nextBossDirection = calculateBossNextDirection(
+          activeBoss,
+          bossSnake,
+          finalSnake,
+          newObstacles,
+          prev.food.position,
+          GAME_CONFIG.gridSize,
+          newGuardianFlag?.position ?? null, // Use updated flag position
+        );
+        bossSnake = moveBossSnake(bossSnake, nextBossDirection, GAME_CONFIG.gridSize);
 
         // Apply ability effects
         if (abilityResult.result.obstacles) {

@@ -482,7 +482,7 @@ function createStrategicWalls(
  * Generate a strategic position for the Guardian flag (power-up)
  * Position should be away from player but accessible
  */
-function generateGuardianFlagPosition(
+export function generateGuardianFlagPosition(
   playerSnake: Position[],
   bossSnake: Position[],
   obstacles: Obstacle[],

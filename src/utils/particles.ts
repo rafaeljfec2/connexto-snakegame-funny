@@ -1,5 +1,8 @@
 import { Particle, Position } from '@/types/game';
 
+// Counter to ensure unique particle IDs even when created in the same millisecond
+let particleCounter = 0;
+
 export function createParticles(
   position: Position,
   color: string,
@@ -10,8 +13,9 @@ export function createParticles(
   const now = Date.now();
 
   for (let i = 0; i < count; i++) {
+    particleCounter += 1;
     particles.push({
-      id: `particle-${now}-${i}`,
+      id: `particle-${now}-${particleCounter}-${i}`,
       position: {
         x: position.x + (Math.random() - 0.5) * 0.5,
         y: position.y + (Math.random() - 0.5) * 0.5,

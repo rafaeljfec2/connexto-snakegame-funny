@@ -112,6 +112,7 @@ export interface GameState {
   phaseLevelType?: import('./phases').PhaseLevelType; // Type of level in current phase
   activeBoss?: import('./phases').Chef; // Active boss (if in boss level)
   bossSnake?: BossSnake; // Boss snake (positions, direction, etc.)
+  guardianFlag?: Food | null; // Special flag food for Guardian boss (capture the flag mechanic)
 }
 
 export interface GameConfig {

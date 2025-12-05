@@ -50,6 +50,7 @@ import {
 } from '@/utils/bossSnake';
 import { Chef } from '@/types/phases';
 import { processBossAbilities } from '@/utils/bossAbilities';
+import { generateBossInitialResources } from '@/utils/bossResources';
 
 export function useGameLoop() {
   const {
@@ -179,6 +180,10 @@ export function useGameLoop() {
       }
 
       const ateFood = hasFoodCollision(newSnake[0], prev.food);
+      const capturedFlag =
+        prev.guardianFlag &&
+        newSnake[0].x === prev.guardianFlag.position.x &&
+        newSnake[0].y === prev.guardianFlag.position.y;
 
       let finalSnake = newSnake;
       let newScore = prev.score;
@@ -186,6 +191,11 @@ export function useGameLoop() {
       let newCombo = prev.combo;
       let atePowerUp = false;
       let newLives = prev.lives;
+      let newGuardianFlag = prev.guardianFlag;
+
+      // Initialize boss variables early (needed for flag capture check)
+      let activeBoss = prev.activeBoss;
+      let bossSnake = prev.bossSnake;
 
       if (ateFood) {
         // Update statistics - food eaten
@@ -271,6 +281,30 @@ export function useGameLoop() {
         // Handle EXTRA_LIFE power-up
         if (prev.food.type === FoodType.EXTRA_LIFE) {
           newLives = addLife(prev.lives);
+        }
+
+        // Handle Guardian flag capture - instant boss defeat!
+        if (capturedFlag && activeBoss && activeBoss.id === 'guardian') {
+          // Player captured the flag - boss is defeated!
+          const bossReward = handleBossDefeat(activeBoss, prev);
+          newScore += bossReward.scoreIncrease;
+          newLives = addLife(prev.lives); // Flag gives extra life
+          newGuardianFlag = null; // Clear flag
+          activeBoss = undefined; // Remove boss
+          bossSnake = undefined; // Remove boss snake
+
+          // Create particles for flag capture
+          if (GAME_CONFIG.enableParticles && prev.guardianFlag) {
+            const flagColor = '#10b981'; // Green for success
+            newParticles = [
+              ...newParticles,
+              ...createParticles(prev.guardianFlag.position, flagColor, 30, 1500),
+            ];
+          }
+
+          // Clear boss ability cooldowns
+          bossAbilityCooldownsRef.current = new Map();
+          forcedFoodTypeRef.current = null;
         }
 
         // Activate power-up if needed
@@ -373,7 +407,7 @@ export function useGameLoop() {
       }
       // Update boss for boss levels (levels 10, 20, 30, etc.)
       // But preserve debug boss if it doesn't match the level
-      let activeBoss = prev.activeBoss;
+      // activeBoss already declared above
       if (shouldSpawnBoss(newLevel)) {
         const levelBoss = getBossForLevel(newLevel);
         // Only override if boss matches level (not a debug boss)
@@ -388,9 +422,20 @@ export function useGameLoop() {
       // Don't clear boss if it's a debug boss that doesn't match level
 
       // Initialize or update boss snake
-      let bossSnake = prev.bossSnake;
+      // bossSnake already declared above
       if (activeBoss && (!prev.activeBoss || prev.activeBoss.id !== activeBoss.id)) {
-        // New boss spawned - initialize boss snake
+        // New boss spawned - generate initial resources first
+        const bossResources = generateBossInitialResources(
+          activeBoss,
+          finalSnake,
+          newObstacles,
+          newPortals,
+          GAME_CONFIG.gridSize,
+        );
+        newObstacles = bossResources.obstacles;
+        newPortals = bossResources.portals;
+
+        // Initialize boss snake with resources available
         bossSnake =
           initializeBossSnake(activeBoss, finalSnake, newObstacles, GAME_CONFIG.gridSize) ??
           undefined;
@@ -412,6 +457,7 @@ export function useGameLoop() {
           newObstacles,
           prev.food.position,
           GAME_CONFIG.gridSize,
+          prev.guardianFlag?.position ?? null,
         );
         bossSnake = moveBossSnake(bossSnake, nextBossDirection, GAME_CONFIG.gridSize);
 
@@ -467,6 +513,11 @@ export function useGameLoop() {
         // Handle chaos_powerups - force food type
         if (abilityResult.result.forceFoodType && abilityResult.result.foodType) {
           forcedFoodTypeRef.current = abilityResult.result.foodType;
+        }
+
+        // Handle guardian flag spawn
+        if (abilityResult.result.guardianFlag !== undefined) {
+          newGuardianFlag = abilityResult.result.guardianFlag;
         }
       }
 
@@ -629,6 +680,7 @@ export function useGameLoop() {
         obstacles: newObstacles,
         portals: newPortals,
         combo: newCombo,
+        guardianFlag: newGuardianFlag,
         particles: newParticles,
         achievements: updatedAchievements,
         lives: newLives,

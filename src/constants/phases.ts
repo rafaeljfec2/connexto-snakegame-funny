@@ -227,17 +227,17 @@ export const CHEFS: Chef[] = [
   {
     id: 'guardian',
     name: 'O Guardião',
-    description: 'Cria obstáculos para proteger seu território.',
+    description: 'Defende um power-up de vida. Capture-o para derrotá-lo!',
     phase: 2,
     abilities: [
       {
-        id: 'create_obstacles',
-        name: 'Criar Obstáculos',
-        description: 'Cria obstáculos ao redor da cobra',
+        id: 'defend_flag',
+        name: 'Defender Bandeira',
+        description: 'Defende um power-up de vida especial que o jogador deve capturar',
         effect: () => {}, // Will be implemented
       },
     ],
-    behavior: 'patrol',
+    behavior: 'defend',
     initialLength: 4,
     visual: {
       color: '#3b82f6',

@@ -230,6 +230,7 @@ function App() {
               particles={gameState.particles}
               activeBoss={gameState.activeBoss}
               bossSnake={gameState.bossSnake}
+              guardianFlag={gameState.guardianFlag}
             />
           </div>
 

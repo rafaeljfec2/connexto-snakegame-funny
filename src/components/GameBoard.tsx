@@ -1,4 +1,12 @@
-import { Position, GameStatus, Food as FoodType, Obstacle, Particle, Portal, BossSnake } from '@/types/game';
+import {
+  Position,
+  GameStatus,
+  Food as FoodType,
+  Obstacle,
+  Particle,
+  Portal,
+  BossSnake,
+} from '@/types/game';
 import { GAME_CONFIG } from '@/constants/game';
 import { SnakeSegment } from './SnakeSegment';
 import { Food } from './Food';
@@ -20,6 +28,7 @@ interface GameBoardProps {
   particles?: Particle[];
   activeBoss?: Chef;
   bossSnake?: BossSnake;
+  guardianFlag?: FoodType | null;
 }
 
 export function GameBoard({
@@ -32,6 +41,7 @@ export function GameBoard({
   particles = [],
   activeBoss,
   bossSnake,
+  guardianFlag,
 }: GameBoardProps) {
   const gridStyle = {
     gridTemplateColumns: `repeat(${GAME_CONFIG.gridSize}, ${GAME_CONFIG.cellSize}px)`,
@@ -144,9 +154,14 @@ export function GameBoard({
         />
       ))}
       <Food key={foodKey} food={food} />
-      {activeBoss && bossSnake && (
-        <BossSnakeComponent bossSnake={bossSnake} boss={activeBoss} />
+      {/* Guardian Flag - special power-up for Guardian boss */}
+      {guardianFlag && (
+        <Food
+          key={`guardian-flag-${guardianFlag.position.x}-${guardianFlag.position.y}`}
+          food={guardianFlag}
+        />
       )}
+      {activeBoss && bossSnake && <BossSnakeComponent bossSnake={bossSnake} boss={activeBoss} />}
       {GAME_CONFIG.enableParticles && <ParticleSystem particles={particles} />}
     </div>
   );

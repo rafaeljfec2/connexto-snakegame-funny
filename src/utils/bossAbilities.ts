@@ -15,6 +15,7 @@ export interface BossAbilityResult {
   message?: string;
   bossSnakeGrowth?: number; // For boss healing/growth abilities
   forceFoodType?: boolean; // Flag to force food type change
+  guardianFlag?: Food | null; // Special flag food for Guardian boss
 }
 
 /**
@@ -41,18 +42,48 @@ export function processBossAbilities(
 
     // Process ability based on ID
     switch (ability.id) {
-      case 'create_obstacles': {
-        // Create obstacles around the player snake (more strategic - in front of player)
-        if (Math.random() < 0.25) {
-          // 25% chance per frame to create obstacles
-          const newObstacles = createObstaclesInPath(
+      case 'defend_flag': {
+        // Guardian boss: Spawn a special EXTRA_LIFE power-up that the player must capture
+        // The boss will defend this flag by positioning between player and flag
+        if (!gameState.guardianFlag) {
+          // Spawn the flag in a strategic position (away from player, center-ish area)
+          const flagPosition = generateGuardianFlagPosition(
             gameState.snake,
-            gameState.obstacles,
             gameState.bossSnake?.positions ?? [],
+            gameState.obstacles,
             GAME_CONFIG.gridSize,
           );
-          if (newObstacles.length > 0) {
-            result.obstacles = [...(result.obstacles ?? []), ...newObstacles];
+          if (flagPosition) {
+            result.guardianFlag = {
+              position: flagPosition,
+              type: FoodType.EXTRA_LIFE,
+              spawnTime: Date.now(),
+              duration: undefined, // Flag doesn't expire
+            };
+          }
+        }
+        // Flag already exists - boss will defend it via behavior logic
+        break;
+      }
+
+      case 'create_obstacles': {
+        // Create obstacles around the player snake (mid level - less aggressive)
+        // Check cooldown first
+        const lastUsed = abilityCooldowns.get(ability.id);
+        const cooldown = ability.cooldown ?? 2000;
+        if (!lastUsed || now - lastUsed >= cooldown) {
+          // Lower frequency - 12% chance per frame (mid level difficulty)
+          if (Math.random() < 0.12) {
+            const newObstacles = createObstaclesInPath(
+              gameState.snake,
+              gameState.obstacles,
+              gameState.bossSnake?.positions ?? [],
+              GAME_CONFIG.gridSize,
+            );
+            if (newObstacles.length > 0) {
+              result.obstacles = [...(result.obstacles ?? []), ...newObstacles];
+              updatedCooldowns.set(ability.id, now);
+            }
           }
         }
         break;
@@ -270,9 +301,9 @@ function createObstaclesInPath(
   const dx = head.x - second.x;
   const dy = head.y - second.y;
 
-  // Create obstacles 2-3 steps ahead in the direction of movement
+  // Create obstacles 3-4 steps ahead (further away - gives player time to react)
   const aheadPositions: Position[] = [];
-  for (let i = 2; i <= 4; i++) {
+  for (let i = 3; i <= 4; i++) {
     const pos: Position = {
       x: head.x + dx * i,
       y: head.y + dy * i,
@@ -282,25 +313,33 @@ function createObstaclesInPath(
     }
   }
 
-  // Also create obstacles to the sides of the path
+  // Create only ONE obstacle to the side (not both) - leaves escape route
   const sidePositions: Position[] = [];
   if (dx === 0) {
-    // Moving vertically, block sides
-    sidePositions.push({ x: head.x + 1, y: head.y + dy * 2 });
-    sidePositions.push({ x: head.x - 1, y: head.y + dy * 2 });
+    // Moving vertically, block one side only
+    if (Math.random() < 0.5) {
+      sidePositions.push({ x: head.x + 1, y: head.y + dy * 3 });
+    } else {
+      sidePositions.push({ x: head.x - 1, y: head.y + dy * 3 });
+    }
   } else {
-    // Moving horizontally, block sides
-    sidePositions.push({ x: head.x + dx * 2, y: head.y + 1 });
-    sidePositions.push({ x: head.x + dx * 2, y: head.y - 1 });
+    // Moving horizontally, block one side only
+    if (Math.random() < 0.5) {
+      sidePositions.push({ x: head.x + dx * 3, y: head.y + 1 });
+    } else {
+      sidePositions.push({ x: head.x + dx * 3, y: head.y - 1 });
+    }
   }
 
+  // Combine and limit to 1-2 obstacles max (mid level - not too aggressive)
   [...aheadPositions, ...sidePositions].forEach((pos, index) => {
     if (
       pos.x >= 0 &&
       pos.x < gridSize &&
       pos.y >= 0 &&
       pos.y < gridSize &&
-      !occupied.has(`${pos.x},${pos.y}`)
+      !occupied.has(`${pos.x},${pos.y}`) &&
+      newObstacles.length < 2 // Limit to 2 obstacles max
     ) {
       newObstacles.push({
         id: `boss-obstacle-${Date.now()}-${index}`,
@@ -311,7 +350,7 @@ function createObstaclesInPath(
     }
   });
 
-  return newObstacles.slice(0, 3); // Limit to 3 obstacles
+  return newObstacles; // Return 1-2 obstacles max
 }
 
 /**
@@ -437,4 +476,72 @@ function createStrategicWalls(
 
   // Limit total obstacles
   return newObstacles.slice(-OBSTACLE_CONFIG.maxObstacles * 10);
+}
+
+/**
+ * Generate a strategic position for the Guardian flag (power-up)
+ * Position should be away from player but accessible
+ */
+function generateGuardianFlagPosition(
+  playerSnake: Position[],
+  bossSnake: Position[],
+  obstacles: Obstacle[],
+  gridSize: number,
+): Position | null {
+  const playerHead = playerSnake[0];
+  if (!playerHead) {
+    return null;
+  }
+
+  const occupied = new Set<string>();
+  playerSnake.forEach((seg) => {
+    occupied.add(`${seg.x},${seg.y}`);
+  });
+  bossSnake.forEach((seg) => {
+    occupied.add(`${seg.x},${seg.y}`);
+  });
+  obstacles.forEach((obs) => {
+    occupied.add(`${obs.position.x},${obs.position.y}`);
+  });
+
+  // Try to place flag in center area, but away from player
+  const centerX = Math.floor(gridSize / 2);
+  const centerY = Math.floor(gridSize / 2);
+
+  // Generate positions in a spiral from center, avoiding player
+  const candidates: Position[] = [];
+  for (let radius = 0; radius < Math.floor(gridSize / 2); radius++) {
+    for (let x = centerX - radius; x <= centerX + radius; x++) {
+      for (let y = centerY - radius; y <= centerY + radius; y++) {
+        if (x >= 0 && x < gridSize && y >= 0 && y < gridSize && !occupied.has(`${x},${y}`)) {
+          // Prefer positions that are at least 5 cells away from player
+          const distanceFromPlayer = Math.abs(x - playerHead.x) + Math.abs(y - playerHead.y);
+          if (distanceFromPlayer >= 5) {
+            candidates.push({ x, y });
+          }
+        }
+      }
+    }
+    if (candidates.length > 0) {
+      break; // Found some candidates
+    }
+  }
+
+  if (candidates.length === 0) {
+    // Fallback: any available position
+    for (let x = 0; x < gridSize; x++) {
+      for (let y = 0; y < gridSize; y++) {
+        if (!occupied.has(`${x},${y}`)) {
+          candidates.push({ x, y });
+        }
+      }
+    }
+  }
+
+  if (candidates.length > 0) {
+    // Pick a random candidate
+    return candidates[Math.floor(Math.random() * candidates.length)] ?? null;
+  }
+
+  return null;
 }

@@ -170,6 +170,7 @@ export function calculateBossNextDirection(
   obstacles: Obstacle[],
   food: Position,
   gridSize: number,
+  guardianFlag?: Position | null,
 ): Direction {
   const behavior = boss.behavior ?? 'random';
   const bossHead = bossSnake.positions[0];
@@ -179,12 +180,41 @@ export function calculateBossNextDirection(
     return bossSnake.direction;
   }
 
+  // Mix independent movement with player-dependent behavior
+  // Boss should have autonomous movement most of the time
+  const independentChance = 0.4; // 40% chance to move independently
+
   switch (behavior) {
+    case 'defend':
+      // Defend the flag: position between player and flag
+      if (guardianFlag) {
+        return calculateDefendDirection(
+          bossHead,
+          playerHead,
+          guardianFlag,
+          bossSnake.direction,
+          gridSize,
+        );
+      }
+      // No flag yet, patrol
+      return calculatePatrolDirection(bossSnake, gridSize);
     case 'chase':
+      // Mix chase with independent patrol movement
+      if (Math.random() < independentChance) {
+        return calculatePatrolDirection(bossSnake, gridSize);
+      }
       return calculateChaseDirection(bossHead, playerHead, bossSnake.direction, gridSize);
     case 'flee':
+      // Mix flee with independent random movement
+      if (Math.random() < independentChance) {
+        return calculateRandomDirection(bossSnake.direction, gridSize);
+      }
       return calculateFleeDirection(bossHead, playerHead, bossSnake.direction, gridSize);
     case 'aggressive':
+      // Mix aggressive with independent movement
+      if (Math.random() < independentChance) {
+        return calculatePatrolDirection(bossSnake, gridSize);
+      }
       return calculateAggressiveDirection(bossHead, playerHead, bossSnake, obstacles, gridSize);
     case 'patrol':
       return calculatePatrolDirection(bossSnake, gridSize);
@@ -272,19 +302,30 @@ function calculateAggressiveDirection(
 }
 
 /**
- * Patrol behavior: Move in a pattern
+ * Patrol behavior: Move in a pattern (more independent)
  */
 function calculatePatrolDirection(bossSnake: BossSnake, gridSize: number): Direction {
-  // Simple patrol: continue in current direction, turn randomly sometimes
-  if (Math.random() < 0.1) {
-    // 10% chance to change direction
+  // More active patrol: 25% chance to change direction, prefers continuing current direction
+  if (Math.random() < 0.25) {
+    // 25% chance to change direction
     const directions = [Direction.UP, Direction.DOWN, Direction.LEFT, Direction.RIGHT];
     const validDirections = directions.filter((dir) =>
       isValidDirectionChange(bossSnake.direction, dir),
     );
     if (validDirections.length > 0) {
+      // Prefer perpendicular turns for more interesting movement
+      const perpendicularDirections = validDirections.filter(
+        (dir) =>
+          ((bossSnake.direction === Direction.UP || bossSnake.direction === Direction.DOWN) &&
+            (dir === Direction.LEFT || dir === Direction.RIGHT)) ||
+          ((bossSnake.direction === Direction.LEFT || bossSnake.direction === Direction.RIGHT) &&
+            (dir === Direction.UP || dir === Direction.DOWN)),
+      );
+      const directionsToChoose =
+        perpendicularDirections.length > 0 ? perpendicularDirections : validDirections;
       return (
-        validDirections[Math.floor(Math.random() * validDirections.length)] ?? bossSnake.direction
+        directionsToChoose[Math.floor(Math.random() * directionsToChoose.length)] ??
+        bossSnake.direction
       );
     }
   }
@@ -292,11 +333,11 @@ function calculatePatrolDirection(bossSnake: BossSnake, gridSize: number): Direc
 }
 
 /**
- * Random behavior: Move randomly
+ * Random behavior: Move randomly (more independent)
  */
 function calculateRandomDirection(currentDirection: Direction, gridSize: number): Direction {
-  // 20% chance to change direction
-  if (Math.random() < 0.2) {
+  // 30% chance to change direction - more active movement
+  if (Math.random() < 0.3) {
     const directions = [Direction.UP, Direction.DOWN, Direction.LEFT, Direction.RIGHT];
     const validDirections = directions.filter((dir) =>
       isValidDirectionChange(currentDirection, dir),
@@ -413,4 +454,115 @@ export function weakenBossSnake(
 export function canDefeatBoss(bossSnake: BossSnake): boolean {
   // Boss can only be defeated when it has 3 or fewer segments
   return bossSnake.positions.length <= 3;
+}
+
+/**
+ * Defend behavior: Position between player and flag to protect it
+ */
+function calculateDefendDirection(
+  bossHead: Position,
+  playerHead: Position,
+  flagPosition: Position,
+  currentDirection: Direction,
+  gridSize: number,
+): Direction {
+  // Calculate the midpoint between player and flag
+  const midX = Math.floor((playerHead.x + flagPosition.x) / 2);
+  const midY = Math.floor((playerHead.y + flagPosition.y) / 2);
+
+  // Clamp to grid bounds
+  const targetX = Math.max(0, Math.min(midX, gridSize - 1));
+  const targetY = Math.max(0, Math.min(midY, gridSize - 1));
+
+  // If boss is already close to the midpoint, patrol around the flag
+  const distanceToMid = Math.abs(bossHead.x - targetX) + Math.abs(bossHead.y - targetY);
+  if (distanceToMid <= 2) {
+    // Close enough, circle around the flag
+    return calculatePatrolAroundFlag(bossHead, flagPosition, currentDirection, gridSize);
+  }
+
+  // Move towards the midpoint (between player and flag)
+  const dx = targetX - bossHead.x;
+  const dy = targetY - bossHead.y;
+
+  // Prefer horizontal movement if horizontal distance is greater
+  if (Math.abs(dx) > Math.abs(dy)) {
+    if (dx > 0 && isValidDirectionChange(currentDirection, Direction.RIGHT)) {
+      return Direction.RIGHT;
+    }
+    if (dx < 0 && isValidDirectionChange(currentDirection, Direction.LEFT)) {
+      return Direction.LEFT;
+    }
+  }
+
+  // Prefer vertical movement
+  if (dy > 0 && isValidDirectionChange(currentDirection, Direction.DOWN)) {
+    return Direction.DOWN;
+  }
+  if (dy < 0 && isValidDirectionChange(currentDirection, Direction.UP)) {
+    return Direction.UP;
+  }
+
+  // Fallback: try any valid direction towards target
+  const directions = [Direction.UP, Direction.DOWN, Direction.LEFT, Direction.RIGHT];
+  const validDirections = directions.filter((dir) => isValidDirectionChange(currentDirection, dir));
+  if (validDirections.length > 0) {
+    // Choose direction that gets closer to target
+    let bestDir = validDirections[0];
+    let bestDistance = Infinity;
+    for (const dir of validDirections) {
+      const nextPos = getNextHeadPosition(bossHead, dir, gridSize);
+      const dist = Math.abs(nextPos.x - targetX) + Math.abs(nextPos.y - targetY);
+      if (dist < bestDistance) {
+        bestDistance = dist;
+        bestDir = dir;
+      }
+    }
+    return bestDir ?? currentDirection;
+  }
+
+  return currentDirection;
+}
+
+/**
+ * Patrol around the flag in a circular pattern
+ */
+function calculatePatrolAroundFlag(
+  bossHead: Position,
+  flagPosition: Position,
+  currentDirection: Direction,
+  gridSize: number,
+): Direction {
+  // Calculate relative position to flag
+  const dx = bossHead.x - flagPosition.x;
+  const dy = bossHead.y - flagPosition.y;
+
+  // Try to move in a circle around the flag
+  // Priority: move perpendicular to the line from flag to boss
+  if (Math.abs(dx) > Math.abs(dy)) {
+    // More horizontal offset, try to move vertically
+    if (dy >= 0 && isValidDirectionChange(currentDirection, Direction.UP)) {
+      return Direction.UP;
+    }
+    if (dy < 0 && isValidDirectionChange(currentDirection, Direction.DOWN)) {
+      return Direction.DOWN;
+    }
+  } else {
+    // More vertical offset, try to move horizontally
+    if (dx >= 0 && isValidDirectionChange(currentDirection, Direction.LEFT)) {
+      return Direction.LEFT;
+    }
+    if (dx < 0 && isValidDirectionChange(currentDirection, Direction.RIGHT)) {
+      return Direction.RIGHT;
+    }
+  }
+
+  // Fallback: random valid direction
+  const directions = [Direction.UP, Direction.DOWN, Direction.LEFT, Direction.RIGHT];
+  const validDirections = directions.filter((dir) => isValidDirectionChange(currentDirection, dir));
+  if (validDirections.length > 0) {
+    return validDirections[Math.floor(Math.random() * validDirections.length)] ?? currentDirection;
+  }
+
+  return currentDirection;
 }

@@ -23,7 +23,7 @@ export interface BossAbility {
   cooldown?: number;
 }
 
-export type BossBehavior = 'chase' | 'flee' | 'patrol' | 'random' | 'aggressive';
+export type BossBehavior = 'chase' | 'flee' | 'patrol' | 'random' | 'aggressive' | 'defend';
 
 export interface Chef {
   id: string;

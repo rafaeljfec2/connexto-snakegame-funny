@@ -9,7 +9,6 @@ import { ActivePowerUps } from './components/ActivePowerUps';
 import { ComboDisplay } from './components/ComboDisplay';
 import { AchievementNotification } from './components/AchievementNotification';
 import { DynamicBackground } from './components/DynamicBackground';
-import { LivesDisplay } from './components/LivesDisplay';
 import { GameStatistics as GameStatisticsComponent } from './components/GameStatistics';
 import { DeathTransition } from './components/DeathTransition';
 import { TouchControls } from './components/TouchControls';
@@ -19,6 +18,7 @@ import styles from './App.module.css';
 import { StatusMessage } from './components/StatusMessage';
 import { PhaseDisplay } from './components/PhaseDisplay';
 import { MobileFloatingInfo } from './components/MobileFloatingInfo';
+import { StatusBar } from './components/StatusBar';
 
 function App() {
   const {
@@ -174,6 +174,11 @@ function App() {
             lives={gameState.lives}
             level={gameState.level}
           />
+          <StatusBar
+            length={gameState.snake.length}
+            lives={gameState.lives}
+            level={gameState.level}
+          />
           <div className={styles.gameContainer}>
             <GameBoard
               snake={gameState.snake}
@@ -208,16 +213,6 @@ function App() {
         <aside className={styles.rightPanel}>
           <div className={styles.panelContent}>
             <PhaseDisplay level={gameState.level} currentPhase={gameState.currentPhase} />
-            <div className={styles.panelSection}>
-              <h3 className={styles.panelTitle}>Game Stats</h3>
-              <div className={styles.gameStats}>
-                <div className={styles.statItem}>
-                  <span className={styles.statLabel}>Length</span>
-                  <span className={styles.statValue}>{gameState.snake.length}</span>
-                </div>
-                <LivesDisplay lives={gameState.lives} />
-              </div>
-            </div>
             <div className={styles.panelSection}>
               <h3 className={styles.panelTitle}>Combo</h3>
               <ComboDisplay combo={gameState.combo} />

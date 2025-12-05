@@ -188,7 +188,7 @@
   position: relative;
   width: 100%;
   flex: 1;
-  overflow: hidden;
+  overflow: visible;
   z-index: 3;
 }
 
@@ -593,15 +593,22 @@
   .instructions {
     display: none !important;
   }
-  
+
   /* Ensure floating info is visible and game area is positioned */
   .gameArea {
     position: relative;
   }
-  
+
   /* Show Status Message and Controls on mobile */
   .gameArea > * {
     flex-shrink: 0;
+  }
+
+  /* Ensure StatusBar is visible on mobile */
+  .gameArea > :global(.statusBar) {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
   }
 
   /* Compact Stats in Header */

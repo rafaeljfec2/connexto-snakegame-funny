@@ -1,8 +1,7 @@
-import { ActivePowerUp, ComboState } from '@/types/game';
+import { ActivePowerUp, ComboState, FoodType } from '@/types/game';
 import { getActivePowerUps } from '@/utils/powerUps';
-import { POWER_UP_CONFIG } from '@/constants/powerUps';
 import { useEffect, useState } from 'react';
-import { getPhaseByLevel } from '@/utils/phases';
+import { getCurrentPhase } from '@/utils/phases';
 import { COMBO_CONFIG } from '@/constants/game';
 import styles from './MobileFloatingInfo.module.css';
 
@@ -23,7 +22,7 @@ export function MobileFloatingInfo({
 }: MobileFloatingInfoProps) {
   const [currentTime, setCurrentTime] = useState(Date.now());
   const activePowerUpsList = getActivePowerUps(activePowerUps);
-  const phase = getPhaseByLevel(level);
+  const phase = getCurrentPhase(level);
 
   useEffect(() => {
     if (activePowerUpsList.length === 0) {
@@ -46,17 +45,46 @@ export function MobileFloatingInfo({
             <h4 className={styles.floatingCardTitle}>Power-Ups</h4>
             <div>
               {activePowerUpsList.map((powerUp) => {
-                const config = POWER_UP_CONFIG[powerUp.type];
-                if (!config) return null;
+                // Skip NORMAL food type - it's not a power-up
+                if (powerUp.type === FoodType.NORMAL) return null;
 
-                const remaining = Math.max(0, powerUp.expiresAt - currentTime);
+                const elapsed = currentTime - powerUp.startTime;
+                const remaining = Math.max(0, powerUp.duration - elapsed);
                 const seconds = Math.ceil(remaining / 1000);
+
+                // Get power-up name and icon
+                const getPowerUpInfo = (type: FoodType) => {
+                  switch (type) {
+                    case FoodType.SPEED_BOOST:
+                      return { name: 'Speed Boost', icon: '⚡' };
+                    case FoodType.BONUS_POINTS:
+                      return { name: 'Bonus Points', icon: '💰' };
+                    case FoodType.EXTRA_GROWTH:
+                      return { name: 'Extra Growth', icon: '📈' };
+                    case FoodType.PHASE_THROUGH:
+                      return { name: 'Phase Through', icon: '👻' };
+                    case FoodType.JOKER:
+                      return { name: 'Joker', icon: '🎴' };
+                    case FoodType.EXTRA_LIFE:
+                      return { name: 'Extra Life', icon: '❤️' };
+                    case FoodType.POISON:
+                      return { name: 'Poison', icon: '☠️' };
+                    case FoodType.REVERSE_CONTROLS:
+                      return { name: 'Reverse', icon: '🔄' };
+                    case FoodType.SLOW_DOWN:
+                      return { name: 'Slow Down', icon: '🐌' };
+                    default:
+                      return { name: 'Power-Up', icon: '✨' };
+                  }
+                };
+
+                const powerUpInfo = getPowerUpInfo(powerUp.type);
 
                 return (
                   <div key={powerUp.type} className={styles.compactPowerUp}>
-                    <span className={styles.compactPowerUpIcon}>{config.icon}</span>
-                    <span className={styles.compactPowerUpName}>{config.name}</span>
-                    <span className={styles.compactPowerUpTimer}>{seconds}s</span>
+                    <span className={styles.compactPowerUpIcon}>{powerUpInfo.icon}</span>
+                    <span className={styles.compactPowerUpName}>{powerUpInfo.name}</span>
+                    {seconds > 0 && <span className={styles.compactPowerUpTimer}>{seconds}s</span>}
                   </div>
                 );
               })}

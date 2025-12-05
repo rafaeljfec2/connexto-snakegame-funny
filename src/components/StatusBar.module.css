@@ -1,0 +1,242 @@
+.statusBar {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.98) 0%, rgba(30, 41, 59, 0.95) 100%) !important;
+  backdrop-filter: blur(30px) saturate(180%);
+  border-radius: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.25) !important;
+  box-shadow:
+    0 6px 20px rgba(0, 0, 0, 0.5),
+    0 1px 0 rgba(255, 255, 255, 0.15) inset,
+    inset 0 0 50px rgba(59, 130, 246, 0.15);
+  position: relative;
+  overflow: visible;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+  width: auto;
+  min-width: fit-content;
+  z-index: 15;
+  margin: 0.5rem auto;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.statusBar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, rgba(59, 130, 246, 0.5) 50%, transparent 100%);
+  opacity: 0.6;
+  animation: statusBarShine 3s ease-in-out infinite;
+}
+
+@keyframes statusBarShine {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+.statusItem {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  position: relative;
+  z-index: 1;
+}
+
+.statusIcon {
+  font-size: 1.25rem;
+  line-height: 1;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+  transition: transform 0.3s ease;
+}
+
+.statusItem:hover .statusIcon {
+  transform: scale(1.15) rotate(5deg);
+}
+
+.statusContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.statusLabel {
+  font-size: 0.625rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  line-height: 1;
+}
+
+.statusValue {
+  font-size: 0.9375rem;
+  font-weight: 900;
+  color: rgba(255, 255, 255, 0.95);
+  background: linear-gradient(135deg, #ffffff 0%, #e0e7ff 50%, #c7d2fe 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.4));
+  line-height: 1;
+  transition: all 0.3s ease;
+}
+
+.phaseName {
+  font-size: 0.8125rem;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.statusItem:hover .statusValue {
+  filter: drop-shadow(0 0 12px rgba(59, 130, 246, 0.6));
+  transform: scale(1.05);
+}
+
+.separator {
+  width: 1px;
+  height: 2rem;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.2) 50%,
+    transparent 100%
+  );
+  position: relative;
+  z-index: 1;
+}
+
+/* Lives Display in Status Bar */
+.livesDisplay {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: 0.125rem;
+}
+
+.lifeDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.lifeActive {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  box-shadow:
+    0 0 8px rgba(239, 68, 68, 0.6),
+    0 2px 4px rgba(0, 0, 0, 0.3);
+  animation: heartbeat 1.5s ease-in-out infinite;
+}
+
+.lifeInactive {
+  background: rgba(255, 255, 255, 0.2);
+  opacity: 0.4;
+  filter: grayscale(100%) brightness(0.5);
+}
+
+@keyframes heartbeat {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.9;
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .statusBar {
+    gap: 0.875rem;
+    padding: 0.625rem 1.25rem;
+  }
+
+  .statusIcon {
+    font-size: 1.125rem;
+  }
+
+  .statusValue {
+    font-size: 0.875rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .statusBar {
+    gap: 0.75rem;
+    padding: 0.5rem 1rem;
+    border-radius: 10px;
+  }
+
+  .statusIcon {
+    font-size: 1rem;
+  }
+
+  .statusLabel {
+    font-size: 0.5625rem;
+  }
+
+  .statusValue {
+    font-size: 0.8125rem;
+  }
+
+  .separator {
+    height: 1.5rem;
+  }
+
+  .lifeDot {
+    width: 6px;
+    height: 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  .statusBar {
+    gap: 0.5rem;
+    padding: 0.4rem 0.75rem;
+    border-radius: 8px;
+  }
+
+  .statusIcon {
+    font-size: 0.875rem;
+  }
+
+  .statusLabel {
+    font-size: 0.5rem;
+    letter-spacing: 0.5px;
+  }
+
+  .statusValue {
+    font-size: 0.75rem;
+  }
+
+  .statusItem {
+    gap: 0.5rem;
+  }
+
+  .separator {
+    height: 1.25rem;
+    width: 1px;
+  }
+
+  .lifeDot {
+    width: 5px;
+    height: 5px;
+  }
+}

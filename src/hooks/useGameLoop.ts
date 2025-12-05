@@ -1,5 +1,15 @@
 import { useEffect, useRef, useCallback } from 'react';
-import { GameStatus, GameState, FoodType, Obstacle } from '@/types/game';
+import {
+  GameStatus,
+  GameState,
+  FoodType,
+  Obstacle,
+  Direction,
+  Position,
+  ActivePowerUp,
+  Particle,
+  Portal,
+} from '@/types/game';
 import { GAME_CONFIG, INITIAL_SNAKE_POSITION, PERFORMANCE_CONFIG } from '@/constants/game';
 import {
   moveSnake,
@@ -65,6 +75,384 @@ import {
 } from '@/utils/poison';
 import { POISON_CONFIG } from '@/constants/game';
 
+// ============================================================================
+// Helper Functions - Direction and Movement
+// ============================================================================
+
+/**
+ * Handle direction changes with reverse controls support and safety checks
+ */
+function handleDirection(
+  currentDirection: Direction,
+  nextDirection: Direction,
+  snake: Position[],
+  activePowerUps: ActivePowerUp[],
+): Direction {
+  // Handle reverse controls
+  const reverseControls = hasReverseControls(activePowerUps);
+  let nextDirectionInput = nextDirection;
+
+  // Reverse the input direction if reverse controls are active
+  if (reverseControls && nextDirection !== currentDirection) {
+    nextDirectionInput = getOppositeDirection(nextDirection);
+  }
+
+  // Apply direction change immediately if valid and safe
+  if (
+    nextDirectionInput !== currentDirection &&
+    isValidDirectionChange(currentDirection, nextDirectionInput)
+  ) {
+    // Check if direction change is safe (won't cause collision)
+    const isSafe = isSafeDirectionChange(
+      snake,
+      currentDirection,
+      nextDirectionInput,
+      GAME_CONFIG.gridSize,
+    );
+
+    if (isSafe) {
+      // Apply immediately for instant response to rapid key presses
+      return nextDirectionInput;
+    } else {
+      // For turns (left/right when going up/down or vice versa), be more lenient
+      // Allow the turn if it won't cause immediate collision with the next segment
+      const head = snake[0];
+      if (head) {
+        const nextPos = getNextHeadPosition(head, nextDirectionInput, GAME_CONFIG.gridSize);
+        // Only block if it would collide with the very next body segment
+        const wouldHitNextSegment =
+          snake.length > 1 && snake[1]?.x === nextPos.x && snake[1]?.y === nextPos.y;
+
+        if (!wouldHitNextSegment) {
+          // Safe to turn - apply immediately for instant responsiveness
+          return nextDirectionInput;
+        }
+      }
+    }
+  }
+
+  // Use the current direction
+  return currentDirection;
+}
+
+// ============================================================================
+// Helper Functions - Portal Teleportation
+// ============================================================================
+
+interface PortalTeleportResult {
+  snake: Position[];
+  headPosition: Position | undefined;
+  particles: Particle[];
+}
+
+/**
+ * Handle portal teleportation if snake head is on a portal
+ */
+function handlePortalTeleport(
+  snake: Position[],
+  portals: Portal[],
+  particles: Particle[],
+): PortalTeleportResult {
+  const activePortals = getActivePortals(portals, PERFORMANCE_CONFIG.maxPortals);
+  let newSnake = snake;
+  let headPosition = snake[0];
+
+  if (headPosition) {
+    const portalAtHead = getPortalAtPosition(headPosition, activePortals);
+    if (portalAtHead) {
+      const pairedPortal = getPortalPair(portalAtHead, activePortals);
+      if (pairedPortal) {
+        // Teleport to paired portal, maintaining direction
+        newSnake = [{ ...pairedPortal.position }, ...newSnake.slice(1)];
+        headPosition = newSnake[0]; // Update head position after teleportation
+
+        // Create teleportation particles
+        if (GAME_CONFIG.enableParticles) {
+          const portalColor = PORTAL_CONFIG.colors.portal1.primary;
+          return {
+            snake: newSnake,
+            headPosition,
+            particles: [
+              ...particles,
+              ...createParticles(headPosition, portalColor, 12, 800),
+              ...createParticles(pairedPortal.position, portalColor, 12, 800),
+            ],
+          };
+        }
+      }
+    }
+  }
+
+  return { snake: newSnake, headPosition, particles };
+}
+
+// ============================================================================
+// Helper Functions - Food and Power-ups
+// ============================================================================
+
+interface FoodProcessingResult {
+  snake: Position[];
+  score: number;
+  activePowerUps: ActivePowerUp[];
+  combo: import('@/types/game').ComboState;
+  particles: Particle[];
+  lives: number;
+  statistics: GameStatisticsTracking;
+  atePowerUp: boolean;
+}
+
+/**
+ * Process food consumption with power-up effects, growth, and scoring
+ */
+function handleFoodAndPowerUps(
+  ateFood: boolean,
+  food: import('@/types/game').Food,
+  snake: Position[],
+  score: number,
+  combo: import('@/types/game').ComboState,
+  activePowerUps: ActivePowerUp[],
+  lives: number,
+  particles: Particle[],
+  statistics: GameStatisticsTracking,
+): FoodProcessingResult {
+  const newActivePowerUps = [...activePowerUps];
+  let newSnake = snake;
+  let newScore = score;
+  let newCombo = combo;
+  let newLives = lives;
+  let atePowerUp = false;
+
+  if (ateFood) {
+    // Update statistics - food eaten
+    const currentFoodCount = statistics.foodsByType[food.type] ?? 0;
+    statistics = {
+      ...statistics,
+      foodsEaten: statistics.foodsEaten + 1,
+      foodsByType: {
+        ...statistics.foodsByType,
+        [food.type]: currentFoodCount + 1,
+      },
+    };
+
+    // Handle JOKER - randomly choose a positive power-up before applying effects
+    let actualFoodType = food.type;
+    if (food.type === FoodType.JOKER) {
+      const positiveTypes = [
+        FoodType.SPEED_BOOST,
+        FoodType.BONUS_POINTS,
+        FoodType.EXTRA_GROWTH,
+        FoodType.PHASE_THROUGH,
+      ];
+      actualFoodType =
+        positiveTypes[Math.floor(Math.random() * positiveTypes.length)] ?? FoodType.BONUS_POINTS;
+    }
+
+    const powerUpEffect = applyPowerUpEffect(actualFoodType, score, snake.length);
+
+    // Add bonus points if JOKER was eaten
+    if (food.type === FoodType.JOKER) {
+      powerUpEffect.scoreIncrease += 15; // Bonus for eating joker
+    }
+
+    // Track if power-up was eaten
+    if (food.type !== FoodType.NORMAL) {
+      atePowerUp = true;
+    }
+
+    // Calculate score: base points only (no multipliers for now)
+    const baseScoreIncrease = powerUpEffect.scoreIncrease;
+    newScore = score + baseScoreIncrease;
+
+    // Update combo AFTER calculating score (for next food)
+    if (GAME_CONFIG.enableCombos) {
+      newCombo = updateCombo(combo, true);
+    }
+
+    // Create particles
+    if (GAME_CONFIG.enableParticles) {
+      const foodColor = POWER_UP_CONFIG.colors[food.type]?.primary || '#ef4444';
+      particles = [...particles, ...createParticles(snake[0], foodColor, 8, 600)];
+    }
+
+    // Apply growth (positive or negative)
+    if (powerUpEffect.growthAmount > 0) {
+      // Grow: When snake eats, it should grow from the tail
+      const growthAmount = powerUpEffect.growthAmount;
+      const currentTail = newSnake[newSnake.length - 1];
+
+      // Add new segments at the tail position (they will move next frame)
+      for (let i = 0; i < growthAmount; i++) {
+        newSnake = [...newSnake, { ...currentTail }];
+      }
+    } else if (powerUpEffect.growthAmount < 0) {
+      // Shrink (for poison)
+      const shrinkAmount = Math.abs(powerUpEffect.growthAmount);
+      const minLength = 1;
+      const newLength = Math.max(minLength, newSnake.length - shrinkAmount);
+      newSnake = newSnake.slice(0, newLength);
+    }
+
+    // Update statistics - max combo
+    if (newCombo.multiplier > statistics.maxCombo) {
+      statistics = {
+        ...statistics,
+        maxCombo: newCombo.multiplier,
+      };
+    }
+
+    // Handle EXTRA_LIFE power-up
+    if (food.type === FoodType.EXTRA_LIFE) {
+      newLives = addLife(lives);
+    }
+
+    // Activate power-up if needed
+    if (powerUpEffect.shouldActivatePowerUp) {
+      newActivePowerUps.push(createActivePowerUp(actualFoodType));
+    }
+  } else {
+    // Update combo expiration when no food eaten
+    if (GAME_CONFIG.enableCombos) {
+      newCombo = updateCombo(combo, false);
+    }
+  }
+
+  return {
+    snake: newSnake,
+    score: newScore,
+    activePowerUps: newActivePowerUps,
+    combo: newCombo,
+    particles,
+    lives: newLives,
+    statistics,
+    atePowerUp,
+  };
+}
+
+// ============================================================================
+// Helper Functions - Obstacles
+// ============================================================================
+
+interface ObstacleUpdateResult {
+  obstacles: Obstacle[];
+  statistics: GameStatisticsTracking;
+  lastSpawnTime: number;
+}
+
+/**
+ * Handle obstacle generation and spawning based on phase configuration
+ */
+function handleObstacles(
+  obstacles: Obstacle[],
+  level: number,
+  previousLevel: number,
+  snake: Position[],
+  statistics: GameStatisticsTracking,
+  phaseConfig: { obstaclesEnabled?: boolean; obstaclesFrequency?: number } | undefined,
+  lastSpawnTime: number,
+  currentTime: number,
+): ObstacleUpdateResult {
+  // Filter out expired temporary obstacles first
+  let newObstacles = getActiveObstacles(obstacles);
+
+  // Initialize spawn timer on first game start
+  let updatedSpawnTime = lastSpawnTime;
+  if (lastSpawnTime === 0) {
+    updatedSpawnTime = currentTime;
+  }
+
+  const timeSinceLastSpawn = currentTime - updatedSpawnTime;
+
+  // Spawn obstacles on level up OR periodically during gameplay (every 1.5 seconds)
+  const shouldSpawnObstacle =
+    GAME_CONFIG.enableObstacles &&
+    phaseConfig?.obstaclesEnabled !== false &&
+    (level > previousLevel || // Spawn on level up
+      (updatedSpawnTime > 0 && timeSinceLastSpawn >= OBSTACLE_CONFIG.spawnInterval)); // Spawn periodically
+
+  if (shouldSpawnObstacle) {
+    const previousObstaclesCount = newObstacles.length;
+    newObstacles = generateObstacles(
+      level,
+      snake,
+      newObstacles,
+      GAME_CONFIG.gridSize,
+      phaseConfig?.obstaclesEnabled,
+      phaseConfig?.obstaclesFrequency ?? OBSTACLE_CONFIG.spawnChance,
+    );
+    // Update spawn time whenever we attempt to spawn (even if no obstacles were created)
+    updatedSpawnTime = currentTime;
+    // Update statistics - obstacles encountered
+    if (newObstacles.length > previousObstaclesCount) {
+      statistics = {
+        ...statistics,
+        obstaclesEncountered:
+          statistics.obstaclesEncountered + (newObstacles.length - previousObstaclesCount),
+      };
+    }
+  } else if (phaseConfig?.obstaclesEnabled === false) {
+    // Clear obstacles if phase doesn't allow them
+    newObstacles = [];
+  }
+
+  return {
+    obstacles: newObstacles,
+    statistics,
+    lastSpawnTime: updatedSpawnTime,
+  };
+}
+
+// ============================================================================
+// Helper Functions - Poison Shots
+// ============================================================================
+
+interface PoisonShotsObstaclesResult {
+  poisonShots: import('@/types/game').PoisonShot[];
+  obstacles: Obstacle[];
+  particles: Particle[];
+}
+
+/**
+ * Handle poison shots movement and obstacle destruction
+ * Returns updated shots, obstacles (with destroyed ones removed), and particles
+ */
+function handlePoisonShotsObstacles(
+  poisonShots: import('@/types/game').PoisonShot[],
+  obstacles: Obstacle[],
+  particles: Particle[],
+): PoisonShotsObstaclesResult {
+  // Update poison shots: move them and check collisions with obstacles
+  const poisonUpdateResult = updatePoisonShots(poisonShots, GAME_CONFIG.gridSize, obstacles);
+
+  const newPoisonShots = poisonUpdateResult.shots;
+  let newObstacles = obstacles;
+  let newParticles = particles;
+
+  // Process obstacles hit by poison shots (destroy obstacles)
+  if (POISON_CONFIG.canDestroyObstacles && poisonUpdateResult.hitObstacles.length > 0) {
+    // Get IDs of obstacles that were hit
+    const hitObstacleIds = new Set(poisonUpdateResult.hitObstacles.map((obs) => obs.id));
+
+    // Remove all hit obstacles
+    newObstacles = newObstacles.filter((obs) => !hitObstacleIds.has(obs.id));
+
+    // Create destruction particles for each hit obstacle
+    poisonUpdateResult.hitObstacles.forEach((hitObstacle) => {
+      if (GAME_CONFIG.enableParticles) {
+        newParticles = [
+          ...newParticles,
+          ...createParticles(hitObstacle.position, '#ef4444', 8, 400),
+        ];
+      }
+    });
+  }
+
+  return {
+    poisonShots: newPoisonShots,
+    obstacles: newObstacles,
+    particles: newParticles,
+  };
+}
+
 export function useGameLoop() {
   const {
     gameState,
@@ -95,63 +483,16 @@ export function useGameLoop() {
         return prev;
       }
 
-      // Handle reverse controls
-      const reverseControls = hasReverseControls(prev.activePowerUps);
-      let currentDirection = prev.direction;
-      let nextDirectionInput = prev.nextDirection;
+      // Handle direction changes with reverse controls and safety checks
+      const currentActivePowerUps = getActivePowerUps(prev.activePowerUps);
+      const currentDirection = handleDirection(
+        prev.direction,
+        prev.nextDirection,
+        prev.snake,
+        currentActivePowerUps,
+      );
 
-      // Reverse the input direction if reverse controls are active
-      if (reverseControls && prev.nextDirection !== prev.direction) {
-        nextDirectionInput = getOppositeDirection(prev.nextDirection);
-      }
-
-      // Apply direction change immediately if valid and safe
-      // This provides maximum responsiveness for rapid key presses
-      if (
-        nextDirectionInput !== prev.direction &&
-        isValidDirectionChange(prev.direction, nextDirectionInput)
-      ) {
-        // Check if direction change is safe (won't cause collision)
-        const isSafe = isSafeDirectionChange(
-          prev.snake,
-          prev.direction,
-          nextDirectionInput,
-          GAME_CONFIG.gridSize,
-        );
-
-        if (isSafe) {
-          // Apply immediately for instant response to rapid key presses
-          currentDirection = nextDirectionInput;
-        } else {
-          // For turns (left/right when going up/down or vice versa), be more lenient
-          // Allow the turn if it won't cause immediate collision with the next segment
-          // This makes left/right turns much more responsive and fluid
-          const head = prev.snake[0];
-          if (head) {
-            const nextPos = getNextHeadPosition(head, nextDirectionInput, GAME_CONFIG.gridSize);
-            // Only block if it would collide with the very next body segment
-            // This allows much more responsive turns, especially left/right
-            const wouldHitNextSegment =
-              prev.snake.length > 1 &&
-              prev.snake[1]?.x === nextPos.x &&
-              prev.snake[1]?.y === nextPos.y;
-
-            if (!wouldHitNextSegment) {
-              // Safe to turn - apply immediately for instant responsiveness
-              currentDirection = nextDirectionInput;
-            } else {
-              // Would hit next segment - keep current direction but queue for next check
-              currentDirection = prev.direction;
-            }
-          } else {
-            currentDirection = prev.direction;
-          }
-        }
-      } else {
-        // Use the current direction
-        currentDirection = prev.direction;
-      }
-
+      // Move snake with new direction
       let newSnake = moveSnake(prev.snake, currentDirection, GAME_CONFIG.gridSize, false);
 
       // Initialize particles early for portal teleportation
@@ -160,36 +501,16 @@ export function useGameLoop() {
         ? updateParticles(prev.particles, PERFORMANCE_CONFIG.maxParticles)
         : prev.particles;
 
-      // Check for portal teleportation BEFORE collision checks
-      const activePortals = getActivePortals(prev.portals, PERFORMANCE_CONFIG.maxPortals);
-      let headPosition = newSnake[0];
-      if (headPosition) {
-        const portalAtHead = getPortalAtPosition(headPosition, activePortals);
-        if (portalAtHead) {
-          const pairedPortal = getPortalPair(portalAtHead, activePortals);
-          if (pairedPortal) {
-            // Teleport to paired portal, maintaining direction
-            newSnake = [{ ...pairedPortal.position }, ...newSnake.slice(1)];
-            headPosition = newSnake[0]; // Update head position after teleportation
-
-            // Create teleportation particles
-            if (GAME_CONFIG.enableParticles) {
-              const portalColor = PORTAL_CONFIG.colors.portal1.primary;
-              newParticles = [
-                ...newParticles,
-                ...createParticles(headPosition, portalColor, 12, 800),
-                ...createParticles(pairedPortal.position, portalColor, 12, 800),
-              ];
-            }
-          }
-        }
-      }
+      // Handle portal teleportation BEFORE collision checks
+      const portalResult = handlePortalTeleport(newSnake, prev.portals, newParticles);
+      newSnake = portalResult.snake;
+      const headPosition = portalResult.headPosition;
+      newParticles = portalResult.particles;
 
       // Filter out expired temporary obstacles
       const activeObstacles = getActiveObstacles(prev.obstacles);
 
       // Check obstacle collision (ignore if phase through is active)
-      const currentActivePowerUps = getActivePowerUps(prev.activePowerUps);
       const canPhaseThrough = hasPhaseThrough(currentActivePowerUps);
 
       // Check for collisions
@@ -234,140 +555,33 @@ export function useGameLoop() {
         headPosition.x === prev.guardianFlag.position.x &&
         headPosition.y === prev.guardianFlag.position.y;
 
-      let finalSnake = newSnake;
-      let newScore = prev.score;
-      const newActivePowerUps = [...getActivePowerUps(prev.activePowerUps)];
-      let newCombo = prev.combo;
-      let atePowerUp = false;
-      let newLives = prev.lives;
-      let newGuardianFlag = prev.guardianFlag;
-      let newGuardianFlagSide = prev.guardianFlagSide;
-
       // Initialize boss variables early (needed for flag capture check)
       let activeBoss = prev.activeBoss;
       let bossSnake = prev.bossSnake;
+      let newGuardianFlag = prev.guardianFlag;
+      let newGuardianFlagSide = prev.guardianFlagSide;
 
-      if (ateFood) {
-        // Update statistics - food eaten
-        const currentFoodCount = statistics.foodsByType[prev.food.type] ?? 0;
-        statistics = {
-          ...statistics,
-          foodsEaten: statistics.foodsEaten + 1,
-          foodsByType: {
-            ...statistics.foodsByType,
-            [prev.food.type]: currentFoodCount + 1,
-          },
-        };
+      // Process food and power-ups
+      const foodResult = handleFoodAndPowerUps(
+        ateFood,
+        prev.food,
+        newSnake,
+        prev.score,
+        prev.combo,
+        getActivePowerUps(prev.activePowerUps),
+        prev.lives,
+        newParticles,
+        statistics,
+      );
 
-        // Handle JOKER - randomly choose a positive power-up before applying effects
-        let actualFoodType = prev.food.type;
-        if (prev.food.type === FoodType.JOKER) {
-          const positiveTypes = [
-            FoodType.SPEED_BOOST,
-            FoodType.BONUS_POINTS,
-            FoodType.EXTRA_GROWTH,
-            FoodType.PHASE_THROUGH,
-          ];
-          actualFoodType =
-            positiveTypes[Math.floor(Math.random() * positiveTypes.length)] ??
-            FoodType.BONUS_POINTS;
-        }
-
-        const powerUpEffect = applyPowerUpEffect(actualFoodType, prev.score, prev.snake.length);
-
-        // Add bonus points if JOKER was eaten
-        if (prev.food.type === FoodType.JOKER) {
-          powerUpEffect.scoreIncrease += 15; // Bonus for eating joker
-        }
-
-        // Track if power-up was eaten
-        if (prev.food.type !== FoodType.NORMAL) {
-          atePowerUp = true;
-        }
-
-        // Calculate score: base points only (no multipliers for now)
-        // First food should give exactly 10 points
-        const baseScoreIncrease = powerUpEffect.scoreIncrease;
-        newScore = prev.score + baseScoreIncrease;
-
-        // Update combo AFTER calculating score (for next food)
-        if (GAME_CONFIG.enableCombos) {
-          newCombo = updateCombo(prev.combo, true);
-        }
-
-        // Create particles
-        if (GAME_CONFIG.enableParticles) {
-          const foodColor = POWER_UP_CONFIG.colors[prev.food.type]?.primary || '#ef4444';
-          newParticles = [...newParticles, ...createParticles(newSnake[0], foodColor, 8, 600)];
-        }
-
-        // Apply growth (positive or negative)
-        if (powerUpEffect.growthAmount > 0) {
-          // Grow: When snake eats, it should grow from the tail
-          // The head has already moved, so we just need to add segments at the end
-          const growthAmount = powerUpEffect.growthAmount;
-          const currentTail = finalSnake[finalSnake.length - 1];
-
-          // Add new segments at the tail position (they will move next frame)
-          for (let i = 0; i < growthAmount; i++) {
-            finalSnake = [...finalSnake, { ...currentTail }];
-          }
-        } else if (powerUpEffect.growthAmount < 0) {
-          // Shrink (for poison)
-          const shrinkAmount = Math.abs(powerUpEffect.growthAmount);
-          const minLength = 1;
-          const newLength = Math.max(minLength, finalSnake.length - shrinkAmount);
-          finalSnake = finalSnake.slice(0, newLength);
-        }
-
-        // Update statistics - max combo
-        if (newCombo.multiplier > statistics.maxCombo) {
-          statistics = {
-            ...statistics,
-            maxCombo: newCombo.multiplier,
-          };
-        }
-
-        // Handle EXTRA_LIFE power-up
-        if (prev.food.type === FoodType.EXTRA_LIFE) {
-          newLives = addLife(prev.lives);
-        }
-
-        // Activate power-up if needed
-        if (powerUpEffect.shouldActivatePowerUp) {
-          newActivePowerUps.push(createActivePowerUp(actualFoodType));
-        }
-      } else {
-        // Update combo expiration when no food eaten
-        if (GAME_CONFIG.enableCombos) {
-          newCombo = updateCombo(prev.combo, false);
-        }
-      }
-
-      // Handle Guardian flag capture - instant boss defeat!
-      // Check this OUTSIDE the ateFood block so it works independently
-      if (capturedFlag && activeBoss && activeBoss.id === 'guardian') {
-        // Player captured the flag - boss is defeated!
-        const bossReward = handleBossDefeat(activeBoss, prev);
-        newScore += bossReward.scoreIncrease;
-        newLives = addLife(prev.lives); // Flag gives extra life
-        newGuardianFlag = null; // Clear flag
-        activeBoss = undefined; // Remove boss
-        bossSnake = undefined; // Remove boss snake
-
-        // Create particles for flag capture
-        if (GAME_CONFIG.enableParticles && prev.guardianFlag) {
-          const flagColor = '#10b981'; // Green for success
-          newParticles = [
-            ...newParticles,
-            ...createParticles(prev.guardianFlag.position, flagColor, 30, 1500),
-          ];
-        }
-
-        // Clear boss ability cooldowns
-        bossAbilityCooldownsRef.current = new Map();
-        forcedFoodTypeRef.current = null;
-      }
+      const finalSnake = foodResult.snake;
+      let newScore = foodResult.score;
+      const newActivePowerUps = foodResult.activePowerUps;
+      const newCombo = foodResult.combo;
+      const atePowerUp = foodResult.atePowerUp;
+      let newLives = foodResult.lives;
+      newParticles = foodResult.particles;
+      statistics = foodResult.statistics;
 
       // Handle Guardian flag capture - instant boss defeat!
       // Check this OUTSIDE the ateFood block so it works independently
@@ -413,49 +627,20 @@ export function useGameLoop() {
       const phaseConfig = currentPhase?.config;
 
       // Generate obstacles continuously during gameplay (respecting phase configuration)
-      // Filter out expired temporary obstacles first
-      let newObstacles = getActiveObstacles(prev.obstacles);
       const currentTime = Date.now();
-
-      // Initialize spawn timer on first game start
-      if (lastObstacleSpawnRef.current === 0 && prev.status === GameStatus.PLAYING) {
-        lastObstacleSpawnRef.current = currentTime;
-      }
-
-      const timeSinceLastSpawn = currentTime - lastObstacleSpawnRef.current;
-
-      // Spawn obstacles on level up OR periodically during gameplay (every 1.5 seconds)
-      const shouldSpawnObstacle =
-        GAME_CONFIG.enableObstacles &&
-        phaseConfig?.obstaclesEnabled !== false &&
-        (newLevel > prev.level || // Spawn on level up
-          (lastObstacleSpawnRef.current > 0 &&
-            timeSinceLastSpawn >= OBSTACLE_CONFIG.spawnInterval)); // Spawn periodically
-
-      if (shouldSpawnObstacle) {
-        const previousObstaclesCount = newObstacles.length;
-        newObstacles = generateObstacles(
-          newLevel,
-          finalSnake,
-          newObstacles,
-          GAME_CONFIG.gridSize,
-          phaseConfig?.obstaclesEnabled,
-          phaseConfig?.obstaclesFrequency ?? OBSTACLE_CONFIG.spawnChance,
-        );
-        // Update spawn time whenever we attempt to spawn (even if no obstacles were created)
-        lastObstacleSpawnRef.current = currentTime;
-        // Update statistics - obstacles encountered
-        if (newObstacles.length > previousObstaclesCount) {
-          statistics = {
-            ...statistics,
-            obstaclesEncountered:
-              statistics.obstaclesEncountered + (newObstacles.length - previousObstaclesCount),
-          };
-        }
-      } else if (phaseConfig?.obstaclesEnabled === false) {
-        // Clear obstacles if phase doesn't allow them
-        newObstacles = [];
-      }
+      const obstacleResult = handleObstacles(
+        prev.obstacles,
+        newLevel,
+        prev.level,
+        finalSnake,
+        statistics,
+        phaseConfig,
+        lastObstacleSpawnRef.current,
+        currentTime,
+      );
+      let newObstacles = obstacleResult.obstacles;
+      statistics = obstacleResult.statistics;
+      lastObstacleSpawnRef.current = obstacleResult.lastSpawnTime;
 
       // Update statistics - max snake length
       if (finalSnake.length > statistics.maxSnakeLength) {
@@ -778,35 +963,18 @@ export function useGameLoop() {
         }
       }
 
-      // Update poison shots: move them and check collisions
-      // Pass obstacles to ensure collisions are detected in all cells the shot travels through
-      const poisonUpdateResult = updatePoisonShots(
+      // Update poison shots: move them and check collisions with obstacles
+      const poisonObstaclesResult = handlePoisonShotsObstacles(
         prev.poisonShots ?? [],
-        GAME_CONFIG.gridSize,
         newObstacles,
+        newParticles,
       );
-      let newPoisonShots = poisonUpdateResult.shots;
+      let newPoisonShots = poisonObstaclesResult.poisonShots;
+      newObstacles = poisonObstaclesResult.obstacles;
+      newParticles = poisonObstaclesResult.particles;
+
+      // Track shots to remove after boss collisions
       const shotsToRemove: string[] = [];
-
-      // Process obstacles hit by poison shots (destroy obstacles)
-      if (POISON_CONFIG.canDestroyObstacles && poisonUpdateResult.hitObstacles.length > 0) {
-        // Get IDs of obstacles that were hit
-        const hitObstacleIds = new Set(poisonUpdateResult.hitObstacles.map((obs) => obs.id));
-
-        // Remove all hit obstacles
-        newObstacles = newObstacles.filter((obs) => !hitObstacleIds.has(obs.id));
-
-        // Create destruction particles for each hit obstacle
-        poisonUpdateResult.hitObstacles.forEach((hitObstacle) => {
-          if (GAME_CONFIG.enableParticles) {
-            newParticles = [
-              ...newParticles,
-              ...createParticles(hitObstacle.position, '#ef4444', 8, 400),
-            ];
-          }
-        });
-      }
-      // Note: Shots that hit obstacles are already removed in updatePoisonShots
 
       // Check poison collisions with boss (defeat or weaken)
       if (POISON_CONFIG.canDefeatBoss && bossSnake) {
@@ -1277,7 +1445,7 @@ export function useGameLoop() {
         poisonShots: [...(prev.poisonShots ?? []), newPoisonShot],
       };
     });
-  }, [gameState.status, gameState.snake, gameState.direction, updateGameState]);
+  }, [gameState.status, gameState.snake, updateGameState]);
 
   return {
     gameState,

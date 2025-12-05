@@ -44,8 +44,9 @@ import {
   initializeBossSnake,
   moveBossSnake,
   calculateBossNextDirection,
-  hasBossSnakeCollision,
-  hasPlayerHitBossHead,
+  getBossHitPart,
+  weakenBossSnake,
+  canDefeatBoss,
 } from '@/utils/bossSnake';
 
 export function useGameLoop() {
@@ -377,60 +378,93 @@ export function useGameLoop() {
         bossSnake = moveBossSnake(bossSnake, nextBossDirection, GAME_CONFIG.gridSize);
       }
 
-      // Check for boss collision - player hits boss snake
+      // Check for boss collision - new strategic battle system
       if (bossSnake && headPosition) {
-        if (hasPlayerHitBossHead(finalSnake, bossSnake)) {
-          // Boss defeated! Give points and clear boss
-          if (activeBoss) {
-            const bossReward = handleBossDefeat(activeBoss, prev);
-            newScore += bossReward.scoreIncrease;
+        const hitPart = getBossHitPart(headPosition, bossSnake);
 
-            // Create particles for boss defeat
-            if (GAME_CONFIG.enableParticles && bossSnake.positions[0]) {
-              const bossColor = activeBoss.visual.color;
-              newParticles = [
-                ...newParticles,
-                ...createParticles(bossSnake.positions[0], bossColor, 20, 1000),
-              ];
+        if (hitPart === 'head') {
+          // Player hit boss head
+          if (canDefeatBoss(bossSnake)) {
+            // Boss is weakened enough - can be defeated!
+            if (activeBoss) {
+              const bossReward = handleBossDefeat(activeBoss, prev);
+              newScore += bossReward.scoreIncrease;
+
+              // Create particles for boss defeat
+              if (GAME_CONFIG.enableParticles && bossSnake.positions[0]) {
+                const bossColor = activeBoss.visual.color;
+                newParticles = [
+                  ...newParticles,
+                  ...createParticles(bossSnake.positions[0], bossColor, 30, 1500),
+                ];
+              }
+
+              // Clear boss after defeat
+              activeBoss = undefined;
+              bossSnake = undefined;
             }
-
-            // Clear boss after defeat
-            activeBoss = undefined;
-            bossSnake = undefined;
-          }
-        }
-      }
-
-      // Check for collision - player snake hits boss snake body
-      if (bossSnake && headPosition) {
-        if (hasBossSnakeCollision(headPosition, bossSnake)) {
-          // Player hit boss snake body - game over (or lose life)
-          if (isLivesEnabled() && prev.lives > 0) {
-            // Enter dying state
-            return {
-              ...prev,
-              snake: finalSnake,
-              score: newScore,
-              status: GameStatus.DYING,
-              lives: prev.lives,
-              portals: newPortals,
-              statistics,
-              bossSnake,
-            };
           } else {
-            // No lives left, game over
-            saveHighScore(newScore);
-            saveAchievements(prev.achievements);
-            return {
-              ...prev,
-              snake: finalSnake,
-              score: newScore,
-              status: GameStatus.GAME_OVER,
-              portals: newPortals,
-              highScore: Math.max(newScore, prev.highScore),
-              statistics,
-              bossSnake,
-            };
+            // Boss is still too strong - player loses life/game over
+            if (isLivesEnabled() && prev.lives > 0) {
+              // Enter dying state
+              return {
+                ...prev,
+                snake: finalSnake,
+                score: newScore,
+                status: GameStatus.DYING,
+                lives: prev.lives,
+                portals: newPortals,
+                statistics,
+                bossSnake,
+              };
+            } else {
+              // No lives left, game over
+              saveHighScore(newScore);
+              saveAchievements(prev.achievements);
+              return {
+                ...prev,
+                snake: finalSnake,
+                score: newScore,
+                status: GameStatus.GAME_OVER,
+                portals: newPortals,
+                highScore: Math.max(newScore, prev.highScore),
+                statistics,
+                bossSnake,
+              };
+            }
+          }
+        } else if (hitPart === 'body') {
+          // Player hit boss body - weaken the boss!
+          const weakenResult = weakenBossSnake(bossSnake, 2);
+          bossSnake = weakenResult.newBossSnake;
+          newScore += weakenResult.pointsEarned;
+
+          // Create particles for weakening
+          if (GAME_CONFIG.enableParticles && headPosition) {
+            const bossColor = activeBoss?.visual.color ?? '#3b82f6';
+            newParticles = [...newParticles, ...createParticles(headPosition, bossColor, 10, 600)];
+          }
+
+          // If boss was weakened to death (1 segment left)
+          if (bossSnake.positions.length <= 1) {
+            // Boss automatically defeated
+            if (activeBoss) {
+              const bossReward = handleBossDefeat(activeBoss, prev);
+              newScore += bossReward.scoreIncrease;
+
+              // Create particles for boss defeat
+              if (GAME_CONFIG.enableParticles && bossSnake.positions[0]) {
+                const bossColor = activeBoss.visual.color;
+                newParticles = [
+                  ...newParticles,
+                  ...createParticles(bossSnake.positions[0], bossColor, 30, 1500),
+                ];
+              }
+
+              // Clear boss after defeat
+              activeBoss = undefined;
+              bossSnake = undefined;
+            }
           }
         }
       }

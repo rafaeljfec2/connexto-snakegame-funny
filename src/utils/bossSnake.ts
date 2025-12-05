@@ -344,6 +344,30 @@ export function hasBossSnakeCollision(playerHead: Position, bossSnake: BossSnake
 }
 
 /**
+ * Check which part of boss snake was hit (head or body)
+ * Returns 'head' if head was hit, 'body' if body was hit, or null if no collision
+ */
+export function getBossHitPart(playerHead: Position, bossSnake: BossSnake): 'head' | 'body' | null {
+  if (!playerHead || bossSnake.positions.length === 0) {
+    return null;
+  }
+
+  const bossHead = bossSnake.positions[0];
+
+  // Check if hit head
+  if (bossHead && playerHead.x === bossHead.x && playerHead.y === bossHead.y) {
+    return 'head';
+  }
+
+  // Check if hit body (any segment except head)
+  const hitBody = bossSnake.positions
+    .slice(1)
+    .some((segment) => segment.x === playerHead.x && segment.y === playerHead.y);
+
+  return hitBody ? 'body' : null;
+}
+
+/**
  * Check collision between player snake and boss snake head
  */
 export function hasPlayerHitBossHead(playerSnake: Position[], bossSnake: BossSnake): boolean {
@@ -355,4 +379,38 @@ export function hasPlayerHitBossHead(playerSnake: Position[], bossSnake: BossSna
   }
 
   return playerHead.x === bossHead.x && playerHead.y === bossHead.y;
+}
+
+/**
+ * Weaken boss by removing segments from tail
+ * Returns new boss snake with reduced segments and points earned
+ */
+export function weakenBossSnake(
+  bossSnake: BossSnake,
+  segmentsToRemove: number = 2,
+): { newBossSnake: BossSnake; pointsEarned: number } {
+  const currentLength = bossSnake.positions.length;
+  const newLength = Math.max(1, currentLength - segmentsToRemove);
+
+  // Calculate points based on segments removed (more segments = more points)
+  const pointsEarned = segmentsToRemove * 10;
+
+  // Remove segments from tail
+  const newPositions = bossSnake.positions.slice(0, newLength);
+
+  return {
+    newBossSnake: {
+      ...bossSnake,
+      positions: newPositions,
+    },
+    pointsEarned,
+  };
+}
+
+/**
+ * Check if boss can be defeated (must be weakened first)
+ */
+export function canDefeatBoss(bossSnake: BossSnake): boolean {
+  // Boss can only be defeated when it has 3 or fewer segments
+  return bossSnake.positions.length <= 3;
 }

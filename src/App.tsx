@@ -15,7 +15,6 @@ import { TouchControls } from './components/TouchControls';
 import { GameStatus } from '@/types/game';
 import { createFinalStatistics, saveGameSession } from '@/utils/statistics';
 import styles from './App.module.css';
-import { StatusMessage } from './components/StatusMessage';
 import { PhaseDisplay } from './components/PhaseDisplay';
 import { MobileFloatingInfo } from './components/MobileFloatingInfo';
 import { StatusBar } from './components/StatusBar';
@@ -192,7 +191,7 @@ function App() {
               bossSnake={gameState.bossSnake}
             />
           </div>
-          <StatusMessage status={gameState.status} />
+
           <div className={styles.gameControls}>
             <GameControls
               onStart={handleStart}

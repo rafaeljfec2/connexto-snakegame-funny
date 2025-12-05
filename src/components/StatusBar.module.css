@@ -4,7 +4,11 @@
   justify-content: center;
   gap: 1rem;
   padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, rgba(15, 23, 42, 0.98) 0%, rgba(30, 41, 59, 0.95) 100%) !important;
+  background: linear-gradient(
+    135deg,
+    rgba(15, 23, 42, 0.98) 0%,
+    rgba(30, 41, 59, 0.95) 100%
+  ) !important;
   backdrop-filter: blur(30px) saturate(180%);
   border-radius: 12px;
   border: 2px solid rgba(255, 255, 255, 0.25) !important;
@@ -179,9 +183,7 @@
 
 @media (max-width: 768px) {
   .statusBar {
-    gap: 0.75rem;
-    padding: 0.5rem 1rem;
-    border-radius: 10px;
+    display: none !important; /* Hidden on mobile - MobileFloatingInfo shows this info */
   }
 
   .statusIcon {

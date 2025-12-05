@@ -18,6 +18,7 @@ import { createFinalStatistics, saveGameSession } from '@/utils/statistics';
 import styles from './App.module.css';
 import { StatusMessage } from './components/StatusMessage';
 import { PhaseDisplay } from './components/PhaseDisplay';
+import { MobileFloatingInfo } from './components/MobileFloatingInfo';
 
 function App() {
   const {
@@ -166,6 +167,13 @@ function App() {
 
         {/* Center Game Area */}
         <div className={styles.gameArea}>
+          <MobileFloatingInfo
+            activePowerUps={gameState.activePowerUps}
+            combo={gameState.combo}
+            snakeLength={gameState.snake.length}
+            lives={gameState.lives}
+            level={gameState.level}
+          />
           <div className={styles.gameContainer}>
             <GameBoard
               snake={gameState.snake}

@@ -493,198 +493,118 @@
   }
 }
 
+/* ============================================
+   MOBILE EXCLUSIVE LAYOUT (max-width: 768px)
+   ============================================ */
 @media (max-width: 768px) {
+  /* Compact Header - Only Essential Info */
   .title {
-    font-size: 1.25rem;
-    letter-spacing: 2px;
+    display: none; /* Hide title on mobile */
   }
 
   .header {
-    padding: 0.875rem 1rem;
+    padding: 0.5rem 0.75rem;
     flex-shrink: 0;
-  }
-
-  .main {
-    padding: 0.5rem;
-    gap: 0.5rem;
-    /* Reserve space for touch controls at bottom (control grid ~240px + margin) */
-    padding-bottom: 280px;
-    min-height: 0;
-    overflow-y: auto;
-    overflow-x: hidden;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .gameContainer {
-    padding: 1rem;
-    border-radius: 16px;
-    border-width: 1px;
-    max-width: 100%;
-    width: 100%;
-    flex-shrink: 1;
-    max-height: calc(100vh - 580px);
-    min-height: 220px;
-    aspect-ratio: 1;
-    box-sizing: border-box;
-    position: relative;
-    z-index: 1;
-  }
-
-  .gameContainer::before {
-    border-radius: 16px;
-  }
-
-  .instructions {
-    display: none; /* Hide on mobile - touch controls will be visible */
-  }
-
-  .leftPanel {
-    order: 1;
-    flex-direction: row;
-    overflow-x: auto;
-    overflow-y: hidden;
-    max-height: 80px;
-    gap: 0.75rem;
-    flex-shrink: 0;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    position: relative;
-    z-index: 2;
-    padding: 0.25rem 0;
-  }
-
-  .rightPanel {
-    order: 3;
-    flex-direction: row;
-    overflow-x: auto;
-    overflow-y: hidden;
-    max-height: 75px;
-    gap: 0.75rem;
-    flex-shrink: 0;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    position: relative;
-    z-index: 2;
-    padding: 0.25rem 0;
-  }
-
-  .leftPanel::-webkit-scrollbar,
-  .rightPanel::-webkit-scrollbar {
-    display: none;
-  }
-
-  .panelSection {
-    min-width: 160px;
-    padding: 0.75rem;
-    border-radius: 12px;
-  }
-
-  .panelTitle {
-    font-size: 0.6875rem;
-    margin: 0 0 0.5rem 0;
-    padding-bottom: 0.5rem;
-    letter-spacing: 2px;
-  }
-
-  .gameArea {
-    gap: 0.75rem;
-    padding-bottom: 0;
-    margin-bottom: 0;
-    flex: 1;
-    min-height: 0;
-    max-width: 100%;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    position: relative;
-    z-index: 1;
-  }
-
-  .gameControls {
-    margin: 0.25rem 0;
-    flex-shrink: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   }
 
   .headerContent {
-    gap: 0.75rem;
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+    justify-items: stretch;
   }
 
-  .statLabel {
-    font-size: 0.6875rem;
+  .headerStats {
+    max-width: 100%;
+    width: 100%;
+    justify-self: stretch;
   }
 
-  .statValue {
-    font-size: 0.9375rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .title {
-    font-size: 1.125rem;
-    letter-spacing: 1.5px;
+  /* Hide Side Panels - They'll be floating overlays */
+  .leftPanel,
+  .rightPanel {
+    display: none !important;
   }
 
-  .header {
-    padding: 0.75rem 0.875rem;
-  }
-
+  /* Main Game Area - Full Width, Maximized */
   .main {
     padding: 0.5rem;
-    gap: 0.5rem;
-    /* Reserve space for smaller touch controls (~180px + margin) */
-    padding-bottom: 240px;
+    gap: 0;
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr auto;
+    padding-bottom: 260px; /* Space for touch controls */
     min-height: 0;
-    overflow-y: auto;
-    overflow-x: hidden;
+    overflow: hidden;
+    position: relative;
   }
 
+  /* Game Area - Maximized */
+  .gameArea {
+    order: 1;
+    flex: 1;
+    min-height: 0;
+    gap: 0.5rem;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  /* Game Container - Maximized for Mobile */
   .gameContainer {
-    padding: 0.875rem;
-    border-radius: 14px;
-    max-height: calc(100vh - 520px);
-    min-height: 200px;
+    padding: 0.5rem;
+    border-radius: 12px;
+    border-width: 1px;
+    width: 100%;
+    max-width: 100%;
+    flex-shrink: 1;
     aspect-ratio: 1;
+    max-height: calc(100vh - 200px);
+    min-height: 0;
     box-sizing: border-box;
     position: relative;
     z-index: 1;
+    margin: 0 auto;
   }
 
   .gameContainer::before {
-    border-radius: 14px;
+    border-radius: 12px;
   }
 
-  .leftPanel,
-  .rightPanel {
-    max-height: 70px;
-    gap: 0.5rem;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-  }
-
-  .leftPanel::-webkit-scrollbar,
-  .rightPanel::-webkit-scrollbar {
+  /* Hide Instructions */
+  .instructions {
     display: none;
   }
 
-  .panelSection {
-    min-width: 140px;
-    padding: 0.625rem;
-    border-radius: 10px;
+  /* Compact Game Controls */
+  .gameControls {
+    order: 2;
+    margin: 0.5rem 0 0 0;
+    flex-shrink: 0;
+    z-index: 10;
   }
 
-  .panelTitle {
-    font-size: 0.625rem;
-    margin: 0 0 0.375rem 0;
-    padding-bottom: 0.375rem;
-    letter-spacing: 1.5px;
+  /* Hide Instructions on mobile */
+  .instructions {
+    display: none !important;
   }
-
+  
+  /* Ensure floating info is visible and game area is positioned */
   .gameArea {
-    gap: 0.5rem;
     position: relative;
-    z-index: 1;
+  }
+  
+  /* Show Status Message and Controls on mobile */
+  .gameArea > * {
+    flex-shrink: 0;
   }
 
+  /* Compact Stats in Header */
   .statLabel {
     font-size: 0.625rem;
   }
@@ -692,8 +612,41 @@
   .statValue {
     font-size: 0.875rem;
   }
+}
+
+@media (max-width: 480px) {
+  /* Even More Compact Header */
+  .header {
+    padding: 0.4rem 0.5rem;
+  }
+
+  .main {
+    padding: 0.4rem;
+    padding-bottom: 220px; /* Space for smaller touch controls */
+  }
+
+  /* Maximized Game Container */
+  .gameContainer {
+    padding: 0.4rem;
+    border-radius: 10px;
+    max-height: calc(100vh - 180px);
+    min-height: 200px;
+  }
+
+  .gameContainer::before {
+    border-radius: 10px;
+  }
+
+  /* Ultra Compact Stats */
+  .statLabel {
+    font-size: 0.5625rem;
+  }
+
+  .statValue {
+    font-size: 0.8125rem;
+  }
 
   .headerContent {
-    gap: 0.625rem;
+    gap: 0.4rem;
   }
 }

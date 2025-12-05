@@ -66,6 +66,7 @@ export function useGameLoop() {
   const lastUpdateTimeRef = useRef<number>(0);
   const deathTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const bossAbilityCooldownsRef = useRef<Map<string, number>>(new Map());
+  const forcedFoodTypeRef = useRef<FoodType | null>(null);
 
   const updateGame = useCallback(() => {
     updateGameState((prev: GameState) => {
@@ -342,6 +343,8 @@ export function useGameLoop() {
       const foodExpired = hasFoodExpired(prev.food);
 
       // Generate food with phase-specific configurations
+      // Use forced food type if chaos_powerups is active
+      const forcedFoodType = forcedFoodTypeRef.current;
       const newFood =
         ateFood || foodExpired
           ? generateRandomFood(
@@ -350,8 +353,14 @@ export function useGameLoop() {
               newObstacles,
               phaseConfig?.powerUpsFrequency,
               phaseConfig?.timedFoodFrequency,
+              forcedFoodType ?? undefined,
             )
           : prev.food;
+
+      // Clear forced food type after using it (only applies to next food)
+      if (forcedFoodType && (ateFood || foodExpired)) {
+        forcedFoodTypeRef.current = null;
+      }
 
       // Handle PORTAL power-up - create portal pair when food is eaten
       // Only if portals are enabled in current phase
@@ -387,11 +396,13 @@ export function useGameLoop() {
           undefined;
         // Clear cooldowns for new boss
         bossAbilityCooldownsRef.current = new Map();
+        forcedFoodTypeRef.current = null;
       } else if (!activeBoss) {
         // Boss was removed or not active - clear boss snake
         bossSnake = undefined;
         // Clear cooldowns when boss is removed
         bossAbilityCooldownsRef.current = new Map();
+        forcedFoodTypeRef.current = null;
       } else if (bossSnake && activeBoss) {
         // Move boss snake based on AI behavior
         const nextBossDirection = calculateBossNextDirection(
@@ -453,7 +464,10 @@ export function useGameLoop() {
           newLives = abilityResult.result.lives;
         }
 
-        // Note: chaos_powerups foodType is handled during food generation below
+        // Handle chaos_powerups - force food type
+        if (abilityResult.result.forceFoodType && abilityResult.result.foodType) {
+          forcedFoodTypeRef.current = abilityResult.result.foodType;
+        }
       }
 
       // Check for boss collision - new strategic battle system
@@ -482,6 +496,7 @@ export function useGameLoop() {
               bossSnake = undefined;
               // Clear ability cooldowns
               bossAbilityCooldownsRef.current = new Map();
+              forcedFoodTypeRef.current = null;
             }
           } else {
             // Boss is still too strong - player loses life/game over
@@ -546,6 +561,7 @@ export function useGameLoop() {
               bossSnake = undefined;
               // Clear ability cooldowns
               bossAbilityCooldownsRef.current = new Map();
+              forcedFoodTypeRef.current = null;
             }
           }
         }

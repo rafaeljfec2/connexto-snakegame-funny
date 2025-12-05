@@ -231,9 +231,10 @@ export function generateRandomFood(
   obstacles: Obstacle[] = [],
   powerUpFrequency?: number,
   timedFoodFrequency?: number,
+  forcedType?: FoodType,
 ): Food {
   const position = generateRandomPosition(snake, gridSize, obstacles);
-  const type = getRandomFoodType(powerUpFrequency);
+  const type = forcedType ?? getRandomFoodType(powerUpFrequency);
 
   const food: Food = {
     position,

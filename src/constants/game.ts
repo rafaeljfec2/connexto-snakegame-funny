@@ -88,4 +88,6 @@ export const PERFORMANCE_CONFIG = {
 export const CONTROL_CONFIG = {
   // Minimum time between direction changes (in milliseconds) - reduces sensitivity
   directionChangeCooldown: 50, // 50ms cooldown between direction changes - reduces sensitivity slightly
+  // Time to hold direction key before activating speed boost (in milliseconds)
+  speedBoostActivationDelay: 200, // 1 second (1000ms) before speed boost activates
 } as const;

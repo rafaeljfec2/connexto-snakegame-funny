@@ -1,6 +1,6 @@
 import { useEffect, useCallback, useRef } from 'react';
 import { Direction } from '@/types/game';
-import { KEYBOARD_MAP } from '@/constants/game';
+import { KEYBOARD_MAP, CONTROL_CONFIG } from '@/constants/game';
 
 interface UseKeyboardProps {
   onDirectionChange: (direction: Direction) => void;
@@ -22,6 +22,7 @@ export function useKeyboard({
   const pressedKeysRef = useRef<Set<string>>(new Set());
   const speedBoostActiveRef = useRef(false);
   const poisonFireActiveRef = useRef(false);
+  const speedBoostTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
@@ -34,12 +35,26 @@ export function useKeyboard({
         event.preventDefault();
         event.stopPropagation();
 
-        // Track pressed keys (for future use, not for automatic speed boost)
+        // Track pressed keys
         if (!pressedKeysRef.current.has(event.key)) {
           pressedKeysRef.current.add(event.key);
+
+          // Start timer to activate speed boost after 1 second
+          if (onSpeedBoost && !speedBoostActiveRef.current) {
+            const timerId = setTimeout(() => {
+              // Only activate if key is still pressed
+              if (pressedKeysRef.current.has(event.key)) {
+                speedBoostActiveRef.current = true;
+                onSpeedBoost(true);
+              }
+              speedBoostTimersRef.current.delete(event.key);
+            }, CONTROL_CONFIG.speedBoostActivationDelay);
+
+            speedBoostTimersRef.current.set(event.key, timerId);
+          }
         }
 
-        // Apply direction change - no automatic speed boost
+        // Apply direction change
         onDirectionChange(direction);
         return;
       }
@@ -84,13 +99,27 @@ export function useKeyboard({
         event.preventDefault();
         event.stopPropagation();
 
+        // Cancel speed boost timer for this key
+        const timerId = speedBoostTimersRef.current.get(event.key);
+        if (timerId) {
+          clearTimeout(timerId);
+          speedBoostTimersRef.current.delete(event.key);
+        }
+
         // Remove from pressed keys
         pressedKeysRef.current.delete(event.key);
 
         // Deactivate speed boost if no direction keys are pressed
-        if (pressedKeysRef.current.size === 0 && speedBoostActiveRef.current && onSpeedBoost) {
-          speedBoostActiveRef.current = false;
-          onSpeedBoost(false);
+        if (pressedKeysRef.current.size === 0) {
+          // Cancel all remaining timers
+          speedBoostTimersRef.current.forEach((timer) => clearTimeout(timer));
+          speedBoostTimersRef.current.clear();
+
+          // Deactivate speed boost
+          if (speedBoostActiveRef.current && onSpeedBoost) {
+            speedBoostActiveRef.current = false;
+            onSpeedBoost(false);
+          }
         }
       }
 
@@ -112,6 +141,9 @@ export function useKeyboard({
   useEffect(() => {
     if (!enabled) {
       // When disabled (game paused/ended), reset speed boost and clear pressed keys
+      // Cancel all timers
+      speedBoostTimersRef.current.forEach((timer) => clearTimeout(timer));
+      speedBoostTimersRef.current.clear();
       pressedKeysRef.current.clear();
       if (speedBoostActiveRef.current && onSpeedBoost) {
         speedBoostActiveRef.current = false;
@@ -132,7 +164,9 @@ export function useKeyboard({
     return () => {
       window.removeEventListener('keydown', handleKeyDown, { capture: true });
       window.removeEventListener('keyup', handleKeyUp, { capture: true });
-      // Reset on cleanup - also deactivate speed boost in game state
+      // Reset on cleanup - cancel all timers and deactivate speed boost
+      speedBoostTimersRef.current.forEach((timer) => clearTimeout(timer));
+      speedBoostTimersRef.current.clear();
       pressedKeysRef.current.clear();
       if (speedBoostActiveRef.current && onSpeedBoost) {
         speedBoostActiveRef.current = false;

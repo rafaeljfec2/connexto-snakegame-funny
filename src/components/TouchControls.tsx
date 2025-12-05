@@ -1,5 +1,6 @@
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useEffect } from 'react';
 import { Direction } from '@/types/game';
+import { CONTROL_CONFIG } from '@/constants/game';
 import styles from './TouchControls.module.css';
 
 interface TouchControlsProps {
@@ -20,6 +21,8 @@ export function TouchControls({
   const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
   const lastDirectionRef = useRef<Direction | null>(null);
   const pressedButtonsRef = useRef<Set<Direction>>(new Set());
+  const speedBoostActiveRef = useRef(false);
+  const speedBoostTimersRef = useRef<Map<Direction, ReturnType<typeof setTimeout>>>(new Map());
   const MIN_SWIPE_DISTANCE = 30; // Minimum distance in pixels for a swipe
   const MAX_SWIPE_TIME = 300; // Maximum time in ms for a swipe
 
@@ -97,11 +100,20 @@ export function TouchControls({
       // Add to pressed buttons
       if (!pressedButtonsRef.current.has(direction)) {
         pressedButtonsRef.current.add(direction);
-      }
 
-      // Activate speed boost if button is held
-      if (pressedButtonsRef.current.size > 0 && onSpeedBoost) {
-        onSpeedBoost(true);
+        // Start timer to activate speed boost after 1 second
+        if (onSpeedBoost && !speedBoostActiveRef.current) {
+          const timerId = setTimeout(() => {
+            // Only activate if button is still pressed
+            if (pressedButtonsRef.current.has(direction)) {
+              speedBoostActiveRef.current = true;
+              onSpeedBoost(true);
+            }
+            speedBoostTimersRef.current.delete(direction);
+          }, CONTROL_CONFIG.speedBoostActivationDelay);
+
+          speedBoostTimersRef.current.set(direction, timerId);
+        }
       }
 
       onDirectionChange(direction);
@@ -114,12 +126,27 @@ export function TouchControls({
       if (!enabled) return;
       e.preventDefault();
 
+      // Cancel speed boost timer for this button
+      const timerId = speedBoostTimersRef.current.get(direction);
+      if (timerId) {
+        clearTimeout(timerId);
+        speedBoostTimersRef.current.delete(direction);
+      }
+
       // Remove from pressed buttons
       pressedButtonsRef.current.delete(direction);
 
       // Deactivate speed boost if no buttons are pressed
-      if (pressedButtonsRef.current.size === 0 && onSpeedBoost) {
-        onSpeedBoost(false);
+      if (pressedButtonsRef.current.size === 0) {
+        // Cancel all remaining timers
+        speedBoostTimersRef.current.forEach((timer) => clearTimeout(timer));
+        speedBoostTimersRef.current.clear();
+
+        // Deactivate speed boost
+        if (speedBoostActiveRef.current && onSpeedBoost) {
+          speedBoostActiveRef.current = false;
+          onSpeedBoost(false);
+        }
       }
     },
     [enabled, onSpeedBoost],
@@ -132,6 +159,20 @@ export function TouchControls({
     },
     [enabled, onDirectionChange],
   );
+
+  // Cleanup timers when disabled
+  useEffect(() => {
+    if (!enabled) {
+      // Cancel all timers and reset state
+      speedBoostTimersRef.current.forEach((timer) => clearTimeout(timer));
+      speedBoostTimersRef.current.clear();
+      pressedButtonsRef.current.clear();
+      if (speedBoostActiveRef.current && onSpeedBoost) {
+        speedBoostActiveRef.current = false;
+        onSpeedBoost(false);
+      }
+    }
+  }, [enabled, onSpeedBoost]);
 
   if (!enabled) return null;
 

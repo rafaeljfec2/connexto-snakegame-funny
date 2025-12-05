@@ -43,7 +43,7 @@ export function movePoisonShot(shot: PoisonShot, gridSize: number): PoisonShot |
       break;
   }
 
-  // Check if out of bounds
+  // Check if out of bounds - poison travels until it hits the edge of the field
   if (
     newPosition.x < 0 ||
     newPosition.x >= gridSize ||
@@ -53,24 +53,21 @@ export function movePoisonShot(shot: PoisonShot, gridSize: number): PoisonShot |
     return null; // Remove shot if out of bounds
   }
 
-  // Calculate distance traveled from start position
-  const distanceFromStart =
+  // Poison travels across entire field - no distance limit, only stops at boundaries
+  // Calculate distance traveled for tracking (but no limit is enforced)
+  const distanceTraveled =
     Math.abs(newPosition.x - shot.startPosition.x) + Math.abs(newPosition.y - shot.startPosition.y);
-
-  // Check if exceeded max distance
-  if (distanceFromStart >= shot.maxDistance) {
-    return null; // Remove shot if exceeded max distance
-  }
 
   return {
     ...shot,
     position: newPosition,
-    distanceTraveled: distanceFromStart,
+    distanceTraveled,
   };
 }
 
 /**
- * Update all poison shots, removing ones that are out of bounds or exceeded max distance
+ * Update all poison shots, removing ones that are out of bounds
+ * Poison travels across entire field until it hits the edge
  */
 export function updatePoisonShots(shots: PoisonShot[], gridSize: number): PoisonShot[] {
   return shots

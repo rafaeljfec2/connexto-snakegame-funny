@@ -528,10 +528,10 @@
 
   /* Main Game Area - Full Width, Maximized */
   .main {
-    padding: 0.5rem;
+    padding: 0;
     gap: 0;
     grid-template-columns: 1fr;
-    grid-template-rows: 1fr auto;
+    grid-template-rows: 1fr;
     padding-bottom: 260px; /* Space for touch controls */
     min-height: 0;
     overflow: hidden;
@@ -544,7 +544,7 @@
     flex: 1;
     min-height: 0;
     gap: 0.5rem;
-    padding: 0;
+    padding: 0.5rem;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
@@ -553,6 +553,7 @@
     z-index: 1;
     width: 100%;
     max-width: 100%;
+    overflow: hidden;
   }
 
   /* Game Container - Maximized for Mobile */
@@ -561,15 +562,15 @@
     border-radius: 12px;
     border-width: 1px;
     width: 100%;
-    max-width: 100%;
-    flex-shrink: 1;
-    aspect-ratio: 1;
-    max-height: calc(100vh - 280px);
+    flex: 1 1 auto;
     min-height: 0;
     box-sizing: border-box;
     position: relative;
     z-index: 1;
     margin: 0 auto;
+    aspect-ratio: 1;
+    max-width: calc(100vw - 1rem);
+    max-height: calc(100vh - 320px);
   }
 
   .gameContainer::before {
@@ -581,12 +582,9 @@
     display: none;
   }
 
-  /* Compact Game Controls */
+  /* Compact Game Controls - Hidden on mobile, touch controls used instead */
   .gameControls {
-    order: 2;
-    margin: 0.5rem 0 0 0;
-    flex-shrink: 0;
-    z-index: 10;
+    display: none !important;
   }
 
   /* Hide Instructions on mobile */
@@ -609,9 +607,23 @@
     display: flex !important;
     visibility: visible !important;
     opacity: 1 !important;
-    margin: 0.5rem auto 0.25rem auto;
+    margin: 0 auto 0.5rem auto;
     order: 1;
     flex-shrink: 0;
+    width: 95%;
+    max-width: 95%;
+  }
+
+  /* GameContainer order after StatusBar */
+  .gameArea > .gameContainer {
+    order: 2;
+    flex: 1;
+    min-height: 0;
+  }
+
+  /* Hide StatusMessage and Controls on mobile - they're redundant */
+  .gameArea > :global(.statusMessage) {
+    display: none !important;
   }
 
   /* Compact Stats in Header */
@@ -631,25 +643,31 @@
   }
 
   .main {
-    padding: 0.4rem;
+    padding: 0;
     padding-bottom: 220px; /* Space for smaller touch controls */
+  }
+
+  /* Game Area - Even more compact on small screens */
+  .gameArea {
+    gap: 0.25rem;
+    padding: 0.4rem;
   }
 
   /* Maximized Game Container */
   .gameContainer {
     padding: 0.4rem;
     border-radius: 10px;
-    max-height: calc(100vh - 200px);
-    min-height: 200px;
-  }
-
-  /* Game Area - Even more compact on small screens */
-  .gameArea {
-    gap: 0.2rem;
   }
 
   .gameContainer::before {
     border-radius: 10px;
+  }
+
+  /* StatusBar - More compact */
+  .gameArea > :global(.statusBar) {
+    width: 98%;
+    max-width: 98%;
+    margin: 0 auto 0.4rem auto;
   }
 
   /* Ultra Compact Stats */

@@ -564,13 +564,18 @@
     width: 100%;
     flex: 1 1 auto;
     min-height: 0;
+    max-height: 100%;
     box-sizing: border-box;
     position: relative;
     z-index: 1;
     margin: 0 auto;
     aspect-ratio: 1;
-    max-width: calc(100vw - 1rem);
-    max-height: calc(100vh - 320px);
+    max-width: min(calc(100vw - 1rem), calc(100vh - 320px));
+    max-height: min(calc(100vw - 1rem), calc(100vh - 320px));
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .gameContainer::before {
@@ -661,6 +666,8 @@
   .gameContainer {
     padding: 0.4rem;
     border-radius: 10px;
+    max-width: min(calc(100vw - 0.8rem), calc(100vh - 280px));
+    max-height: min(calc(100vw - 0.8rem), calc(100vh - 280px));
   }
 
   .gameContainer::before {

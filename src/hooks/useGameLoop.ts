@@ -56,6 +56,15 @@ import {
   getFlagOffsetFromBossHead,
 } from '@/utils/bossAbilities';
 import { generateBossInitialResources } from '@/utils/bossResources';
+import {
+  createPoisonShot,
+  updatePoisonShots,
+  hasObstacleCollision as hasPoisonObstacleCollision,
+  hasBossHeadCollision,
+  hasBossBodyCollision,
+  getHitObstacle,
+} from '@/utils/poison';
+import { POISON_CONFIG } from '@/constants/game';
 
 export function useGameLoop() {
   const {
@@ -737,6 +746,118 @@ export function useGameLoop() {
         }
       }
 
+      // Update poison shots: move them and check collisions
+      let newPoisonShots = updatePoisonShots(prev.poisonShots ?? [], GAME_CONFIG.gridSize);
+      const shotsToRemove: string[] = [];
+
+      // Check poison collisions with obstacles (destroy obstacles)
+      if (POISON_CONFIG.canDestroyObstacles) {
+        newPoisonShots.forEach((shot) => {
+          if (hasPoisonObstacleCollision(shot, newObstacles)) {
+            const hitObstacle = getHitObstacle(shot, newObstacles);
+            if (hitObstacle) {
+              // Remove the obstacle
+              newObstacles = newObstacles.filter((obs) => obs.id !== hitObstacle.id);
+              shotsToRemove.push(shot.id);
+              // Create destruction particles
+              if (GAME_CONFIG.enableParticles) {
+                newParticles = [
+                  ...newParticles,
+                  ...createParticles(shot.position, '#ef4444', 8, 400),
+                ];
+              }
+            }
+          }
+        });
+      }
+
+      // Check poison collisions with boss (defeat or weaken)
+      if (POISON_CONFIG.canDefeatBoss && bossSnake) {
+        newPoisonShots.forEach((shot) => {
+          if (!bossSnake) return; // Safety check
+
+          if (hasBossHeadCollision(shot, bossSnake)) {
+            // Poison hit boss head - defeat or weaken!
+            shotsToRemove.push(shot.id);
+            if (activeBoss && bossSnake) {
+              if (canDefeatBoss(bossSnake)) {
+                // Boss is weakened - defeat!
+                const bossReward = handleBossDefeat(activeBoss, prev);
+                newScore += bossReward.scoreIncrease;
+
+                // Create particles for boss defeat
+                if (GAME_CONFIG.enableParticles && bossSnake.positions[0]) {
+                  const bossColor = activeBoss.visual.color;
+                  newParticles = [
+                    ...newParticles,
+                    ...createParticles(bossSnake.positions[0], bossColor, 30, 1500),
+                  ];
+                }
+
+                // Clear boss after defeat
+                activeBoss = undefined;
+                bossSnake = undefined;
+                bossAbilityCooldownsRef.current = new Map();
+                forcedFoodTypeRef.current = null;
+              } else {
+                // Weaken the boss
+                const weakenResult = weakenBossSnake(bossSnake, 1);
+                bossSnake = weakenResult.newBossSnake;
+                newScore += weakenResult.pointsEarned;
+
+                // Create particles for weakening
+                if (GAME_CONFIG.enableParticles && shot.position) {
+                  const bossColor = activeBoss.visual.color;
+                  newParticles = [
+                    ...newParticles,
+                    ...createParticles(shot.position, bossColor, 10, 600),
+                  ];
+                }
+              }
+            }
+          } else if (hasBossBodyCollision(shot, bossSnake)) {
+            // Poison hit boss body - weaken!
+            shotsToRemove.push(shot.id);
+            if (activeBoss && bossSnake) {
+              const weakenResult = weakenBossSnake(bossSnake, 1);
+              bossSnake = weakenResult.newBossSnake;
+              newScore += weakenResult.pointsEarned;
+
+              // Create particles for weakening
+              if (GAME_CONFIG.enableParticles && shot.position) {
+                const bossColor = activeBoss.visual.color;
+                newParticles = [
+                  ...newParticles,
+                  ...createParticles(shot.position, bossColor, 8, 500),
+                ];
+              }
+
+              // If boss was weakened to death (1 segment left)
+              if (bossSnake && bossSnake.positions.length <= 1) {
+                const bossReward = handleBossDefeat(activeBoss, prev);
+                newScore += bossReward.scoreIncrease;
+
+                if (GAME_CONFIG.enableParticles && bossSnake.positions[0]) {
+                  const bossColor = activeBoss.visual.color;
+                  newParticles = [
+                    ...newParticles,
+                    ...createParticles(bossSnake.positions[0], bossColor, 30, 1500),
+                  ];
+                }
+
+                activeBoss = undefined;
+                bossSnake = undefined;
+                bossAbilityCooldownsRef.current = new Map();
+                forcedFoodTypeRef.current = null;
+              }
+            }
+          }
+        });
+      }
+
+      // Remove shots that hit something
+      newPoisonShots = newPoisonShots.filter((shot) => !shotsToRemove.includes(shot.id));
+
       // Clean expired power-ups
       const activePowerUps = getActivePowerUps(newActivePowerUps);
 
@@ -802,6 +923,7 @@ export function useGameLoop() {
         guardianFlag: newGuardianFlag,
         guardianFlagSide: newGuardianFlagSide,
         particles: newParticles,
+        poisonShots: newPoisonShots,
         achievements: updatedAchievements,
         lives: newLives,
         statistics,
@@ -946,6 +1068,7 @@ export function useGameLoop() {
           lastFoodTime: 0,
         },
         particles: [],
+        poisonShots: [],
         statistics, // Keep statistics when continuing
       };
     });
@@ -1066,6 +1189,27 @@ export function useGameLoop() {
     }
   }, [gameState.status]);
 
+  // Function to fire poison shot - fires immediately without cooldown for rapid shooting
+  const firePoison = useCallback(() => {
+    if (gameState.status !== GameStatus.PLAYING) {
+      return; // Can only fire when playing
+    }
+
+    const headPosition = gameState.snake[0];
+    if (!headPosition) {
+      return; // No head position available
+    }
+
+    updateGameState((prev) => {
+      const newPoisonShot = createPoisonShot(headPosition, prev.direction);
+
+      return {
+        ...prev,
+        poisonShots: [...(prev.poisonShots ?? []), newPoisonShot],
+      };
+    });
+  }, [gameState.status, gameState.snake, gameState.direction, updateGameState]);
+
   return {
     gameState,
     resetGame,
@@ -1075,5 +1219,6 @@ export function useGameLoop() {
     setSpeedBoost,
     handleKeyPress,
     spawnBoss,
+    firePoison,
   };
 }

@@ -6,6 +6,7 @@ interface UseKeyboardProps {
   onDirectionChange: (direction: Direction) => void;
   onSpeedBoost?: (isBoosted: boolean) => void;
   onKeyPress?: (key: string) => void;
+  onFirePoison?: () => void;
   enabled?: boolean;
 }
 
@@ -13,6 +14,7 @@ export function useKeyboard({
   onDirectionChange,
   onSpeedBoost,
   onKeyPress,
+  onFirePoison,
   enabled = true,
 }: UseKeyboardProps) {
   const pressedKeysRef = useRef<Set<string>>(new Set());
@@ -45,11 +47,19 @@ export function useKeyboard({
         return;
       }
 
+      // Check for poison shot key (X or Space)
+      if ((event.key === 'x' || event.key === 'X' || event.key === ' ') && onFirePoison) {
+        event.preventDefault();
+        event.stopPropagation();
+        onFirePoison();
+        return;
+      }
+
       if (onKeyPress !== undefined) {
         onKeyPress(event.key);
       }
     },
-    [enabled, onDirectionChange, onSpeedBoost, onKeyPress],
+    [enabled, onDirectionChange, onSpeedBoost, onKeyPress, onFirePoison],
   );
 
   const handleKeyUp = useCallback(

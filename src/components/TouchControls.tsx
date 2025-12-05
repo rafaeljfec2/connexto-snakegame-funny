@@ -5,12 +5,14 @@ import styles from './TouchControls.module.css';
 interface TouchControlsProps {
   onDirectionChange: (direction: Direction) => void;
   onSpeedBoost?: (isBoosted: boolean) => void;
+  onFirePoison?: () => void;
   enabled?: boolean;
 }
 
 export function TouchControls({
   onDirectionChange,
   onSpeedBoost,
+  onFirePoison,
   enabled = true,
 }: TouchControlsProps) {
   const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
@@ -165,7 +167,14 @@ export function TouchControls({
           <span className={styles.buttonIcon}>←</span>
         </button>
 
-        <div className={styles.centerSpace} />
+        <button
+          className={`${styles.poisonButton} ${styles.centerSpace}`}
+          onClick={() => onFirePoison?.()}
+          aria-label='Fire Poison'
+          type='button'
+        >
+          <span className={styles.poisonIcon}>💚</span>
+        </button>
 
         <button
           className={`${styles.directionButton} ${styles.rightButton}`}

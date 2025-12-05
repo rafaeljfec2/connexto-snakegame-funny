@@ -31,6 +31,7 @@ function App() {
     setSpeedBoost,
     handleKeyPress,
     spawnBoss,
+    firePoison,
   } = useGameLoop();
 
   const [showLevelUp, setShowLevelUp] = useState(false);
@@ -50,6 +51,7 @@ function App() {
     onDirectionChange: setDirection,
     onSpeedBoost: setSpeedBoost,
     onKeyPress: handleKeyPress,
+    onFirePoison: firePoison,
     enabled: gameState.status === GameStatus.PLAYING,
   });
 
@@ -228,6 +230,7 @@ function App() {
               obstacles={gameState.obstacles}
               portals={gameState.portals}
               particles={gameState.particles}
+              poisonShots={gameState.poisonShots}
               activeBoss={gameState.activeBoss}
               bossSnake={gameState.bossSnake}
               guardianFlag={gameState.guardianFlag}
@@ -282,6 +285,7 @@ function App() {
       <TouchControls
         onDirectionChange={setDirection}
         onSpeedBoost={setSpeedBoost}
+        onFirePoison={firePoison}
         enabled={gameState.status === GameStatus.PLAYING}
       />
 

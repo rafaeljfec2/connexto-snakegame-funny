@@ -82,6 +82,16 @@ export interface Particle {
   startTime: number;
 }
 
+export interface PoisonShot {
+  id: string;
+  position: Position;
+  direction: Direction;
+  spawnTime: number;
+  maxDistance: number; // Maximum distance the poison can travel
+  startPosition: Position; // Initial position to calculate distance traveled
+  distanceTraveled: number; // Total distance traveled so far
+}
+
 export interface Achievement {
   id: string;
   name: string;
@@ -105,6 +115,7 @@ export interface GameState {
   portals: Portal[]; // Active portals
   combo: ComboState;
   particles: Particle[];
+  poisonShots: PoisonShot[]; // Active poison shots fired by the snake
   achievements: Achievement[];
   lives: number; // Number of lives remaining
   statistics?: import('./statistics').GameStatisticsTracking;

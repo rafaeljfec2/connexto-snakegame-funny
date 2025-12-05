@@ -1,0 +1,126 @@
+import { PoisonShot, Position, Direction, Obstacle, BossSnake } from '@/types/game';
+import { GAME_CONFIG, POISON_CONFIG } from '@/constants/game';
+
+// Counter to ensure unique poison shot IDs
+let poisonCounter = 0;
+
+/**
+ * Create a new poison shot from the snake's head position
+ */
+export function createPoisonShot(headPosition: Position, direction: Direction): PoisonShot {
+  poisonCounter += 1;
+  const now = Date.now();
+
+  return {
+    id: `poison-${now}-${poisonCounter}`,
+    position: { ...headPosition },
+    direction,
+    spawnTime: now,
+    maxDistance: POISON_CONFIG.maxDistance,
+    startPosition: { ...headPosition },
+    distanceTraveled: 0,
+  };
+}
+
+/**
+ * Move a poison shot in its direction
+ */
+export function movePoisonShot(shot: PoisonShot, gridSize: number): PoisonShot | null {
+  const newPosition = { ...shot.position };
+
+  switch (shot.direction) {
+    case Direction.UP:
+      newPosition.y -= POISON_CONFIG.speed;
+      break;
+    case Direction.DOWN:
+      newPosition.y += POISON_CONFIG.speed;
+      break;
+    case Direction.LEFT:
+      newPosition.x -= POISON_CONFIG.speed;
+      break;
+    case Direction.RIGHT:
+      newPosition.x += POISON_CONFIG.speed;
+      break;
+  }
+
+  // Check if out of bounds
+  if (
+    newPosition.x < 0 ||
+    newPosition.x >= gridSize ||
+    newPosition.y < 0 ||
+    newPosition.y >= gridSize
+  ) {
+    return null; // Remove shot if out of bounds
+  }
+
+  // Calculate distance traveled from start position
+  const distanceFromStart =
+    Math.abs(newPosition.x - shot.startPosition.x) + Math.abs(newPosition.y - shot.startPosition.y);
+
+  // Check if exceeded max distance
+  if (distanceFromStart >= shot.maxDistance) {
+    return null; // Remove shot if exceeded max distance
+  }
+
+  return {
+    ...shot,
+    position: newPosition,
+    distanceTraveled: distanceFromStart,
+  };
+}
+
+/**
+ * Update all poison shots, removing ones that are out of bounds or exceeded max distance
+ */
+export function updatePoisonShots(shots: PoisonShot[], gridSize: number): PoisonShot[] {
+  return shots
+    .map((shot) => movePoisonShot(shot, gridSize))
+    .filter((shot): shot is PoisonShot => shot !== null);
+}
+
+/**
+ * Check if a poison shot collides with an obstacle
+ */
+export function hasObstacleCollision(shot: PoisonShot, obstacles: Obstacle[]): boolean {
+  return obstacles.some(
+    (obstacle) =>
+      obstacle.position.x === shot.position.x && obstacle.position.y === shot.position.y,
+  );
+}
+
+/**
+ * Check if a poison shot collides with the boss snake head
+ */
+export function hasBossHeadCollision(shot: PoisonShot, bossSnake: BossSnake): boolean {
+  if (!bossSnake || bossSnake.positions.length === 0) {
+    return false;
+  }
+
+  const bossHead = bossSnake.positions[0];
+  return bossHead && bossHead.x === shot.position.x && bossHead.y === shot.position.y;
+}
+
+/**
+ * Check if a poison shot collides with the boss snake body
+ */
+export function hasBossBodyCollision(shot: PoisonShot, bossSnake: BossSnake): boolean {
+  if (!bossSnake || bossSnake.positions.length <= 1) {
+    return false;
+  }
+
+  return bossSnake.positions
+    .slice(1)
+    .some((segment) => segment.x === shot.position.x && segment.y === shot.position.y);
+}
+
+/**
+ * Get the obstacle that was hit by a poison shot (if any)
+ */
+export function getHitObstacle(shot: PoisonShot, obstacles: Obstacle[]): Obstacle | null {
+  return (
+    obstacles.find(
+      (obstacle) =>
+        obstacle.position.x === shot.position.x && obstacle.position.y === shot.position.y,
+    ) ?? null
+  );
+}

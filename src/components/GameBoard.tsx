@@ -6,6 +6,7 @@ import {
   Particle,
   Portal,
   BossSnake,
+  PoisonShot,
 } from '@/types/game';
 import { GAME_CONFIG } from '@/constants/game';
 import { SnakeSegment } from './SnakeSegment';
@@ -14,6 +15,7 @@ import { ObstacleComponent } from './Obstacle';
 import { ParticleSystem } from './ParticleSystem';
 import { Portal as PortalComponent } from './Portal';
 import { BossSnake as BossSnakeComponent } from './BossSnake';
+import { PoisonShot as PoisonShotComponent } from './PoisonShot';
 import { useEffect, useRef, useState } from 'react';
 import styles from './GameBoard.module.css';
 import { Chef } from '@/types/phases';
@@ -26,6 +28,7 @@ interface GameBoardProps {
   obstacles?: Obstacle[];
   portals?: Portal[];
   particles?: Particle[];
+  poisonShots?: PoisonShot[];
   activeBoss?: Chef;
   bossSnake?: BossSnake;
   guardianFlag?: FoodType | null;
@@ -39,6 +42,7 @@ export function GameBoard({
   obstacles = [],
   portals = [],
   particles = [],
+  poisonShots = [],
   activeBoss,
   bossSnake,
   guardianFlag,
@@ -162,6 +166,9 @@ export function GameBoard({
         />
       )}
       {activeBoss && bossSnake && <BossSnakeComponent bossSnake={bossSnake} boss={activeBoss} />}
+      {poisonShots.map((shot) => (
+        <PoisonShotComponent key={shot.id} shot={shot} />
+      ))}
       {GAME_CONFIG.enableParticles && <ParticleSystem particles={particles} />}
     </div>
   );

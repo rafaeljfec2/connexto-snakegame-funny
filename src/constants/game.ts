@@ -12,6 +12,15 @@ export const GAME_CONFIG: GameConfig = {
   enableLengthMultiplier: true, // Enable length-based score multiplier
 };
 
+// Poison shot configuration
+export const POISON_CONFIG = {
+  speed: 2, // Cells per game frame (moves faster than snake)
+  maxDistance: 20, // Maximum cells the poison can travel before disappearing
+  cooldown: 0, // No cooldown - shots fire as fast as button is pressed
+  canDestroyObstacles: true, // Can destroy obstacles on contact
+  canDefeatBoss: true, // Can defeat boss on contact
+} as const;
+
 export const INITIAL_DIRECTION = Direction.RIGHT;
 
 export const INITIAL_SNAKE_POSITION: Position[] = [

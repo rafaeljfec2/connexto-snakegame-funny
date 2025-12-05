@@ -18,6 +18,8 @@ import styles from './App.module.css';
 import { PhaseDisplay } from './components/PhaseDisplay';
 import { MobileFloatingInfo } from './components/MobileFloatingInfo';
 import { StatusBar } from './components/StatusBar';
+import { BossDebugPanel } from './components/BossDebugPanel';
+import { Chef } from '@/types/phases';
 
 function App() {
   const {
@@ -28,6 +30,7 @@ function App() {
     setDirection,
     setSpeedBoost,
     handleKeyPress,
+    spawnBoss,
   } = useGameLoop();
 
   const [showLevelUp, setShowLevelUp] = useState(false);
@@ -36,6 +39,7 @@ function App() {
     typeof createFinalStatistics
   > | null>(null);
   const [newlyUnlockedAchievements, setNewlyUnlockedAchievements] = useState<string[]>([]);
+  const [showBossDebug, setShowBossDebug] = useState(false);
   const previousLevelRef = useRef(gameState.level);
   const previousScoreRef = useRef(gameState.score);
   const previousAchievementsRef = useRef(gameState.achievements);
@@ -98,6 +102,33 @@ function App() {
   useEffect(() => {
     gameStateRef.current = gameState;
   }, [gameState]);
+
+  // Debug mode keyboard shortcut (F12 or Ctrl+D)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // F12 key or Ctrl+D (when not typing in input)
+      if (
+        e.key === 'F12' ||
+        (e.key === 'd' &&
+          e.ctrlKey &&
+          e.target === document.body &&
+          !(e.target instanceof HTMLInputElement))
+      ) {
+        e.preventDefault();
+        setShowBossDebug((prev) => !prev);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  const handleBossSelect = useCallback(
+    (boss: Chef | null) => {
+      spawnBoss(boss);
+    },
+    [spawnBoss],
+  );
 
   // Save statistics when game ends - wait for snake death animation to complete
   useEffect(() => {
@@ -257,6 +288,14 @@ function App() {
       {showStatistics && gameStatistics && (
         <GameStatisticsComponent statistics={gameStatistics} onClose={handleCloseStatistics} />
       )}
+
+      {/* Boss Debug Panel */}
+      <BossDebugPanel
+        isOpen={showBossDebug}
+        onClose={() => setShowBossDebug(false)}
+        onSelectBoss={handleBossSelect}
+        currentBoss={gameState.activeBoss}
+      />
     </div>
   );
 }

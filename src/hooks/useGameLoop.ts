@@ -38,7 +38,7 @@ import {
   getActivePortals,
 } from '@/utils/portals';
 import { PORTAL_CONFIG } from '@/constants/portals';
-import { getCurrentPhase, getBossForLevel, shouldSpawnBoss } from '@/utils/phases';
+import { getCurrentPhase, getBossForLevel, shouldSpawnBoss, getPhaseByBoss } from '@/utils/phases';
 import { handleBossDefeat } from '@/utils/bosses';
 import {
   initializeBossSnake,
@@ -48,6 +48,7 @@ import {
   weakenBossSnake,
   canDefeatBoss,
 } from '@/utils/bossSnake';
+import { Chef } from '@/types/phases';
 
 export function useGameLoop() {
   const {
@@ -284,7 +285,18 @@ export function useGameLoop() {
       const baseGameSpeed = calculateGameSpeed(newLevel);
 
       // Phase system: Detect phase changes and update phase state (before obstacles and food generation)
-      const currentPhase = getCurrentPhase(newLevel);
+      // If there's an active boss that doesn't match the level (debug boss), use boss phase
+      let currentPhase = getCurrentPhase(newLevel);
+      if (prev.activeBoss) {
+        const bossPhase = getPhaseByBoss(prev.activeBoss);
+        if (
+          bossPhase &&
+          (!shouldSpawnBoss(newLevel) || getBossForLevel(newLevel)?.id !== prev.activeBoss.id)
+        ) {
+          // Boss is from debug mode - use boss phase
+          currentPhase = bossPhase;
+        }
+      }
       const phaseConfig = currentPhase?.config;
 
       // Generate obstacles on level up (respecting phase configuration)
@@ -349,12 +361,20 @@ export function useGameLoop() {
         }
       }
       // Update boss for boss levels (levels 10, 20, 30, etc.)
-      let activeBoss = shouldSpawnBoss(newLevel) ? getBossForLevel(newLevel) : prev.activeBoss;
-      // Clear boss when leaving boss level
-      const shouldClearBoss = prev.activeBoss && !shouldSpawnBoss(newLevel);
-      if (shouldClearBoss) {
-        activeBoss = undefined;
+      // But preserve debug boss if it doesn't match the level
+      let activeBoss = prev.activeBoss;
+      if (shouldSpawnBoss(newLevel)) {
+        const levelBoss = getBossForLevel(newLevel);
+        // Only override if boss matches level (not a debug boss)
+        if (levelBoss && levelBoss.id === prev.activeBoss?.id) {
+          activeBoss = levelBoss;
+        } else if (!prev.activeBoss) {
+          // No debug boss, use level boss
+          activeBoss = levelBoss;
+        }
+        // Otherwise keep debug boss
       }
+      // Don't clear boss if it's a debug boss that doesn't match level
 
       // Initialize or update boss snake
       let bossSnake = prev.bossSnake;
@@ -363,7 +383,8 @@ export function useGameLoop() {
         bossSnake =
           initializeBossSnake(activeBoss, finalSnake, newObstacles, GAME_CONFIG.gridSize) ??
           undefined;
-      } else if (shouldClearBoss) {
+      } else if (!activeBoss) {
+        // Boss was removed or not active - clear boss snake
         bossSnake = undefined;
       } else if (bossSnake && activeBoss) {
         // Move boss snake based on AI behavior
@@ -749,6 +770,44 @@ export function useGameLoop() {
     [gameState.status, startGame, pauseGame, resetGame, continueAfterDeath],
   );
 
+  const spawnBoss = useCallback(
+    (boss: Chef | null) => {
+      updateGameState((prev) => {
+        if (!boss) {
+          // Remove boss and reset phase to level-based phase
+          const levelPhase = getCurrentPhase(prev.level);
+          return {
+            ...prev,
+            activeBoss: undefined,
+            bossSnake: undefined,
+            currentPhase: levelPhase?.id,
+            phaseLevelType: levelPhase?.type,
+          };
+        }
+
+        // Force spawn boss and update phase to match boss
+        const bossSnake = initializeBossSnake(
+          boss,
+          prev.snake,
+          prev.obstacles,
+          GAME_CONFIG.gridSize,
+        );
+
+        // Get phase configuration for the boss
+        const bossPhase = getPhaseByBoss(boss);
+
+        return {
+          ...prev,
+          activeBoss: boss,
+          bossSnake: bossSnake ?? undefined,
+          currentPhase: bossPhase?.id,
+          phaseLevelType: bossPhase?.type,
+        };
+      });
+    },
+    [updateGameState],
+  );
+
   return {
     gameState,
     resetGame,
@@ -757,5 +816,6 @@ export function useGameLoop() {
     setDirection,
     setSpeedBoost,
     handleKeyPress,
+    spawnBoss,
   };
 }

@@ -1,5 +1,12 @@
 import { PhaseType, Chef } from '@/types/phases';
-import { getPhaseByLevel, getChefByLevel, getCurrentPhaseNumber, isBossLevel } from '@/constants/phases';
+import {
+  getPhaseByLevel,
+  getChefByLevel,
+  getCurrentPhaseNumber,
+  isBossLevel,
+  CHEFS,
+  PHASES,
+} from '@/constants/phases';
 
 /**
  * Get the current phase based on level
@@ -67,3 +74,16 @@ export function getLevelInPhase(level: number): number {
   return ((level - 1) % 10) + 1;
 }
 
+/**
+ * Get chef by ID (for debug mode)
+ */
+export function getChefById(id: string): Chef | undefined {
+  return CHEFS.find((chef) => chef.id === id);
+}
+
+/**
+ * Get phase configuration from a boss/chef (for debug mode)
+ */
+export function getPhaseByBoss(boss: Chef): PhaseType | undefined {
+  return PHASES.find((phase) => phase.id === boss.phase);
+}

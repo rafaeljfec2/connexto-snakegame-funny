@@ -183,7 +183,11 @@
 
 @media (max-width: 768px) {
   .statusBar {
-    display: none !important; /* Hidden on mobile - MobileFloatingInfo shows this info */
+    gap: 0.75rem;
+    padding: 0.5rem 1rem;
+    border-radius: 10px;
+    width: 95%;
+    max-width: 95%;
   }
 
   .statusIcon {

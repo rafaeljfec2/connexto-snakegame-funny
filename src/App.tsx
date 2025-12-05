@@ -3,7 +3,6 @@ import { useGameLoop } from '@/hooks/useGameLoop';
 import { useKeyboard } from '@/hooks/useKeyboard';
 import { GameBoard } from './components/GameBoard';
 import { GameInfo } from './components/GameInfo';
-import { StatusMessage } from './components/StatusMessage';
 import { GameControls } from './components/GameControls';
 import { LevelUpAnimation } from './components/LevelUpAnimation';
 import { ActivePowerUps } from './components/ActivePowerUps';
@@ -14,10 +13,11 @@ import { LivesDisplay } from './components/LivesDisplay';
 import { GameStatistics as GameStatisticsComponent } from './components/GameStatistics';
 import { DeathTransition } from './components/DeathTransition';
 import { TouchControls } from './components/TouchControls';
-import { PhaseDisplay } from './components/PhaseDisplay';
 import { GameStatus } from '@/types/game';
 import { createFinalStatistics, saveGameSession } from '@/utils/statistics';
 import styles from './App.module.css';
+import { StatusMessage } from './components/StatusMessage';
+import { PhaseDisplay } from './components/PhaseDisplay';
 
 function App() {
   const {
@@ -170,8 +170,6 @@ function App() {
 
         {/* Center Game Area */}
         <div className={styles.gameArea}>
-          <PhaseDisplay level={gameState.level} currentPhase={gameState.currentPhase} />
-          <StatusMessage status={gameState.status} />
           <div className={styles.gameContainer}>
             <GameBoard
               snake={gameState.snake}
@@ -185,7 +183,7 @@ function App() {
               bossSnake={gameState.bossSnake}
             />
           </div>
-
+          <StatusMessage status={gameState.status} />
           <div className={styles.gameControls}>
             <GameControls
               onStart={handleStart}
@@ -205,6 +203,7 @@ function App() {
         {/* Right Panel - Reserved for future features */}
         <aside className={styles.rightPanel}>
           <div className={styles.panelContent}>
+            <PhaseDisplay level={gameState.level} currentPhase={gameState.currentPhase} />
             <div className={styles.panelSection}>
               <h3 className={styles.panelTitle}>Game Stats</h3>
               <div className={styles.gameStats}>

@@ -76,13 +76,13 @@ export function processBossAbilities(
       }
 
       case 'create_temporary_barriers': {
-        // Create temporary barriers that disappear after a few seconds
+        // Create static barriers (Tetris-style patterns) - now permanent
         const lastUsed = abilityCooldowns.get(ability.id);
         const cooldown = ability.cooldown ?? 3000;
         if (!lastUsed || now - lastUsed >= cooldown) {
           // 30% chance per frame to create barriers
           if (Math.random() < 0.3) {
-            const newBarriers = createTemporaryBarriers(
+            const newBarriers = createTetrisBarriers(
               gameState.snake,
               gameState.bossSnake?.positions ?? [],
               gameState.obstacles,
@@ -332,38 +332,60 @@ function createObstaclesInPath(
   const dx = head.x - second.x;
   const dy = head.y - second.y;
 
-  // Create obstacles 3-4 steps ahead (further away - gives player time to react)
+  // Check minimum distance from any snake segment
+  const minDistanceFromSnake = 6; // Minimum distance for boss-created obstacles
+
+  // Create obstacles 5-6 steps ahead (further away - gives player time to react)
   const aheadPositions: Position[] = [];
-  for (let i = 3; i <= 4; i++) {
+  for (let i = 5; i <= 6; i++) {
     const pos: Position = {
       x: head.x + dx * i,
       y: head.y + dy * i,
     };
     if (pos.x >= 0 && pos.x < gridSize && pos.y >= 0 && pos.y < gridSize) {
-      aheadPositions.push(pos);
+      // Verify minimum distance from any snake segment
+      const distanceFromSnake = snake.reduce((minDist, segment) => {
+        const distance = Math.abs(pos.x - segment.x) + Math.abs(pos.y - segment.y);
+        return Math.min(minDist, distance);
+      }, Infinity);
+      if (distanceFromSnake >= minDistanceFromSnake) {
+        aheadPositions.push(pos);
+      }
     }
   }
 
   // Create only ONE obstacle to the side (not both) - leaves escape route
   const sidePositions: Position[] = [];
   if (dx === 0) {
-    // Moving vertically, block one side only
+    // Moving vertically, block one side only (further away)
     if (Math.random() < 0.5) {
-      sidePositions.push({ x: head.x + 1, y: head.y + dy * 3 });
+      sidePositions.push({ x: head.x + 1, y: head.y + dy * 5 });
     } else {
-      sidePositions.push({ x: head.x - 1, y: head.y + dy * 3 });
+      sidePositions.push({ x: head.x - 1, y: head.y + dy * 5 });
     }
   } else {
-    // Moving horizontally, block one side only
+    // Moving horizontally, block one side only (further away)
     if (Math.random() < 0.5) {
-      sidePositions.push({ x: head.x + dx * 3, y: head.y + 1 });
+      sidePositions.push({ x: head.x + dx * 5, y: head.y + 1 });
     } else {
-      sidePositions.push({ x: head.x + dx * 3, y: head.y - 1 });
+      sidePositions.push({ x: head.x + dx * 5, y: head.y - 1 });
     }
   }
 
+  // Verify side positions have minimum distance
+  const validSidePositions = sidePositions.filter((pos) => {
+    if (pos.x < 0 || pos.x >= gridSize || pos.y < 0 || pos.y >= gridSize) {
+      return false;
+    }
+    const distanceFromSnake = snake.reduce((minDist, segment) => {
+      const distance = Math.abs(pos.x - segment.x) + Math.abs(pos.y - segment.y);
+      return Math.min(minDist, distance);
+    }, Infinity);
+    return distanceFromSnake >= minDistanceFromSnake;
+  });
+
   // Combine and limit to 1-2 obstacles max (mid level - not too aggressive)
-  [...aheadPositions, ...sidePositions].forEach((pos, index) => {
+  [...aheadPositions, ...validSidePositions].forEach((pos, index) => {
     if (
       pos.x >= 0 &&
       pos.x < gridSize &&
@@ -505,8 +527,8 @@ function createStrategicWalls(
     }
   });
 
-  // Limit total obstacles
-  return newObstacles.slice(-OBSTACLE_CONFIG.maxObstacles * 10);
+  // Don't limit obstacles - let them accumulate permanently on screen
+  return newObstacles;
 }
 
 /**
@@ -603,9 +625,9 @@ export function getFlagOffsetFromBossHead(
 }
 
 /**
- * Create temporary barriers that disappear after a few seconds
+ * Create permanent Tetris-style barriers (no longer temporary)
  */
-function createTemporaryBarriers(
+function createTetrisBarriers(
   playerSnake: Position[],
   bossSnake: Position[],
   existingObstacles: Obstacle[],
@@ -629,27 +651,61 @@ function createTemporaryBarriers(
 
   const barriers: Obstacle[] = [];
   const now = Date.now();
-  const barrierDuration = 3000; // 3 seconds
 
-  // Create 2-3 barriers in the path between player and boss
-  const barrierCount = 2 + Math.floor(Math.random() * 2); // 2-3 barriers
+  // Check minimum distance from any snake segment
+  const minDistanceFromSnake = 6; // Minimum distance for barriers
 
-  for (let i = 0; i < barrierCount; i++) {
-    // Create barriers 2-4 cells ahead of player
-    const offsetX = Math.floor(Math.random() * 5) - 2; // -2 to 2
-    const offsetY = Math.floor(Math.random() * 5) - 2; // -2 to 2
+  // Select a random Tetris pattern (simple patterns only for barriers)
+  const simplePatterns = OBSTACLE_PATTERNS.filter((p) => p.levelThreshold <= 5);
+  if (simplePatterns.length === 0) {
+    return [];
+  }
 
-    const barrierX = Math.max(0, Math.min(playerHead.x + offsetX, gridSize - 1));
-    const barrierY = Math.max(0, Math.min(playerHead.y + offsetY, gridSize - 1));
+  const selectedPattern = simplePatterns[Math.floor(Math.random() * simplePatterns.length)];
 
-    if (!occupied.has(`${barrierX},${barrierY}`)) {
-      barriers.push({
-        id: `temp-barrier-${now}-${i}`,
-        position: { x: barrierX, y: barrierY },
-        type: 'temporary',
-        expiresAt: now + barrierDuration,
+  // Try to place the pattern at a safe distance from player
+  const attempts = 10;
+  for (let attempt = 0; attempt < attempts; attempt++) {
+    // Calculate offset to place pattern ahead of player
+    const offsetX = Math.floor(Math.random() * 10) - 5; // -5 to 5
+    const offsetY = Math.floor(Math.random() * 10) + 5; // 5 to 15 (ahead)
+
+    const patternPositions: Position[] = selectedPattern.positions.map((pos) => ({
+      x: playerHead.x + offsetX + pos.x,
+      y: playerHead.y + offsetY + pos.y,
+    }));
+
+    // Check if all positions are valid
+    let isValid = true;
+    for (const pos of patternPositions) {
+      if (pos.x < 0 || pos.x >= gridSize || pos.y < 0 || pos.y >= gridSize) {
+        isValid = false;
+        break;
+      }
+
+      // Check minimum distance from any snake segment
+      const distanceFromSnake = playerSnake.reduce((minDist, segment) => {
+        const distance = Math.abs(pos.x - segment.x) + Math.abs(pos.y - segment.y);
+        return Math.min(minDist, distance);
+      }, Infinity);
+
+      if (distanceFromSnake < minDistanceFromSnake || occupied.has(`${pos.x},${pos.y}`)) {
+        isValid = false;
+        break;
+      }
+    }
+
+    if (isValid) {
+      // Add all positions from the pattern
+      patternPositions.forEach((pos, index) => {
+        barriers.push({
+          id: `tetris-barrier-${now}-${index}`,
+          position: pos,
+          type: 'static', // Permanent, not temporary
+        });
+        occupied.add(`${pos.x},${pos.y}`);
       });
-      occupied.add(`${barrierX},${barrierY}`);
+      break; // Successfully placed pattern
     }
   }
 

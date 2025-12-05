@@ -23,11 +23,7 @@ export function generateBossInitialResources(
   let portals = [...existingPortals];
 
   // Generate obstacles if phase allows and boss needs them
-  if (
-    phaseConfig?.obstaclesEnabled &&
-    GAME_CONFIG.enableObstacles &&
-    obstacles.length < OBSTACLE_CONFIG.maxObstacles * 5
-  ) {
+  if (phaseConfig?.obstaclesEnabled && GAME_CONFIG.enableObstacles) {
     // Generate multiple obstacle patterns to ensure boss has resources
     const numPatterns = 3 + Math.floor(Math.random() * 3); // 3-5 patterns
     for (let i = 0; i < numPatterns; i++) {

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useCallback } from 'react';
-import { GameStatus, GameState, FoodType } from '@/types/game';
+import { GameStatus, GameState, FoodType, Obstacle } from '@/types/game';
 import { GAME_CONFIG, INITIAL_SNAKE_POSITION } from '@/constants/game';
 import {
   moveSnake,
@@ -23,6 +23,7 @@ import {
 import { updateCombo } from '@/utils/combos';
 import { createParticles, updateParticles } from '@/utils/particles';
 import { generateObstacles, hasObstacleCollision, getActiveObstacles } from '@/utils/obstacles';
+import { OBSTACLE_CONFIG } from '@/constants/obstacles';
 import { checkAchievements, saveAchievements } from '@/utils/achievements';
 import { hasFoodExpired } from '@/utils/foodTimer';
 import { loseLife, isLivesEnabled, addLife } from '@/utils/lives';
@@ -71,6 +72,7 @@ export function useGameLoop() {
   const lastUpdateTimeRef = useRef<number>(0);
   const deathTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const bossAbilityCooldownsRef = useRef<Map<string, number>>(new Map());
+  const lastObstacleSpawnRef = useRef<number>(0); // Track last obstacle spawn time
   const forcedFoodTypeRef = useRef<FoodType | null>(null);
 
   const updateGame = useCallback(() => {
@@ -375,14 +377,27 @@ export function useGameLoop() {
       }
       const phaseConfig = currentPhase?.config;
 
-      // Generate obstacles on level up (respecting phase configuration)
+      // Generate obstacles continuously during gameplay (respecting phase configuration)
       // Filter out expired temporary obstacles first
       let newObstacles = getActiveObstacles(prev.obstacles);
-      if (
+      const currentTime = Date.now();
+
+      // Initialize spawn timer on first game start
+      if (lastObstacleSpawnRef.current === 0 && prev.status === GameStatus.PLAYING) {
+        lastObstacleSpawnRef.current = currentTime;
+      }
+
+      const timeSinceLastSpawn = currentTime - lastObstacleSpawnRef.current;
+
+      // Spawn obstacles on level up OR periodically during gameplay (every 1.5 seconds)
+      const shouldSpawnObstacle =
         GAME_CONFIG.enableObstacles &&
-        newLevel > prev.level &&
-        phaseConfig?.obstaclesEnabled !== false
-      ) {
+        phaseConfig?.obstaclesEnabled !== false &&
+        (newLevel > prev.level || // Spawn on level up
+          (lastObstacleSpawnRef.current > 0 &&
+            timeSinceLastSpawn >= OBSTACLE_CONFIG.spawnInterval)); // Spawn periodically
+
+      if (shouldSpawnObstacle) {
         const previousObstaclesCount = newObstacles.length;
         newObstacles = generateObstacles(
           newLevel,
@@ -390,14 +405,16 @@ export function useGameLoop() {
           newObstacles,
           GAME_CONFIG.gridSize,
           phaseConfig?.obstaclesEnabled,
-          phaseConfig?.obstaclesFrequency,
+          phaseConfig?.obstaclesFrequency ?? OBSTACLE_CONFIG.spawnChance,
         );
+        // Update spawn time whenever we attempt to spawn (even if no obstacles were created)
+        lastObstacleSpawnRef.current = currentTime;
         // Update statistics - obstacles encountered
-        const newObstaclesCount = newObstacles.length - previousObstaclesCount;
-        if (newObstaclesCount > 0) {
+        if (newObstacles.length > previousObstaclesCount) {
           statistics = {
             ...statistics,
-            obstaclesEncountered: statistics.obstaclesEncountered + newObstaclesCount,
+            obstaclesEncountered:
+              statistics.obstaclesEncountered + (newObstacles.length - previousObstaclesCount),
           };
         }
       } else if (phaseConfig?.obstaclesEnabled === false) {
@@ -569,23 +586,34 @@ export function useGameLoop() {
 
         // Apply ability effects
         if (abilityResult.result.obstacles) {
-          // Check if it's new obstacles to add or a complete replacement
+          // Always merge new obstacles with existing ones to prevent losing any
           const resultObstacles = abilityResult.result.obstacles;
-          // If the result has obstacles and they're different from current, apply
-          // For abilities like move_obstacles, it returns the full array
-          // For abilities like create_obstacles, it returns new ones to add
           if (resultObstacles.length > 0) {
-            // Check if first obstacle ID starts with "boss-" or "maze-" (new ones)
-            const isNewObstacles = resultObstacles.some(
-              (obs) => obs.id.includes('boss-') || obs.id.includes('maze-'),
-            );
-            if (isNewObstacles) {
-              // New obstacles to add
-              newObstacles = [...newObstacles, ...resultObstacles];
-            } else {
-              // Complete replacement (e.g., moved obstacles)
-              newObstacles = resultObstacles;
-            }
+            // Create a map of existing obstacles by position for quick lookup
+            const existingObstaclesMap = new Map<string, Obstacle>();
+            newObstacles.forEach((obs) => {
+              const key = `${obs.position.x},${obs.position.y}`;
+              existingObstaclesMap.set(key, obs);
+            });
+
+            // Add new obstacles, avoiding duplicates by position
+            resultObstacles.forEach((obs) => {
+              const key = `${obs.position.x},${obs.position.y}`;
+              if (!existingObstaclesMap.has(key)) {
+                newObstacles.push(obs);
+                existingObstaclesMap.set(key, obs);
+              } else {
+                // Update existing obstacle if it's a moved one (different ID)
+                const existing = existingObstaclesMap.get(key);
+                if (existing && existing.id !== obs.id) {
+                  // Replace the old obstacle with the new one (moved)
+                  const index = newObstacles.findIndex((o) => o.id === existing.id);
+                  if (index !== -1) {
+                    newObstacles[index] = obs;
+                  }
+                }
+              }
+            });
           }
         }
 
@@ -1028,6 +1056,15 @@ export function useGameLoop() {
     },
     [updateGameState],
   );
+
+  // Reset obstacle spawn timer when game starts
+  useEffect(() => {
+    if (gameState.status === GameStatus.PLAYING && lastObstacleSpawnRef.current === 0) {
+      lastObstacleSpawnRef.current = Date.now();
+    } else if (gameState.status === GameStatus.IDLE || gameState.status === GameStatus.GAME_OVER) {
+      lastObstacleSpawnRef.current = 0;
+    }
+  }, [gameState.status]);
 
   return {
     gameState,

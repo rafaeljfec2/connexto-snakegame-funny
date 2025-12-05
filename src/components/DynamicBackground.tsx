@@ -24,16 +24,20 @@ const getBackgroundGradient = (level: number): string => {
     { start: '#1a2332', mid: '#2d1b3d', end: '#3d1b4d' }, // Level 13-15: Dark purple
   ];
 
-  const colorIndex = Math.min(Math.floor((level - 1) / 3), baseColors.length - 1);
-  const colors = baseColors[colorIndex];
+  // Ensure level is valid and at least 1
+  const validLevel = Math.max(1, level ?? 1);
+  const colorIndex = Math.min(Math.max(0, Math.floor((validLevel - 1) / 3)), baseColors.length - 1);
+  const colors = baseColors[colorIndex] ?? baseColors[0];
 
   return `linear-gradient(135deg, ${colors.start} 0%, ${colors.mid} 50%, ${colors.end} 100%)`;
 };
 
 // Radial gradients that change with level
 const getRadialGradients = (level: number): string => {
-  const intensity = Math.min(level * 0.02, 0.15);
-  const hue = (level * 30) % 360;
+  // Ensure level is valid and at least 1
+  const validLevel = Math.max(1, level ?? 1);
+  const intensity = Math.min(validLevel * 0.02, 0.15);
+  const hue = (validLevel * 30) % 360;
 
   return `
     radial-gradient(circle at 20% 50%, hsla(${hue}, 70%, 60%, ${intensity}) 0%, transparent 50%),
@@ -48,6 +52,8 @@ const getRadialGradients = (level: number): string => {
 
 export function DynamicBackground({ level }: DynamicBackgroundProps) {
   const [particles, setParticles] = useState<BackgroundParticle[]>([]);
+  // Ensure level is always a valid number
+  const validLevel = Math.max(1, level ?? 1);
 
   // Initialize particles
   useEffect(() => {
@@ -86,8 +92,8 @@ export function DynamicBackground({ level }: DynamicBackgroundProps) {
     return () => clearInterval(interval);
   }, []);
 
-  const backgroundGradient = getBackgroundGradient(level);
-  const radialGradients = getRadialGradients(level);
+  const backgroundGradient = getBackgroundGradient(validLevel);
+  const radialGradients = getRadialGradients(validLevel);
 
   return (
     <div className={styles.background}>

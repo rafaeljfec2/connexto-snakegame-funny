@@ -15,7 +15,7 @@ export function generateObstacles(
     return [];
   }
 
-  if (!GAME_CONFIG.enableObstacles || level < 3) {
+  if (!GAME_CONFIG.enableObstacles || level < 1) {
     return [];
   }
 
@@ -55,10 +55,12 @@ export function generateObstacles(
         return false;
       }
 
-      // Check distance from snake start
-      const head = snake[0];
-      const distance = Math.abs(pos.x - head.x) + Math.abs(pos.y - head.y);
-      if (distance < OBSTACLE_CONFIG.minDistanceFromStart) {
+      // Check minimum distance from ANY snake segment (not just head)
+      const minDistanceFromSnake = snake.reduce((minDist, segment) => {
+        const distance = Math.abs(pos.x - segment.x) + Math.abs(pos.y - segment.y);
+        return Math.min(minDist, distance);
+      }, Infinity);
+      if (minDistanceFromSnake < OBSTACLE_CONFIG.minDistanceFromSnake) {
         return false;
       }
 
@@ -89,8 +91,8 @@ export function generateObstacles(
     }
   }
 
-  // Limit total obstacles
-  return obstacles.slice(-OBSTACLE_CONFIG.maxObstacles * 10);
+  // Don't limit obstacles - let them accumulate permanently on screen
+  return obstacles;
 }
 
 export function hasObstacleCollision(head: Position, obstacles: Obstacle[]): boolean {

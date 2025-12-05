@@ -98,3 +98,16 @@ export function hasObstacleCollision(head: Position, obstacles: Obstacle[]): boo
     (obstacle) => obstacle.position.x === head.x && obstacle.position.y === head.y,
   );
 }
+
+/**
+ * Filter out expired temporary obstacles
+ */
+export function getActiveObstacles(obstacles: Obstacle[]): Obstacle[] {
+  const now = Date.now();
+  return obstacles.filter((obstacle) => {
+    if (obstacle.type === 'temporary' && obstacle.expiresAt) {
+      return now < obstacle.expiresAt; // Keep if not expired
+    }
+    return true; // Keep all non-temporary obstacles
+  });
+}

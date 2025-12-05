@@ -55,8 +55,9 @@ export interface ActivePowerUp {
 
 export interface Obstacle {
   position: Position;
-  type: 'static' | 'moving' | 'portal';
+  type: 'static' | 'moving' | 'portal' | 'temporary';
   id: string;
+  expiresAt?: number; // Timestamp when temporary obstacle should be removed
 }
 
 export interface Portal {
@@ -113,6 +114,7 @@ export interface GameState {
   activeBoss?: import('./phases').Chef; // Active boss (if in boss level)
   bossSnake?: BossSnake; // Boss snake (positions, direction, etc.)
   guardianFlag?: Food | null; // Special flag food for Guardian boss (capture the flag mechanic)
+  guardianFlagSide?: -1 | 1; // Which side the flag is on (-1 = left, 1 = right)
 }
 
 export interface GameConfig {

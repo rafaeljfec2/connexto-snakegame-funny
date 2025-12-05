@@ -22,7 +22,7 @@ import {
 } from '@/utils/powerUps';
 import { updateCombo } from '@/utils/combos';
 import { createParticles, updateParticles } from '@/utils/particles';
-import { generateObstacles, hasObstacleCollision } from '@/utils/obstacles';
+import { generateObstacles, hasObstacleCollision, getActiveObstacles } from '@/utils/obstacles';
 import { checkAchievements, saveAchievements } from '@/utils/achievements';
 import { hasFoodExpired } from '@/utils/foodTimer';
 import { loseLife, isLivesEnabled, addLife } from '@/utils/lives';
@@ -49,7 +49,11 @@ import {
   canDefeatBoss,
 } from '@/utils/bossSnake';
 import { Chef } from '@/types/phases';
-import { processBossAbilities, generateGuardianFlagPosition } from '@/utils/bossAbilities';
+import {
+  processBossAbilities,
+  generateGuardianFlagPosition,
+  getFlagOffsetFromBossHead,
+} from '@/utils/bossAbilities';
 import { generateBossInitialResources } from '@/utils/bossResources';
 
 export function useGameLoop() {
@@ -144,6 +148,9 @@ export function useGameLoop() {
         }
       }
 
+      // Filter out expired temporary obstacles
+      const activeObstacles = getActiveObstacles(prev.obstacles);
+
       // Check obstacle collision (ignore if phase through is active)
       const currentActivePowerUps = getActivePowerUps(prev.activePowerUps);
       const canPhaseThrough = hasPhaseThrough(currentActivePowerUps);
@@ -152,7 +159,7 @@ export function useGameLoop() {
       const hasCollision =
         (GAME_CONFIG.enableObstacles &&
           !canPhaseThrough &&
-          hasObstacleCollision(headPosition ?? newSnake[0], prev.obstacles)) ||
+          hasObstacleCollision(headPosition ?? newSnake[0], activeObstacles)) ||
         (newSnake.length >= 4 && hasSelfCollision(newSnake));
 
       // Initialize statistics if not present (at start of update)
@@ -197,6 +204,7 @@ export function useGameLoop() {
       let atePowerUp = false;
       let newLives = prev.lives;
       let newGuardianFlag = prev.guardianFlag;
+      let newGuardianFlagSide = prev.guardianFlagSide;
 
       // Initialize boss variables early (needed for flag capture check)
       let activeBoss = prev.activeBoss;
@@ -368,7 +376,8 @@ export function useGameLoop() {
       const phaseConfig = currentPhase?.config;
 
       // Generate obstacles on level up (respecting phase configuration)
-      let newObstacles = prev.obstacles;
+      // Filter out expired temporary obstacles first
+      let newObstacles = getActiveObstacles(prev.obstacles);
       if (
         GAME_CONFIG.enableObstacles &&
         newLevel > prev.level &&
@@ -506,6 +515,7 @@ export function useGameLoop() {
           portals: newPortals,
           bossSnake,
           guardianFlag: newGuardianFlag, // Include current flag state
+          guardianFlagSide: newGuardianFlagSide, // Include current flag side
         };
         const abilityResult = processBossAbilities(
           activeBoss,
@@ -517,6 +527,9 @@ export function useGameLoop() {
         // Handle guardian flag spawn BEFORE boss movement
         if (abilityResult.result.guardianFlag !== undefined) {
           newGuardianFlag = abilityResult.result.guardianFlag;
+        }
+        if (abilityResult.result.guardianFlagSide !== undefined) {
+          newGuardianFlagSide = abilityResult.result.guardianFlagSide;
         }
 
         // Move boss snake based on AI behavior (now with updated flag position)
@@ -530,6 +543,29 @@ export function useGameLoop() {
           newGuardianFlag?.position ?? null, // Use updated flag position
         );
         bossSnake = moveBossSnake(bossSnake, nextBossDirection, GAME_CONFIG.gridSize);
+
+        // Update flag position after boss moves (flag follows boss to the side)
+        if (newGuardianFlag && bossSnake && bossSnake.positions.length > 0) {
+          const bossHead = bossSnake.positions[0];
+          // Use the stored side or default to right (1)
+          const flagSide = newGuardianFlagSide ?? 1;
+          const flagOffset = getFlagOffsetFromBossHead(bossSnake.direction, flagSide);
+          const newFlagPosition = {
+            x: Math.max(0, Math.min(bossHead.x + flagOffset.x, GAME_CONFIG.gridSize - 1)),
+            y: Math.max(0, Math.min(bossHead.y + flagOffset.y, GAME_CONFIG.gridSize - 1)),
+          };
+
+          // Only update if position is valid and not occupied by boss body
+          const isOnBossBody = bossSnake.positions.some(
+            (pos) => pos.x === newFlagPosition.x && pos.y === newFlagPosition.y,
+          );
+          if (!isOnBossBody) {
+            newGuardianFlag = {
+              ...newGuardianFlag,
+              position: newFlagPosition,
+            };
+          }
+        }
 
         // Apply ability effects
         if (abilityResult.result.obstacles) {
@@ -736,6 +772,7 @@ export function useGameLoop() {
         portals: newPortals,
         combo: newCombo,
         guardianFlag: newGuardianFlag,
+        guardianFlagSide: newGuardianFlagSide,
         particles: newParticles,
         achievements: updatedAchievements,
         lives: newLives,

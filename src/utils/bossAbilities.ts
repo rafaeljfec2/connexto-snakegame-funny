@@ -1,4 +1,4 @@
-import { GameState, Obstacle, Portal, Position, FoodType } from '@/types/game';
+import { GameState, Obstacle, Portal, Position, FoodType, Direction } from '@/types/game';
 import { Chef, BossAbility } from '@/types/phases';
 import { GAME_CONFIG } from '@/constants/game';
 import { generateObstacles } from './obstacles';
@@ -16,6 +16,7 @@ export interface BossAbilityResult {
   bossSnakeGrowth?: number; // For boss healing/growth abilities
   forceFoodType?: boolean; // Flag to force food type change
   guardianFlag?: Food | null; // Special flag food for Guardian boss
+  guardianFlagSide?: -1 | 1; // Which side the flag is on (-1 = left, 1 = right)
 }
 
 /**
@@ -43,26 +44,56 @@ export function processBossAbilities(
     // Process ability based on ID
     switch (ability.id) {
       case 'defend_flag': {
-        // Guardian boss: Spawn a special EXTRA_LIFE power-up that the player must capture
-        // The boss will defend this flag by positioning between player and flag
-        if (!gameState.guardianFlag) {
-          // Spawn the flag in a strategic position (away from player, center-ish area)
-          const flagPosition = generateGuardianFlagPosition(
-            gameState.snake,
-            gameState.bossSnake?.positions ?? [],
-            gameState.obstacles,
-            GAME_CONFIG.gridSize,
+        // Guardian boss: Flag is attached to the boss (follows boss position)
+        // The flag should be positioned relative to the boss head (to the side)
+        if (gameState.bossSnake && gameState.bossSnake.positions.length > 0) {
+          const bossHead = gameState.bossSnake.positions[0];
+          // Use existing flag side or randomly choose one
+          const flagSide = gameState.guardianFlagSide ?? (Math.random() < 0.5 ? -1 : 1);
+          // Flag is positioned to the side of the boss head (perpendicular to movement)
+          const flagOffset = getFlagOffsetFromBossHead(gameState.bossSnake.direction, flagSide);
+          const flagPosition: Position = {
+            x: Math.max(0, Math.min(bossHead.x + flagOffset.x, GAME_CONFIG.gridSize - 1)),
+            y: Math.max(0, Math.min(bossHead.y + flagOffset.y, GAME_CONFIG.gridSize - 1)),
+          };
+
+          // Only create flag if position is valid and not occupied by boss body
+          const isOnBossBody = gameState.bossSnake.positions.some(
+            (pos) => pos.x === flagPosition.x && pos.y === flagPosition.y,
           );
-          if (flagPosition) {
+          if (!isOnBossBody) {
             result.guardianFlag = {
               position: flagPosition,
               type: FoodType.EXTRA_LIFE,
               spawnTime: Date.now(),
               duration: undefined, // Flag doesn't expire
             };
+            // Store the side so it stays consistent
+            result.guardianFlagSide = flagSide;
           }
         }
-        // Flag already exists - boss will defend it via behavior logic
+        break;
+      }
+
+      case 'create_temporary_barriers': {
+        // Create temporary barriers that disappear after a few seconds
+        const lastUsed = abilityCooldowns.get(ability.id);
+        const cooldown = ability.cooldown ?? 3000;
+        if (!lastUsed || now - lastUsed >= cooldown) {
+          // 30% chance per frame to create barriers
+          if (Math.random() < 0.3) {
+            const newBarriers = createTemporaryBarriers(
+              gameState.snake,
+              gameState.bossSnake?.positions ?? [],
+              gameState.obstacles,
+              GAME_CONFIG.gridSize,
+            );
+            if (newBarriers.length > 0) {
+              result.obstacles = [...(result.obstacles ?? []), ...newBarriers];
+              updatedCooldowns.set(ability.id, now);
+            }
+          }
+        }
         break;
       }
 
@@ -544,4 +575,83 @@ export function generateGuardianFlagPosition(
   }
 
   return null;
+}
+
+/**
+ * Get flag offset position relative to boss head
+ * Flag is positioned to the side of the boss head (perpendicular to movement direction)
+ */
+export function getFlagOffsetFromBossHead(
+  bossDirection: Direction,
+  side: -1 | 1 = 1,
+): { x: number; y: number } {
+  // Position flag to the side (perpendicular to movement)
+  // side: -1 = left, 1 = right
+
+  switch (bossDirection) {
+    case Direction.UP:
+    case Direction.DOWN:
+      // Moving vertically, place flag to the side (horizontal)
+      return { x: side, y: 0 };
+    case Direction.LEFT:
+    case Direction.RIGHT:
+      // Moving horizontally, place flag to the side (vertical)
+      return { x: 0, y: side };
+    default:
+      return { x: 1, y: 0 }; // Default to right side
+  }
+}
+
+/**
+ * Create temporary barriers that disappear after a few seconds
+ */
+function createTemporaryBarriers(
+  playerSnake: Position[],
+  bossSnake: Position[],
+  existingObstacles: Obstacle[],
+  gridSize: number,
+): Obstacle[] {
+  const playerHead = playerSnake[0];
+  if (!playerHead) {
+    return [];
+  }
+
+  const occupied = new Set<string>();
+  playerSnake.forEach((seg) => {
+    occupied.add(`${seg.x},${seg.y}`);
+  });
+  bossSnake.forEach((seg) => {
+    occupied.add(`${seg.x},${seg.y}`);
+  });
+  existingObstacles.forEach((obs) => {
+    occupied.add(`${obs.position.x},${obs.position.y}`);
+  });
+
+  const barriers: Obstacle[] = [];
+  const now = Date.now();
+  const barrierDuration = 3000; // 3 seconds
+
+  // Create 2-3 barriers in the path between player and boss
+  const barrierCount = 2 + Math.floor(Math.random() * 2); // 2-3 barriers
+
+  for (let i = 0; i < barrierCount; i++) {
+    // Create barriers 2-4 cells ahead of player
+    const offsetX = Math.floor(Math.random() * 5) - 2; // -2 to 2
+    const offsetY = Math.floor(Math.random() * 5) - 2; // -2 to 2
+
+    const barrierX = Math.max(0, Math.min(playerHead.x + offsetX, gridSize - 1));
+    const barrierY = Math.max(0, Math.min(playerHead.y + offsetY, gridSize - 1));
+
+    if (!occupied.has(`${barrierX},${barrierY}`)) {
+      barriers.push({
+        id: `temp-barrier-${now}-${i}`,
+        position: { x: barrierX, y: barrierY },
+        type: 'temporary',
+        expiresAt: now + barrierDuration,
+      });
+      occupied.add(`${barrierX},${barrierY}`);
+    }
+  }
+
+  return barriers;
 }

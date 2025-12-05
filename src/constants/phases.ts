@@ -236,8 +236,15 @@ export const CHEFS: Chef[] = [
         description: 'Defende um power-up de vida especial que o jogador deve capturar',
         effect: () => {}, // Will be implemented
       },
+      {
+        id: 'create_temporary_barriers',
+        name: 'Barreiras Temporárias',
+        description: 'Cria barreiras temporárias que desaparecem com o tempo',
+        effect: () => {}, // Will be implemented
+        cooldown: 3000, // 3 seconds cooldown
+      },
     ],
-    behavior: 'defend',
+    behavior: 'flee', // Boss foge quando snake se aproxima
     initialLength: 4,
     visual: {
       color: '#3b82f6',

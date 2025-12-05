@@ -597,6 +597,7 @@ export function useGameLoop() {
     setDirection,
     updateGameState,
     setSpeedBoost,
+    setFiringPoison,
   } = useGameState();
 
   const gameLoopRef = useRef<number>();
@@ -606,6 +607,8 @@ export function useGameLoop() {
   const lastObstacleSpawnRef = useRef<number>(0); // Track last obstacle spawn time
   const forcedFoodTypeRef = useRef<FoodType | null>(null);
   const gameStateRef = useRef<GameState>(gameState);
+  const poisonFireIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const lastPoisonFireTimeRef = useRef<number>(0);
 
   // Keep gameStateRef updated with latest state
   useEffect(() => {
@@ -1441,6 +1444,7 @@ export function useGameLoop() {
         particles: [],
         poisonShots: [],
         isSpeedBoosted: false, // Reset speed boost when continuing after death
+        isFiringPoison: false, // Reset firing when continuing after death
         statistics, // Keep statistics when continuing
       };
     });
@@ -1561,18 +1565,20 @@ export function useGameLoop() {
     }
   }, [gameState.status]);
 
-  // Function to fire poison shot - fires immediately without cooldown for rapid shooting
-  const firePoison = useCallback(() => {
-    if (gameState.status !== GameStatus.PLAYING) {
+  // Function to fire a single poison shot using current direction from gameStateRef
+  const firePoisonShot = useCallback(() => {
+    const currentState = gameStateRef.current;
+    if (currentState.status !== GameStatus.PLAYING) {
       return; // Can only fire when playing
     }
 
-    const headPosition = gameState.snake[0];
+    const headPosition = currentState.snake[0];
     if (!headPosition) {
       return; // No head position available
     }
 
     updateGameState((prev) => {
+      // Always use current direction from state (which updates even when firing continuously)
       const newPoisonShot = createPoisonShot(headPosition, prev.direction);
 
       return {
@@ -1580,7 +1586,57 @@ export function useGameLoop() {
         poisonShots: [...(prev.poisonShots ?? []), newPoisonShot],
       };
     });
-  }, [gameState.status, gameState.snake, updateGameState]);
+  }, [updateGameState]);
+
+  // Function to start continuous firing - activates firing state
+  const firePoison = useCallback(() => {
+    setFiringPoison(true);
+    firePoisonShot(); // Fire immediately
+  }, [setFiringPoison, firePoisonShot]);
+
+  // Function to stop continuous firing
+  const stopFiringPoison = useCallback(() => {
+    setFiringPoison(false);
+  }, [setFiringPoison]);
+
+  // Continuous firing when button is held - fires shots at interval using current direction
+  useEffect(() => {
+    if (gameState.isFiringPoison && gameState.status === GameStatus.PLAYING) {
+      // Clear any existing interval
+      if (poisonFireIntervalRef.current) {
+        clearInterval(poisonFireIntervalRef.current);
+      }
+
+      // Fire immediately when button is pressed
+      firePoisonShot();
+      lastPoisonFireTimeRef.current = Date.now();
+
+      // Set up interval for continuous firing
+      poisonFireIntervalRef.current = setInterval(() => {
+        const now = Date.now();
+        const timeSinceLastFire = now - lastPoisonFireTimeRef.current;
+
+        // Only fire if enough time has passed (respect fire interval)
+        if (timeSinceLastFire >= POISON_CONFIG.fireInterval) {
+          firePoisonShot();
+          lastPoisonFireTimeRef.current = now;
+        }
+      }, POISON_CONFIG.fireInterval);
+    } else {
+      // Stop firing when button is released or game is not playing
+      if (poisonFireIntervalRef.current) {
+        clearInterval(poisonFireIntervalRef.current);
+        poisonFireIntervalRef.current = null;
+      }
+    }
+
+    return () => {
+      if (poisonFireIntervalRef.current) {
+        clearInterval(poisonFireIntervalRef.current);
+        poisonFireIntervalRef.current = null;
+      }
+    };
+  }, [gameState.isFiringPoison, gameState.status, firePoisonShot]);
 
   return {
     gameState,
@@ -1592,5 +1648,6 @@ export function useGameLoop() {
     handleKeyPress,
     spawnBoss,
     firePoison,
+    stopFiringPoison,
   };
 }

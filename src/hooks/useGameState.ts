@@ -48,6 +48,7 @@ export function useGameState() {
       lives: LIVES_CONFIG.initialLives,
       statistics: initializeStatistics(),
       isSpeedBoosted: false,
+      isFiringPoison: false,
       currentPhase: initialPhase?.id,
       phaseLevelType: initialPhase?.type,
       activeBoss: shouldSpawnBoss(initialLevel) ? getBossForLevel(initialLevel) : undefined,
@@ -88,6 +89,7 @@ export function useGameState() {
       lives: LIVES_CONFIG.initialLives,
       statistics: initializeStatistics(),
       isSpeedBoosted: false,
+      isFiringPoison: false,
       currentPhase: initialPhase?.id,
       phaseLevelType: initialPhase?.type,
       activeBoss: shouldSpawnBoss(initialLevel) ? getBossForLevel(initialLevel) : undefined,
@@ -112,6 +114,7 @@ export function useGameState() {
           ...prev,
           status: GameStatus.PAUSED,
           isSpeedBoosted: false, // Reset speed boost when pausing
+          isFiringPoison: false, // Reset firing when pausing
           statistics: {
             ...statistics,
             lastPauseTime: now,
@@ -179,6 +182,13 @@ export function useGameState() {
     }));
   }, []);
 
+  const setFiringPoison = useCallback((isFiring: boolean) => {
+    setGameState((prev) => ({
+      ...prev,
+      isFiringPoison: isFiring,
+    }));
+  }, []);
+
   return {
     gameState,
     resetGame,
@@ -187,5 +197,6 @@ export function useGameState() {
     setDirection,
     updateGameState,
     setSpeedBoost,
+    setFiringPoison,
   };
 }

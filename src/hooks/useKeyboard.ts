@@ -7,6 +7,7 @@ interface UseKeyboardProps {
   onSpeedBoost?: (isBoosted: boolean) => void;
   onKeyPress?: (key: string) => void;
   onFirePoison?: () => void;
+  onStopFiringPoison?: () => void;
   enabled?: boolean;
 }
 
@@ -15,10 +16,12 @@ export function useKeyboard({
   onSpeedBoost,
   onKeyPress,
   onFirePoison,
+  onStopFiringPoison,
   enabled = true,
 }: UseKeyboardProps) {
   const pressedKeysRef = useRef<Set<string>>(new Set());
   const speedBoostActiveRef = useRef(false);
+  const poisonFireActiveRef = useRef(false);
 
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
@@ -47,11 +50,25 @@ export function useKeyboard({
         return;
       }
 
-      // Check for poison shot key (X or Space)
-      if ((event.key === 'x' || event.key === 'X' || event.key === ' ') && onFirePoison) {
+      // Check for poison shot key (X or Space when playing)
+      if (event.key === 'x' || event.key === 'X') {
         event.preventDefault();
         event.stopPropagation();
-        onFirePoison();
+        if (onFirePoison && !poisonFireActiveRef.current) {
+          poisonFireActiveRef.current = true;
+          onFirePoison();
+        }
+        return;
+      }
+
+      // Spacebar: fire poison when playing (pause is handled by global listener when not playing)
+      if (event.key === ' ') {
+        event.preventDefault();
+        event.stopPropagation();
+        if (onFirePoison && !poisonFireActiveRef.current) {
+          poisonFireActiveRef.current = true;
+          onFirePoison();
+        }
         return;
       }
 
@@ -82,8 +99,20 @@ export function useKeyboard({
           onSpeedBoost(false);
         }
       }
+
+      // Check for poison shot key release (X or Space)
+      if (
+        (event.key === 'x' || event.key === 'X' || event.key === ' ') &&
+        onStopFiringPoison &&
+        poisonFireActiveRef.current
+      ) {
+        event.preventDefault();
+        event.stopPropagation();
+        poisonFireActiveRef.current = false;
+        onStopFiringPoison();
+      }
     },
-    [enabled, onSpeedBoost],
+    [enabled, onSpeedBoost, onStopFiringPoison],
   );
 
   useEffect(() => {
@@ -93,6 +122,11 @@ export function useKeyboard({
       if (speedBoostActiveRef.current && onSpeedBoost) {
         speedBoostActiveRef.current = false;
         onSpeedBoost(false);
+      }
+      // Stop firing when disabled
+      if (poisonFireActiveRef.current && onStopFiringPoison) {
+        poisonFireActiveRef.current = false;
+        onStopFiringPoison();
       }
       return;
     }
@@ -110,6 +144,11 @@ export function useKeyboard({
         speedBoostActiveRef.current = false;
         onSpeedBoost(false);
       }
+      // Stop firing on cleanup
+      if (poisonFireActiveRef.current && onStopFiringPoison) {
+        poisonFireActiveRef.current = false;
+        onStopFiringPoison();
+      }
     };
-  }, [enabled, handleKeyDown, handleKeyUp, onSpeedBoost]);
+  }, [enabled, handleKeyDown, handleKeyUp, onSpeedBoost, onStopFiringPoison]);
 }

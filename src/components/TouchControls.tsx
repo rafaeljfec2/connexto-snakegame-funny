@@ -6,6 +6,7 @@ interface TouchControlsProps {
   onDirectionChange: (direction: Direction) => void;
   onSpeedBoost?: (isBoosted: boolean) => void;
   onFirePoison?: () => void;
+  onStopFiringPoison?: () => void;
   enabled?: boolean;
 }
 
@@ -13,6 +14,7 @@ export function TouchControls({
   onDirectionChange,
   onSpeedBoost,
   onFirePoison,
+  onStopFiringPoison,
   enabled = true,
 }: TouchControlsProps) {
   const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
@@ -169,6 +171,18 @@ export function TouchControls({
 
         <button
           className={`${styles.poisonButton} ${styles.centerSpace}`}
+          onTouchStart={(e) => {
+            e.preventDefault();
+            onFirePoison?.();
+          }}
+          onTouchEnd={(e) => {
+            e.preventDefault();
+            onStopFiringPoison?.();
+          }}
+          onTouchCancel={(e) => {
+            e.preventDefault();
+            onStopFiringPoison?.();
+          }}
           onClick={() => onFirePoison?.()}
           aria-label='Fire Poison'
           type='button'

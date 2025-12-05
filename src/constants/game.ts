@@ -17,6 +17,7 @@ export const POISON_CONFIG = {
   speedMultiplier: 5, // Poison shot moves 5x faster than snake (snake moves 1 cell/frame, poison moves 5 cells/frame)
   maxDistance: 60, // Maximum cells the poison can travel - enough to cross entire grid diagonally (gridSize: 40)
   cooldown: 0, // No cooldown - shots fire as fast as button is pressed
+  fireInterval: 150, // Interval between shots when button is held (in milliseconds)
   canDestroyObstacles: true, // Can destroy obstacles on contact
   canDefeatBoss: true, // Can defeat boss on contact
 } as const;

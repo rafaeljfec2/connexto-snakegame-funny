@@ -32,6 +32,7 @@ function App() {
     handleKeyPress,
     spawnBoss,
     firePoison,
+    stopFiringPoison,
   } = useGameLoop();
 
   const [showLevelUp, setShowLevelUp] = useState(false);
@@ -52,6 +53,7 @@ function App() {
     onSpeedBoost: setSpeedBoost,
     onKeyPress: handleKeyPress,
     onFirePoison: firePoison,
+    onStopFiringPoison: stopFiringPoison,
     enabled: gameState.status === GameStatus.PLAYING,
   });
 
@@ -104,6 +106,35 @@ function App() {
   useEffect(() => {
     gameStateRef.current = gameState;
   }, [gameState]);
+
+  // Global spacebar handler for pause/start (works even when useKeyboard is disabled)
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      // Only handle spacebar when not typing in input and game is not playing
+      // (when playing, spacebar is handled by useKeyboard for firing)
+      if (e.key === ' ' && e.target === document.body && gameState.status !== GameStatus.PLAYING) {
+        e.preventDefault();
+        handleKeyPress(' ');
+      }
+    };
+
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, [gameState.status, handleKeyPress]);
+
+  // Global spacebar handler for pause/start (works even when useKeyboard is disabled)
+  useEffect(() => {
+    const handleGlobalSpacebar = (e: KeyboardEvent) => {
+      // Only handle spacebar when not typing in input and game is not playing
+      if (e.key === ' ' && e.target === document.body && gameState.status !== GameStatus.PLAYING) {
+        e.preventDefault();
+        handleKeyPress(' ');
+      }
+    };
+
+    window.addEventListener('keydown', handleGlobalSpacebar);
+    return () => window.removeEventListener('keydown', handleGlobalSpacebar);
+  }, [gameState.status, handleKeyPress]);
 
   // Debug mode keyboard shortcut (F12 or Ctrl+D)
   useEffect(() => {
@@ -286,6 +317,7 @@ function App() {
         onDirectionChange={setDirection}
         onSpeedBoost={setSpeedBoost}
         onFirePoison={firePoison}
+        onStopFiringPoison={stopFiringPoison}
         enabled={gameState.status === GameStatus.PLAYING}
       />
 

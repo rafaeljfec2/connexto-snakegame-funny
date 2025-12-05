@@ -1,4 +1,4 @@
-import { PhaseType, PhaseLevelType, Chef, PhaseConfig } from '@/types/phases';
+import { PhaseType, PhaseLevelType, Chef } from '@/types/phases';
 
 /**
  * Phase configurations - 10 phases with 10 levels each (100 levels total)
@@ -443,4 +443,3 @@ export function getChefByLevel(level: number): Chef | undefined {
 export function getCurrentPhaseNumber(level: number): number {
   return Math.floor((level - 1) / 10) + 1;
 }
-

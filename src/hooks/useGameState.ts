@@ -107,10 +107,11 @@ export function useGameState() {
       const now = Date.now();
 
       if (prev.status === GameStatus.PLAYING) {
-        // Pausing - record pause start time
+        // Pausing - record pause start time and reset speed boost
         return {
           ...prev,
           status: GameStatus.PAUSED,
+          isSpeedBoosted: false, // Reset speed boost when pausing
           statistics: {
             ...statistics,
             lastPauseTime: now,

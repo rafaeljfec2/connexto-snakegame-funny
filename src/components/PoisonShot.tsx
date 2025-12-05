@@ -29,3 +29,4 @@ export function PoisonShot({ shot }: PoisonShotProps) {
     </div>
   );
 }
+

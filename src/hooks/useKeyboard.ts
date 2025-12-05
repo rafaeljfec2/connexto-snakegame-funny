@@ -88,6 +88,12 @@ export function useKeyboard({
 
   useEffect(() => {
     if (!enabled) {
+      // When disabled (game paused/ended), reset speed boost and clear pressed keys
+      pressedKeysRef.current.clear();
+      if (speedBoostActiveRef.current && onSpeedBoost) {
+        speedBoostActiveRef.current = false;
+        onSpeedBoost(false);
+      }
       return;
     }
 
@@ -98,9 +104,12 @@ export function useKeyboard({
     return () => {
       window.removeEventListener('keydown', handleKeyDown, { capture: true });
       window.removeEventListener('keyup', handleKeyUp, { capture: true });
-      // Reset on cleanup
+      // Reset on cleanup - also deactivate speed boost in game state
       pressedKeysRef.current.clear();
-      speedBoostActiveRef.current = false;
+      if (speedBoostActiveRef.current && onSpeedBoost) {
+        speedBoostActiveRef.current = false;
+        onSpeedBoost(false);
+      }
     };
-  }, [enabled, handleKeyDown, handleKeyUp]);
+  }, [enabled, handleKeyDown, handleKeyUp, onSpeedBoost]);
 }

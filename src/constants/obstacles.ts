@@ -110,4 +110,6 @@ export const OBSTACLE_CONFIG = {
   minDistanceFromSnake: 8,
   // Spawn interval in milliseconds (how often to try spawning obstacles during gameplay)
   spawnInterval: 1500, // Spawn obstacles every 1.5 seconds during gameplay (very fast)
+  // Maximum number of obstacles allowed on screen at once (performance optimization)
+  maxObstacles: 150, // Limit to prevent memory issues
 } as const;

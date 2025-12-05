@@ -1,6 +1,6 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { GameStatus, GameState, FoodType, Obstacle } from '@/types/game';
-import { GAME_CONFIG, INITIAL_SNAKE_POSITION } from '@/constants/game';
+import { GAME_CONFIG, INITIAL_SNAKE_POSITION, PERFORMANCE_CONFIG } from '@/constants/game';
 import {
   moveSnake,
   hasSelfCollision,
@@ -83,6 +83,12 @@ export function useGameLoop() {
   const bossAbilityCooldownsRef = useRef<Map<string, number>>(new Map());
   const lastObstacleSpawnRef = useRef<number>(0); // Track last obstacle spawn time
   const forcedFoodTypeRef = useRef<FoodType | null>(null);
+  const gameStateRef = useRef<GameState>(gameState);
+
+  // Keep gameStateRef updated with latest state
+  useEffect(() => {
+    gameStateRef.current = gameState;
+  }, [gameState]);
 
   const updateGame = useCallback(() => {
     updateGameState((prev: GameState) => {
@@ -130,12 +136,13 @@ export function useGameLoop() {
       let newSnake = moveSnake(prev.snake, currentDirection, GAME_CONFIG.gridSize, false);
 
       // Initialize particles early for portal teleportation
+      // Update particles and apply performance limits
       let newParticles = GAME_CONFIG.enableParticles
-        ? updateParticles(prev.particles)
+        ? updateParticles(prev.particles, PERFORMANCE_CONFIG.maxParticles)
         : prev.particles;
 
       // Check for portal teleportation BEFORE collision checks
-      const activePortals = getActivePortals(prev.portals);
+      const activePortals = getActivePortals(prev.portals, PERFORMANCE_CONFIG.maxPortals);
       let headPosition = newSnake[0];
       if (headPosition) {
         const portalAtHead = getPortalAtPosition(headPosition, activePortals);
@@ -464,12 +471,18 @@ export function useGameLoop() {
 
       // Handle PORTAL power-up - create portal pair when food is eaten
       // Only if portals are enabled in current phase
-      let newPortals = getActivePortals(prev.portals);
+      let newPortals = getActivePortals(prev.portals, PERFORMANCE_CONFIG.maxPortals);
       if (ateFood && prev.food.type === FoodType.PORTAL && phaseConfig?.portalsEnabled) {
         const portalPair = generatePortalPair(finalSnake, newObstacles, GAME_CONFIG.gridSize);
-        if (portalPair) {
+        if (portalPair && newPortals.length + portalPair.length <= PERFORMANCE_CONFIG.maxPortals) {
           newPortals = [...newPortals, ...portalPair];
         }
+      }
+
+      // Ensure portals don't exceed limit
+      if (newPortals.length > PERFORMANCE_CONFIG.maxPortals) {
+        const sorted = newPortals.sort((a, b) => b.spawnTime - a.spawnTime);
+        newPortals = sorted.slice(0, PERFORMANCE_CONFIG.maxPortals);
       }
       // Update boss for boss levels (levels 10, 20, 30, etc.)
       // But preserve debug boss if it doesn't match the level
@@ -951,15 +964,47 @@ export function useGameLoop() {
 
       const elapsed = currentTime - lastUpdateTimeRef.current;
 
+      // Get latest game state from ref (always up to date)
+      const currentGameState = gameStateRef.current;
+
       // Update active power-ups and get effective speed
-      const activePowerUps = getActivePowerUps(gameState.activePowerUps);
-      let effectiveSpeed = getEffectiveGameSpeed(gameState.gameSpeed, activePowerUps);
+      const activePowerUps = getActivePowerUps(currentGameState.activePowerUps);
+      let effectiveSpeed = getEffectiveGameSpeed(currentGameState.gameSpeed, activePowerUps);
 
-      // Apply phase speed modifier (already included in calculateGameSpeed, but keep for clarity)
+      // Check if there's a pending direction change
+      const hasPendingDirectionChange =
+        currentGameState.nextDirection !== currentGameState.direction &&
+        isValidDirectionChange(currentGameState.direction, currentGameState.nextDirection);
 
-      // Apply 3x speed boost if direction key is held
-      if (gameState.isSpeedBoosted) {
-        effectiveSpeed = Math.floor(effectiveSpeed / 3);
+      // Apply speed boost if direction key is held
+      if (currentGameState.isSpeedBoosted) {
+        // Increase speed boost multiplier for more responsive and fluid movement
+        // Higher multiplier when there's a pending direction change for instant response
+        const speedMultiplier = hasPendingDirectionChange ? 10 : 4; // Increased from 8/3 for smoother movement
+        effectiveSpeed = Math.floor(effectiveSpeed / speedMultiplier);
+
+        // For pending direction changes or speed boost active, process more frequently
+        // This ensures maximum fluidity and responsiveness
+        if (hasPendingDirectionChange) {
+          // Process immediately for maximum responsiveness (minimum 2ms wait)
+          const minWaitTime = 2; // Further reduced for ultra-responsive movement
+          if (elapsed >= minWaitTime) {
+            updateGame();
+            lastUpdateTimeRef.current = currentTime;
+            gameLoopRef.current = requestAnimationFrame(loop);
+            return;
+          }
+        } else {
+          // Even without pending direction change, allow faster updates during speed boost
+          // This makes the movement feel smoother and more fluid
+          const minWaitTime = Math.max(2, effectiveSpeed / 2);
+          if (elapsed >= minWaitTime) {
+            updateGame();
+            lastUpdateTimeRef.current = currentTime;
+            gameLoopRef.current = requestAnimationFrame(loop);
+            return;
+          }
+        }
       }
 
       if (elapsed >= effectiveSpeed) {
@@ -1069,6 +1114,7 @@ export function useGameLoop() {
         },
         particles: [],
         poisonShots: [],
+        isSpeedBoosted: false, // Reset speed boost when continuing after death
         statistics, // Keep statistics when continuing
       };
     });

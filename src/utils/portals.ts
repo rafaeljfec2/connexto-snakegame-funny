@@ -59,8 +59,7 @@ export function generatePortalPair(
 
     // Find a second position with minimum distance
     const validSecondPositions = availablePositions.filter((pos) => {
-      const distance =
-        Math.abs(pos.x - portal1Pos.x) + Math.abs(pos.y - portal1Pos.y);
+      const distance = Math.abs(pos.x - portal1Pos.x) + Math.abs(pos.y - portal1Pos.y);
       return distance >= PORTAL_CONFIG.minDistanceBetweenPortals;
     });
 
@@ -127,9 +126,7 @@ export function getPortalAtPosition(position: Position, portals: Portal[]): Port
  * Get the paired portal (the other portal in the pair)
  */
 export function getPortalPair(portal: Portal, portals: Portal[]): Portal | null {
-  return (
-    portals.find((p) => p.pairId === portal.pairId && p.id !== portal.id) ?? null
-  );
+  return portals.find((p) => p.pairId === portal.pairId && p.id !== portal.id) ?? null;
 }
 
 /**
@@ -157,9 +154,17 @@ export function getPortalRemainingPercentage(portal: Portal): number {
 }
 
 /**
- * Get only active (non-expired) portals
+ * Get only active (non-expired) portals with performance limit
  */
-export function getActivePortals(portals: Portal[]): Portal[] {
-  return portals.filter((portal) => !hasExpiredPortal(portal));
-}
+export function getActivePortals(portals: Portal[], maxPortals: number = 6): Portal[] {
+  const activePortals = portals.filter((portal) => !hasExpiredPortal(portal));
 
+  // Limit portals to prevent performance issues
+  if (activePortals.length > maxPortals) {
+    // Keep the most recently created portals (by spawnTime)
+    const sorted = activePortals.sort((a, b) => b.spawnTime - a.spawnTime);
+    return sorted.slice(0, maxPortals);
+  }
+
+  return activePortals;
+}

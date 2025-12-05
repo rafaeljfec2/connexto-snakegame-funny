@@ -91,7 +91,13 @@ export function generateObstacles(
     }
   }
 
-  // Don't limit obstacles - let them accumulate permanently on screen
+  // Limit obstacles to prevent memory issues and maintain performance
+  // Keep only the most recent obstacles if we exceed the limit
+  if (obstacles.length > OBSTACLE_CONFIG.maxObstacles) {
+    // Keep the most recently added obstacles (slice from the end)
+    return obstacles.slice(-OBSTACLE_CONFIG.maxObstacles);
+  }
+
   return obstacles;
 }
 

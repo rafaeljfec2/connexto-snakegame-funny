@@ -29,7 +29,19 @@ export function createParticles(
   return particles;
 }
 
-export function updateParticles(particles: Particle[]): Particle[] {
+export function updateParticles(particles: Particle[], maxParticles: number = 100): Particle[] {
   const now = Date.now();
-  return particles.filter((particle) => now - particle.startTime < particle.lifetime);
+  // Remove expired particles first
+  let activeParticles = particles.filter(
+    (particle) => now - particle.startTime < particle.lifetime,
+  );
+
+  // Limit total particles to prevent memory issues
+  if (activeParticles.length > maxParticles) {
+    // Keep the most recently created particles (by startTime)
+    activeParticles.sort((a, b) => b.startTime - a.startTime);
+    activeParticles = activeParticles.slice(0, maxParticles);
+  }
+
+  return activeParticles;
 }

@@ -99,19 +99,29 @@ function App() {
     gameStateRef.current = gameState;
   }, [gameState]);
 
-  // Save statistics when game ends
+  // Save statistics when game ends - wait for snake death animation to complete
   useEffect(() => {
     const wasNotGameOver = previousStatusRef.current !== GameStatus.GAME_OVER;
     const isNowGameOver = gameState.status === GameStatus.GAME_OVER;
 
     if (wasNotGameOver && isNowGameOver) {
-      // Use the ref to ensure we have the latest gameState
-      const currentGameState = gameStateRef.current;
-      // Always create statistics, even if they don't exist in state
-      const finalStats = createFinalStatistics(currentGameState);
-      saveGameSession(finalStats);
-      setGameStatistics(finalStats);
-      setShowStatistics(true);
+      // Calculate snake death animation duration
+      // Animation: 50ms per segment + 300ms final delay
+      const snakeLength = gameStateRef.current.snake.length;
+      const deathAnimationDuration = snakeLength * 50 + 300;
+
+      // Wait for death animation to complete before showing statistics
+      const timer = setTimeout(() => {
+        // Use the ref to ensure we have the latest gameState
+        const currentGameState = gameStateRef.current;
+        // Always create statistics, even if they don't exist in state
+        const finalStats = createFinalStatistics(currentGameState);
+        saveGameSession(finalStats);
+        setGameStatistics(finalStats);
+        setShowStatistics(true);
+      }, deathAnimationDuration);
+
+      return () => clearTimeout(timer);
     }
 
     previousStatusRef.current = gameState.status;

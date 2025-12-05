@@ -34,6 +34,7 @@ import {
 import { updateCombo } from '@/utils/combos';
 import { createParticles, updateParticles } from '@/utils/particles';
 import { generateObstacles, hasObstacleCollision, getActiveObstacles } from '@/utils/obstacles';
+import { destroyObstacles } from '@/utils/obstacleDestruction';
 import { OBSTACLE_CONFIG } from '@/constants/obstacles';
 import { checkAchievements, saveAchievements } from '@/utils/achievements';
 import { hasFoodExpired } from '@/utils/foodTimer';
@@ -428,28 +429,162 @@ function handlePoisonShotsObstacles(
   let newParticles = particles;
 
   // Process obstacles hit by poison shots (destroy obstacles)
+  // Use generic destruction system for consistent physics
   if (POISON_CONFIG.canDestroyObstacles && poisonUpdateResult.hitObstacles.length > 0) {
-    // Get IDs of obstacles that were hit
-    const hitObstacleIds = new Set(poisonUpdateResult.hitObstacles.map((obs) => obs.id));
-
-    // Remove all hit obstacles
-    newObstacles = newObstacles.filter((obs) => !hitObstacleIds.has(obs.id));
-
-    // Create destruction particles for each hit obstacle
-    poisonUpdateResult.hitObstacles.forEach((hitObstacle) => {
-      if (GAME_CONFIG.enableParticles) {
-        newParticles = [
-          ...newParticles,
-          ...createParticles(hitObstacle.position, '#ef4444', 8, 400),
-        ];
-      }
-    });
+    const destructionResult = destroyObstacles(
+      newObstacles,
+      poisonUpdateResult.hitObstacles,
+      newParticles,
+    );
+    newObstacles = destructionResult.remainingObstacles;
+    newParticles = destructionResult.particles;
   }
 
   return {
     poisonShots: newPoisonShots,
     obstacles: newObstacles,
     particles: newParticles,
+  };
+}
+
+// ============================================================================
+// Helper Functions - Boss Combat
+// ============================================================================
+
+interface BossCombatResult {
+  bossDefeated: boolean;
+  bossSnake: import('@/types/game').BossSnake | undefined;
+  score: number;
+  particles: Particle[];
+  shouldEndGame: boolean;
+  gameStatus?: GameStatus;
+}
+
+/**
+ * Handle boss combat collision - unified system for ALL bosses
+ * Strategic battle system:
+ * - Hit body: weaken boss (remove 2 segments)
+ * - Hit head when weak (≤3 segments): defeat boss
+ * - Hit head when strong (>3 segments): player loses life/game over
+ */
+function handleBossCombat(
+  headPosition: Position | undefined,
+  bossSnake: import('@/types/game').BossSnake | undefined,
+  activeBoss: Chef | undefined,
+  score: number,
+  particles: Particle[],
+  lives: number,
+): BossCombatResult {
+  if (!bossSnake || !headPosition) {
+    return {
+      bossDefeated: false,
+      bossSnake,
+      score,
+      particles,
+      shouldEndGame: false,
+    };
+  }
+
+  const hitPart = getBossHitPart(headPosition, bossSnake);
+
+  if (hitPart === 'head') {
+    // Player hit boss head
+    if (canDefeatBoss(bossSnake)) {
+      // Boss is weakened enough - can be defeated!
+      let newScore = score;
+      let newParticles = particles;
+
+      if (activeBoss) {
+        const bossReward = handleBossDefeat(activeBoss, {
+          score,
+          lives,
+        } as GameState);
+        newScore += bossReward.scoreIncrease;
+
+        // Create particles for boss defeat
+        if (GAME_CONFIG.enableParticles && bossSnake.positions[0]) {
+          const bossColor = activeBoss.visual.color;
+          newParticles = [
+            ...newParticles,
+            ...createParticles(bossSnake.positions[0], bossColor, 30, 1500),
+          ];
+        }
+      }
+
+      return {
+        bossDefeated: true,
+        bossSnake: undefined,
+        score: newScore,
+        particles: newParticles,
+        shouldEndGame: false,
+      };
+    } else {
+      // Boss is still too strong - player loses life/game over
+      return {
+        bossDefeated: false,
+        bossSnake,
+        score,
+        particles,
+        shouldEndGame: true,
+        gameStatus: isLivesEnabled() && lives > 0 ? GameStatus.DYING : GameStatus.GAME_OVER,
+      };
+    }
+  } else if (hitPart === 'body') {
+    // Player hit boss body - weaken the boss!
+    const weakenResult = weakenBossSnake(bossSnake, 2);
+    const newBossSnake = weakenResult.newBossSnake;
+    let newScore = score + weakenResult.pointsEarned;
+    let newParticles = particles;
+
+    // Create particles for weakening
+    if (GAME_CONFIG.enableParticles && headPosition) {
+      const bossColor = activeBoss?.visual.color ?? '#3b82f6';
+      newParticles = [...newParticles, ...createParticles(headPosition, bossColor, 10, 600)];
+    }
+
+    // If boss was weakened to death (1 segment left)
+    if (newBossSnake.positions.length <= 1) {
+      // Boss automatically defeated
+      if (activeBoss) {
+        const bossReward = handleBossDefeat(activeBoss, {
+          score: newScore,
+          lives,
+        } as GameState);
+        newScore += bossReward.scoreIncrease;
+
+        if (GAME_CONFIG.enableParticles && newBossSnake.positions[0]) {
+          const bossColor = activeBoss.visual.color;
+          newParticles = [
+            ...newParticles,
+            ...createParticles(newBossSnake.positions[0], bossColor, 30, 1500),
+          ];
+        }
+      }
+
+      return {
+        bossDefeated: true,
+        bossSnake: undefined,
+        score: newScore,
+        particles: newParticles,
+        shouldEndGame: false,
+      };
+    }
+
+    return {
+      bossDefeated: false,
+      bossSnake: newBossSnake,
+      score: newScore,
+      particles: newParticles,
+      shouldEndGame: false,
+    };
+  }
+
+  return {
+    bossDefeated: false,
+    bossSnake,
+    score,
+    particles,
+    shouldEndGame: false,
   };
 }
 

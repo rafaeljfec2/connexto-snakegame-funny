@@ -1,0 +1,795 @@
+.weatherContainer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  overflow: hidden;
+  border-radius: inherit;
+  z-index: 1;
+}
+
+/* ============================================
+   FASE 1 - CLIMA LIMPO/ESTRELADO
+   ============================================ */
+.starryNight {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+}
+
+.star {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  box-shadow:
+    0 0 4px rgba(255, 255, 255, 0.8),
+    0 0 8px rgba(255, 255, 255, 0.4);
+  animation: twinkle 3s ease-in-out infinite;
+}
+
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+
+.gentleGlow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.03) 0%, transparent 70%);
+  animation: gentlePulse 4s ease-in-out infinite;
+  z-index: 0;
+}
+
+@keyframes gentlePulse {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* ============================================
+   FASE 2 - NÉVOA AZUL MÍSTICA
+   ============================================ */
+.mysticFog {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+}
+
+.fogParticle {
+  position: absolute;
+  background: radial-gradient(
+    circle,
+    rgba(59, 130, 246, 0.3) 0%,
+    rgba(59, 130, 246, 0.1) 50%,
+    transparent 100%
+  );
+  border-radius: 50%;
+  animation: fogFloat linear infinite;
+  filter: blur(20px);
+}
+
+@keyframes fogFloat {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.3;
+  }
+  50% {
+    transform: translate(20px, -30px) scale(1.2);
+    opacity: 0.5;
+  }
+  100% {
+    transform: translate(40px, -60px) scale(1);
+    opacity: 0.2;
+  }
+}
+
+.protectiveLights {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 3;
+}
+
+.protectiveLight {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  background: radial-gradient(
+    circle,
+    rgba(59, 130, 246, 0.6) 0%,
+    rgba(59, 130, 246, 0.2) 50%,
+    transparent 100%
+  );
+  border-radius: 50%;
+  animation: lightPulse 2s ease-in-out infinite;
+  filter: blur(15px);
+}
+
+@keyframes lightPulse {
+  0%,
+  100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.3);
+  }
+}
+
+.blueGlow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at 30% 40%, rgba(59, 130, 246, 0.15) 0%, transparent 60%);
+  z-index: 1;
+}
+
+/* ============================================
+   FASE 3 - DESERTO COM AREIA
+   ============================================ */
+.desertStorm {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+}
+
+.sandParticle {
+  position: absolute;
+  top: -5px;
+  width: 2px;
+  height: 30px;
+  background: linear-gradient(
+    to bottom,
+    rgba(245, 158, 11, 0.8) 0%,
+    rgba(245, 158, 11, 0.4) 50%,
+    transparent 100%
+  );
+  animation: sandBlow linear infinite;
+  pointer-events: none;
+}
+
+@keyframes sandBlow {
+  0% {
+    transform: translateY(0) translateX(0) rotate(20deg);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(calc(100vh + 30px)) translateX(30px) rotate(20deg);
+    opacity: 0;
+  }
+}
+
+.heatWave {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent 0px,
+    rgba(245, 158, 11, 0.1) 1px,
+    transparent 2px,
+    transparent 40px
+  );
+  animation: heatDistortion 3s ease-in-out infinite;
+  z-index: 1;
+}
+
+@keyframes heatDistortion {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translateY(-5px);
+    opacity: 0.8;
+  }
+}
+
+.amberGlow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(ellipse at 50% 80%, rgba(245, 158, 11, 0.2) 0%, transparent 70%);
+  animation: amberPulse 3s ease-in-out infinite;
+  z-index: 0;
+}
+
+@keyframes amberPulse {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* ============================================
+   FASE 4 - CLIMA CÓSMICO/ESPACIAL
+   ============================================ */
+.cosmicSpace {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+}
+
+.cosmicParticle {
+  position: absolute;
+  background: rgba(139, 92, 246, 0.9);
+  border-radius: 50%;
+  box-shadow:
+    0 0 6px rgba(139, 92, 246, 1),
+    0 0 12px rgba(139, 92, 246, 0.6);
+  animation: cosmicFloat 8s ease-in-out infinite;
+}
+
+@keyframes cosmicFloat {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.6;
+  }
+  25% {
+    transform: translate(10px, -20px) scale(1.1);
+    opacity: 1;
+  }
+  50% {
+    transform: translate(-10px, -40px) scale(0.9);
+    opacity: 0.8;
+  }
+  75% {
+    transform: translate(20px, -30px) scale(1.05);
+    opacity: 0.9;
+  }
+}
+
+.nebula {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background:
+    radial-gradient(ellipse at 20% 30%, rgba(139, 92, 246, 0.4) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 70%, rgba(147, 51, 234, 0.3) 0%, transparent 50%);
+  animation: nebulaPulse 6s ease-in-out infinite;
+  z-index: 1;
+  filter: blur(30px);
+}
+
+@keyframes nebulaPulse {
+  0%,
+  100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+}
+
+.purpleEnergy {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.2) 0%, transparent 60%);
+  animation: energyFlow 4s ease-in-out infinite;
+  z-index: 0;
+}
+
+@keyframes energyFlow {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 100% 50%;
+  }
+}
+
+/* ============================================
+   FASE 5 - FOGO E VELOCIDADE
+   ============================================ */
+.fireSpeed {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+}
+
+.fireParticle {
+  position: absolute;
+  width: 15px;
+  height: 20px;
+  background: linear-gradient(
+    to top,
+    rgba(239, 68, 68, 1) 0%,
+    rgba(251, 146, 60, 0.8) 30%,
+    rgba(251, 191, 36, 0.6) 60%,
+    transparent 100%
+  );
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  animation: fireRise linear infinite;
+  filter: blur(2px);
+}
+
+@keyframes fireRise {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-150px) scale(0.5);
+    opacity: 0;
+  }
+}
+
+.speedTrail {
+  position: absolute;
+  width: 2px;
+  height: 50px;
+  background: linear-gradient(to right, rgba(239, 68, 68, 0.8) 0%, transparent 100%);
+  animation: speedStreak 1.5s linear infinite;
+  transform: rotate(25deg);
+}
+
+@keyframes speedStreak {
+  0% {
+    transform: translateX(0) translateY(0) rotate(25deg);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateX(100px) translateY(-100px) rotate(25deg);
+    opacity: 0;
+  }
+}
+
+.fireGlow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(
+    ellipse at 50% 90%,
+    rgba(239, 68, 68, 0.3) 0%,
+    rgba(251, 146, 60, 0.2) 40%,
+    transparent 70%
+  );
+  animation: fireGlowPulse 2s ease-in-out infinite;
+  z-index: 1;
+}
+
+@keyframes fireGlowPulse {
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* ============================================
+   FASE 6 - PSICODÉLICO/CAÓTICO
+   ============================================ */
+.chaosPsychedelic {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+}
+
+.chaosParticle {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  animation: chaosFloat 4s ease-in-out infinite;
+  filter: blur(1px);
+  box-shadow: 0 0 10px currentColor;
+}
+
+@keyframes chaosFloat {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1) rotate(0deg);
+    opacity: 0.6;
+  }
+  25% {
+    transform: translate(20px, -30px) scale(1.5) rotate(90deg);
+    opacity: 1;
+  }
+  50% {
+    transform: translate(-20px, -60px) scale(0.8) rotate(180deg);
+    opacity: 0.7;
+  }
+  75% {
+    transform: translate(30px, -40px) scale(1.2) rotate(270deg);
+    opacity: 0.9;
+  }
+}
+
+.chaosWaves {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(255, 0, 128, 0.1) 0px,
+    rgba(0, 255, 128, 0.1) 10px,
+    rgba(128, 0, 255, 0.1) 20px,
+    rgba(255, 128, 0, 0.1) 30px
+  );
+  animation: chaosWave 3s linear infinite;
+  z-index: 1;
+  opacity: 0.5;
+}
+
+@keyframes chaosWave {
+  0% {
+    transform: translateX(0) translateY(0);
+  }
+  100% {
+    transform: translateX(50px) translateY(50px);
+  }
+}
+
+/* ============================================
+   FASE 7 - NEBLINA E GEOMETRIA
+   ============================================ */
+.mistGeometric {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+}
+
+.mistLayer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(
+    circle at 30% 40%,
+    rgba(99, 102, 241, 0.3) 0%,
+    rgba(99, 102, 241, 0.1) 50%,
+    transparent 100%
+  );
+  animation: mistFlow 10s ease-in-out infinite;
+  filter: blur(40px);
+  z-index: 1;
+}
+
+@keyframes mistFlow {
+  0%,
+  100% {
+    transform: translate(0, 0);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translate(30px, -20px);
+    opacity: 0.8;
+  }
+}
+
+.geometricShape {
+  position: absolute;
+  border: 2px solid rgba(99, 102, 241, 0.4);
+  background: rgba(99, 102, 241, 0.1);
+  clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
+  animation: geometricFloat 6s ease-in-out infinite;
+  filter: blur(1px);
+}
+
+@keyframes geometricFloat {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 0.4;
+  }
+  50% {
+    transform: translate(20px, -30px) rotate(180deg);
+    opacity: 0.7;
+  }
+}
+
+.indigoGlow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.2) 0%, transparent 60%);
+  z-index: 0;
+}
+
+/* ============================================
+   FASE 8 - APOCALÍPTICO/LAVA
+   ============================================ */
+.apocalypticLava {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+}
+
+.ashParticle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: rgba(30, 30, 30, 0.8);
+  border-radius: 50%;
+  animation: ashFall linear infinite;
+  filter: blur(1px);
+}
+
+@keyframes ashFall {
+  0% {
+    transform: translateY(0) translateX(0) rotate(0deg);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(calc(100vh + 10px)) translateX(20px) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+.lavaGlow {
+  position: absolute;
+  width: 80px;
+  height: 40px;
+  background: radial-gradient(
+    ellipse,
+    rgba(220, 38, 38, 0.8) 0%,
+    rgba(239, 68, 68, 0.5) 50%,
+    transparent 100%
+  );
+  border-radius: 50%;
+  animation: lavaPulse 2s ease-in-out infinite;
+  filter: blur(15px);
+}
+
+@keyframes lavaPulse {
+  0%,
+  100% {
+    opacity: 0.6;
+    transform: scaleX(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scaleX(1.3);
+  }
+}
+
+.lavaHeat {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent 0px,
+    rgba(220, 38, 38, 0.15) 1px,
+    transparent 2px,
+    transparent 30px
+  );
+  animation: heatRise 2s linear infinite;
+  z-index: 1;
+}
+
+@keyframes heatRise {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-30px);
+  }
+}
+
+.redGlow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(
+    ellipse at 50% 90%,
+    rgba(220, 38, 38, 0.4) 0%,
+    rgba(239, 68, 68, 0.2) 40%,
+    transparent 70%
+  );
+  animation: redGlowPulse 2s ease-in-out infinite;
+  z-index: 0;
+}
+
+@keyframes redGlowPulse {
+  0%,
+  100% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* ============================================
+   FASE 10 - CELESTIAL/DIVINO
+   ============================================ */
+.celestialDivine {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+}
+
+.divineParticle {
+  position: absolute;
+  background: radial-gradient(
+    circle,
+    rgba(251, 191, 36, 1) 0%,
+    rgba(245, 158, 11, 0.8) 50%,
+    transparent 100%
+  );
+  border-radius: 50%;
+  box-shadow:
+    0 0 8px rgba(251, 191, 36, 1),
+    0 0 16px rgba(251, 191, 36, 0.8),
+    0 0 24px rgba(245, 158, 11, 0.6);
+  animation: divineFloat 6s ease-in-out infinite;
+}
+
+@keyframes divineFloat {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.7;
+  }
+  25% {
+    transform: translate(15px, -25px) scale(1.2);
+    opacity: 1;
+  }
+  50% {
+    transform: translate(-15px, -50px) scale(0.9);
+    opacity: 0.8;
+  }
+  75% {
+    transform: translate(25px, -35px) scale(1.1);
+    opacity: 0.95;
+  }
+}
+
+.aurora {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background:
+    linear-gradient(180deg, rgba(251, 191, 36, 0.3) 0%, transparent 30%),
+    linear-gradient(180deg, transparent 70%, rgba(245, 158, 11, 0.2) 100%);
+  animation: auroraWave 8s ease-in-out infinite;
+  z-index: 1;
+  filter: blur(20px);
+}
+
+@keyframes auroraWave {
+  0%,
+  100% {
+    transform: translateY(0) scaleY(1);
+    opacity: 0.7;
+  }
+  50% {
+    transform: translateY(-10px) scaleY(1.1);
+    opacity: 1;
+  }
+}
+
+.divineLight {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(
+    circle at 50% 30%,
+    rgba(255, 255, 255, 0.3) 0%,
+    rgba(251, 191, 36, 0.2) 30%,
+    transparent 60%
+  );
+  animation: divineLightPulse 4s ease-in-out infinite;
+  z-index: 1;
+  filter: blur(30px);
+}
+
+@keyframes divineLightPulse {
+  0%,
+  100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+
+.goldenGlow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(251, 191, 36, 0.25) 0%,
+    rgba(245, 158, 11, 0.15) 40%,
+    transparent 70%
+  );
+  animation: goldenGlowPulse 3s ease-in-out infinite;
+  z-index: 0;
+}
+
+@keyframes goldenGlowPulse {
+  0%,
+  100% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 1;
+  }
+}

@@ -16,17 +16,62 @@ interface DynamicBackgroundProps {
 
 // Background gradients that change with level
 const getBackgroundGradient = (level: number): string => {
+  // Phase 1 (Classic) - Clean starry night (levels 1-5)
+  if (level >= 1 && level <= 5) {
+    return 'linear-gradient(135deg, #0a0a15 0%, #1a1a2e 30%, #16213e 60%, #1a2332 100%)';
+  }
+
+  // Phase 2 (Guardian) - Mystic blue (levels 6-10)
+  if (level >= 6 && level <= 10) {
+    return 'linear-gradient(135deg, #0f1720 0%, #1e293b 25%, #1e3a5f 50%, #1e40af 75%, #1e3a8a 100%)';
+  }
+
+  // Phase 3 (Challenger) - Desert (levels 11-15)
+  if (level >= 11 && level <= 15) {
+    return 'linear-gradient(135deg, #292524 0%, #451a03 25%, #78350f 50%, #92400e 75%, #713f12 100%)';
+  }
+
+  // Phase 4 (Portal) - Cosmic purple (levels 16-20)
+  if (level >= 16 && level <= 20) {
+    return 'linear-gradient(135deg, #1e1b2e 0%, #2d1b3d 25%, #3d1b4d 50%, #4c1d5f 75%, #5b21b6 100%)';
+  }
+
+  // Phase 5 (Speed) - Fire red (levels 21-25)
+  if (level >= 21 && level <= 25) {
+    return 'linear-gradient(135deg, #1c1917 0%, #450a0a 25%, #7f1d1d 50%, #991b1b 75%, #dc2626 100%)';
+  }
+
+  // Phase 6 (Chaos) - Psychedelic (levels 26-30)
+  if (level >= 26 && level <= 30) {
+    return 'linear-gradient(135deg, #1a0a1a 0%, #2d1b2d 20%, #4d1d4d 40%, #6d2d6d 60%, #9f2d9f 80%, #bf3dbf 100%)';
+  }
+
+  // Phase 7 (Architect) - Mist indigo (levels 31-35)
+  if (level >= 31 && level <= 35) {
+    return 'linear-gradient(135deg, #1e1b2e 0%, #25243e 25%, #312e4e 50%, #3d3a5e 75%, #4c46f1 100%)';
+  }
+
+  // Phase 8 (Survivor) - Apocalyptic (levels 36-40)
+  if (level >= 36 && level <= 40) {
+    return 'linear-gradient(135deg, #1c1917 0%, #292524 20%, #450a0a 40%, #7f1d1d 60%, #991b1b 80%, #dc2626 100%)';
+  }
+
   // Phase 9 (Vortex Challenge) - Storm theme (levels 41-45)
   if (level >= 41 && level <= 45) {
     return 'linear-gradient(135deg, #1a0a1a 0%, #2d1b2d 25%, #1a1a2e 50%, #0f1720 75%, #0a0a15 100%)';
   }
 
+  // Phase 10 (Supreme) - Celestial gold (levels 46-50)
+  if (level >= 46 && level <= 50) {
+    return 'linear-gradient(135deg, #1c1917 0%, #292524 25%, #451a03 40%, #78350f 60%, #a16207 80%, #fbbf24 100%)';
+  }
+
   const baseColors = [
-    { start: '#0a0a0f', mid: '#1a1a2e', end: '#16213e' }, // Level 1-3: Dark blue
-    { start: '#1a1a2e', mid: '#16213e', end: '#0f3460' }, // Level 4-6: Darker blue
-    { start: '#16213e', mid: '#0f3460', end: '#1a2332' }, // Level 7-9: Deep blue
-    { start: '#0f3460', mid: '#1a2332', end: '#2d1b3d' }, // Level 10-12: Purple-blue
-    { start: '#1a2332', mid: '#2d1b3d', end: '#3d1b4d' }, // Level 13-15: Dark purple
+    { start: '#0a0a0f', mid: '#1a1a2e', end: '#16213e' }, // Fallback
+    { start: '#1a1a2e', mid: '#16213e', end: '#0f3460' },
+    { start: '#16213e', mid: '#0f3460', end: '#1a2332' },
+    { start: '#0f3460', mid: '#1a2332', end: '#2d1b3d' },
+    { start: '#1a2332', mid: '#2d1b3d', end: '#3d1b4d' },
   ];
 
   // Ensure level is valid and at least 1

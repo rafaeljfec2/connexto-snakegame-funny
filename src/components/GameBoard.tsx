@@ -17,9 +17,11 @@ import { Portal as PortalComponent } from './Portal';
 import { BossSnake as BossSnakeComponent } from './BossSnake';
 import { PoisonShot as PoisonShotComponent } from './PoisonShot';
 import { StormEffect } from './StormEffect';
+import { WeatherEffect } from './WeatherEffect';
 import { useEffect, useRef, useState, useMemo, memo } from 'react';
 import styles from './GameBoard.module.css';
 import { Chef } from '@/types/phases';
+import { getCurrentPhase } from '@/utils/phases';
 
 interface GameBoardProps {
   snake: Position[];
@@ -205,10 +207,19 @@ export const GameBoard = memo(function GameBoard({
     return pairs;
   }, [portals]);
 
+  // Get current phase for weather effects
+  const currentPhase = useMemo(() => {
+    const phase = getCurrentPhase(level);
+    return phase?.id ?? 0;
+  }, [level]);
+
   return (
     <div ref={boardRef} className={boardClassName} style={gridStyle}>
-      {/* Storm Effect for Phase 9 (Vortex Challenge) */}
-      <StormEffect level={level} />
+      {/* Weather Effects for all phases */}
+      <WeatherEffect level={level} />
+
+      {/* Storm Effect for Phase 9 (Vortex Challenge) - Keep for backward compatibility */}
+      {currentPhase === 9 && <StormEffect level={level} />}
 
       {GAME_CONFIG.enableObstacles &&
         obstacles.map((obstacle) => <ObstacleComponent key={obstacle.id} obstacle={obstacle} />)}

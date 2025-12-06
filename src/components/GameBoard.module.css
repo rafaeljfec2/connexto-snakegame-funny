@@ -31,7 +31,166 @@
   isolation: isolate;
 }
 
-/* Storm theme for Phase 9 (Vortex Challenge) */
+/* Weather themes for different phases */
+/* Phase 1 - Starry Night */
+.gameBoard:has(.starryNight) {
+  background:
+    linear-gradient(135deg, #0a0a15 0%, #1a1a2e 30%, #16213e 60%, #1a2332 100%),
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.05) 0px,
+      rgba(255, 255, 255, 0.05) 1px,
+      transparent 1px,
+      transparent 20px
+    );
+  box-shadow:
+    inset 0 0 40px rgba(0, 0, 0, 0.8),
+    inset 0 0 80px rgba(255, 255, 255, 0.08);
+}
+
+/* Phase 2 - Mystic Fog */
+.gameBoard:has(.mysticFog) {
+  background:
+    linear-gradient(135deg, #0f1720 0%, #1e293b 25%, #1e3a5f 50%, #1e40af 75%, #1e3a8a 100%),
+    repeating-linear-gradient(
+      0deg,
+      rgba(59, 130, 246, 0.1) 0px,
+      rgba(59, 130, 246, 0.1) 1px,
+      transparent 1px,
+      transparent 20px
+    );
+  box-shadow:
+    inset 0 0 40px rgba(0, 0, 0, 0.8),
+    inset 0 0 80px rgba(59, 130, 246, 0.2);
+}
+
+/* Phase 3 - Desert */
+.gameBoard:has(.desertStorm) {
+  background:
+    linear-gradient(135deg, #292524 0%, #451a03 25%, #78350f 50%, #92400e 75%, #713f12 100%),
+    repeating-linear-gradient(
+      0deg,
+      rgba(245, 158, 11, 0.08) 0px,
+      rgba(245, 158, 11, 0.08) 1px,
+      transparent 1px,
+      transparent 20px
+    );
+  box-shadow:
+    inset 0 0 40px rgba(0, 0, 0, 0.9),
+    inset 0 0 80px rgba(245, 158, 11, 0.15);
+}
+
+/* Phase 4 - Cosmic */
+.gameBoard:has(.cosmicSpace) {
+  background:
+    linear-gradient(135deg, #1e1b2e 0%, #2d1b3d 25%, #3d1b4d 50%, #4c1d5f 75%, #5b21b6 100%),
+    repeating-linear-gradient(
+      0deg,
+      rgba(139, 92, 246, 0.1) 0px,
+      rgba(139, 92, 246, 0.1) 1px,
+      transparent 1px,
+      transparent 20px
+    );
+  box-shadow:
+    inset 0 0 40px rgba(0, 0, 0, 0.8),
+    inset 0 0 80px rgba(139, 92, 246, 0.2),
+    0 0 100px rgba(139, 92, 246, 0.1);
+}
+
+/* Phase 5 - Fire Speed */
+.gameBoard:has(.fireSpeed) {
+  background:
+    linear-gradient(135deg, #1c1917 0%, #450a0a 25%, #7f1d1d 50%, #991b1b 75%, #dc2626 100%),
+    repeating-linear-gradient(
+      0deg,
+      rgba(239, 68, 68, 0.1) 0px,
+      rgba(239, 68, 68, 0.1) 1px,
+      transparent 1px,
+      transparent 20px
+    );
+  box-shadow:
+    inset 0 0 40px rgba(0, 0, 0, 0.9),
+    inset 0 0 80px rgba(239, 68, 68, 0.2),
+    0 0 100px rgba(239, 68, 68, 0.15);
+}
+
+/* Phase 6 - Chaos Psychedelic */
+.gameBoard:has(.chaosPsychedelic) {
+  background:
+    linear-gradient(
+      135deg,
+      #1a0a1a 0%,
+      #2d1b2d 20%,
+      #4d1d4d 40%,
+      #6d2d6d 60%,
+      #9f2d9f 80%,
+      #bf3dbf 100%
+    ),
+    repeating-linear-gradient(
+      0deg,
+      rgba(236, 72, 153, 0.1) 0px,
+      rgba(236, 72, 153, 0.1) 1px,
+      transparent 1px,
+      transparent 20px
+    );
+  box-shadow:
+    inset 0 0 40px rgba(0, 0, 0, 0.8),
+    inset 0 0 80px rgba(236, 72, 153, 0.2);
+  animation: chaosBackground 3s ease-in-out infinite;
+}
+
+@keyframes chaosBackground {
+  0%,
+  100% {
+    filter: hue-rotate(0deg);
+  }
+  50% {
+    filter: hue-rotate(90deg);
+  }
+}
+
+/* Phase 7 - Mist Geometric */
+.gameBoard:has(.mistGeometric) {
+  background:
+    linear-gradient(135deg, #1e1b2e 0%, #25243e 25%, #312e4e 50%, #3d3a5e 75%, #4c46f1 100%),
+    repeating-linear-gradient(
+      0deg,
+      rgba(99, 102, 241, 0.1) 0px,
+      rgba(99, 102, 241, 0.1) 1px,
+      transparent 1px,
+      transparent 20px
+    );
+  box-shadow:
+    inset 0 0 40px rgba(0, 0, 0, 0.8),
+    inset 0 0 80px rgba(99, 102, 241, 0.15);
+}
+
+/* Phase 8 - Apocalyptic Lava */
+.gameBoard:has(.apocalypticLava) {
+  background:
+    linear-gradient(
+      135deg,
+      #1c1917 0%,
+      #292524 20%,
+      #450a0a 40%,
+      #7f1d1d 60%,
+      #991b1b 80%,
+      #dc2626 100%
+    ),
+    repeating-linear-gradient(
+      0deg,
+      rgba(220, 38, 38, 0.1) 0px,
+      rgba(220, 38, 38, 0.1) 1px,
+      transparent 1px,
+      transparent 20px
+    );
+  box-shadow:
+    inset 0 0 40px rgba(0, 0, 0, 0.95),
+    inset 0 0 80px rgba(220, 38, 38, 0.25),
+    0 0 100px rgba(220, 38, 38, 0.2);
+}
+
+/* Phase 9 - Storm (Vortex Challenge) */
 .gameBoard:has(.stormContainer) {
   background:
     linear-gradient(135deg, #0a0a15 0%, #1a0a1a 25%, #2d1b2d 50%, #1a1a2e 75%, #0f1720 100%),
@@ -53,6 +212,31 @@
     inset 0 0 40px rgba(0, 0, 0, 0.9),
     inset 0 0 80px rgba(100, 100, 255, 0.15),
     0 0 100px rgba(100, 100, 255, 0.1);
+}
+
+/* Phase 10 - Celestial Divine */
+.gameBoard:has(.celestialDivine) {
+  background:
+    linear-gradient(
+      135deg,
+      #1c1917 0%,
+      #292524 25%,
+      #451a03 40%,
+      #78350f 60%,
+      #a16207 80%,
+      #fbbf24 100%
+    ),
+    repeating-linear-gradient(
+      0deg,
+      rgba(251, 191, 36, 0.1) 0px,
+      rgba(251, 191, 36, 0.1) 1px,
+      transparent 1px,
+      transparent 20px
+    );
+  box-shadow:
+    inset 0 0 40px rgba(0, 0, 0, 0.8),
+    inset 0 0 80px rgba(251, 191, 36, 0.25),
+    0 0 120px rgba(251, 191, 36, 0.2);
 }
 
 @keyframes borderFlow {

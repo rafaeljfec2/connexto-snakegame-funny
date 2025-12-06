@@ -12,6 +12,7 @@ import { loadAchievements } from '@/utils/achievements';
 import { LIVES_CONFIG } from '@/constants/lives';
 import { initializeStatistics } from '@/utils/statistics';
 import { getCurrentPhase, getBossForLevel, shouldSpawnBoss } from '@/utils/phases';
+import { createPhaseStartSnapshot } from '@/utils/phaseStatistics';
 
 export function useGameState() {
   const [gameState, setGameState] = useState<GameState>(() => {
@@ -106,9 +107,12 @@ export function useGameState() {
         };
       }
       // Otherwise, start playing directly
+      // Create phase snapshot when starting a phase
+      const phaseSnapshot = createPhaseStartSnapshot(prev);
       return {
         ...prev,
         status: GameStatus.PLAYING,
+        phaseStartSnapshot: phaseSnapshot,
       };
     });
   }, []);

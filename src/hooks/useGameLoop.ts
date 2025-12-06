@@ -1632,5 +1632,6 @@ export function useGameLoop() {
     spawnBoss,
     firePoison,
     stopFiringPoison,
+    updateGameState,
   };
 }

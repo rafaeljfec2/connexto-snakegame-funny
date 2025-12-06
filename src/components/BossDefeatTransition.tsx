@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Chef } from '@/types/phases';
 import styles from './BossDefeatTransition.module.css';
 
@@ -13,33 +13,53 @@ const TRANSITION_DURATION = 4000; // 4 seconds total
 export function BossDefeatTransition({ boss, score, onComplete }: BossDefeatTransitionProps) {
   const [progress, setProgress] = useState(0);
   const [showCelebration, setShowCelebration] = useState(false);
+  const onCompleteRef = useRef(onComplete);
+
+  // Keep onComplete ref up to date
+  useEffect(() => {
+    onCompleteRef.current = onComplete;
+  }, [onComplete]);
 
   useEffect(() => {
+    console.log('🎬 BossDefeatTransition mounted/started', { bossName: boss.name });
     setProgress(0);
     setShowCelebration(false);
 
     const startTime = Date.now();
+    let hasShownCelebration = false;
+    let isComplete = false;
+
     const interval = setInterval(() => {
+      if (isComplete) {
+        return;
+      }
+
       const elapsed = Date.now() - startTime;
       const newProgress = (elapsed / TRANSITION_DURATION) * 100;
 
-      setProgress(Math.min(100, newProgress));
+      const currentProgress = Math.min(100, newProgress);
+      setProgress(currentProgress);
 
       // Show celebration after 20% of transition
-      if (newProgress >= 20 && !showCelebration) {
+      if (currentProgress >= 20 && !hasShownCelebration) {
+        hasShownCelebration = true;
         setShowCelebration(true);
       }
 
-      if (newProgress >= 100) {
+      if (currentProgress >= 100) {
+        isComplete = true;
         clearInterval(interval);
+        console.log('🎬 BossDefeatTransition animation complete, calling onComplete');
         setTimeout(() => {
-          onComplete();
+          onCompleteRef.current();
         }, 100);
       }
     }, 16); // ~60fps
 
-    return () => clearInterval(interval);
-  }, [boss.id, onComplete, showCelebration]);
+    return () => {
+      clearInterval(interval);
+    };
+  }, [boss.id]);
 
   // Calculate zoom and fade based on progress
   // 0-40%: Boss explodes and zooms

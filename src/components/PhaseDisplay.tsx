@@ -26,7 +26,7 @@ export function PhaseDisplay({ level, currentPhase }: PhaseDisplayProps) {
       <div className={styles.progressBar}>
         <div className={styles.progressFill} style={{ width: `${progress * 100}%` }} />
       </div>
-      <div className={styles.levelInfo}>Nível {levelInPhase}/10 da Fase</div>
+      <div className={styles.levelInfo}>Nível {levelInPhase}/5 da Fase</div>
     </div>
   );
 }

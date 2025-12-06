@@ -15,6 +15,12 @@ export function PhaseCompleteScreen({
   statistics,
   onNextPhase,
 }: PhaseCompleteScreenProps) {
+  console.log('📊 PhaseCompleteScreen rendering', {
+    phaseNumber,
+    phaseName,
+    statistics,
+  });
+  
   return (
     <div className={styles.overlay}>
       <div className={styles.container}>

@@ -15,9 +15,12 @@ import { TouchControls } from './components/TouchControls';
 import { PhaseTransition } from './components/PhaseTransition';
 import { BossDefeatTransition } from './components/BossDefeatTransition';
 import { PhaseIntroScreen } from './components/PhaseIntroScreen';
+import { PhaseCompleteScreen } from './components/PhaseCompleteScreen';
 import { GameStatus } from '@/types/game';
 import { createFinalStatistics, saveGameSession } from '@/utils/statistics';
-import { didPhaseChange, getPhaseNumber } from '@/utils/phases';
+import { didPhaseChange, getPhaseNumber, getCurrentPhase } from '@/utils/phases';
+import { calculatePhaseStatistics, createPhaseStartSnapshot } from '@/utils/phaseStatistics';
+import { calculateGameSpeed } from '@/utils/difficulty';
 import styles from './App.module.css';
 import { PhaseDisplay } from './components/PhaseDisplay';
 import { MobileFloatingInfo } from './components/MobileFloatingInfo';
@@ -37,6 +40,7 @@ function App() {
     spawnBoss,
     firePoison,
     stopFiringPoison,
+    updateGameState,
   } = useGameLoop();
 
   const [showLevelUp, setShowLevelUp] = useState(false);
@@ -98,14 +102,26 @@ function App() {
       !gameState.activeBoss
     ) {
       // Boss was defeated (went from having a boss to no boss)
+      console.log('🎯 Boss defeated detected!', {
+        previousBoss: previousActiveBossRef.current?.name,
+        currentBoss: gameState.activeBoss,
+        status: gameState.status,
+      });
+      // Pause the game immediately when boss is defeated
+      pauseGame();
       const scoreIncrease = gameState.score - previousScoreRef.current;
+      console.log('📊 Setting boss defeat state', {
+        boss: previousActiveBossRef.current?.name,
+        scoreIncrease,
+      });
       setDefeatedBoss(previousActiveBossRef.current);
       setBossDefeatScore(scoreIncrease);
       setShowBossDefeatTransition(true);
+      console.log('✅ showBossDefeatTransition set to true');
     }
     previousActiveBossRef.current = gameState.activeBoss;
     previousScoreRef.current = gameState.score;
-  }, [gameState.activeBoss, gameState.score, gameState.status]);
+  }, [gameState.activeBoss, gameState.score, gameState.status, pauseGame]);
 
   // Reset level up animation when game ends, resets, or is paused
   useEffect(() => {
@@ -258,6 +274,70 @@ function App() {
     setShowLevelUp(false);
   }, []);
 
+  const handleBossDefeatTransitionComplete = useCallback(() => {
+    console.log('🎬 BossDefeatTransition completed, changing to PHASE_COMPLETE');
+    setShowBossDefeatTransition(false);
+    // Change status to PHASE_COMPLETE after animation
+    // Create snapshot retroactively if it doesn't exist
+    updateGameState((prev) => {
+      console.log('📸 Creating snapshot for phase complete', {
+        hasSnapshot: !!prev.phaseStartSnapshot,
+        level: prev.level,
+        phaseNumber: getPhaseNumber(prev.level),
+      });
+
+      // Calculate first level of current phase for snapshot
+      const currentPhaseNumber = getPhaseNumber(prev.level);
+      const phaseStartLevel = (currentPhaseNumber - 1) * 5 + 1;
+
+      // Create snapshot if it doesn't exist, using phase start level as reference
+      // Use existing snapshot if available, otherwise create a fallback
+      let snapshot = prev.phaseStartSnapshot;
+
+      if (!snapshot) {
+        console.log('⚠️ No snapshot found, creating fallback snapshot');
+        // Create a fallback snapshot for this phase
+        // Estimate phase start based on current phase number
+        snapshot = {
+          startTime: prev.statistics?.startTime ?? Date.now() - 60000, // Default to 1 minute ago
+          startScore: Math.max(0, prev.score - 500), // Estimate starting score
+          startLevel: phaseStartLevel,
+          startStatistics: prev.statistics
+            ? {
+                ...prev.statistics,
+                foodsEaten: Math.max(0, (prev.statistics.foodsEaten ?? 0) - 10),
+                maxCombo: 0,
+                obstaclesEncountered: Math.max(0, (prev.statistics.obstaclesEncountered ?? 0) - 5),
+                livesLost: prev.statistics.livesLost ?? 0,
+              }
+            : {
+                startTime: Date.now() - 60000,
+                pausedTime: 0,
+                foodsEaten: 0,
+                foodsByType: {} as Record<import('@/types/game').FoodType, number>,
+                maxSnakeLength: 3,
+                maxCombo: 0,
+                obstaclesEncountered: 0,
+                livesLost: 0,
+              },
+        };
+      }
+
+      const newState = {
+        ...prev,
+        status: GameStatus.PHASE_COMPLETE,
+        phaseStartSnapshot: snapshot,
+      };
+
+      console.log('✅ Status changed to PHASE_COMPLETE', {
+        status: newState.status,
+        hasSnapshot: !!newState.phaseStartSnapshot,
+      });
+
+      return newState;
+    });
+  }, [updateGameState]);
+
   return (
     <div className={styles.app}>
       <DynamicBackground level={gameState.level} />
@@ -376,12 +456,61 @@ function App() {
       {/* Boss Defeat Transition Animation - Sonic Style */}
       {showBossDefeatTransition && defeatedBoss && (
         <BossDefeatTransition
+          key={`boss-defeat-${defeatedBoss.id}`}
           boss={defeatedBoss}
           score={bossDefeatScore}
-          onComplete={() => {
-            setShowBossDefeatTransition(false);
-            setDefeatedBoss(null);
-            setBossDefeatScore(0);
+          onComplete={handleBossDefeatTransitionComplete}
+        />
+      )}
+
+      {/* Phase Complete Screen - Shows after boss is defeated */}
+      {gameState.status === GameStatus.PHASE_COMPLETE && (
+        <PhaseCompleteScreen
+          phaseNumber={getPhaseNumber(gameState.level)}
+          phaseName={getCurrentPhase(gameState.level)?.name ?? 'Fase Completa'}
+          statistics={calculatePhaseStatistics(
+            gameState,
+            gameState.phaseStartSnapshot ?? createPhaseStartSnapshot(gameState),
+          )}
+          onNextPhase={() => {
+            // Advance to next phase
+            const currentPhaseNumber = getPhaseNumber(gameState.level);
+            const nextPhaseNumber = currentPhaseNumber + 1;
+
+            // Check if there's a next phase (max 10 phases)
+            if (nextPhaseNumber <= 10) {
+              // Move to next phase - calculate first level of next phase
+              const nextPhaseStartLevel = (nextPhaseNumber - 1) * 5 + 1;
+              const nextPhase = getCurrentPhase(nextPhaseStartLevel);
+
+              // Move to next phase - set status to PHASE_INTRO
+              updateGameState((prev) => {
+                // Set level to first level of next phase
+                const nextSpeed = calculateGameSpeed(nextPhaseStartLevel);
+
+                // Create snapshot BEFORE updating level (for next phase tracking)
+                const nextPhaseSnapshot = createPhaseStartSnapshot({
+                  ...prev,
+                  level: nextPhaseStartLevel,
+                });
+
+                return {
+                  ...prev,
+                  level: nextPhaseStartLevel,
+                  gameSpeed: nextSpeed,
+                  status: GameStatus.PHASE_INTRO,
+                  currentPhase: nextPhase?.id,
+                  phaseLevelType: nextPhase?.type,
+                  phaseStartSnapshot: nextPhaseSnapshot,
+                };
+              });
+            } else {
+              // Game complete - go to game over or show completion screen
+              updateGameState((prev) => ({
+                ...prev,
+                status: GameStatus.GAME_OVER,
+              }));
+            }
           }}
         />
       )}

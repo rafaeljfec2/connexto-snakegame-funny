@@ -545,7 +545,7 @@
     position: relative;
   }
 
-  /* Game Area - Maximized */
+  /* Game Area - Maximized and Centered */
   .gameArea {
     order: 1;
     flex: 1;
@@ -554,8 +554,8 @@
     padding: 0.5rem;
     display: flex;
     flex-direction: column;
-    justify-content: flex-start;
-    align-items: center;
+    justify-content: center; /* Center vertically */
+    align-items: center; /* Center horizontally */
     position: relative;
     z-index: 1;
     width: 100%;
@@ -563,19 +563,18 @@
     overflow: visible;
   }
 
-  /* Game Container - Maximized for Mobile */
+  /* Game Container - Maximized for Mobile, Centered */
   .gameContainer {
     padding: 0.5rem;
     border-radius: 12px;
     border-width: 1px;
     width: 100%;
-    flex: 1 1 auto;
+    flex: 0 0 auto; /* Don't grow/shrink, maintain size */
     min-height: 0;
-    max-height: 100%;
     box-sizing: border-box;
     position: relative;
     z-index: 1;
-    margin: 0 auto;
+    margin: 0 auto; /* Center horizontally */
     aspect-ratio: 1;
     max-width: min(calc(100vw - 1rem), calc(100vh - 320px));
     max-height: min(calc(100vw - 1rem), calc(100vh - 320px));
@@ -625,23 +624,25 @@
     flex-shrink: 0;
   }
 
-  /* StatusBar visible on mobile */
+  /* StatusBar visible on mobile - Above game container */
   .gameArea > :global(.statusBar) {
     display: flex !important;
     visibility: visible !important;
     opacity: 1 !important;
     margin: 0 auto 0.5rem auto;
-    order: 1;
+    order: 1; /* Show before game container */
     flex-shrink: 0;
-    width: 95%;
-    max-width: 95%;
+    width: min(95%, calc(100vw - 1rem));
+    max-width: min(95%, calc(100vw - 1rem));
+    box-sizing: border-box;
   }
 
-  /* GameContainer order after StatusBar */
+  /* GameContainer order after StatusBar - Centered */
   .gameArea > .gameContainer {
-    order: 2;
-    flex: 1;
+    order: 2; /* Show after status bar */
+    flex: 0 0 auto; /* Maintain size, don't grow */
     min-height: 0;
+    margin: 0 auto; /* Ensure centered */
   }
 
   /* Hide StatusMessage and Controls on mobile - they're redundant */
@@ -670,29 +671,34 @@
     padding-bottom: 220px; /* Space for smaller touch controls */
   }
 
-  /* Game Area - Even more compact on small screens */
+  /* Game Area - Even more compact on small screens, Centered */
   .gameArea {
     gap: 0.25rem;
     padding: 0.4rem;
+    justify-content: center; /* Center vertically */
+    align-items: center; /* Center horizontally */
   }
 
-  /* Maximized Game Container */
+  /* Maximized Game Container - Centered */
   .gameContainer {
     padding: 0.4rem;
     border-radius: 10px;
+    flex: 0 0 auto; /* Maintain size */
     max-width: min(calc(100vw - 0.8rem), calc(100vh - 280px));
     max-height: min(calc(100vw - 0.8rem), calc(100vh - 280px));
+    margin: 0 auto; /* Center horizontally */
   }
 
   .gameContainer::before {
     border-radius: 10px;
   }
 
-  /* StatusBar - More compact */
+  /* StatusBar - More compact, match game container width */
   .gameArea > :global(.statusBar) {
-    width: 98%;
-    max-width: 98%;
+    width: min(98%, calc(100vw - 0.8rem));
+    max-width: min(98%, calc(100vw - 0.8rem));
     margin: 0 auto 0.4rem auto;
+    box-sizing: border-box;
   }
 
   /* Ultra Compact Stats */

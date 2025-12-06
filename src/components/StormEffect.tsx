@@ -14,11 +14,15 @@ export function StormEffect({ level }: StormEffectProps) {
   const [rainDrops, setRainDrops] = useState<
     Array<{ id: number; left: number; delay: number; duration: number }>
   >([]);
+  const [clouds, setClouds] = useState<
+    Array<{ id: number; left: number; top: number; size: number; speed: number; opacity: number }>
+  >([]);
 
-  // Initialize rain drops
+  // Initialize rain drops and clouds
   useEffect(() => {
     if (!isVortexPhase) {
       setRainDrops([]);
+      setClouds([]);
       return;
     }
 
@@ -32,6 +36,27 @@ export function StormEffect({ level }: StormEffectProps) {
       });
     }
     setRainDrops(drops);
+
+    // Initialize clouds
+    const cloudArray: Array<{
+      id: number;
+      left: number;
+      top: number;
+      size: number;
+      speed: number;
+      opacity: number;
+    }> = [];
+    for (let i = 0; i < 8; i++) {
+      cloudArray.push({
+        id: i,
+        left: Math.random() * 120 - 20, // Start slightly off-screen
+        top: Math.random() * 80 + 10, // Between 10% and 90% from top
+        size: 80 + Math.random() * 120, // Size between 80px and 200px
+        speed: 0.01 + Math.random() * 0.02, // Slow movement
+        opacity: 0.4 + Math.random() * 0.3, // Between 0.4 and 0.7
+      });
+    }
+    setClouds(cloudArray);
   }, [isVortexPhase]);
 
   // Lightning effect - random flashes
@@ -80,6 +105,24 @@ export function StormEffect({ level }: StormEffectProps) {
 
       {/* Dark clouds overlay */}
       <div className={styles.clouds} />
+
+      {/* Animated background clouds */}
+      <div className={styles.cloudsContainer}>
+        {clouds.map((cloud) => (
+          <div
+            key={cloud.id}
+            className={styles.cloud}
+            style={{
+              left: `${cloud.left}%`,
+              top: `${cloud.top}%`,
+              width: `${cloud.size}px`,
+              height: `${cloud.size * 0.6}px`,
+              opacity: cloud.opacity,
+              animationDuration: `${100 / cloud.speed}s`,
+            }}
+          />
+        ))}
+      </div>
 
       {/* Wind particles */}
       <div className={styles.windContainer}>

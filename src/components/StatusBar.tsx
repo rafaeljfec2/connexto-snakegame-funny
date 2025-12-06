@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { LIVES_CONFIG } from '@/constants/lives';
 import { getCurrentPhase, getPhaseNumber } from '@/utils/phases';
 import styles from './StatusBar.module.css';
@@ -9,6 +10,7 @@ interface StatusBarProps {
 }
 
 export function StatusBar({ length, lives, level }: StatusBarProps) {
+  const { t } = useTranslation();
   const phase = getCurrentPhase(level);
   const phaseNumber = phase ? getPhaseNumber(level) : 1;
 
@@ -18,7 +20,7 @@ export function StatusBar({ length, lives, level }: StatusBarProps) {
       <div className={styles.statusItem}>
         <span className={styles.statusIcon}>🐍</span>
         <div className={styles.statusContent}>
-          <span className={styles.statusLabel}>Length</span>
+          <span className={styles.statusLabel}>{t('statusBar.length')}</span>
           <span className={styles.statusValue}>{length}</span>
         </div>
       </div>
@@ -30,13 +32,13 @@ export function StatusBar({ length, lives, level }: StatusBarProps) {
           <div className={styles.statusItem}>
             <span className={styles.statusIcon}>❤️</span>
             <div className={styles.statusContent}>
-              <span className={styles.statusLabel}>Lives</span>
+              <span className={styles.statusLabel}>{t('statusBar.lives')}</span>
               <div className={styles.livesDisplay}>
                 {Array.from({ length: LIVES_CONFIG.maxLives }, (_, index) => (
                   <span
                     key={index}
                     className={`${styles.lifeDot} ${index < lives ? styles.lifeActive : styles.lifeInactive}`}
-                    aria-label={index < lives ? 'Life remaining' : 'Life lost'}
+                    aria-label={index < lives ? t('statusBar.lifeRemaining') : t('statusBar.lifeLost')}
                   />
                 ))}
               </div>
@@ -52,7 +54,7 @@ export function StatusBar({ length, lives, level }: StatusBarProps) {
           <div className={styles.statusItem}>
             <span className={styles.statusIcon}>⭐</span>
             <div className={styles.statusContent}>
-              <span className={styles.statusLabel}>Fase {phaseNumber}</span>
+              <span className={styles.statusLabel}>{t('common.phase')} {phaseNumber}</span>
               <span className={`${styles.statusValue} ${styles.phaseName}`} title={phase.name}>
                 {phase.name}
               </span>

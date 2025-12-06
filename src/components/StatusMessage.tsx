@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { GameStatus } from '@/types/game';
 import styles from './StatusMessage.module.css';
 
@@ -6,18 +7,20 @@ interface StatusMessageProps {
 }
 
 export function StatusMessage({ status }: StatusMessageProps) {
+  const { t } = useTranslation();
+
   const getStatusMessage = () => {
     switch (status) {
       case GameStatus.IDLE:
-        return 'Press SPACE to start';
+        return t('gameStatus.pressSpaceToStart');
       case GameStatus.PLAYING:
-        return 'Playing...';
+        return t('gameStatus.playing');
       case GameStatus.PAUSED:
-        return 'Paused - Press SPACE to resume';
+        return t('gameStatus.paused');
       case GameStatus.DYING:
-        return 'Continuing automatically...';
+        return t('gameStatus.continuingAutomatically');
       case GameStatus.GAME_OVER:
-        return 'Game Over - Press SPACE to restart';
+        return t('gameStatus.gameOver');
       default:
         return '';
     }

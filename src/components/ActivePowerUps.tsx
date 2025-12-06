@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivePowerUp, FoodType } from '@/types/game';
 import { POWER_UP_CONFIG } from '@/constants/powerUps';
 import { getActivePowerUps } from '@/utils/powerUps';
@@ -9,6 +10,7 @@ interface ActivePowerUpsProps {
 }
 
 export function ActivePowerUps({ powerUps }: ActivePowerUpsProps) {
+  const { t } = useTranslation();
   const [currentTime, setCurrentTime] = useState(Date.now());
   const activePowerUps = getActivePowerUps(powerUps);
 
@@ -34,64 +36,64 @@ export function ActivePowerUps({ powerUps }: ActivePowerUpsProps) {
     return [
       {
         type: FoodType.SPEED_BOOST,
-        name: 'Speed Boost',
-        description: 'Move faster for 5s',
+        name: t('powerUps.speedBoost'),
+        description: t('powerUpDescriptions.speedBoost'),
         icon: '⚡',
         isPositive: true,
       },
       {
         type: FoodType.BONUS_POINTS,
-        name: 'Bonus Points',
-        description: '+30 points',
+        name: t('powerUps.bonusPoints'),
+        description: t('powerUpDescriptions.bonusPoints'),
         icon: '💰',
         isPositive: true,
       },
       {
         type: FoodType.EXTRA_GROWTH,
-        name: 'Extra Growth',
-        description: 'Grow by 2 segments',
+        name: t('powerUps.extraGrowth'),
+        description: t('powerUpDescriptions.extraGrowth'),
         icon: '📈',
         isPositive: true,
       },
       {
         type: FoodType.PHASE_THROUGH,
-        name: 'Phase Through',
-        description: 'Pass obstacles for 6s',
+        name: t('powerUps.phaseThrough'),
+        description: t('powerUpDescriptions.phaseThrough'),
         icon: '👻',
         isPositive: true,
       },
       {
         type: FoodType.JOKER,
-        name: 'Joker',
-        description: 'Random positive effect',
+        name: t('powerUps.joker'),
+        description: t('powerUpDescriptions.joker'),
         icon: '🎴',
         isPositive: true,
       },
       {
         type: FoodType.EXTRA_LIFE,
-        name: 'Extra Life',
-        description: 'Add one life',
+        name: t('powerUps.extraLife'),
+        description: t('powerUpDescriptions.extraLife'),
         icon: '❤️',
         isPositive: true,
       },
       {
         type: FoodType.POISON,
-        name: 'Poison',
-        description: 'Lose 2 segments, -5 pts',
+        name: t('powerUps.poison'),
+        description: t('powerUpDescriptions.poison'),
         icon: '☠️',
         isPositive: false,
       },
       {
         type: FoodType.REVERSE_CONTROLS,
-        name: 'Reverse Controls',
-        description: 'Controls reversed for 4s',
+        name: t('powerUps.reverseControls'),
+        description: t('powerUpDescriptions.reverseControls'),
         icon: '🔄',
         isPositive: false,
       },
       {
         type: FoodType.SLOW_DOWN,
-        name: 'Slow Down',
-        description: 'Move slower for 3s',
+        name: t('powerUps.slowDown'),
+        description: t('powerUpDescriptions.slowDown'),
         icon: '🐌',
         isPositive: false,
       },
@@ -99,26 +101,20 @@ export function ActivePowerUps({ powerUps }: ActivePowerUpsProps) {
   };
 
   const getPowerUpName = (type: FoodType): string => {
-    switch (type) {
-      case FoodType.SPEED_BOOST:
-        return 'Speed Boost';
-      case FoodType.BONUS_POINTS:
-        return 'Bonus Points';
-      case FoodType.EXTRA_GROWTH:
-        return 'Extra Growth';
-      case FoodType.PHASE_THROUGH:
-        return 'Phase Through';
-      case FoodType.REVERSE_CONTROLS:
-        return 'Reverse Controls';
-      case FoodType.SLOW_DOWN:
-        return 'Slow Down';
-      case FoodType.JOKER:
-        return 'Joker';
-      case FoodType.EXTRA_LIFE:
-        return 'Extra Life';
-      default:
-        return type;
-    }
+    const powerUpKeyMap: Record<FoodType, string> = {
+      [FoodType.NORMAL]: t('powerUps.normal'),
+      [FoodType.SPEED_BOOST]: t('powerUps.speedBoost'),
+      [FoodType.BONUS_POINTS]: t('powerUps.bonusPoints'),
+      [FoodType.EXTRA_GROWTH]: t('powerUps.extraGrowth'),
+      [FoodType.PHASE_THROUGH]: t('powerUps.phaseThrough'),
+      [FoodType.REVERSE_CONTROLS]: t('powerUps.reverseControls'),
+      [FoodType.SLOW_DOWN]: t('powerUps.slowDown'),
+      [FoodType.JOKER]: t('powerUps.joker'),
+      [FoodType.EXTRA_LIFE]: t('powerUps.extraLife'),
+      [FoodType.PORTAL]: t('powerUps.portal'),
+      [FoodType.POISON]: t('powerUps.poison'),
+    };
+    return powerUpKeyMap[type] ?? type;
   };
 
   const getRemainingTime = (powerUp: ActivePowerUp): number => {

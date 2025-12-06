@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { GameStatus } from '@/types/game';
 import { createLogger, LogContext } from '@/utils/logger';
 import styles from './DeathTransition.module.css';
@@ -13,6 +14,7 @@ interface DeathTransitionProps {
 const TRANSITION_DURATION = 3000; // 3 seconds
 
 export function DeathTransition({ status, lives }: DeathTransitionProps) {
+  const { t } = useTranslation();
   const [countdown, setCountdown] = useState(3);
   const [progress, setProgress] = useState(0);
 
@@ -54,9 +56,9 @@ export function DeathTransition({ status, lives }: DeathTransitionProps) {
       <div className={styles.container}>
         <div className={styles.content}>
           <div className={styles.icon}>💀</div>
-          <h2 className={styles.title}>Life Lost!</h2>
+          <h2 className={styles.title}>{t('death.lifeLost')}</h2>
           <p className={styles.message}>
-            Continuing in <span className={styles.countdown}>{countdown}</span> seconds...
+            {t('death.continuingIn', { seconds: countdown })}
           </p>
           <div className={styles.progressBar}>
             <div
@@ -65,7 +67,7 @@ export function DeathTransition({ status, lives }: DeathTransitionProps) {
             />
           </div>
           <p className={styles.livesRemaining}>
-            {lives - 1} {lives - 1 === 1 ? 'life' : 'lives'} remaining
+            {t('death.livesRemaining', { count: lives - 1 })}
           </p>
         </div>
       </div>

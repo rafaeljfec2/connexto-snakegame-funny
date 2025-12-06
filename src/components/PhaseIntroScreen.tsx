@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { getCurrentPhase } from '@/utils/phases';
 import styles from './PhaseIntroScreen.module.css';
 
@@ -11,6 +12,7 @@ interface PhaseIntroScreenProps {
 const COUNTDOWN_DURATION = 4000; // 4 seconds (1 second per number: 3, 2, 1, GO)
 
 export function PhaseIntroScreen({ phaseNumber, level, onComplete }: PhaseIntroScreenProps) {
+  const { t } = useTranslation();
   const [countdown, setCountdown] = useState<number | string>(3);
   const phase = getCurrentPhase(level);
 
@@ -24,7 +26,7 @@ export function PhaseIntroScreen({ phaseNumber, level, onComplete }: PhaseIntroS
       if (count > 0) {
         setCountdown(count);
       } else if (count === 0) {
-        setCountdown('GO!');
+        setCountdown(t('phase.go'));
         setTimeout(() => {
           onComplete();
         }, 500);
@@ -35,7 +37,7 @@ export function PhaseIntroScreen({ phaseNumber, level, onComplete }: PhaseIntroS
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [phaseNumber, onComplete]);
+  }, [phaseNumber, onComplete, t]);
 
   if (!phase) {
     return null;
@@ -45,7 +47,7 @@ export function PhaseIntroScreen({ phaseNumber, level, onComplete }: PhaseIntroS
     <div className={styles.overlay}>
       <div className={styles.container}>
         <div className={styles.phaseInfo}>
-          <div className={styles.phaseNumber}>FASE {phaseNumber}</div>
+          <div className={styles.phaseNumber}>{t('phase.phase')} {phaseNumber}</div>
           <div className={styles.phaseName}>{phase.name}</div>
           <div className={styles.phaseDescription}>{phase.description}</div>
         </div>

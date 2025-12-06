@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import type { GameStatistics as GameStatisticsType } from '@/types/statistics';
 import { formatTime, formatDate } from '@/utils/statistics';
 import { FoodType } from '@/types/game';
@@ -8,21 +9,25 @@ interface GameStatisticsProps {
   onClose: () => void;
 }
 
-const FOOD_TYPE_NAMES: Record<FoodType, string> = {
-  [FoodType.NORMAL]: 'Normal',
-  [FoodType.SPEED_BOOST]: 'Speed Boost',
-  [FoodType.BONUS_POINTS]: 'Bonus Points',
-  [FoodType.EXTRA_GROWTH]: 'Extra Growth',
-  [FoodType.PHASE_THROUGH]: 'Phase Through',
-  [FoodType.JOKER]: 'Joker',
-  [FoodType.EXTRA_LIFE]: 'Extra Life',
-  [FoodType.PORTAL]: 'Portal',
-  [FoodType.POISON]: 'Poison',
-  [FoodType.REVERSE_CONTROLS]: 'Reverse Controls',
-  [FoodType.SLOW_DOWN]: 'Slow Down',
+const getFoodTypeName = (type: FoodType, t: (key: string) => string): string => {
+  const foodTypeMap: Record<FoodType, string> = {
+    [FoodType.NORMAL]: t('powerUps.normal'),
+    [FoodType.SPEED_BOOST]: t('powerUps.speedBoost'),
+    [FoodType.BONUS_POINTS]: t('powerUps.bonusPoints'),
+    [FoodType.EXTRA_GROWTH]: t('powerUps.extraGrowth'),
+    [FoodType.PHASE_THROUGH]: t('powerUps.phaseThrough'),
+    [FoodType.JOKER]: t('powerUps.joker'),
+    [FoodType.EXTRA_LIFE]: t('powerUps.extraLife'),
+    [FoodType.PORTAL]: t('powerUps.portal'),
+    [FoodType.POISON]: t('powerUps.poison'),
+    [FoodType.REVERSE_CONTROLS]: t('powerUps.reverseControls'),
+    [FoodType.SLOW_DOWN]: t('powerUps.slowDown'),
+  };
+  return foodTypeMap[type] ?? type;
 };
 
 export function GameStatistics({ statistics, onClose }: GameStatisticsProps) {
+  const { t } = useTranslation();
   const totalFoods = Object.values(statistics.foodsByType).reduce((sum, count) => sum + count, 0);
 
   return (
@@ -31,7 +36,7 @@ export function GameStatistics({ statistics, onClose }: GameStatisticsProps) {
         <div className={styles.header}>
           <h2 className={styles.title}>
             <span className={styles.titleIcon}>📊</span>
-            Game Statistics
+            {t('statistics.title')}
           </h2>
           <button className={styles.closeButton} onClick={onClose}>
             ×
@@ -44,42 +49,42 @@ export function GameStatistics({ statistics, onClose }: GameStatisticsProps) {
             <div className={`${styles.statCard} ${styles.statCard1}`}>
               <div className={styles.statIcon}>🏆</div>
               <div className={styles.statValue}>{statistics.score}</div>
-              <div className={styles.statLabel}>Final Score</div>
+              <div className={styles.statLabel}>{t('statistics.finalScore')}</div>
             </div>
             <div className={`${styles.statCard} ${styles.statCard2}`}>
               <div className={styles.statIcon}>⏱️</div>
               <div className={styles.statValue}>{formatTime(statistics.playTime)}</div>
-              <div className={styles.statLabel}>Play Time</div>
+              <div className={styles.statLabel}>{t('statistics.playTime')}</div>
             </div>
             <div className={`${styles.statCard} ${styles.statCard3}`}>
               <div className={styles.statIcon}>⭐</div>
-              <div className={styles.statValue}>Level {statistics.level}</div>
-              <div className={styles.statLabel}>Level Reached</div>
+              <div className={styles.statValue}>{t('common.level')} {statistics.level}</div>
+              <div className={styles.statLabel}>{t('statistics.levelReached')}</div>
             </div>
             <div className={`${styles.statCard} ${styles.statCard4}`}>
               <div className={styles.statIcon}>📏</div>
               <div className={styles.statValue}>{statistics.finalSnakeLength}</div>
-              <div className={styles.statLabel}>Final Length</div>
+              <div className={styles.statLabel}>{t('statistics.finalLength')}</div>
             </div>
             <div className={`${styles.statCard} ${styles.statCard5}`}>
               <div className={styles.statIcon}>📈</div>
               <div className={styles.statValue}>{statistics.maxSnakeLength}</div>
-              <div className={styles.statLabel}>Max Length</div>
+              <div className={styles.statLabel}>{t('statistics.maxLength')}</div>
             </div>
             <div className={`${styles.statCard} ${styles.statCard6}`}>
               <div className={styles.statIcon}>🔥</div>
               <div className={styles.statValue}>{statistics.maxCombo}x</div>
-              <div className={styles.statLabel}>Max Combo</div>
+              <div className={styles.statLabel}>{t('statistics.maxCombo')}</div>
             </div>
           </div>
 
           {/* Detailed Stats */}
           <div className={styles.detailedStats}>
             <div className={styles.section}>
-              <h3 className={styles.sectionTitle}>Food Eaten</h3>
+              <h3 className={styles.sectionTitle}>{t('statistics.foodEaten')}</h3>
               <div className={styles.foodStats}>
                 <div className={styles.foodStatRow}>
-                  <span className={styles.foodStatLabel}>Total:</span>
+                  <span className={styles.foodStatLabel}>{t('statistics.total')}:</span>
                   <span className={styles.foodStatValue}>{totalFoods}</span>
                 </div>
                 {Object.entries(statistics.foodsByType)
@@ -87,7 +92,7 @@ export function GameStatistics({ statistics, onClose }: GameStatisticsProps) {
                   .map(([type, count]) => (
                     <div key={type} className={styles.foodStatRow}>
                       <span className={styles.foodStatLabel}>
-                        {FOOD_TYPE_NAMES[type as FoodType]}:
+                        {getFoodTypeName(type as FoodType, t)}:
                       </span>
                       <span className={styles.foodStatValue}>{count}</span>
                     </div>
@@ -96,28 +101,28 @@ export function GameStatistics({ statistics, onClose }: GameStatisticsProps) {
             </div>
 
             <div className={styles.section}>
-              <h3 className={styles.sectionTitle}>Game Info</h3>
+              <h3 className={styles.sectionTitle}>{t('statistics.gameInfo')}</h3>
               <div className={styles.infoGrid}>
                 <div className={styles.infoRow}>
-                  <span className={styles.infoLabel}>Start Time:</span>
+                  <span className={styles.infoLabel}>{t('statistics.startTime')}:</span>
                   <span className={styles.infoValue}>{formatDate(statistics.startTime)}</span>
                 </div>
                 {statistics.endTime && (
                   <div className={styles.infoRow}>
-                    <span className={styles.infoLabel}>End Time:</span>
+                    <span className={styles.infoLabel}>{t('statistics.endTime')}:</span>
                     <span className={styles.infoValue}>{formatDate(statistics.endTime)}</span>
                   </div>
                 )}
                 <div className={styles.infoRow}>
-                  <span className={styles.infoLabel}>Obstacles Encountered:</span>
+                  <span className={styles.infoLabel}>{t('statistics.obstaclesEncountered')}:</span>
                   <span className={styles.infoValue}>{statistics.obstaclesEncountered}</span>
                 </div>
                 <div className={styles.infoRow}>
-                  <span className={styles.infoLabel}>Lives Lost:</span>
+                  <span className={styles.infoLabel}>{t('statistics.livesLost')}:</span>
                   <span className={styles.infoValue}>{statistics.livesLost}</span>
                 </div>
                 <div className={styles.infoRow}>
-                  <span className={styles.infoLabel}>Achievements Unlocked:</span>
+                  <span className={styles.infoLabel}>{t('statistics.achievementsUnlocked')}:</span>
                   <span className={styles.infoValue}>{statistics.achievementsUnlocked}</span>
                 </div>
               </div>

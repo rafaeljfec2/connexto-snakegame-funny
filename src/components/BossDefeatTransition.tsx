@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Chef } from '@/types/phases';
 import { createLogger, LogContext } from '@/utils/logger';
 import styles from './BossDefeatTransition.module.css';
@@ -14,6 +15,7 @@ interface BossDefeatTransitionProps {
 const TRANSITION_DURATION = 4000; // 4 seconds total
 
 export function BossDefeatTransition({ boss, score, onComplete }: BossDefeatTransitionProps) {
+  const { t } = useTranslation();
   const [progress, setProgress] = useState(0);
   const [showCelebration, setShowCelebration] = useState(false);
   const onCompleteRef = useRef(onComplete);
@@ -119,8 +121,8 @@ export function BossDefeatTransition({ boss, score, onComplete }: BossDefeatTran
           transform: `scale(${0.5 + textProgress * 0.5})`,
         }}
       >
-        <div className={styles.victoryTitle}>VITÓRIA!</div>
-        <div className={styles.bossName}>{boss.name} Derrotado!</div>
+        <div className={styles.victoryTitle}>{t('bossDefeat.victory')}</div>
+        <div className={styles.bossName}>{boss.name} {t('bossDefeat.defeated')}</div>
       </div>
 
       {/* Results */}
@@ -132,8 +134,8 @@ export function BossDefeatTransition({ boss, score, onComplete }: BossDefeatTran
             transform: `translateY(${(1 - resultsProgress) * 50}px)`,
           }}
         >
-          <div className={styles.scoreGained}>+{score} Pontos</div>
-          <div className={styles.continueHint}>Preparando próxima fase...</div>
+          <div className={styles.scoreGained}>{t('bossDefeat.scoreGained', { score })}</div>
+          <div className={styles.continueHint}>{t('phase.preparingNextPhase')}</div>
         </div>
       )}
     </div>

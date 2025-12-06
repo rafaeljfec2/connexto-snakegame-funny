@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { getCurrentPhase } from '@/utils/phases';
 import { createLogger, LogContext } from '@/utils/logger';
 import styles from './PhaseTransition.module.css';
@@ -14,6 +15,7 @@ interface PhaseTransitionProps {
 const TRANSITION_DURATION = 3000; // 3 seconds total
 
 export function PhaseTransition({ phaseNumber, level, onComplete }: PhaseTransitionProps) {
+  const { t } = useTranslation();
   const [progress, setProgress] = useState(0);
   const [showText, setShowText] = useState(false);
   const phase = getCurrentPhase(level);
@@ -84,7 +86,7 @@ export function PhaseTransition({ phaseNumber, level, onComplete }: PhaseTransit
             opacity: progress >= 30 && progress <= 70 ? 1 : 0,
           }}
         >
-          <div className={styles.phaseNumber}>FASE {phaseNumber}</div>
+          <div className={styles.phaseNumber}>{t('phase.phase')} {phaseNumber}</div>
           <div className={styles.phaseName}>{phase.name}</div>
         </div>
       )}

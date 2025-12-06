@@ -1,0 +1,170 @@
+{
+  "common": {
+    "phase": "Fase",
+    "level": "Nível",
+    "score": "Pontuação",
+    "length": "Tamanho",
+    "lives": "Vidas",
+    "combo": "Combo",
+    "points": "Pontos",
+    "time": "Tempo",
+    "start": "Iniciar",
+    "pause": "Pausar",
+    "resume": "Continuar",
+    "reset": "Reiniciar",
+    "playAgain": "Jogar Novamente",
+    "continue": "Continuar",
+    "close": "Fechar",
+    "next": "Próximo",
+    "previous": "Anterior"
+  },
+  "gameStatus": {
+    "pressSpaceToStart": "Pressione ESPAÇO para iniciar",
+    "playing": "Jogando...",
+    "paused": "Pausado - Pressione ESPAÇO para continuar",
+    "continuingAutomatically": "Continuando automaticamente...",
+    "gameOver": "Game Over - Pressione ESPAÇO para reiniciar"
+  },
+  "statusBar": {
+    "length": "Tamanho",
+    "lives": "Vidas",
+    "phase": "Fase",
+    "lifeRemaining": "Vida restante",
+    "lifeLost": "Vida perdida"
+  },
+  "controls": {
+    "instructions": "<kbd>↑↓←→</kbd> ou <kbd>WASD</kbd> para mover • <kbd>ESPAÇO</kbd> para iniciar/pausar"
+  },
+  "phase": {
+    "phase": "FASE",
+    "complete": "COMPLETA!",
+    "nextPhase": "Próxima Fase",
+    "go": "GO!",
+    "preparingNextPhase": "Preparando próxima fase..."
+  },
+  "phaseComplete": {
+    "title": "FASE {{phaseNumber}} COMPLETA!",
+    "scoreGained": "Pontuação",
+    "levelsCompleted": "Níveis Completos",
+    "foodsEaten": "Comidas",
+    "maxCombo": "Combo Máximo",
+    "obstacles": "Obstáculos",
+    "time": "Tempo"
+  },
+  "bossDefeat": {
+    "victory": "VITÓRIA!",
+    "defeated": "Derrotado!",
+    "scoreGained": "+{{score}} Pontos"
+  },
+  "death": {
+    "lifeLost": "Vida Perdida!",
+    "continuingIn": "Continuando em {{seconds}} segundos...",
+    "livesRemaining": "{{count}} vida restante",
+    "livesRemaining_plural": "{{count}} vidas restantes"
+  },
+  "powerUps": {
+    "speedBoost": "Velocidade",
+    "bonusPoints": "Pontos Bônus",
+    "extraGrowth": "Crescimento Extra",
+    "phaseThrough": "Fantasma",
+    "joker": "Coringa",
+    "extraLife": "Vida Extra",
+    "portal": "Portal",
+    "poison": "Veneno",
+    "reverseControls": "Controles Revertidos",
+    "slowDown": "Desaceleração",
+    "normal": "Normal"
+  },
+  "powerUpDescriptions": {
+    "speedBoost": "Mova-se mais rápido por 5s",
+    "bonusPoints": "+30 pontos",
+    "extraGrowth": "Cresça 2 segmentos",
+    "phaseThrough": "Passe por obstáculos por 6s",
+    "joker": "Efeito positivo aleatório",
+    "extraLife": "Adiciona uma vida",
+    "portal": "Ativa um par de portais para teletransporte",
+    "poison": "Perde 2 segmentos, -5 pts",
+    "reverseControls": "Controles invertidos por 4s",
+    "slowDown": "Movimento mais lento por 3s"
+  },
+  "phases": {
+    "classicSnake": {
+      "name": "Classic Snake",
+      "description": "O jogo clássico sem obstáculos. Perfeito para começar!"
+    },
+    "obstacleCourse": {
+      "name": "Obstacle Course",
+      "description": "Obstáculos estáticos aparecem. Cuidado com as paredes!"
+    },
+    "movingHazards": {
+      "name": "Moving Hazards",
+      "description": "Obstáculos que se movem pelo grid. Fique alerta!"
+    },
+    "portalMastery": {
+      "name": "Portal Mastery",
+      "description": "Domine o teletransporte através dos portais!"
+    },
+    "speedChallenge": {
+      "name": "Speed Challenge",
+      "description": "Alta velocidade e obstáculos complexos. Reação rápida necessária!"
+    },
+    "powerUpChaos": {
+      "name": "Power-Up Chaos",
+      "description": "Caos de power-ups! Use-os com sabedoria."
+    },
+    "mazeMaster": {
+      "name": "Maze Master",
+      "description": "Labirintos complexos testarão suas habilidades de navegação."
+    },
+    "survivalMode": {
+      "name": "Survival Mode",
+      "description": "Modo sobrevivência extremo. Cada movimento conta!"
+    },
+    "vortexChallenge": {
+      "name": "Vortex Challenge",
+      "description": "Todos os desafios combinados em um teste épico!"
+    },
+    "ultimateChallenge": {
+      "name": "Ultimate Challenge",
+      "description": "O desafio final. Todas as mecânicas em velocidade máxima!"
+    }
+  },
+  "statistics": {
+    "title": "Estatísticas do Jogo",
+    "finalScore": "Pontuação Final",
+    "playTime": "Tempo de Jogo",
+    "levelReached": "Nível Alcançado",
+    "finalLength": "Tamanho Final",
+    "maxLength": "Tamanho Máximo",
+    "maxCombo": "Combo Máximo",
+    "foodEaten": "Comida Consumida",
+    "total": "Total",
+    "gameInfo": "Informações do Jogo",
+    "startTime": "Hora de Início",
+    "endTime": "Hora de Término",
+    "obstaclesEncountered": "Obstáculos Encontrados",
+    "livesLost": "Vidas Perdidas",
+    "achievementsUnlocked": "Conquistas Desbloqueadas"
+  },
+  "language": {
+    "title": "Idioma",
+    "ptBR": "Português (Brasil)",
+    "enUS": "English (US)"
+  },
+  "panels": {
+    "powerUps": "Power-Ups",
+    "combo": "Combo"
+  },
+  "phaseDisplay": {
+    "phase": "Fase",
+    "levelInPhase": "Nível {{current}}/5 da Fase"
+  },
+  "debug": {
+    "selectBoss": "Selecione um boss para testar:",
+    "activeBoss": "Boss Ativo:",
+    "removeBoss": "Remover Boss",
+    "hint": "Pressione <kbd>F1</kbd> ou <kbd>Ctrl+D</kbd> para abrir/fechar este painel",
+    "phase": "Fase",
+    "size": "Tamanho"
+  }
+}

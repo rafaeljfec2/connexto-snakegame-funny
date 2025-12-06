@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useGameLoop } from '@/hooks/useGameLoop';
 import { useKeyboard } from '@/hooks/useKeyboard';
 import { GameBoard } from './components/GameBoard';
@@ -26,9 +27,11 @@ import { PhaseDisplay } from './components/PhaseDisplay';
 import { MobileFloatingInfo } from './components/MobileFloatingInfo';
 import { StatusBar } from './components/StatusBar';
 import { BossDebugPanel } from './components/BossDebugPanel';
+import { LanguageSelector } from './components/LanguageSelector';
 import { Chef } from '@/types/phases';
 
 function App() {
+  const { t } = useTranslation();
   const {
     gameState,
     resetGame,
@@ -352,6 +355,9 @@ function App() {
               level={gameState.level}
             />
           </div>
+          <div className={styles.headerActions}>
+            <LanguageSelector />
+          </div>
         </div>
       </header>
 
@@ -361,7 +367,7 @@ function App() {
         <aside className={styles.leftPanel}>
           <div className={styles.panelContent}>
             <div className={styles.panelSection}>
-              <h3 className={styles.panelTitle}>Power-Ups</h3>
+              <h3 className={styles.panelTitle}>{t('panels.powerUps')}</h3>
               <ActivePowerUps powerUps={gameState.activePowerUps} />
             </div>
           </div>
@@ -407,9 +413,7 @@ function App() {
           </div>
 
           <div className={styles.instructions}>
-            <p>
-              <kbd>↑↓←→</kbd> or <kbd>WASD</kbd> to move • <kbd>SPACE</kbd> to start/pause
-            </p>
+            <p dangerouslySetInnerHTML={{ __html: t('controls.instructions') }} />
           </div>
         </div>
 
@@ -418,7 +422,7 @@ function App() {
           <div className={styles.panelContent}>
             <PhaseDisplay level={gameState.level} currentPhase={gameState.currentPhase} />
             <div className={styles.panelSection}>
-              <h3 className={styles.panelTitle}>Combo</h3>
+              <h3 className={styles.panelTitle}>{t('panels.combo')}</h3>
               <ComboDisplay combo={gameState.combo} />
             </div>
           </div>
@@ -467,7 +471,7 @@ function App() {
       {gameState.status === GameStatus.PHASE_COMPLETE && (
         <PhaseCompleteScreen
           phaseNumber={getPhaseNumber(gameState.level)}
-          phaseName={getCurrentPhase(gameState.level)?.name ?? 'Fase Completa'}
+          phaseName={getCurrentPhase(gameState.level)?.name ?? t('phase.complete')}
           statistics={calculatePhaseStatistics(
             gameState,
             gameState.phaseStartSnapshot ?? createPhaseStartSnapshot(gameState),

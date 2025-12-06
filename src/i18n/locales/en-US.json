@@ -1,0 +1,170 @@
+{
+  "common": {
+    "phase": "Course",
+    "level": "Level",
+    "score": "Score",
+    "length": "Length",
+    "lives": "Lives",
+    "combo": "Combo",
+    "points": "Points",
+    "time": "Time",
+    "start": "Start",
+    "pause": "Pause",
+    "resume": "Resume",
+    "reset": "Reset",
+    "playAgain": "Play Again",
+    "continue": "Continue",
+    "close": "Close",
+    "next": "Next",
+    "previous": "Previous"
+  },
+  "gameStatus": {
+    "pressSpaceToStart": "Press SPACE to start",
+    "playing": "Playing...",
+    "paused": "Paused - Press SPACE to resume",
+    "continuingAutomatically": "Continuing automatically...",
+    "gameOver": "Game Over - Press SPACE to restart"
+  },
+  "statusBar": {
+    "length": "Length",
+    "lives": "Lives",
+    "phase": "Course",
+    "lifeRemaining": "Life remaining",
+    "lifeLost": "Life lost"
+  },
+  "controls": {
+    "instructions": "<kbd>↑↓←→</kbd> or <kbd>WASD</kbd> to move • <kbd>SPACE</kbd> to start/pause"
+  },
+  "phase": {
+    "phase": "COURSE",
+    "complete": "COMPLETE!",
+    "nextPhase": "Next Course",
+    "go": "GO!",
+    "preparingNextPhase": "Preparing next course..."
+  },
+  "phaseComplete": {
+    "title": "COURSE {{phaseNumber}} COMPLETE!",
+    "scoreGained": "Score",
+    "levelsCompleted": "Levels Completed",
+    "foodsEaten": "Foods",
+    "maxCombo": "Max Combo",
+    "obstacles": "Obstacles",
+    "time": "Time"
+  },
+  "bossDefeat": {
+    "victory": "CONGRATULATIONS!",
+    "defeated": "Defeated!",
+    "scoreGained": "+{{score}} Points"
+  },
+  "death": {
+    "lifeLost": "Life Lost!",
+    "continuingIn": "Continuing in {{seconds}} seconds...",
+    "livesRemaining": "{{count}} life remaining",
+    "livesRemaining_plural": "{{count}} lives remaining"
+  },
+  "powerUps": {
+    "speedBoost": "Speed Boost",
+    "bonusPoints": "Bonus Points",
+    "extraGrowth": "Extra Growth",
+    "phaseThrough": "Course Through",
+    "joker": "Joker",
+    "extraLife": "Extra Life",
+    "portal": "Portal",
+    "poison": "Poison",
+    "reverseControls": "Reverse Controls",
+    "slowDown": "Slow Down",
+    "normal": "Normal"
+  },
+  "powerUpDescriptions": {
+    "speedBoost": "Move faster for 5s",
+    "bonusPoints": "+30 points",
+    "extraGrowth": "Grow by 2 segments",
+    "phaseThrough": "Pass obstacles for 6s",
+    "joker": "Random positive effect",
+    "extraLife": "Add one life",
+    "portal": "Activates a portal pair for teleportation",
+    "poison": "Lose 2 segments, -5 pts",
+    "reverseControls": "Controls reversed for 4s",
+    "slowDown": "Slower movement for 3s"
+  },
+  "phases": {
+    "classicSnake": {
+      "name": "Classic Snake",
+      "description": "The classic game without obstacles. Perfect to start!"
+    },
+    "obstacleCourse": {
+      "name": "Obstacle Course",
+      "description": "Static obstacles appear. Watch out for walls!"
+    },
+    "movingHazards": {
+      "name": "Moving Hazards",
+      "description": "Obstacles that move across the grid. Stay alert!"
+    },
+    "portalMastery": {
+      "name": "Portal Mastery",
+      "description": "Master teleportation through portals!"
+    },
+    "speedChallenge": {
+      "name": "Speed Challenge",
+      "description": "High speed and complex obstacles. Quick reaction required!"
+    },
+    "powerUpChaos": {
+      "name": "Power-Up Chaos",
+      "description": "Power-up chaos! Use them wisely."
+    },
+    "mazeMaster": {
+      "name": "Maze Master",
+      "description": "Complex mazes will test your navigation skills."
+    },
+    "survivalMode": {
+      "name": "Survival Mode",
+      "description": "Extreme survival mode. Every move counts!"
+    },
+    "vortexChallenge": {
+      "name": "Vortex Challenge",
+      "description": "All challenges combined in an epic test!"
+    },
+    "ultimateChallenge": {
+      "name": "Ultimate Challenge",
+      "description": "The final challenge. All mechanics at maximum speed!"
+    }
+  },
+  "statistics": {
+    "title": "Game Statistics",
+    "finalScore": "Final Score",
+    "playTime": "Play Time",
+    "levelReached": "Level Reached",
+    "finalLength": "Final Length",
+    "maxLength": "Max Length",
+    "maxCombo": "Max Combo",
+    "foodEaten": "Food Eaten",
+    "total": "Total",
+    "gameInfo": "Game Info",
+    "startTime": "Start Time",
+    "endTime": "End Time",
+    "obstaclesEncountered": "Obstacles Encountered",
+    "livesLost": "Lives Lost",
+    "achievementsUnlocked": "Achievements Unlocked"
+  },
+  "language": {
+    "title": "Language",
+    "ptBR": "Português (Brasil)",
+    "enUS": "English (US)"
+  },
+  "panels": {
+    "powerUps": "Power-Ups",
+    "combo": "Combo"
+  },
+  "phaseDisplay": {
+    "phase": "Phase",
+    "levelInPhase": "Level {{current}}/5 of Course"
+  },
+  "debug": {
+    "selectBoss": "Select a boss to test:",
+    "activeBoss": "Active Boss:",
+    "removeBoss": "Remove Boss",
+    "hint": "Press <kbd>F1</kbd> or <kbd>Ctrl+D</kbd> to open/close this panel",
+    "phase": "Course",
+    "size": "Size"
+  }
+}

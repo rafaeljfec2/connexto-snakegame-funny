@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { getCurrentPhase, getLevelInPhase, getPhaseProgress } from '@/utils/phases';
 import styles from './PhaseDisplay.module.css';
 
@@ -8,6 +9,7 @@ interface PhaseDisplayProps {
 }
 
 export function PhaseDisplay({ level, currentPhase }: PhaseDisplayProps) {
+  const { t } = useTranslation();
   const phase = getCurrentPhase(level) ?? undefined;
   const phaseNumber = currentPhase ?? phase?.id ?? 1;
   const levelInPhase = getLevelInPhase(level);
@@ -20,13 +22,13 @@ export function PhaseDisplay({ level, currentPhase }: PhaseDisplayProps) {
   return (
     <div className={styles.phaseDisplay}>
       <div className={styles.phaseHeader}>
-        <span className={styles.phaseLabel}>Fase {phaseNumber}</span>
+        <span className={styles.phaseLabel}>{t('phaseDisplay.phase')} {phaseNumber}</span>
         <span className={styles.phaseName}>{phase.name}</span>
       </div>
       <div className={styles.progressBar}>
         <div className={styles.progressFill} style={{ width: `${progress * 100}%` }} />
       </div>
-      <div className={styles.levelInfo}>Nível {levelInPhase}/5 da Fase</div>
+      <div className={styles.levelInfo}>{t('phaseDisplay.levelInPhase', { current: levelInPhase })}</div>
     </div>
   );
 }

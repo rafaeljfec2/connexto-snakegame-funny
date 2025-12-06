@@ -1,4 +1,5 @@
 import { ActivePowerUp, ComboState, FoodType } from '@/types/game';
+import { useTranslation } from 'react-i18next';
 import { getActivePowerUps } from '@/utils/powerUps';
 import { useEffect, useState, useRef } from 'react';
 import { COMBO_CONFIG } from '@/constants/game';
@@ -29,33 +30,26 @@ export function MobileFloatingInfo({
   lives: _lives,
   level: _level,
 }: MobileFloatingInfoProps) {
+  const { t } = useTranslation();
   const [toasts, setToasts] = useState<Toast[]>([]);
   const previousPowerUpsRef = useRef<ActivePowerUp[]>([]);
 
   // Get power-up info
   const getPowerUpInfo = (type: FoodType) => {
-    switch (type) {
-      case FoodType.SPEED_BOOST:
-        return { name: 'Speed Boost', icon: '⚡' };
-      case FoodType.BONUS_POINTS:
-        return { name: 'Bonus Points', icon: '💰' };
-      case FoodType.EXTRA_GROWTH:
-        return { name: 'Extra Growth', icon: '📈' };
-      case FoodType.PHASE_THROUGH:
-        return { name: 'Phase Through', icon: '👻' };
-      case FoodType.JOKER:
-        return { name: 'Joker', icon: '🎴' };
-      case FoodType.EXTRA_LIFE:
-        return { name: 'Extra Life', icon: '❤️' };
-      case FoodType.POISON:
-        return { name: 'Poison', icon: '☠️' };
-      case FoodType.REVERSE_CONTROLS:
-        return { name: 'Reverse', icon: '🔄' };
-      case FoodType.SLOW_DOWN:
-        return { name: 'Slow Down', icon: '🐌' };
-      default:
-        return { name: 'Power-Up', icon: '✨' };
-    }
+    const powerUpInfoMap: Record<FoodType, { name: string; icon: string }> = {
+      [FoodType.NORMAL]: { name: t('powerUps.normal'), icon: '🍎' },
+      [FoodType.SPEED_BOOST]: { name: t('powerUps.speedBoost'), icon: '⚡' },
+      [FoodType.BONUS_POINTS]: { name: t('powerUps.bonusPoints'), icon: '💰' },
+      [FoodType.EXTRA_GROWTH]: { name: t('powerUps.extraGrowth'), icon: '📈' },
+      [FoodType.PHASE_THROUGH]: { name: t('powerUps.phaseThrough'), icon: '👻' },
+      [FoodType.JOKER]: { name: t('powerUps.joker'), icon: '🎴' },
+      [FoodType.EXTRA_LIFE]: { name: t('powerUps.extraLife'), icon: '❤️' },
+      [FoodType.PORTAL]: { name: t('powerUps.portal'), icon: '🌀' },
+      [FoodType.POISON]: { name: t('powerUps.poison'), icon: '☠️' },
+      [FoodType.REVERSE_CONTROLS]: { name: t('powerUps.reverseControls'), icon: '🔄' },
+      [FoodType.SLOW_DOWN]: { name: t('powerUps.slowDown'), icon: '🐌' },
+    };
+    return powerUpInfoMap[type] ?? { name: t('powerUps.normal'), icon: '✨' };
   };
 
   // Detect new power-ups and show toasts
@@ -130,7 +124,7 @@ export function MobileFloatingInfo({
         <div className={`${styles.mobileOverlay} ${styles.statsOverlay}`}>
           <div className={styles.floatingCard}>
             <div className={styles.compactCombo}>
-              <span className={styles.compactComboLabel}>Combo</span>
+              <span className={styles.compactComboLabel}>{t('panels.combo')}</span>
               <span className={styles.compactComboValue}>x{combo.multiplier}</span>
             </div>
           </div>

@@ -1,3 +1,9 @@
+@media (max-width: 768px) {
+  .languageSelector {
+    display: none !important;
+  }
+}
+
 .languageSelector {
   display: flex;
   align-items: center;

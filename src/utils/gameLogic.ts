@@ -75,7 +75,7 @@ export function wouldCauseCollision(
   // For longer snakes, skip first 4 segments to allow very quick turns
   // This makes left/right turns much more responsive and fluid
   const skipSegments = snake.length <= 5 ? 2 : 4;
-  
+
   for (let i = skipSegments; i < snake.length; i++) {
     if (snake[i]?.x === nextHeadPosition.x && snake[i]?.y === nextHeadPosition.y) {
       return true;
@@ -115,7 +115,7 @@ export function isSafeDirectionChange(
   if (head && snake.length >= 2) {
     const nextPos = getNextHeadPosition(head, newDirection, gridSize);
     const nextSegment = snake[1];
-    
+
     // Only block if would immediately hit the next segment
     if (nextSegment && nextPos.x === nextSegment.x && nextPos.y === nextSegment.y) {
       return false;

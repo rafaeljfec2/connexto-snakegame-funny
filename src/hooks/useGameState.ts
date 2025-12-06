@@ -177,9 +177,7 @@ export function useGameState() {
 
         // Also update current direction immediately if it's safe
         // This allows instant response for valid rapid direction changes
-        if (
-          isSafeDirectionChange(prev.snake, prev.direction, direction, GAME_CONFIG.gridSize)
-        ) {
+        if (isSafeDirectionChange(prev.snake, prev.direction, direction, GAME_CONFIG.gridSize)) {
           newState.direction = direction;
         }
 

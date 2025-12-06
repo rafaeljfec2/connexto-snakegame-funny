@@ -64,7 +64,10 @@ export function TouchControls({
       const absDeltaY = Math.abs(deltaY);
 
       // More permissive swipe detection - allow smaller, slower swipes
-      if (deltaTime > MAX_SWIPE_TIME || (absDeltaX < MIN_SWIPE_DISTANCE && absDeltaY < MIN_SWIPE_DISTANCE)) {
+      if (
+        deltaTime > MAX_SWIPE_TIME ||
+        (absDeltaX < MIN_SWIPE_DISTANCE && absDeltaY < MIN_SWIPE_DISTANCE)
+      ) {
         touchStartRef.current = null;
         return;
       }

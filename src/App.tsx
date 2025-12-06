@@ -112,9 +112,22 @@ function App() {
         currentBoss: gameState.activeBoss,
         status: gameState.status,
       });
-      // Pause the game immediately when boss is defeated
-      pauseGame();
+
       const scoreIncrease = gameState.score - previousScoreRef.current;
+
+      // Pause the game immediately when boss is defeated - change status directly to ensure game loop stops
+      updateGameState((prev) => {
+        if (prev.status === GameStatus.PLAYING) {
+          return {
+            ...prev,
+            status: GameStatus.PAUSED, // Pause immediately to stop game loop
+            isSpeedBoosted: false,
+            isFiringPoison: false,
+          };
+        }
+        return prev;
+      });
+
       console.log('📊 Setting boss defeat state', {
         boss: previousActiveBossRef.current?.name,
         scoreIncrease,
@@ -126,7 +139,7 @@ function App() {
     }
     previousActiveBossRef.current = gameState.activeBoss;
     previousScoreRef.current = gameState.score;
-  }, [gameState.activeBoss, gameState.score, gameState.status, pauseGame]);
+  }, [gameState.activeBoss, gameState.score, gameState.status, updateGameState]);
 
   // Reset level up animation when game ends, resets, or is paused
   useEffect(() => {
@@ -294,9 +307,17 @@ function App() {
   const handleBossDefeatTransitionComplete = useCallback(() => {
     console.log('🎬 BossDefeatTransition completed, changing to PHASE_COMPLETE');
     setShowBossDefeatTransition(false);
-    // Change status to PHASE_COMPLETE after animation
+    // Change status to PHASE_COMPLETE after animation (game is already paused)
     // Create snapshot retroactively if it doesn't exist
     updateGameState((prev) => {
+      // Ensure game is still paused/stopped before changing to PHASE_COMPLETE
+      if (prev.status === GameStatus.PLAYING) {
+        // If somehow still playing, pause first
+        return {
+          ...prev,
+          status: GameStatus.PAUSED,
+        };
+      }
       console.log('📸 Creating snapshot for phase complete', {
         hasSnapshot: !!prev.phaseStartSnapshot,
         level: prev.level,

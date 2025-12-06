@@ -33,6 +33,8 @@ export function MobileFloatingInfo({
   const { t } = useTranslation();
   const [toasts, setToasts] = useState<Toast[]>([]);
   const previousPowerUpsRef = useRef<ActivePowerUp[]>([]);
+  const [headerHeight, setHeaderHeight] = useState(65); // Default height
+  const toastContainerRef = useRef<HTMLDivElement>(null);
 
   // Get power-up info
   const getPowerUpInfo = (type: FoodType) => {
@@ -98,6 +100,30 @@ export function MobileFloatingInfo({
     previousPowerUpsRef.current = currentPowerUps;
   }, [activePowerUps]);
 
+  // Calculate header height dynamically
+  useEffect(() => {
+    const updateHeaderHeight = () => {
+      const header = document.querySelector('header') as HTMLElement | null;
+      if (header) {
+        const height = header.offsetHeight;
+        setHeaderHeight(height + 8); // Add 8px padding
+      }
+    };
+
+    updateHeaderHeight();
+    window.addEventListener('resize', updateHeaderHeight);
+    window.addEventListener('orientationchange', updateHeaderHeight);
+
+    // Also update after a short delay to ensure header is rendered
+    const timeout = setTimeout(updateHeaderHeight, 100);
+
+    return () => {
+      window.removeEventListener('resize', updateHeaderHeight);
+      window.removeEventListener('orientationchange', updateHeaderHeight);
+      clearTimeout(timeout);
+    };
+  }, []);
+
   const removeToast = (id: string) => {
     setToasts((prev) => prev.filter((toast) => toast.id !== id));
   };
@@ -105,7 +131,11 @@ export function MobileFloatingInfo({
   return (
     <div className={styles.mobileFloatingInfo}>
       {/* Power-Up Toasts */}
-      <div className={styles.toastContainer}>
+      <div
+        ref={toastContainerRef}
+        className={styles.toastContainer}
+        style={{ top: `${headerHeight}px` }}
+      >
         {toasts.map((toast) => (
           <PowerUpToast
             key={toast.id}

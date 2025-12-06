@@ -32,17 +32,18 @@
   }
 
   .toastContainer {
-    position: fixed;
+    position: fixed !important;
     top: 65px !important; /* Below header - calculated from header height + padding */
-    bottom: auto;
-    left: 0;
-    right: 0;
-    width: 100%;
-    max-width: 100%;
-    align-items: center; /* Center toasts */
-    z-index: 500 !important; /* Above game and header (z-index: 10) but below modals */
+    bottom: auto !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    align-items: center !important; /* Center toasts */
+    z-index: 1000 !important; /* Much higher than header (z-index: 10) but below modals (1100+) */
     pointer-events: none;
     padding-top: 0.5rem; /* Add spacing from header */
+    isolation: isolate; /* Create new stacking context */
   }
 
   /* Combo display - Top right corner, below header */
@@ -57,12 +58,13 @@
 
 @media (max-width: 480px) {
   .toastContainer {
-    top: 55px; /* Adjust for smaller header (~45px height + padding) */
-    bottom: auto;
-    left: 0;
-    right: 0;
-    max-width: 100%;
+    top: 55px !important; /* Adjust for smaller header (~45px height + padding) */
+    bottom: auto !important;
+    left: 0 !important;
+    right: 0 !important;
+    max-width: 100% !important;
     padding-top: 0.4rem; /* Add spacing from header */
+    z-index: 1000 !important; /* Ensure above header */
   }
 
   .statsOverlay {

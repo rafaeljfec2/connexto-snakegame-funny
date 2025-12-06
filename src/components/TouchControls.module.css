@@ -4,7 +4,7 @@
   bottom: 10px;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 200;
+  z-index: 500; /* Above game elements but below modals (1000+) */
   pointer-events: auto;
   touch-action: none; /* Prevent default touch behaviors */
   user-select: none;
@@ -13,6 +13,12 @@
   -ms-user-select: none;
   width: auto;
   max-width: 95vw;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.touchControls.disabled {
+  opacity: 0.4;
+  pointer-events: none; /* Disable interactions when disabled */
 }
 
 .controlGrid {
@@ -191,11 +197,19 @@
   grid-row: 3;
 }
 
-/* Show on mobile devices */
+/* Show on mobile devices - Always visible */
 @media (max-width: 768px) {
   .touchControls {
-    display: block;
+    display: block !important; /* Force display on mobile */
+    visibility: visible !important;
+    opacity: 1;
     bottom: 15px;
+  }
+  
+  /* Even when disabled, keep visible but dimmed */
+  .touchControls.disabled {
+    opacity: 0.4;
+    pointer-events: none;
   }
 }
 
@@ -214,7 +228,16 @@
   }
 
   .touchControls {
+    display: block !important; /* Force display on mobile */
+    visibility: visible !important;
+    opacity: 1;
     bottom: 8px;
+  }
+  
+  /* Even when disabled, keep visible but dimmed */
+  .touchControls.disabled {
+    opacity: 0.4;
+    pointer-events: none;
   }
 }
 

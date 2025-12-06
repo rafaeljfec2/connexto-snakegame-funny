@@ -176,11 +176,9 @@ export function TouchControls({
     }
   }, [enabled, onSpeedBoost]);
 
-  if (!enabled) return null;
-
   return (
     <div
-      className={styles.touchControls}
+      className={`${styles.touchControls} ${!enabled ? styles.disabled : ''}`}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
       onTouchCancel={handleTouchEnd}

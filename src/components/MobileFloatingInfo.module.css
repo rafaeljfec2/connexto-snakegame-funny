@@ -22,9 +22,17 @@
 @media (max-width: 768px) {
   .mobileFloatingInfo {
     display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 100;
   }
 
   .toastContainer {
+    position: fixed;
     top: auto;
     bottom: 180px; /* Above touch controls (~150px) with some margin */
     left: auto;
@@ -33,6 +41,16 @@
     max-width: calc(100vw - 1rem);
     align-items: flex-end; /* Align toasts to the right */
     z-index: 500; /* Above game but below modals */
+    pointer-events: none;
+  }
+
+  /* Combo display - Top right corner, below header */
+  .statsOverlay {
+    position: fixed !important;
+    top: 70px !important; /* Below header */
+    right: 0.5rem !important;
+    left: auto !important;
+    z-index: 101;
   }
 }
 
@@ -41,6 +59,11 @@
     bottom: 160px; /* Adjust for smaller touch controls */
     right: 0.4rem;
     max-width: calc(100vw - 0.8rem);
+  }
+
+  .statsOverlay {
+    top: 60px !important; /* Adjust for smaller header */
+    right: 0.4rem !important;
   }
 }
 
@@ -53,6 +76,13 @@
 
 .mobileOverlay > * {
   pointer-events: auto;
+}
+
+/* Desktop - relative positioning */
+@media (min-width: 769px) {
+  .mobileOverlay {
+    position: absolute;
+  }
 }
 
 /* Top Left - Power-Ups */

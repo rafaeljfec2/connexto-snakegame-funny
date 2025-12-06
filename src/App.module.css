@@ -624,11 +624,16 @@
     flex-shrink: 0;
   }
 
-  /* MobileFloatingInfo - Position absolute, doesn't affect flow */
+  /* MobileFloatingInfo - Position fixed, doesn't affect flow */
   .gameArea > :global(.mobileFloatingInfo) {
     order: 0 !important; /* Doesn't interfere with layout */
-    position: absolute !important;
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     z-index: 100;
+    pointer-events: none;
   }
 
   /* GameContainer order first - Centered, appears at top */

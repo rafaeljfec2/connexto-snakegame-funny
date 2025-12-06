@@ -62,11 +62,11 @@ export function BossDebugPanel({
               >
                 <div className={styles.bossIcon}>{boss.visual.icon}</div>
                 <div className={styles.bossInfo}>
-                  <div className={styles.bossName}>{boss.name}</div>
-                  <div className={styles.bossDescription}>{boss.description}</div>
+                  <div className={styles.bossName}>{t(`bosses.${boss.id}.name`)}</div>
+                  <div className={styles.bossDescription}>{t(`bosses.${boss.id}.description`)}</div>
                   <div className={styles.bossDetails}>
                     <span className={styles.bossPhase}>{t('debug.phase')} {boss.phase}</span>
-                    <span className={styles.bossBehavior}>• {boss.behavior}</span>
+                    <span className={styles.bossBehavior}>• {t(`bossBehaviors.${boss.behavior ?? 'random'}`)}</span>
                     <span className={styles.bossLength}>• {t('debug.size')}: {boss.initialLength ?? 3}</span>
                   </div>
                 </div>
@@ -78,7 +78,7 @@ export function BossDebugPanel({
             <div className={styles.currentBoss}>
               <div className={styles.currentBossLabel}>{t('debug.activeBoss')}</div>
               <div className={styles.currentBossName}>
-                {currentBoss.visual.icon} {currentBoss.name}
+                {currentBoss.visual.icon} {t(`bosses.${currentBoss.id}.name`)}
               </div>
               <button className={styles.removeButton} onClick={handleRemoveBoss}>
                 {t('debug.removeBoss')}

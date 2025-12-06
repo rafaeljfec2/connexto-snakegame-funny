@@ -127,7 +127,7 @@ export function BossDefeatTransition({ boss, score, onComplete }: BossDefeatTran
         >
           <div className={styles.victoryTitle}>{t('bossDefeat.victory')}</div>
           <div className={styles.bossName}>
-            {boss.name} {t('bossDefeat.defeated')}
+            {t(`bosses.${boss.id}.name`)} {t('bossDefeat.defeated')}
           </div>
         </div>
 

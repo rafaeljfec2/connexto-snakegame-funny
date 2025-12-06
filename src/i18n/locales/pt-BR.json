@@ -196,5 +196,55 @@
   },
   "livesDisplay": {
     "lives": "Vidas:"
+  },
+  "bosses": {
+    "classic": {
+      "name": "O Clássico",
+      "description": "O primeiro chefe. Simples e direto."
+    },
+    "guardian": {
+      "name": "O Guardião",
+      "description": "Defende um power-up de vida. Capture-o para derrotá-lo!"
+    },
+    "challenger": {
+      "name": "O Desafiador",
+      "description": "Move obstáculos em direção à cobra."
+    },
+    "portal": {
+      "name": "O Portal",
+      "description": "Mestre dos portais e teletransporte."
+    },
+    "speed": {
+      "name": "O Veloz",
+      "description": "Acelera o jogo drasticamente."
+    },
+    "chaos": {
+      "name": "O Caos",
+      "description": "Altera tipos de power-ups aleatoriamente."
+    },
+    "architect": {
+      "name": "O Arquiteto",
+      "description": "Cria e remove paredes do labirinto."
+    },
+    "survivor": {
+      "name": "O Sobrevivente",
+      "description": "Remove vidas periodicamente."
+    },
+    "vortex": {
+      "name": "O Vortex",
+      "description": "Combina múltiplas habilidades."
+    },
+    "supreme": {
+      "name": "O Supremo",
+      "description": "O chefe final com todas as habilidades."
+    }
+  },
+  "bossBehaviors": {
+    "random": "Aleatório",
+    "flee": "Fugir",
+    "chase": "Perseguir",
+    "aggressive": "Agressivo",
+    "patrol": "Patrulhar",
+    "defend": "Defender"
   }
 }

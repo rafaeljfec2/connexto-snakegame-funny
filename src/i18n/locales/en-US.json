@@ -196,5 +196,55 @@
   },
   "livesDisplay": {
     "lives": "Lives:"
+  },
+  "bosses": {
+    "classic": {
+      "name": "The Classic",
+      "description": "The first boss. Simple and straightforward."
+    },
+    "guardian": {
+      "name": "The Guardian",
+      "description": "Defends a life power-up. Capture it to defeat him!"
+    },
+    "challenger": {
+      "name": "The Challenger",
+      "description": "Moves obstacles towards the snake."
+    },
+    "portal": {
+      "name": "The Portal",
+      "description": "Master of portals and teleportation."
+    },
+    "speed": {
+      "name": "The Swift",
+      "description": "Drastically speeds up the game."
+    },
+    "chaos": {
+      "name": "The Chaos",
+      "description": "Randomly alters power-up types."
+    },
+    "architect": {
+      "name": "The Architect",
+      "description": "Creates and removes maze walls."
+    },
+    "survivor": {
+      "name": "The Survivor",
+      "description": "Periodically removes lives."
+    },
+    "vortex": {
+      "name": "The Vortex",
+      "description": "Combines multiple abilities."
+    },
+    "supreme": {
+      "name": "The Supreme",
+      "description": "The final boss with all abilities."
+    }
+  },
+  "bossBehaviors": {
+    "random": "Random",
+    "flee": "Flee",
+    "chase": "Chase",
+    "aggressive": "Aggressive",
+    "patrol": "Patrol",
+    "defend": "Defend"
   }
 }

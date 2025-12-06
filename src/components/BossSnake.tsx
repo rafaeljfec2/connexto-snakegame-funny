@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { BossSnake as BossSnakeType, Position } from '@/types/game';
 import { Chef } from '@/types/phases';
 import { GAME_CONFIG } from '@/constants/game';
@@ -10,6 +11,7 @@ interface BossSnakeProps {
 }
 
 export function BossSnake({ bossSnake, boss }: BossSnakeProps) {
+  const { t } = useTranslation();
   const bossColor = boss.visual.color;
   const bossIcon = boss.visual.icon;
   const bossSize = boss.visual.size ?? 1;
@@ -35,7 +37,7 @@ export function BossSnake({ bossSnake, boss }: BossSnakeProps) {
         {isHead && (
           <div className={styles.bossHeadLabel}>
             <span className={styles.bossIcon}>{bossIcon}</span>
-            <span className={styles.bossName}>{boss.name}</span>
+            <span className={styles.bossName}>{t(`bosses.${boss.id}.name`)}</span>
           </div>
         )}
       </div>

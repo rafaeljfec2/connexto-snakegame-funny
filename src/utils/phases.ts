@@ -70,7 +70,6 @@ export function getPhaseProgress(level: number): number {
  * Get level within phase (1-5)
  */
 export function getLevelInPhase(level: number): number {
-  const phaseNumber = getPhaseNumber(level);
   return ((level - 1) % 5) + 1;
 }
 

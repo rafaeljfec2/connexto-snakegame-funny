@@ -1,5 +1,5 @@
 import { Position, Direction, Obstacle } from '@/types/game';
-import { Chef, BossBehavior } from '@/types/phases';
+import { Chef } from '@/types/phases';
 import { BossSnake } from '@/types/game';
 import { getNextHeadPosition, moveSnake, isValidDirectionChange } from './gameLogic';
 
@@ -42,7 +42,7 @@ export function initializeBossSnake(
  * Find a valid spawn position for boss snake
  */
 function findValidBossSpawnPosition(
-  boss: Chef,
+  _boss: Chef,
   playerSnake: Position[],
   obstacles: Obstacle[],
   gridSize: number,
@@ -167,8 +167,8 @@ export function calculateBossNextDirection(
   boss: Chef,
   bossSnake: BossSnake,
   playerSnake: Position[],
-  obstacles: Obstacle[],
-  food: Position,
+  _obstacles: Obstacle[],
+  _food: Position,
   gridSize: number,
   guardianFlag?: Position | null,
 ): Direction {
@@ -215,7 +215,7 @@ export function calculateBossNextDirection(
       if (Math.random() < independentChance) {
         return calculatePatrolDirection(bossSnake, gridSize);
       }
-      return calculateAggressiveDirection(bossHead, playerHead, bossSnake, obstacles, gridSize);
+      return calculateAggressiveDirection(bossHead, playerHead, bossSnake, _obstacles, gridSize);
     case 'patrol':
       return calculatePatrolDirection(bossSnake, gridSize);
     case 'random':
@@ -230,7 +230,7 @@ export function calculateBossNextDirection(
 function calculateChaseDirection(
   bossHead: Position,
   playerHead: Position,
-  currentDirection: Direction,
+  _currentDirection: Direction,
   gridSize: number,
 ): Direction {
   const dx = playerHead.x - bossHead.x;
@@ -261,7 +261,7 @@ function calculateChaseDirection(
 function calculateFleeDirection(
   bossHead: Position,
   playerHead: Position,
-  currentDirection: Direction,
+  _currentDirection: Direction,
   gridSize: number,
 ): Direction {
   const dx = bossHead.x - playerHead.x;
@@ -293,7 +293,7 @@ function calculateAggressiveDirection(
   bossHead: Position,
   playerHead: Position,
   bossSnake: BossSnake,
-  obstacles: Obstacle[],
+  _obstacles: Obstacle[],
   gridSize: number,
 ): Direction {
   // Try to predict player movement and cut them off
@@ -304,7 +304,7 @@ function calculateAggressiveDirection(
 /**
  * Patrol behavior: Move in a pattern (more independent)
  */
-function calculatePatrolDirection(bossSnake: BossSnake, gridSize: number): Direction {
+function calculatePatrolDirection(bossSnake: BossSnake, _gridSize: number): Direction {
   // More active patrol: 25% chance to change direction, prefers continuing current direction
   if (Math.random() < 0.25) {
     // 25% chance to change direction
@@ -335,7 +335,7 @@ function calculatePatrolDirection(bossSnake: BossSnake, gridSize: number): Direc
 /**
  * Random behavior: Move randomly (more independent)
  */
-function calculateRandomDirection(currentDirection: Direction, gridSize: number): Direction {
+function calculateRandomDirection(currentDirection: Direction, _gridSize: number): Direction {
   // 30% chance to change direction - more active movement
   if (Math.random() < 0.3) {
     const directions = [Direction.UP, Direction.DOWN, Direction.LEFT, Direction.RIGHT];
@@ -531,7 +531,7 @@ function calculatePatrolAroundFlag(
   bossHead: Position,
   flagPosition: Position,
   currentDirection: Direction,
-  gridSize: number,
+  _gridSize: number,
 ): Direction {
   // Calculate relative position to flag
   const dx = bossHead.x - flagPosition.x;

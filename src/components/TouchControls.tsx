@@ -21,7 +21,6 @@ export function TouchControls({
 }: TouchControlsProps) {
   const { t } = useTranslation();
   const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
-  const lastDirectionRef = useRef<Direction | null>(null);
   const pressedButtonsRef = useRef<Set<Direction>>(new Set());
   const speedBoostActiveRef = useRef(false);
   const speedBoostTimersRef = useRef<Map<Direction, ReturnType<typeof setTimeout>>>(new Map());

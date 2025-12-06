@@ -64,7 +64,7 @@ const createBrowserDestination = () => {
 export const logger = pino({
   level: isDevelopment ? 'debug' : isProduction ? 'warn' : 'info',
   browser: {
-    write: createBrowserDestination().write,
+    write: createBrowserDestination().write as (obj: object) => void,
   },
   base: {
     env: import.meta.env.MODE,

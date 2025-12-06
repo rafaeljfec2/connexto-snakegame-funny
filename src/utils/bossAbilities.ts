@@ -1,10 +1,8 @@
 import { GameState, Obstacle, Portal, Position, FoodType, Direction } from '@/types/game';
 import { Chef, BossAbility } from '@/types/phases';
 import { GAME_CONFIG } from '@/constants/game';
-import { generateObstacles } from './obstacles';
 import { generatePortalPair } from './portals';
-import { loseLife } from './lives';
-import { OBSTACLE_PATTERNS, OBSTACLE_CONFIG } from '@/constants/obstacles';
+import { OBSTACLE_PATTERNS } from '@/constants/obstacles';
 
 export interface BossAbilityResult {
   obstacles?: Obstacle[];
@@ -15,7 +13,7 @@ export interface BossAbilityResult {
   message?: string;
   bossSnakeGrowth?: number; // For boss healing/growth abilities
   forceFoodType?: boolean; // Flag to force food type change
-  guardianFlag?: Food | null; // Special flag food for Guardian boss
+  guardianFlag?: import('@/types/game').Food | null; // Special flag food for Guardian boss
   guardianFlagSide?: -1 | 1; // Which side the flag is on (-1 = left, 1 = right)
 }
 
@@ -656,7 +654,7 @@ function createTetrisBarriers(
   const minDistanceFromSnake = 6; // Minimum distance for barriers
 
   // Select a random Tetris pattern (simple patterns only for barriers)
-  const simplePatterns = OBSTACLE_PATTERNS.filter((p) => p.levelThreshold <= 5);
+  const simplePatterns = OBSTACLE_PATTERNS.filter((p: { levelThreshold: number }) => p.levelThreshold <= 5);
   if (simplePatterns.length === 0) {
     return [];
   }
@@ -670,7 +668,7 @@ function createTetrisBarriers(
     const offsetX = Math.floor(Math.random() * 10) - 5; // -5 to 5
     const offsetY = Math.floor(Math.random() * 10) + 5; // 5 to 15 (ahead)
 
-    const patternPositions: Position[] = selectedPattern.positions.map((pos) => ({
+    const patternPositions: Position[] = selectedPattern.positions.map((pos: Position) => ({
       x: playerHead.x + offsetX + pos.x,
       y: playerHead.y + offsetY + pos.y,
     }));

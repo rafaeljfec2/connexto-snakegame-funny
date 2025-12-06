@@ -111,7 +111,7 @@ export function destroyObstaclesAtPositions(
  * @param obstacle - Obstacle to check
  * @returns True if obstacle can be destroyed
  */
-export function canDestroyObstacle(obstacle: Obstacle): boolean {
+export function canDestroyObstacle(_obstacle: Obstacle): boolean {
   // Currently all obstacles can be destroyed
   // Future: could add invincible obstacles, etc.
   return true;

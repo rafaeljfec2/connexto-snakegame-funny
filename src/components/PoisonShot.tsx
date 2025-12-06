@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { PoisonShot as PoisonShotType, Direction } from '@/types/game';
+import { PoisonShot as PoisonShotType } from '@/types/game';
 import { GAME_CONFIG } from '@/constants/game';
 import styles from './PoisonShot.module.css';
 

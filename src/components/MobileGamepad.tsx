@@ -143,7 +143,12 @@ export function MobileGamepad({
       if (!touch) return;
 
       isDraggingRef.current = true;
-      const pos = getTouchPosition(touch);
+      // Convert React.Touch to native Touch-like object
+      const nativeTouch = {
+        clientX: touch.clientX,
+        clientY: touch.clientY,
+      } as Touch;
+      const pos = getTouchPosition(nativeTouch);
       if (pos) {
         updateJoystick(pos.x, pos.y);
       }
@@ -162,7 +167,12 @@ export function MobileGamepad({
       const touch = e.touches[0];
       if (!touch) return;
 
-      const pos = getTouchPosition(touch);
+      // Convert React.Touch to native Touch-like object
+      const nativeTouch = {
+        clientX: touch.clientX,
+        clientY: touch.clientY,
+      } as Touch;
+      const pos = getTouchPosition(nativeTouch);
       if (pos) {
         updateJoystick(pos.x, pos.y);
       }

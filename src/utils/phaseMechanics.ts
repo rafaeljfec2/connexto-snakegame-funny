@@ -1,4 +1,4 @@
-import { PhaseConfig, PhaseLevelType } from '@/types/phases';
+import { PhaseConfig } from '@/types/phases';
 import { GameState } from '@/types/game';
 import { getCurrentPhase } from './phases';
 

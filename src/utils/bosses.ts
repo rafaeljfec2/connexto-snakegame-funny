@@ -13,7 +13,7 @@ export function shouldSpawnBoss(level: number): boolean {
  * Get boss position (currently random, can be customized per boss)
  */
 export function getBossPosition(
-  boss: Chef,
+  _boss: Chef,
   snake: Position[],
   obstacles: Position[],
   gridSize: number,
@@ -60,7 +60,7 @@ export function hasBossCollision(snakeHead: Position, bossPosition: Position | n
  */
 export function handleBossDefeat(
   boss: Chef,
-  gameState: GameState,
+  _gameState: GameState,
 ): { scoreIncrease: number; message: string } {
   // Different rewards based on boss phase
   const baseScore = 100 * boss.phase;

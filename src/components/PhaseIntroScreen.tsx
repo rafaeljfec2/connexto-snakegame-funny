@@ -10,7 +10,7 @@ interface PhaseIntroScreenProps {
   onComplete: () => void;
 }
 
-const COUNTDOWN_DURATION = 4000; // 4 seconds (1 second per number: 3, 2, 1, GO)
+// Countdown duration is handled by state transitions
 
 export function PhaseIntroScreen({ phaseNumber, level, onComplete }: PhaseIntroScreenProps) {
   const { t } = useTranslation();

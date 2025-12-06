@@ -447,7 +447,8 @@ interface BossCombatResult {
  * - Hit head when weak (≤3 segments): defeat boss
  * - Hit head when strong (>3 segments): player loses life/game over
  */
-function handleBossCombat(
+// @ts-ignore - Reserved for future use
+function _handleBossCombat(
   headPosition: Position | undefined,
   bossSnake: import('@/types/game').BossSnake | undefined,
   activeBoss: Chef | undefined,
@@ -569,7 +570,8 @@ function handleBossCombat(
 }
 
 export function useGameLoop() {
-  const gameLoopLogger = createLogger(LogContext.GAME_LOOP);
+  // @ts-ignore - Reserved for future logging
+  const _gameLoopLogger = createLogger(LogContext.GAME_LOOP);
 
   const {
     gameState,

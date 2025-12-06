@@ -1,4 +1,3 @@
-import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Chef } from '@/types/phases';
 import { Position } from '@/types/game';
@@ -17,14 +16,16 @@ export function Boss({ boss, position, gridSize }: BossProps) {
   return (
     <div
       className={styles.boss}
-      style={{
-        left: `${position.x * cellSize}%`,
-        top: `${position.y * cellSize}%`,
-        width: `${cellSize}%`,
-        height: `${cellSize}%`,
-        '--boss-color': boss.visual.color,
-        '--boss-size': boss.visual.size ?? 1,
-      }}
+      style={
+        {
+          left: `${position.x * cellSize}%`,
+          top: `${position.y * cellSize}%`,
+          width: `${cellSize}%`,
+          height: `${cellSize}%`,
+          '--boss-color': boss.visual.color,
+          '--boss-size': boss.visual.size ?? 1,
+        } as React.CSSProperties
+      }
     >
       <div className={styles.bossIcon}>{boss.visual.icon}</div>
       <div className={styles.bossGlow} />

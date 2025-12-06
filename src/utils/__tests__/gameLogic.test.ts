@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { Direction, Position } from '@/types/game';
+import { Direction, Position, Food, FoodType } from '@/types/game';
 import {
   getOppositeDirection,
   isValidDirectionChange,
@@ -167,13 +167,13 @@ describe('gameLogic', () => {
   describe('hasFoodCollision', () => {
     it('should return true when head and food are at same position', () => {
       const head: Position = { x: 5, y: 5 };
-      const food: Position = { x: 5, y: 5 };
+      const food: Food = { position: { x: 5, y: 5 }, type: FoodType.NORMAL };
       expect(hasFoodCollision(head, food)).toBe(true);
     });
 
     it('should return false when head and food are at different positions', () => {
       const head: Position = { x: 5, y: 5 };
-      const food: Position = { x: 5, y: 6 };
+      const food: Food = { position: { x: 5, y: 6 }, type: FoodType.NORMAL };
       expect(hasFoodCollision(head, food)).toBe(false);
     });
   });
@@ -208,12 +208,14 @@ describe('gameLogic', () => {
       // Run multiple times to check randomness
       for (let i = 0; i < 10; i++) {
         const food = generateRandomFood(snake, gridSize);
-        const isOnSnake = snake.some((segment) => segment.x === food.x && segment.y === food.y);
+        const isOnSnake = snake.some(
+          (segment) => segment.x === food.position.x && segment.y === food.position.y,
+        );
         expect(isOnSnake).toBe(false);
-        expect(food.x).toBeGreaterThanOrEqual(0);
-        expect(food.x).toBeLessThan(gridSize);
-        expect(food.y).toBeGreaterThanOrEqual(0);
-        expect(food.y).toBeLessThan(gridSize);
+        expect(food.position.x).toBeGreaterThanOrEqual(0);
+        expect(food.position.x).toBeLessThan(gridSize);
+        expect(food.position.y).toBeGreaterThanOrEqual(0);
+        expect(food.position.y).toBeLessThan(gridSize);
       }
     });
 
@@ -225,10 +227,10 @@ describe('gameLogic', () => {
       const gridSize = 20;
 
       const food = generateRandomFood(snake, gridSize);
-      expect(food.x).toBeGreaterThanOrEqual(0);
-      expect(food.x).toBeLessThan(gridSize);
-      expect(food.y).toBeGreaterThanOrEqual(0);
-      expect(food.y).toBeLessThan(gridSize);
+      expect(food.position.x).toBeGreaterThanOrEqual(0);
+      expect(food.position.x).toBeLessThan(gridSize);
+      expect(food.position.y).toBeGreaterThanOrEqual(0);
+      expect(food.position.y).toBeLessThan(gridSize);
     });
   });
 

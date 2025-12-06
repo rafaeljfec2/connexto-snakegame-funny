@@ -1,4 +1,3 @@
-import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { getCurrentPhase, getLevelInPhase, getPhaseProgress } from '@/utils/phases';
 import { getPhaseTranslationKey } from '@/utils/phaseTranslations';

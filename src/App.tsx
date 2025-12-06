@@ -653,7 +653,8 @@ function App() {
                   food: initialFood,
                   direction: INITIAL_DIRECTION,
                   nextDirection: INITIAL_DIRECTION,
-                  level: nextPhaseStartLevel, // Reset to first level of new phase
+                  level: nextPhaseStartLevel, // Reset to first level of new phase (level 1 of phase)
+                  score: 0, // Reset score when changing phase
                   gameSpeed: nextSpeed,
                   status: GameStatus.PHASE_INTRO,
                   currentPhase: nextPhase?.id,

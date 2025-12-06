@@ -816,22 +816,25 @@ export function useGameLoop() {
       if (newScore !== prev.score) {
         const calculatedLevel = calculateLevel(newScore);
 
-        // Preserve level if:
-        // 1. Score is 0 and we have an explicit phase set (debug mode)
-        // 2. Current level is at the start of a phase (level % 5 === 1 or level === 1) and phase was recently set
-        // This ensures that when changing phases, level starts from the beginning of that phase
-        const isPhaseStartLevel = prev.level % 5 === 1 || prev.level === 1;
+        // When score is 0, we're likely in a phase change or debug mode
+        // Preserve the current level to maintain the phase start level
+        // This ensures that when changing phases (score reset to 0), level stays at phase start
         const shouldPreserveLevel =
-          (newScore === 0 && prev.currentPhase && prev.level > 1) ||
-          (isPhaseStartLevel && prev.currentPhase && calculatedLevel < prev.level);
+          (newScore === 0 && prev.currentPhase) || // Score reset + phase set = phase change
+          (calculatedLevel < prev.level && prev.currentPhase); // Level decreasing + phase = phase change
 
         if (shouldPreserveLevel) {
           // Preserve the explicitly set level (from phase change or debug)
+          // This keeps the level at the start of the phase when score is 0
           newLevel = prev.level;
         } else {
           // Normal progression: calculate level from score
           newLevel = calculatedLevel;
         }
+      } else if (newScore === 0 && prev.currentPhase && prev.level > 1) {
+        // Even if score didn't change but is 0, preserve level if we have a phase set
+        // This handles cases where phase change sets score to 0 but game loop hasn't recalculated yet
+        newLevel = prev.level;
       }
 
       // Only recalculate speed if level changed

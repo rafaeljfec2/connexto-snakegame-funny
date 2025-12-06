@@ -216,6 +216,9 @@
   flex-shrink: 0;
   position: relative;
   overflow: visible;
+  /* Desktop: Container adjusts to fit grid (grid size = gridSize * cellSize) */
+  width: fit-content;
+  height: fit-content;
 }
 
 .gameContainer::before {

@@ -278,8 +278,10 @@ src/
 
 Ajuste as configurações em `src/constants/game.ts`:
 
-- `gridSize`: Tamanho do grid (padrão: 40x40)
+- `gridSize`: Número de células no grid (padrão: 40x40, total de 1600 células)
 - `cellSize`: Tamanho de cada célula em pixels (padrão: 12px)
+  - **Nota Importante**: No desktop, `cellSize` controla tanto o tamanho de cada célula quanto o tamanho total do grid. O tamanho do grid será `gridSize × cellSize` (por padrão: 40 × 12 = 480px). Alterar `cellSize` alterará o tamanho total do grid proporcionalmente.
+  - No mobile, o `cellSize` é calculado automaticamente para se adaptar ao tamanho da tela, respeitando o tamanho disponível e ignorando o valor configurado.
 - `gameSpeed`: Velocidade base do jogo em milissegundos
 - `initialSnakeLength`: Comprimento inicial da cobra
 - `POISON_CONFIG`: Configurações dos disparos de veneno

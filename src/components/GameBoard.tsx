@@ -54,18 +54,19 @@ export const GameBoard = memo(function GameBoard({
   const [cellSize, setCellSize] = useState(GAME_CONFIG.cellSize);
   const [isMobile, setIsMobile] = useState(false);
 
-  // Calculate responsive cell size for mobile
+  // Calculate responsive cell size based on container
+  // This ensures cellSize controls only the visual size, not the grid dimensions
   useEffect(() => {
     const updateCellSize = () => {
       const mobile = window.innerWidth <= 768;
       setIsMobile(mobile);
 
-      if (mobile && boardRef.current) {
+      if (boardRef.current) {
         const container = boardRef.current.parentElement;
         if (container) {
           // Get available space (accounting for padding)
           const containerRect = container.getBoundingClientRect();
-          const padding = 8; // Account for container padding (0.5rem = 8px)
+          const padding = mobile ? 8 : 24; // Account for container padding
           const availableWidth = containerRect.width - padding * 2;
           const availableHeight = containerRect.height - padding * 2;
 
@@ -74,12 +75,15 @@ export const GameBoard = memo(function GameBoard({
             Math.min(availableWidth, availableHeight) / GAME_CONFIG.gridSize,
           );
 
-          // Ensure minimum cell size (at least 8px)
-          const finalCellSize = Math.max(calculatedCellSize, 8);
-          setCellSize(finalCellSize);
+          if (mobile) {
+            // Mobile: calculate based on available space, ensure minimum cell size (at least 8px)
+            const finalCellSize = Math.max(calculatedCellSize, 8);
+            setCellSize(finalCellSize);
+          } else {
+            // Desktop: use configured cellSize directly (it controls both cell and grid size)
+            setCellSize(GAME_CONFIG.cellSize);
+          }
         }
-      } else {
-        setCellSize(GAME_CONFIG.cellSize);
       }
     };
 
@@ -111,14 +115,21 @@ export const GameBoard = memo(function GameBoard({
     };
   }, []);
 
-  const gridStyle = {
-    gridTemplateColumns: `repeat(${GAME_CONFIG.gridSize}, ${cellSize}px)`,
-    gridTemplateRows: `repeat(${GAME_CONFIG.gridSize}, ${cellSize}px)`,
-    width: isMobile ? '100%' : `${GAME_CONFIG.gridSize * cellSize}px`,
-    height: isMobile ? '100%' : `${GAME_CONFIG.gridSize * cellSize}px`,
-    maxWidth: isMobile ? '100%' : `${GAME_CONFIG.gridSize * cellSize}px`,
-    maxHeight: isMobile ? '100%' : `${GAME_CONFIG.gridSize * cellSize}px`,
-  };
+  // Desktop: Use fixed cellSize pixels for grid definition (changes grid size)
+  // Mobile: Use 'fr' units to always fit container (cellSize calculated dynamically)
+  const gridStyle = isMobile
+    ? {
+        gridTemplateColumns: `repeat(${GAME_CONFIG.gridSize}, 1fr)`,
+        gridTemplateRows: `repeat(${GAME_CONFIG.gridSize}, 1fr)`,
+        width: '100%',
+        height: '100%',
+      }
+    : {
+        gridTemplateColumns: `repeat(${GAME_CONFIG.gridSize}, ${cellSize}px)`,
+        gridTemplateRows: `repeat(${GAME_CONFIG.gridSize}, ${cellSize}px)`,
+        width: `${GAME_CONFIG.gridSize * cellSize}px`,
+        height: `${GAME_CONFIG.gridSize * cellSize}px`,
+      };
 
   const previousSnakeLengthRef = useRef(snake.length);
   const previousLevelRef = useRef(level);

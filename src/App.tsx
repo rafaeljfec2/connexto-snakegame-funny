@@ -17,7 +17,7 @@ import { PhaseTransition } from './components/PhaseTransition';
 import { BossDefeatTransition } from './components/BossDefeatTransition';
 import { PhaseIntroScreen } from './components/PhaseIntroScreen';
 import { PhaseCompleteScreen } from './components/PhaseCompleteScreen';
-import { GameStatus, FoodType } from '@/types/game';
+import { GameStatus } from '@/types/game';
 import { createFinalStatistics, saveGameSession } from '@/utils/statistics';
 import { didPhaseChange, getPhaseNumber, getCurrentPhase, getPhaseConfig } from '@/utils/phases';
 import { getPhaseTranslationKey } from '@/utils/phaseTranslations';
@@ -314,6 +314,7 @@ function App() {
           direction: INITIAL_DIRECTION,
           nextDirection: INITIAL_DIRECTION,
           level: phaseStartLevel,
+          score: 0, // Reset score when selecting a phase for testing
           gameSpeed: nextSpeed,
           status: GameStatus.PHASE_INTRO,
           currentPhase: phase.id,
@@ -660,7 +661,7 @@ function App() {
       {/* Phase Intro Screen - Shows when starting game or new phase */}
       {gameState.status === GameStatus.PHASE_INTRO && (
         <PhaseIntroScreen
-          phaseNumber={getPhaseNumber(gameState.level)}
+          phaseNumber={gameState.currentPhase ?? getPhaseNumber(gameState.level)}
           level={gameState.level}
           onComplete={() => {
             startGame(); // Start game after intro countdown

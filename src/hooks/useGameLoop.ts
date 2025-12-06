@@ -795,12 +795,21 @@ export function useGameLoop() {
         forcedFoodTypeRef.current = null;
       }
 
-      const newLevel = calculateLevel(newScore);
+      // Calculate level from score, but preserve explicit level if score is 0 and we have a currentPhase set
+      // This handles the debug case where we set a specific phase but score is reset to 0
+      let newLevel = calculateLevel(newScore);
+      if (newLevel === 1 && newScore === 0 && prev.currentPhase && prev.level > 1) {
+        // If score is 0, level calculated would be 1, but we want to preserve the debug-selected level
+        // Only do this if we have an explicit currentPhase set and the level was explicitly set
+        newLevel = prev.level;
+      }
       let baseGameSpeed = calculateGameSpeed(newLevel);
 
       // Phase system: Detect phase changes and update phase state (before obstacles and food generation)
       // If there's an active boss that doesn't match the level (debug boss), use boss phase
-      let currentPhase = getCurrentPhase(newLevel);
+      // Preserve currentPhase if it was explicitly set (debug mode)
+      // Use the preserved level to get the correct phase
+      let currentPhase = prev.currentPhase && newScore === 0 ? getCurrentPhase(prev.level) : getCurrentPhase(newLevel);
       if (prev.activeBoss) {
         const bossPhase = getPhaseByBoss(prev.activeBoss);
         if (
@@ -1319,8 +1328,13 @@ export function useGameLoop() {
         achievements: updatedAchievements,
         lives: newLives,
         statistics,
-        currentPhase: currentPhase?.id ?? prev.currentPhase,
-        phaseLevelType: currentPhase?.type ?? prev.phaseLevelType,
+        // Preserve currentPhase and phaseLevelType if score is 0 (debug mode), otherwise use calculated
+        currentPhase:
+          newScore === 0 && prev.currentPhase ? prev.currentPhase : currentPhase?.id ?? prev.currentPhase,
+        phaseLevelType:
+          newScore === 0 && prev.phaseLevelType
+            ? prev.phaseLevelType
+            : currentPhase?.type ?? prev.phaseLevelType,
         activeBoss: activeBoss,
         bossSnake: bossSnake,
       };

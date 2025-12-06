@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { getCurrentPhase } from '@/utils/phases';
+import { getCurrentPhase, getPhaseConfig } from '@/utils/phases';
 import { getPhaseTranslationKey } from '@/utils/phaseTranslations';
 import styles from './PhaseIntroScreen.module.css';
 
@@ -15,7 +15,8 @@ const COUNTDOWN_DURATION = 4000; // 4 seconds (1 second per number: 3, 2, 1, GO)
 export function PhaseIntroScreen({ phaseNumber, level, onComplete }: PhaseIntroScreenProps) {
   const { t } = useTranslation();
   const [countdown, setCountdown] = useState<number | string>(3);
-  const phase = getCurrentPhase(level);
+  // Use phaseNumber to get the correct phase, fallback to getCurrentPhase(level)
+  const phase = getPhaseConfig(phaseNumber) ?? getCurrentPhase(level);
 
   useEffect(() => {
     let count = 3;

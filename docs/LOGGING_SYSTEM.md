@@ -121,4 +121,3 @@ O nível de log é configurado automaticamente baseado no ambiente:
 - Os logs são não-intrusivos e não alteram a lógica do jogo
 - Todos os logs são formatados de forma estruturada para fácil análise
 - O sistema é facilmente extensível para novos contextos
-

@@ -29,6 +29,7 @@ import { StatusBar } from './components/StatusBar';
 import { BossDebugPanel } from './components/BossDebugPanel';
 import { LanguageSelector } from './components/LanguageSelector';
 import { Chef } from '@/types/phases';
+import { CHEFS } from '@/constants/phases';
 
 function App() {
   const { t } = useTranslation();
@@ -197,10 +198,10 @@ function App() {
     return () => window.removeEventListener('keydown', handleGlobalSpacebar);
   }, [gameState.status, handleKeyPress]);
 
-  // Debug mode keyboard shortcut (F12 or Ctrl+D)
+  // Debug mode keyboard shortcut (F1 or Ctrl+D)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // F12 key or Ctrl+D (when not typing in input)
+      // F1 key or Ctrl+D (when not typing in input)
       if (
         e.key === 'F1' ||
         (e.key === 'd' &&
@@ -210,6 +211,18 @@ function App() {
       ) {
         e.preventDefault();
         setShowBossDebug((prev) => !prev);
+      }
+
+      // F2 key to test boss defeat transition
+      if (e.key === 'F2' && e.target === document.body && !(e.target instanceof HTMLInputElement)) {
+        e.preventDefault();
+        // Get first boss for testing (O Clássico or O Guardião)
+        const testBoss = CHEFS.find((chef) => chef.id === 'guardian') ?? CHEFS[0];
+        if (testBoss) {
+          setDefeatedBoss(testBoss);
+          setBossDefeatScore(1000); // Test score
+          setShowBossDefeatTransition(true);
+        }
       }
     };
 

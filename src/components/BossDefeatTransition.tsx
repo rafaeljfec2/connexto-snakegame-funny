@@ -12,7 +12,7 @@ interface BossDefeatTransitionProps {
   onComplete: () => void;
 }
 
-const TRANSITION_DURATION = 4000; // 4 seconds total
+const TRANSITION_DURATION = 12000; // 10 seconds total
 
 export function BossDefeatTransition({ boss, score, onComplete }: BossDefeatTransitionProps) {
   const { t } = useTranslation();
@@ -45,8 +45,8 @@ export function BossDefeatTransition({ boss, score, onComplete }: BossDefeatTran
       const currentProgress = Math.min(100, newProgress);
       setProgress(currentProgress);
 
-      // Show celebration after 20% of transition
-      if (currentProgress >= 20 && !hasShownCelebration) {
+      // Show celebration after 15% of transition
+      if (currentProgress >= 15 && !hasShownCelebration) {
         hasShownCelebration = true;
         setShowCelebration(true);
       }
@@ -67,16 +67,13 @@ export function BossDefeatTransition({ boss, score, onComplete }: BossDefeatTran
   }, [boss.id, boss.name, score, logger]);
 
   // Calculate zoom and fade based on progress
-  // 0-40%: Boss explodes and zooms
-  // 40-70%: Victory text appears
-  // 70-100%: Results appear
-  const explodeProgress = Math.min(1, progress / 40);
-  const textProgress = progress >= 40 && progress <= 70 
-    ? (progress - 40) / 30 
-    : progress > 70 
-    ? 1 
-    : 0;
-  const resultsProgress = progress >= 70 ? (progress - 70) / 30 : 0;
+  // 0-30%: Boss explodes and zooms (0-2.1s)
+  // 30-60%: Victory text appears (2.1s-4.2s)
+  // 60-100%: Results appear (4.2s-7s)
+  const explodeProgress = Math.min(1, progress / 30);
+  const textProgress =
+    progress >= 30 && progress <= 60 ? (progress - 30) / 30 : progress > 60 ? 1 : 0;
+  const resultsProgress = progress >= 60 ? (progress - 60) / 40 : 0;
 
   return (
     <div className={styles.overlay}>
@@ -97,14 +94,14 @@ export function BossDefeatTransition({ boss, score, onComplete }: BossDefeatTran
 
       {/* Boss explosion effect */}
       {showCelebration && (
-        <div 
+        <div
           className={styles.explosion}
           style={{
             transform: `scale(${1 + explodeProgress * 3})`,
             opacity: 1 - explodeProgress,
           }}
         >
-          <div 
+          <div
             className={styles.explosionRing}
             style={{
               borderColor: boss.visual.color,
@@ -113,32 +110,41 @@ export function BossDefeatTransition({ boss, score, onComplete }: BossDefeatTran
         </div>
       )}
 
-      {/* Victory text */}
-      <div 
-        className={styles.victoryText}
+      {/* Victory text and Results - Centered container */}
+      <div
+        className={styles.centeredContent}
         style={{
-          opacity: textProgress,
-          transform: `scale(${0.5 + textProgress * 0.5})`,
+          opacity: Math.max(textProgress, resultsProgress),
         }}
       >
-        <div className={styles.victoryTitle}>{t('bossDefeat.victory')}</div>
-        <div className={styles.bossName}>{boss.name} {t('bossDefeat.defeated')}</div>
-      </div>
-
-      {/* Results */}
-      {progress >= 70 && (
-        <div 
-          className={styles.results}
+        {/* Victory text */}
+        <div
+          className={styles.victoryText}
           style={{
-            opacity: resultsProgress,
-            transform: `translateY(${(1 - resultsProgress) * 50}px)`,
+            opacity: textProgress,
+            transform: `scale(${0.5 + textProgress * 0.5})`,
           }}
         >
-          <div className={styles.scoreGained}>{t('bossDefeat.scoreGained', { score })}</div>
-          <div className={styles.continueHint}>{t('phase.preparingNextPhase')}</div>
+          <div className={styles.victoryTitle}>{t('bossDefeat.victory')}</div>
+          <div className={styles.bossName}>
+            {boss.name} {t('bossDefeat.defeated')}
+          </div>
         </div>
-      )}
+
+        {/* Results */}
+        {progress >= 60 && (
+          <div
+            className={styles.results}
+            style={{
+              opacity: resultsProgress,
+              transform: `translateY(${(1 - resultsProgress) * 50}px)`,
+            }}
+          >
+            <div className={styles.scoreGained}>{t('bossDefeat.scoreGained', { score })}</div>
+            <div className={styles.continueHint}>{t('phase.preparingNextPhase')}</div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
-

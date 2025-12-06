@@ -47,11 +47,74 @@ export function GameBoard({
   bossSnake,
   guardianFlag,
 }: GameBoardProps) {
+  const boardRef = useRef<HTMLDivElement>(null);
+  const [cellSize, setCellSize] = useState(GAME_CONFIG.cellSize);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Calculate responsive cell size for mobile
+  useEffect(() => {
+    const updateCellSize = () => {
+      const mobile = window.innerWidth <= 768;
+      setIsMobile(mobile);
+
+      if (mobile && boardRef.current) {
+        const container = boardRef.current.parentElement;
+        if (container) {
+          // Get available space (accounting for padding)
+          const containerRect = container.getBoundingClientRect();
+          const padding = 8; // Account for container padding (0.5rem = 8px)
+          const availableWidth = containerRect.width - (padding * 2);
+          const availableHeight = containerRect.height - (padding * 2);
+          
+          // Calculate cell size to fit the grid (use the smaller dimension to maintain square)
+          const calculatedCellSize = Math.floor(
+            Math.min(availableWidth, availableHeight) / GAME_CONFIG.gridSize
+          );
+          
+          // Ensure minimum cell size (at least 8px)
+          const finalCellSize = Math.max(calculatedCellSize, 8);
+          setCellSize(finalCellSize);
+        }
+      } else {
+        setCellSize(GAME_CONFIG.cellSize);
+      }
+    };
+
+    // Initial check
+    updateCellSize();
+
+    // Use ResizeObserver for more accurate size tracking
+    let resizeObserver: ResizeObserver | null = null;
+    if (boardRef.current?.parentElement) {
+      resizeObserver = new ResizeObserver(() => {
+        // Debounce to avoid too many recalculations
+        setTimeout(updateCellSize, 50);
+      });
+      resizeObserver.observe(boardRef.current.parentElement);
+    }
+
+    // Also listen to window events as fallback
+    window.addEventListener('resize', updateCellSize);
+    window.addEventListener('orientationchange', () => {
+      setTimeout(updateCellSize, 100);
+    });
+
+    return () => {
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      }
+      window.removeEventListener('resize', updateCellSize);
+      window.removeEventListener('orientationchange', updateCellSize);
+    };
+  }, []);
+
   const gridStyle = {
-    gridTemplateColumns: `repeat(${GAME_CONFIG.gridSize}, ${GAME_CONFIG.cellSize}px)`,
-    gridTemplateRows: `repeat(${GAME_CONFIG.gridSize}, ${GAME_CONFIG.cellSize}px)`,
-    width: GAME_CONFIG.gridSize * GAME_CONFIG.cellSize,
-    height: GAME_CONFIG.gridSize * GAME_CONFIG.cellSize,
+    gridTemplateColumns: `repeat(${GAME_CONFIG.gridSize}, ${cellSize}px)`,
+    gridTemplateRows: `repeat(${GAME_CONFIG.gridSize}, ${cellSize}px)`,
+    width: isMobile ? '100%' : `${GAME_CONFIG.gridSize * cellSize}px`,
+    height: isMobile ? '100%' : `${GAME_CONFIG.gridSize * cellSize}px`,
+    maxWidth: isMobile ? '100%' : `${GAME_CONFIG.gridSize * cellSize}px`,
+    maxHeight: isMobile ? '100%' : `${GAME_CONFIG.gridSize * cellSize}px`,
   };
 
   const previousSnakeLengthRef = useRef(snake.length);
@@ -139,7 +202,7 @@ export function GameBoard({
   });
 
   return (
-    <div className={boardClassName} style={gridStyle}>
+    <div ref={boardRef} className={boardClassName} style={gridStyle}>
       {GAME_CONFIG.enableObstacles &&
         obstacles.map((obstacle) => <ObstacleComponent key={obstacle.id} obstacle={obstacle} />)}
       {portals.map((portal) => {

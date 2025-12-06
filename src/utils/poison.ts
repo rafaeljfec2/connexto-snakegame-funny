@@ -141,16 +141,27 @@ export function movePoisonShot(
  * Update all poison shots, removing ones that are out of bounds
  * Poison travels across entire field until it hits the edge
  * Returns updated shots and information about any obstacles hit
+ * Optimized to limit processing when there are many shots
  */
 export function updatePoisonShots(
   shots: PoisonShot[],
   gridSize: number,
   obstacles: Obstacle[] = [],
 ): { shots: PoisonShot[]; hitObstacles: Obstacle[] } {
+  // Early return if no shots
+  if (shots.length === 0) {
+    return { shots: [], hitObstacles: [] };
+  }
+
   const hitObstacles: Obstacle[] = [];
   const updatedShots: PoisonShot[] = [];
 
-  shots.forEach((shot) => {
+  // Process shots - limit to first 100 for performance (shouldn't normally have this many)
+  const shotsToProcess = shots.slice(0, 100);
+
+  // Use for loop instead of forEach for better performance
+  for (let i = 0; i < shotsToProcess.length; i++) {
+    const shot = shotsToProcess[i];
     const result = movePoisonShot(shot, gridSize, obstacles);
     if (result.hitObstacle) {
       // Shot hit an obstacle - remove it (don't add to updatedShots) and track the hit obstacle
@@ -159,7 +170,7 @@ export function updatePoisonShots(
       // Shot didn't hit obstacle and is still valid - keep it
       updatedShots.push(result.shot);
     }
-  });
+  }
 
   return { shots: updatedShots, hitObstacles };
 }

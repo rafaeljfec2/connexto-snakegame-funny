@@ -591,6 +591,8 @@ export function useGameLoop() {
   const lastPoisonFireTimeRef = useRef<number>(0);
   const previousDirectionRef = useRef<Direction | null>(null);
   const lastMoveLogTimeRef = useRef<number>(0);
+  const pendingPoisonShotsRef = useRef<import('@/types/game').PoisonShot[]>([]);
+  const poisonShotBatchTimeoutRef = useRef<number | null>(null); // requestAnimationFrame ID
 
   // Keep gameStateRef updated with latest state
   useEffect(() => {
@@ -604,7 +606,9 @@ export function useGameLoop() {
       }
 
       // Handle direction changes with reverse controls and safety checks
-      const currentActivePowerUps = getActivePowerUps(prev.activePowerUps);
+      // Cache active power ups to avoid recalculating if array hasn't changed
+      const currentActivePowerUps =
+        prev.activePowerUps.length > 0 ? getActivePowerUps(prev.activePowerUps) : [];
       let currentDirection = handleDirection(
         prev.direction,
         prev.nextDirection,
@@ -637,24 +641,26 @@ export function useGameLoop() {
       }
 
       // Move snake with validated direction
+      const previousHeadPosition = prev.snake[0];
       let newSnake = moveSnake(prev.snake, currentDirection, GAME_CONFIG.gridSize, false);
+      const newHeadPosition = newSnake[0];
 
-      // Log snake movement (throttled to avoid spam - every 500ms or on direction change)
+      // Log snake movement (throttled to avoid spam - every 1000ms or on direction change only)
+      // Reduced frequency to minimize logging overhead
       const moveLogTime = Date.now();
       const directionChanged =
         previousDirectionRef.current !== null && previousDirectionRef.current !== currentDirection;
-      const shouldLogMove = directionChanged || moveLogTime - lastMoveLogTimeRef.current > 500;
+      const shouldLogMove = directionChanged && moveLogTime - lastMoveLogTimeRef.current > 500;
 
-      if (shouldLogMove && newSnake[0]) {
-        gameLoopLogger.debug(
-          {
-            headPosition: newSnake[0],
-            direction: currentDirection,
-            snakeLength: newSnake.length,
-            directionChanged,
-          },
-          'Snake moved',
-        );
+      if (shouldLogMove && newHeadPosition) {
+        logGameEvent('snake-moved', {
+          previousPosition: previousHeadPosition,
+          newPosition: newHeadPosition,
+          direction: currentDirection,
+          snakeLength: newSnake.length,
+          directionChanged: true,
+          wouldHaveCollided: wouldCollide && currentDirection !== prev.direction,
+        });
         lastMoveLogTimeRef.current = moveLogTime;
       }
 
@@ -673,7 +679,9 @@ export function useGameLoop() {
       newParticles = portalResult.particles;
 
       // Filter out expired temporary obstacles
-      const activeObstacles = getActiveObstacles(prev.obstacles);
+      // Only filter if obstacles array has items (optimization)
+      const activeObstacles =
+        prev.obstacles.length > 0 ? getActiveObstacles(prev.obstacles) : prev.obstacles;
 
       // Check obstacle collision (ignore if phase through is active)
       const canPhaseThrough = hasPhaseThrough(currentActivePowerUps);
@@ -797,19 +805,31 @@ export function useGameLoop() {
 
       // Calculate level from score, but preserve explicit level if score is 0 and we have a currentPhase set
       // This handles the debug case where we set a specific phase but score is reset to 0
-      let newLevel = calculateLevel(newScore);
-      if (newLevel === 1 && newScore === 0 && prev.currentPhase && prev.level > 1) {
-        // If score is 0, level calculated would be 1, but we want to preserve the debug-selected level
-        // Only do this if we have an explicit currentPhase set and the level was explicitly set
-        newLevel = prev.level;
+      // Only recalculate if score changed (optimization)
+      let newLevel = prev.level;
+      if (newScore !== prev.score) {
+        newLevel = calculateLevel(newScore);
+        if (newLevel === 1 && newScore === 0 && prev.currentPhase && prev.level > 1) {
+          // If score is 0, level calculated would be 1, but we want to preserve the debug-selected level
+          // Only do this if we have an explicit currentPhase set and the level was explicitly set
+          newLevel = prev.level;
+        }
       }
-      let baseGameSpeed = calculateGameSpeed(newLevel);
+
+      // Only recalculate speed if level changed
+      let baseGameSpeed = prev.gameSpeed;
+      if (newLevel !== prev.level) {
+        baseGameSpeed = calculateGameSpeed(newLevel);
+      }
 
       // Phase system: Detect phase changes and update phase state (before obstacles and food generation)
-      // If there's an active boss that doesn't match the level (debug boss), use boss phase
-      // Preserve currentPhase if it was explicitly set (debug mode)
-      // Use the preserved level to get the correct phase
-      let currentPhase = prev.currentPhase && newScore === 0 ? getCurrentPhase(prev.level) : getCurrentPhase(newLevel);
+      // Only recalculate phase if level changed (optimization)
+      let currentPhase =
+        prev.currentPhase && newScore === 0 && prev.level === newLevel
+          ? getCurrentPhase(prev.level)
+          : newLevel !== prev.level
+            ? getCurrentPhase(newLevel)
+            : getCurrentPhase(newLevel);
       if (prev.activeBoss) {
         const bossPhase = getPhaseByBoss(prev.activeBoss);
         if (
@@ -879,9 +899,10 @@ export function useGameLoop() {
         }
       }
 
-      // Ensure portals don't exceed limit
+      // Ensure portals don't exceed limit (only sort if needed - optimization)
       if (newPortals.length > PERFORMANCE_CONFIG.maxPortals) {
-        const sorted = newPortals.sort((a, b) => b.spawnTime - a.spawnTime);
+        // Use slice to create new array before sorting to avoid mutating original
+        const sorted = [...newPortals].sort((a, b) => b.spawnTime - a.spawnTime);
         newPortals = sorted.slice(0, PERFORMANCE_CONFIG.maxPortals);
       }
       // Update boss for boss levels (levels 10, 20, 30, etc.)
@@ -1160,6 +1181,7 @@ export function useGameLoop() {
       }
 
       // Update poison shots: move them and check collisions with obstacles
+      const previousPoisonShotsCount = prev.poisonShots?.length ?? 0;
       const poisonObstaclesResult = handlePoisonShotsObstacles(
         prev.poisonShots ?? [],
         newObstacles,
@@ -1168,6 +1190,21 @@ export function useGameLoop() {
       let newPoisonShots = poisonObstaclesResult.poisonShots;
       newObstacles = poisonObstaclesResult.obstacles;
       newParticles = poisonObstaclesResult.particles;
+
+      // Log poison shots update (throttled - only when count changes significantly)
+      // Removed detailed shot mapping to reduce memory allocation
+      const poisonShotsCountChanged = previousPoisonShotsCount !== newPoisonShots.length;
+      if (
+        poisonShotsCountChanged &&
+        Math.abs(previousPoisonShotsCount - newPoisonShots.length) > 2
+      ) {
+        logGameEvent('poison-shots-updated', {
+          previousCount: previousPoisonShotsCount,
+          currentCount: newPoisonShots.length,
+          shotsRemoved: previousPoisonShotsCount - newPoisonShots.length,
+          obstaclesHit: poisonObstaclesResult.hitObstacles?.length ?? 0,
+        });
+      }
 
       // Track shots to remove after boss collisions
       const shotsToRemove: string[] = [];
@@ -1256,8 +1293,10 @@ export function useGameLoop() {
         });
       }
 
-      // Remove shots that hit something
-      newPoisonShots = newPoisonShots.filter((shot) => !shotsToRemove.includes(shot.id));
+      // Remove shots that hit something (optimized - only filter if shots to remove)
+      if (shotsToRemove.length > 0) {
+        newPoisonShots = newPoisonShots.filter((shot) => !shotsToRemove.includes(shot.id));
+      }
 
       // Clean expired power-ups
       const activePowerUps = getActivePowerUps(newActivePowerUps);
@@ -1330,11 +1369,13 @@ export function useGameLoop() {
         statistics,
         // Preserve currentPhase and phaseLevelType if score is 0 (debug mode), otherwise use calculated
         currentPhase:
-          newScore === 0 && prev.currentPhase ? prev.currentPhase : currentPhase?.id ?? prev.currentPhase,
+          newScore === 0 && prev.currentPhase
+            ? prev.currentPhase
+            : (currentPhase?.id ?? prev.currentPhase),
         phaseLevelType:
           newScore === 0 && prev.phaseLevelType
             ? prev.phaseLevelType
-            : currentPhase?.type ?? prev.phaseLevelType,
+            : (currentPhase?.type ?? prev.phaseLevelType),
         activeBoss: activeBoss,
         bossSnake: bossSnake,
       };
@@ -1612,6 +1653,7 @@ export function useGameLoop() {
   }, [gameState.status]);
 
   // Function to fire a single poison shot using current direction from gameStateRef
+  // Batched to prevent multiple state updates when firing rapidly
   const firePoisonShot = useCallback(() => {
     const currentState = gameStateRef.current;
     if (currentState.status !== GameStatus.PLAYING) {
@@ -1623,15 +1665,57 @@ export function useGameLoop() {
       return; // No head position available
     }
 
-    updateGameState((prev) => {
-      // Always use current direction from state (which updates even when firing continuously)
-      const newPoisonShot = createPoisonShot(headPosition, prev.direction);
+    // Create shot and add to pending batch
+    const newPoisonShot = createPoisonShot(headPosition, currentState.direction);
+    pendingPoisonShotsRef.current.push(newPoisonShot);
 
-      return {
-        ...prev,
-        poisonShots: [...(prev.poisonShots ?? []), newPoisonShot],
-      };
-    });
+    // Log poison shot creation (throttled to reduce overhead)
+    // Only log every 5th shot to reduce logging overhead during rapid firing
+    if (pendingPoisonShotsRef.current.length % 5 === 0) {
+      logGameEvent('poison-shot-created', {
+        shotsInBatch: pendingPoisonShotsRef.current.length,
+        activeShotsCount: currentState.poisonShots?.length ?? 0,
+      });
+    }
+
+    // Only schedule a flush if one isn't already scheduled
+    // This ensures all rapid taps in the same frame are batched together
+    if (poisonShotBatchTimeoutRef.current === null) {
+      // Schedule flush on next animation frame
+      // This batches all shots created before the next frame into a single state update
+      poisonShotBatchTimeoutRef.current = requestAnimationFrame(() => {
+        const shotsToAdd = [...pendingPoisonShotsRef.current];
+        pendingPoisonShotsRef.current = [];
+
+        if (shotsToAdd.length > 0) {
+          updateGameState((prev) => {
+            const currentShots = prev.poisonShots ?? [];
+            // Limit total shots for performance (remove oldest if limit exceeded)
+            const maxShots = POISON_CONFIG.maxShotsSimultaneous ?? 50;
+            const allShots = [...currentShots, ...shotsToAdd];
+            const limitedShots = allShots.length > maxShots ? allShots.slice(-maxShots) : allShots;
+
+            // Log batch flush (only if significant batch size)
+            if (shotsToAdd.length > 3 || allShots.length > maxShots) {
+              logGameEvent('poison-shots-batch-flushed', {
+                shotsAdded: shotsToAdd.length,
+                previousActiveCount: currentShots.length,
+                newActiveCount: limitedShots.length,
+                shotsLimited: allShots.length > maxShots,
+              });
+            }
+
+            return {
+              ...prev,
+              poisonShots: limitedShots,
+            };
+          });
+        }
+
+        poisonShotBatchTimeoutRef.current = null;
+      });
+    }
+    // If a flush is already scheduled, just add to the batch - it will be flushed together
   }, [updateGameState]);
 
   // Function to start continuous firing - activates firing state
@@ -1674,6 +1758,30 @@ export function useGameLoop() {
         clearInterval(poisonFireIntervalRef.current);
         poisonFireIntervalRef.current = null;
       }
+
+      // Flush any pending shots when stopping (immediate flush)
+      if (pendingPoisonShotsRef.current.length > 0) {
+        const shotsToAdd = [...pendingPoisonShotsRef.current];
+        pendingPoisonShotsRef.current = [];
+        if (shotsToAdd.length > 0) {
+          updateGameState((prev) => {
+            const currentShots = prev.poisonShots ?? [];
+            const maxShots = POISON_CONFIG.maxShotsSimultaneous ?? 50;
+            const allShots = [...currentShots, ...shotsToAdd];
+            const limitedShots = allShots.length > maxShots ? allShots.slice(-maxShots) : allShots;
+            return {
+              ...prev,
+              poisonShots: limitedShots,
+            };
+          });
+        }
+      }
+
+      // Clear pending batch timeout (requestAnimationFrame)
+      if (poisonShotBatchTimeoutRef.current !== null) {
+        cancelAnimationFrame(poisonShotBatchTimeoutRef.current);
+        poisonShotBatchTimeoutRef.current = null;
+      }
     }
 
     return () => {
@@ -1681,8 +1789,29 @@ export function useGameLoop() {
         clearInterval(poisonFireIntervalRef.current);
         poisonFireIntervalRef.current = null;
       }
+      if (poisonShotBatchTimeoutRef.current !== null) {
+        cancelAnimationFrame(poisonShotBatchTimeoutRef.current);
+        poisonShotBatchTimeoutRef.current = null;
+      }
+      // Flush any pending shots on cleanup
+      if (pendingPoisonShotsRef.current.length > 0) {
+        const shotsToAdd = [...pendingPoisonShotsRef.current];
+        pendingPoisonShotsRef.current = [];
+        if (shotsToAdd.length > 0) {
+          updateGameState((prev) => {
+            const currentShots = prev.poisonShots ?? [];
+            const maxShots = POISON_CONFIG.maxShotsSimultaneous ?? 50;
+            const allShots = [...currentShots, ...shotsToAdd];
+            const limitedShots = allShots.length > maxShots ? allShots.slice(-maxShots) : allShots;
+            return {
+              ...prev,
+              poisonShots: limitedShots,
+            };
+          });
+        }
+      }
     };
-  }, [gameState.isFiringPoison, gameState.status, firePoisonShot]);
+  }, [gameState.isFiringPoison, gameState.status, firePoisonShot, updateGameState]);
 
   return {
     gameState,

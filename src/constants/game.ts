@@ -18,6 +18,7 @@ export const POISON_CONFIG = {
   maxDistance: 60, // Maximum cells the poison can travel - enough to cross entire grid diagonally (gridSize: 40)
   cooldown: 0, // No cooldown - shots fire as fast as button is pressed
   fireInterval: 150, // Interval between shots when button is held (in milliseconds)
+  maxShotsSimultaneous: 50, // Maximum number of shots that can exist at once (performance limit)
   canDestroyObstacles: true, // Can destroy obstacles on contact
   canDefeatBoss: true, // Can defeat boss on contact
 } as const;

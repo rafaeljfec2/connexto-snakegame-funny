@@ -12,7 +12,8 @@ import { AchievementNotification } from './components/AchievementNotification';
 import { DynamicBackground } from './components/DynamicBackground';
 import { GameStatistics as GameStatisticsComponent } from './components/GameStatistics';
 import { DeathTransition } from './components/DeathTransition';
-import { TouchControls } from './components/TouchControls';
+// import { TouchControls } from './components/TouchControls'; // Old controls - replaced by MobileGamepad
+import { MobileGamepad } from './components/MobileGamepad';
 import { PhaseTransition } from './components/PhaseTransition';
 import { BossDefeatTransition } from './components/BossDefeatTransition';
 import { PhaseIntroScreen } from './components/PhaseIntroScreen';
@@ -669,8 +670,17 @@ function App() {
         />
       )}
 
-      {/* Touch Controls for Mobile */}
-      <TouchControls
+      {/* Touch Controls for Mobile - Replaced by MobileGamepad */}
+      {/* <TouchControls
+        onDirectionChange={setDirection}
+        onSpeedBoost={setSpeedBoost}
+        onFirePoison={firePoison}
+        onStopFiringPoison={stopFiringPoison}
+        enabled={gameState.status === GameStatus.PLAYING}
+      /> */}
+
+      {/* Mobile Gamepad with Joystick and Fire Button */}
+      <MobileGamepad
         onDirectionChange={setDirection}
         onSpeedBoost={setSpeedBoost}
         onFirePoison={firePoison}

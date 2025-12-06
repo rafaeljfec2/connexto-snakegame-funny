@@ -7,6 +7,11 @@
   justify-content: center;
   z-index: 5;
   pointer-events: none;
+  /* Performance optimizations */
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 .poisonCore {
@@ -18,7 +23,13 @@
     0 0 8px #10b981,
     0 0 12px #10b981,
     inset 0 0 4px rgba(255, 255, 255, 0.3);
-  animation: poisonPulse 0.6s ease-in-out infinite;
+  /* Simplified, faster animation */
+  animation: poisonPulse 0.3s ease-in-out infinite;
+  /* Performance optimizations */
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 .poisonGlow {
@@ -27,47 +38,45 @@
   height: 120%;
   background: radial-gradient(circle, rgba(16, 185, 129, 0.4) 0%, transparent 70%);
   border-radius: 50%;
-  animation: poisonGlow 0.8s ease-in-out infinite;
+  /* Simplified, faster animation */
+  animation: poisonGlow 0.4s ease-in-out infinite;
   pointer-events: none;
+  /* Performance optimizations */
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 @keyframes poisonPulse {
   0%,
   100% {
-    transform: scale(1);
+    transform: translateZ(0) scale(1);
     opacity: 1;
   }
   50% {
-    transform: scale(1.1);
-    opacity: 0.9;
+    transform: translateZ(0) scale(1.05);
+    opacity: 0.95;
   }
 }
 
 @keyframes poisonGlow {
   0%,
   100% {
-    transform: scale(1);
-    opacity: 0.6;
+    transform: translateZ(0) scale(1);
+    opacity: 0.5;
   }
   50% {
-    transform: scale(1.2);
-    opacity: 0.4;
+    transform: translateZ(0) scale(1.1);
+    opacity: 0.3;
   }
 }
 
-/* Direction-based trail effect */
-.up {
-  filter: drop-shadow(0 2px 4px rgba(16, 185, 129, 0.5));
-}
-
-.down {
-  filter: drop-shadow(0 -2px 4px rgba(16, 185, 129, 0.5));
-}
-
-.left {
-  filter: drop-shadow(2px 0 4px rgba(16, 185, 129, 0.5));
-}
-
+/* Direction-based trail effect - removed for better performance */
+.up,
+.down,
+.left,
 .right {
-  filter: drop-shadow(-2px 0 4px rgba(16, 185, 129, 0.5));
+  /* Use box-shadow instead of filter for better performance */
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
 }

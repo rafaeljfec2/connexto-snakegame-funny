@@ -50,7 +50,8 @@ export function getNextHeadPosition(
 
 /**
  * Check if a direction change would cause immediate collision
- * This allows quick turns without self-collision
+ * Simulates where each body segment will be after movement to accurately check collisions
+ * Allows rapid direction changes while preventing self-collision
  */
 export function wouldCauseCollision(
   snake: Position[],
@@ -70,15 +71,31 @@ export function wouldCauseCollision(
   // Calculate where the head would be after moving in new direction
   const nextHeadPosition = getNextHeadPosition(head, newDirection, gridSize);
 
-  // Check if next position would collide with body segments
-  // For short snakes (3-5 segments), only check from segment 3 onwards (skip head + 1-2 segments)
-  // For longer snakes, skip first 4 segments to allow very quick turns
-  // This makes left/right turns much more responsive and fluid
-  const skipSegments = snake.length <= 5 ? 2 : 4;
+  // Simulate where each body segment will be after the snake moves:
+  // - newSnake[0] = nextHeadPosition (new head)
+  // - newSnake[1] = snake[0] (old head becomes segment 1)
+  // - newSnake[2] = snake[1] (segment 1 becomes segment 2)
+  // - newSnake[3] = snake[2] (segment 2 becomes segment 3)
+  // - etc.
+  //
+  // We need to check if nextHeadPosition would collide with any future body segment position.
+  // Skip the first few segments to allow rapid direction changes:
+  // - Skip segment 1 (will be at old head position, safe for 90° turns)
+  // - Skip segment 2 (for short snakes) or 2-3 (for long snakes) to allow rapid sequential changes
 
+  const skipSegments = snake.length <= 5 ? 2 : 3;
+
+  // Check if nextHeadPosition would collide with where body segments will be after movement
+  // After movement, segment at index i will be at snake[i-1] (segment moves forward)
+  // So we check if nextHeadPosition == snake[i-1] for i >= skipSegments
   for (let i = skipSegments; i < snake.length; i++) {
-    if (snake[i]?.x === nextHeadPosition.x && snake[i]?.y === nextHeadPosition.y) {
-      return true;
+    // After movement, body segment at index i will be at snake[i-1]
+    const futureSegmentPosition = snake[i - 1];
+    
+    if (futureSegmentPosition && 
+        futureSegmentPosition.x === nextHeadPosition.x && 
+        futureSegmentPosition.y === nextHeadPosition.y) {
+      return true; // Collision detected
     }
   }
 
@@ -109,20 +126,9 @@ export function isSafeDirectionChange(
     return true;
   }
 
-  // Check collision with next segment only for immediate safety
-  // This allows rapid direction changes as long as not hitting the immediate next segment
-  const head = snake[0];
-  if (head && snake.length >= 2) {
-    const nextPos = getNextHeadPosition(head, newDirection, gridSize);
-    const nextSegment = snake[1];
-
-    // Only block if would immediately hit the next segment
-    if (nextSegment && nextPos.x === nextSegment.x && nextPos.y === nextSegment.y) {
-      return false;
-    }
-  }
-
-  // Check if new direction would cause collision with rest of body
+  // Check if new direction would cause collision with any body segment
+  // wouldCauseCollision skips the first few segments (2-3) behind the head to allow rapid direction changes
+  // but checks all other segments to prevent self-collision with distant body parts
   return !wouldCauseCollision(snake, newDirection, gridSize);
 }
 

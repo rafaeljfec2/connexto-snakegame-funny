@@ -17,10 +17,9 @@ import {
   hasFoodCollision,
   generateRandomFood,
   isValidDirectionChange,
-  isSafeDirectionChange,
   saveHighScore,
   getOppositeDirection,
-  getNextHeadPosition,
+  wouldCauseCollision,
 } from '@/utils/gameLogic';
 import { calculateLevel, calculateGameSpeed } from '@/utils/difficulty';
 import {
@@ -83,12 +82,14 @@ import { createLogger, LogContext, logGameEvent } from '@/utils/logger';
 
 /**
  * Handle direction changes with reverse controls support and safety checks
+ * NEVER allows direction changes that would cause self-collision
  */
 function handleDirection(
   currentDirection: Direction,
   nextDirection: Direction,
   snake: Position[],
   activePowerUps: ActivePowerUp[],
+  gridSize: number,
 ): Direction {
   // Handle reverse controls
   const reverseControls = hasReverseControls(activePowerUps);
@@ -99,18 +100,19 @@ function handleDirection(
     nextDirectionInput = getOppositeDirection(nextDirection);
   }
 
-  // Apply direction change immediately if valid and safe
+  // Only apply direction change if:
+  // 1. It's different from current direction
+  // 2. It's valid (not opposite)
+  // 3. It won't cause collision (CRITICAL: always check before applying)
   if (
     nextDirectionInput !== currentDirection &&
-    isValidDirectionChange(currentDirection, nextDirectionInput)
+    isValidDirectionChange(currentDirection, nextDirectionInput) &&
+    !wouldCauseCollision(snake, nextDirectionInput, gridSize)
   ) {
-    // Always apply direction change if valid (not opposite)
-    // The collision detection will prevent actual self-collision during movement
-    // This allows rapid direction changes without blocking
     return nextDirectionInput;
   }
 
-  // Use the current direction
+  // Use the current direction if change would be unsafe
   return currentDirection;
 }
 
@@ -634,36 +636,16 @@ export function useGameLoop() {
       // Cache active power ups to avoid recalculating if array hasn't changed
       const currentActivePowerUps =
         prev.activePowerUps.length > 0 ? getActivePowerUps(prev.activePowerUps) : [];
-      let currentDirection = handleDirection(
+
+      // handleDirection now includes collision checking, so it will NEVER return
+      // a direction that would cause self-collision
+      const currentDirection = handleDirection(
         prev.direction,
         prev.nextDirection,
         prev.snake,
         currentActivePowerUps,
-      );
-
-      // Verify that the direction change won't cause immediate collision
-      // Check if moving in the new direction would cause collision BEFORE moving
-      const nextHeadPos = getNextHeadPosition(
-        prev.snake[0] ?? { x: 0, y: 0 },
-        currentDirection,
         GAME_CONFIG.gridSize,
       );
-
-      // Check if next position would collide with body (skip first 2 segments for quick turns)
-      let wouldCollide = false;
-      if (prev.snake.length >= 3) {
-        for (let i = 2; i < prev.snake.length; i++) {
-          if (prev.snake[i]?.x === nextHeadPos.x && prev.snake[i]?.y === nextHeadPos.y) {
-            wouldCollide = true;
-            break;
-          }
-        }
-      }
-
-      // If would collide, keep current direction instead of new one
-      if (wouldCollide && currentDirection !== prev.direction) {
-        currentDirection = prev.direction;
-      }
 
       // Move snake with validated direction
       const previousHeadPosition = prev.snake[0];
@@ -684,7 +666,6 @@ export function useGameLoop() {
           direction: currentDirection,
           snakeLength: newSnake.length,
           directionChanged: true,
-          wouldHaveCollided: wouldCollide && currentDirection !== prev.direction,
         });
         lastMoveLogTimeRef.current = moveLogTime;
       }

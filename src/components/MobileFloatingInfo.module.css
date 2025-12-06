@@ -5,8 +5,10 @@
 /* Toast Container */
 .toastContainer {
   position: fixed;
-  top: 1rem;
+  top: auto;
+  bottom: auto;
   left: 0;
+  right: 0;
   width: 100%;
   pointer-events: none;
   z-index: 20;
@@ -23,15 +25,22 @@
   }
 
   .toastContainer {
-    top: 10.5rem; /* Below header (~50px) + StatusBar (~60px) + margin + padding + extra space */
-    z-index: 20; /* Above StatusBar (15) but below other overlays */
+    top: auto;
+    bottom: 180px; /* Above touch controls (~150px) with some margin */
+    left: auto;
+    right: 0.5rem; /* Position from right edge */
+    width: auto;
+    max-width: calc(100vw - 1rem);
+    align-items: flex-end; /* Align toasts to the right */
+    z-index: 500; /* Above game but below modals */
   }
 }
 
 @media (max-width: 480px) {
   .toastContainer {
-    top: 9.5rem; /* Below header + StatusBar on smaller screens + extra space */
-    z-index: 20;
+    bottom: 160px; /* Adjust for smaller touch controls */
+    right: 0.4rem;
+    max-width: calc(100vw - 0.8rem);
   }
 }
 

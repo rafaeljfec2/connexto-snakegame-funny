@@ -33,13 +33,13 @@
 
   .toastContainer {
     position: fixed;
-    top: auto;
-    bottom: 180px; /* Above touch controls (~150px) with some margin */
-    left: auto;
-    right: 0.5rem; /* Position from right edge */
-    width: auto;
-    max-width: calc(100vw - 1rem);
-    align-items: flex-end; /* Align toasts to the right */
+    top: 70px; /* Below header */
+    bottom: auto;
+    left: 0;
+    right: 0;
+    width: 100%;
+    max-width: 100%;
+    align-items: center; /* Center toasts */
     z-index: 500; /* Above game but below modals */
     pointer-events: none;
   }
@@ -56,9 +56,11 @@
 
 @media (max-width: 480px) {
   .toastContainer {
-    bottom: 160px; /* Adjust for smaller touch controls */
-    right: 0.4rem;
-    max-width: calc(100vw - 0.8rem);
+    top: 60px; /* Adjust for smaller header */
+    bottom: auto;
+    left: 0;
+    right: 0;
+    max-width: 100%;
   }
 
   .statsOverlay {

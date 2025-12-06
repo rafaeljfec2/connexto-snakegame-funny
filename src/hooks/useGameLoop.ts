@@ -104,33 +104,10 @@ function handleDirection(
     nextDirectionInput !== currentDirection &&
     isValidDirectionChange(currentDirection, nextDirectionInput)
   ) {
-    // Check if direction change is safe (won't cause collision)
-    const isSafe = isSafeDirectionChange(
-      snake,
-      currentDirection,
-      nextDirectionInput,
-      GAME_CONFIG.gridSize,
-    );
-
-    if (isSafe) {
-      // Apply immediately for instant response to rapid key presses
-      return nextDirectionInput;
-    } else {
-      // For turns (left/right when going up/down or vice versa), be more lenient
-      // Allow the turn if it won't cause immediate collision with the next segment
-      const head = snake[0];
-      if (head) {
-        const nextPos = getNextHeadPosition(head, nextDirectionInput, GAME_CONFIG.gridSize);
-        // Only block if it would collide with the very next body segment
-        const wouldHitNextSegment =
-          snake.length > 1 && snake[1]?.x === nextPos.x && snake[1]?.y === nextPos.y;
-
-        if (!wouldHitNextSegment) {
-          // Safe to turn - apply immediately for instant responsiveness
-          return nextDirectionInput;
-        }
-      }
-    }
+    // Always apply direction change if valid (not opposite)
+    // The collision detection will prevent actual self-collision during movement
+    // This allows rapid direction changes without blocking
+    return nextDirectionInput;
   }
 
   // Use the current direction
@@ -628,14 +605,38 @@ export function useGameLoop() {
 
       // Handle direction changes with reverse controls and safety checks
       const currentActivePowerUps = getActivePowerUps(prev.activePowerUps);
-      const currentDirection = handleDirection(
+      let currentDirection = handleDirection(
         prev.direction,
         prev.nextDirection,
         prev.snake,
         currentActivePowerUps,
       );
 
-      // Move snake with new direction
+      // Verify that the direction change won't cause immediate collision
+      // Check if moving in the new direction would cause collision BEFORE moving
+      const nextHeadPos = getNextHeadPosition(
+        prev.snake[0] ?? { x: 0, y: 0 },
+        currentDirection,
+        GAME_CONFIG.gridSize,
+      );
+
+      // Check if next position would collide with body (skip first 2 segments for quick turns)
+      let wouldCollide = false;
+      if (prev.snake.length >= 3) {
+        for (let i = 2; i < prev.snake.length; i++) {
+          if (prev.snake[i]?.x === nextHeadPos.x && prev.snake[i]?.y === nextHeadPos.y) {
+            wouldCollide = true;
+            break;
+          }
+        }
+      }
+
+      // If would collide, keep current direction instead of new one
+      if (wouldCollide && currentDirection !== prev.direction) {
+        currentDirection = prev.direction;
+      }
+
+      // Move snake with validated direction
       let newSnake = moveSnake(prev.snake, currentDirection, GAME_CONFIG.gridSize, false);
 
       // Log snake movement (throttled to avoid spam - every 500ms or on direction change)

@@ -168,21 +168,22 @@ export function useGameState() {
       const isValidChange = isValidDirectionChange(prev.direction, direction);
 
       if (isValidChange) {
-        // Update nextDirection for queued direction changes
-        // Only update current direction if safe to prevent collision
-        return {
+        // Always update nextDirection to queue direction changes for rapid inputs
+        // The game loop will handle applying it safely when possible
+        const newState = {
           ...prev,
           nextDirection: direction,
-          // Only update current direction if safe to avoid immediate collision
-          ...(isSafeDirectionChange(
-            prev.snake,
-            prev.direction,
-            direction,
-            GAME_CONFIG.gridSize,
-          ) && {
-            direction,
-          }),
         };
+
+        // Also update current direction immediately if it's safe
+        // This allows instant response for valid rapid direction changes
+        if (
+          isSafeDirectionChange(prev.snake, prev.direction, direction, GAME_CONFIG.gridSize)
+        ) {
+          newState.direction = direction;
+        }
+
+        return newState;
       }
 
       // Invalid direction (opposite) - ignore

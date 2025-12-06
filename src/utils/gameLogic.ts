@@ -57,8 +57,9 @@ export function wouldCauseCollision(
   newDirection: Direction,
   gridSize: number,
 ): boolean {
-  if (snake.length < 4) {
-    return false; // Cannot collide with less than 4 segments
+  // For very short snakes, always allow direction changes
+  if (snake.length < 3) {
+    return false;
   }
 
   const head = snake[0];
@@ -70,11 +71,13 @@ export function wouldCauseCollision(
   const nextHeadPosition = getNextHeadPosition(head, newDirection, gridSize);
 
   // Check if next position would collide with body segments
-  // Skip first 4 segments (head + 3 body segments) to allow very quick turns
+  // For short snakes (3-5 segments), only check from segment 3 onwards (skip head + 1-2 segments)
+  // For longer snakes, skip first 4 segments to allow very quick turns
   // This makes left/right turns much more responsive and fluid
-  // Increased from 3 to 4 for better responsiveness on turns
-  for (let i = 4; i < snake.length; i++) {
-    if (snake[i].x === nextHeadPosition.x && snake[i].y === nextHeadPosition.y) {
+  const skipSegments = snake.length <= 5 ? 2 : 4;
+  
+  for (let i = skipSegments; i < snake.length; i++) {
+    if (snake[i]?.x === nextHeadPosition.x && snake[i]?.y === nextHeadPosition.y) {
       return true;
     }
   }
@@ -101,7 +104,25 @@ export function isSafeDirectionChange(
     return true;
   }
 
-  // Check if new direction would cause collision
+  // For very short snakes, always allow direction changes (except opposite)
+  if (snake.length < 3) {
+    return true;
+  }
+
+  // Check collision with next segment only for immediate safety
+  // This allows rapid direction changes as long as not hitting the immediate next segment
+  const head = snake[0];
+  if (head && snake.length >= 2) {
+    const nextPos = getNextHeadPosition(head, newDirection, gridSize);
+    const nextSegment = snake[1];
+    
+    // Only block if would immediately hit the next segment
+    if (nextSegment && nextPos.x === nextSegment.x && nextPos.y === nextSegment.y) {
+      return false;
+    }
+  }
+
+  // Check if new direction would cause collision with rest of body
   return !wouldCauseCollision(snake, newDirection, gridSize);
 }
 

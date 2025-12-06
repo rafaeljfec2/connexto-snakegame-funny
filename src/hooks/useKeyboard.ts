@@ -35,11 +35,14 @@ export function useKeyboard({
         event.preventDefault();
         event.stopPropagation();
 
+        // Apply direction change immediately for rapid changes
+        onDirectionChange(direction);
+
         // Track pressed keys
         if (!pressedKeysRef.current.has(event.key)) {
           pressedKeysRef.current.add(event.key);
 
-          // Start timer to activate speed boost after 1 second
+          // Start timer to activate speed boost after delay
           if (onSpeedBoost && !speedBoostActiveRef.current) {
             const timerId = setTimeout(() => {
               // Only activate if key is still pressed
@@ -54,8 +57,6 @@ export function useKeyboard({
           }
         }
 
-        // Apply direction change
-        onDirectionChange(direction);
         return;
       }
 

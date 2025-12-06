@@ -25,8 +25,8 @@ export function TouchControls({
   const pressedButtonsRef = useRef<Set<Direction>>(new Set());
   const speedBoostActiveRef = useRef(false);
   const speedBoostTimersRef = useRef<Map<Direction, ReturnType<typeof setTimeout>>>(new Map());
-  const MIN_SWIPE_DISTANCE = 30; // Minimum distance in pixels for a swipe
-  const MAX_SWIPE_TIME = 300; // Maximum time in ms for a swipe
+  const MIN_SWIPE_DISTANCE = 10; // Reduced minimum distance for faster response
+  const MAX_SWIPE_TIME = 500; // Increased max time to allow slower swipes
 
   const handleTouchStart = useCallback(
     (e: React.TouchEvent) => {
@@ -39,7 +39,7 @@ export function TouchControls({
           y: touch.clientY,
           time: Date.now(),
         };
-        lastDirectionRef.current = null;
+        // Don't reset lastDirection to allow rapid changes
       }
     },
     [enabled],
@@ -63,11 +63,8 @@ export function TouchControls({
       const absDeltaX = Math.abs(deltaX);
       const absDeltaY = Math.abs(deltaY);
 
-      // Only process if swipe is fast enough and long enough
-      if (
-        deltaTime > MAX_SWIPE_TIME ||
-        (absDeltaX < MIN_SWIPE_DISTANCE && absDeltaY < MIN_SWIPE_DISTANCE)
-      ) {
+      // More permissive swipe detection - allow smaller, slower swipes
+      if (deltaTime > MAX_SWIPE_TIME || (absDeltaX < MIN_SWIPE_DISTANCE && absDeltaY < MIN_SWIPE_DISTANCE)) {
         touchStartRef.current = null;
         return;
       }
@@ -83,9 +80,8 @@ export function TouchControls({
         direction = deltaY > 0 ? Direction.DOWN : Direction.UP;
       }
 
-      // Only change direction if it's different from last one (prevent same direction spam)
-      if (direction && direction !== lastDirectionRef.current) {
-        lastDirectionRef.current = direction;
+      // Allow rapid direction changes - remove restriction
+      if (direction) {
         onDirectionChange(direction);
       }
 
@@ -99,11 +95,14 @@ export function TouchControls({
       if (!enabled) return;
       e.preventDefault();
 
+      // Always allow direction change immediately for rapid changes
+      onDirectionChange(direction);
+
       // Add to pressed buttons
       if (!pressedButtonsRef.current.has(direction)) {
         pressedButtonsRef.current.add(direction);
 
-        // Start timer to activate speed boost after 1 second
+        // Start timer to activate speed boost after delay
         if (onSpeedBoost && !speedBoostActiveRef.current) {
           const timerId = setTimeout(() => {
             // Only activate if button is still pressed
@@ -117,8 +116,6 @@ export function TouchControls({
           speedBoostTimersRef.current.set(direction, timerId);
         }
       }
-
-      onDirectionChange(direction);
     },
     [enabled, onDirectionChange, onSpeedBoost],
   );
@@ -157,6 +154,7 @@ export function TouchControls({
   const handleButtonClick = useCallback(
     (direction: Direction) => {
       if (!enabled) return;
+      // Allow rapid clicks for quick direction changes
       onDirectionChange(direction);
     },
     [enabled, onDirectionChange],

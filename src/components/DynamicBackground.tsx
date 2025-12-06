@@ -16,6 +16,11 @@ interface DynamicBackgroundProps {
 
 // Background gradients that change with level
 const getBackgroundGradient = (level: number): string => {
+  // Phase 9 (Vortex Challenge) - Storm theme (levels 41-45)
+  if (level >= 41 && level <= 45) {
+    return 'linear-gradient(135deg, #1a0a1a 0%, #2d1b2d 25%, #1a1a2e 50%, #0f1720 75%, #0a0a15 100%)';
+  }
+
   const baseColors = [
     { start: '#0a0a0f', mid: '#1a1a2e', end: '#16213e' }, // Level 1-3: Dark blue
     { start: '#1a1a2e', mid: '#16213e', end: '#0f3460' }, // Level 4-6: Darker blue

@@ -16,6 +16,7 @@ import { ParticleSystem } from './ParticleSystem';
 import { Portal as PortalComponent } from './Portal';
 import { BossSnake as BossSnakeComponent } from './BossSnake';
 import { PoisonShot as PoisonShotComponent } from './PoisonShot';
+import { StormEffect } from './StormEffect';
 import { useEffect, useRef, useState, useMemo, memo } from 'react';
 import styles from './GameBoard.module.css';
 import { Chef } from '@/types/phases';
@@ -206,6 +207,9 @@ export const GameBoard = memo(function GameBoard({
 
   return (
     <div ref={boardRef} className={boardClassName} style={gridStyle}>
+      {/* Storm Effect for Phase 9 (Vortex Challenge) */}
+      <StormEffect level={level} />
+
       {GAME_CONFIG.enableObstacles &&
         obstacles.map((obstacle) => <ObstacleComponent key={obstacle.id} obstacle={obstacle} />)}
       {portals.map((portal) => {

@@ -31,6 +31,30 @@
   isolation: isolate;
 }
 
+/* Storm theme for Phase 9 (Vortex Challenge) */
+.gameBoard:has(.stormContainer) {
+  background:
+    linear-gradient(135deg, #0a0a15 0%, #1a0a1a 25%, #2d1b2d 50%, #1a1a2e 75%, #0f1720 100%),
+    repeating-linear-gradient(
+      0deg,
+      rgba(150, 150, 200, 0.05) 0px,
+      rgba(150, 150, 200, 0.05) 1px,
+      transparent 1px,
+      transparent 20px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(150, 150, 200, 0.05) 0px,
+      rgba(150, 150, 200, 0.05) 1px,
+      transparent 1px,
+      transparent 20px
+    );
+  box-shadow:
+    inset 0 0 40px rgba(0, 0, 0, 0.9),
+    inset 0 0 80px rgba(100, 100, 255, 0.15),
+    0 0 100px rgba(100, 100, 255, 0.1);
+}
+
 @keyframes borderFlow {
   0% {
     background-position: 0% 50%;

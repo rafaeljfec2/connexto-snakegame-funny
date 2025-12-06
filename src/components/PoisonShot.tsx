@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { PoisonShot as PoisonShotType, Direction } from '@/types/game';
 import { GAME_CONFIG } from '@/constants/game';
 import styles from './PoisonShot.module.css';
@@ -6,7 +7,7 @@ interface PoisonShotProps {
   shot: PoisonShotType;
 }
 
-export function PoisonShot({ shot }: PoisonShotProps) {
+export const PoisonShot = memo(function PoisonShot({ shot }: PoisonShotProps) {
   const x = Math.max(0, Math.min(shot.position.x, GAME_CONFIG.gridSize - 1));
   const y = Math.max(0, Math.min(shot.position.y, GAME_CONFIG.gridSize - 1));
 
@@ -28,4 +29,4 @@ export function PoisonShot({ shot }: PoisonShotProps) {
       <div className={styles.poisonGlow} />
     </div>
   );
-}
+});

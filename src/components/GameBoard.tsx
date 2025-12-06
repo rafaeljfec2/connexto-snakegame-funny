@@ -16,7 +16,7 @@ import { ParticleSystem } from './ParticleSystem';
 import { Portal as PortalComponent } from './Portal';
 import { BossSnake as BossSnakeComponent } from './BossSnake';
 import { PoisonShot as PoisonShotComponent } from './PoisonShot';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useMemo, memo } from 'react';
 import styles from './GameBoard.module.css';
 import { Chef } from '@/types/phases';
 
@@ -34,7 +34,7 @@ interface GameBoardProps {
   guardianFlag?: FoodType | null;
 }
 
-export function GameBoard({
+export const GameBoard = memo(function GameBoard({
   snake,
   food,
   status,
@@ -193,13 +193,16 @@ export function GameBoard({
 
   const foodKey = `food-${food.position.x}-${food.position.y}-${food.type}`;
 
-  // Group portals by pairId to determine which is first/second
-  const portalPairs = new Map<string, Portal[]>();
-  portals.forEach((portal) => {
-    const pair = portalPairs.get(portal.pairId) ?? [];
-    pair.push(portal);
-    portalPairs.set(portal.pairId, pair);
-  });
+  // Group portals by pairId to determine which is first/second (memoized)
+  const portalPairs = useMemo(() => {
+    const pairs = new Map<string, Portal[]>();
+    portals.forEach((portal) => {
+      const pair = pairs.get(portal.pairId) ?? [];
+      pair.push(portal);
+      pairs.set(portal.pairId, pair);
+    });
+    return pairs;
+  }, [portals]);
 
   return (
     <div ref={boardRef} className={boardClassName} style={gridStyle}>
@@ -235,4 +238,4 @@ export function GameBoard({
       {GAME_CONFIG.enableParticles && <ParticleSystem particles={particles} />}
     </div>
   );
-}
+});

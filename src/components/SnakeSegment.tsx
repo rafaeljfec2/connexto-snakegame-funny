@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Position } from '@/types/game';
 import { GAME_CONFIG } from '@/constants/game';
 import styles from './SnakeSegment.module.css';
@@ -10,7 +11,13 @@ interface SnakeSegmentProps {
   isDying?: boolean;
 }
 
-export function SnakeSegment({ position, isHead, isNew, isEating, isDying }: SnakeSegmentProps) {
+export const SnakeSegment = memo(function SnakeSegment({
+  position,
+  isHead,
+  isNew,
+  isEating,
+  isDying,
+}: SnakeSegmentProps) {
   // Ensure position is within grid bounds
   const x = Math.max(0, Math.min(position.x, GAME_CONFIG.gridSize - 1));
   const y = Math.max(0, Math.min(position.y, GAME_CONFIG.gridSize - 1));
@@ -28,4 +35,4 @@ export function SnakeSegment({ position, isHead, isNew, isEating, isDying }: Sna
       style={style}
     ></div>
   );
-}
+});

@@ -594,13 +594,38 @@ export function useGameLoop() {
   const pendingPoisonShotsRef = useRef<import('@/types/game').PoisonShot[]>([]);
   const poisonShotBatchTimeoutRef = useRef<number | null>(null); // requestAnimationFrame ID
 
+  // Frame buffer: Separate internal state from React state
+  // This allows game logic to run independently of render cycles
+  const internalGameStateRef = useRef<GameState>(gameState);
+  const renderUpdateFrameCounterRef = useRef<number>(0);
+  const RENDER_UPDATE_INTERVAL = 1; // Update React state every frame (60fps render, 60fps logic)
+  // Set to 1 to maintain smooth visual updates while still benefiting from batching
+  const renderUpdateScheduledRef = useRef<boolean>(false);
+
   // Keep gameStateRef updated with latest state
   useEffect(() => {
     gameStateRef.current = gameState;
+    internalGameStateRef.current = gameState;
   }, [gameState]);
 
+  // Function to schedule React state update (throttled)
+  // With INTERVAL=1, this still provides batching benefits by using requestAnimationFrame
+  const scheduleRenderUpdate = useCallback(() => {
+    if (renderUpdateScheduledRef.current) return;
+
+    renderUpdateScheduledRef.current = true;
+    requestAnimationFrame(() => {
+      // Update React state with latest internal state
+      updateGameState(() => internalGameStateRef.current);
+      renderUpdateScheduledRef.current = false;
+    });
+  }, [updateGameState]);
+
   const updateGame = useCallback(() => {
-    updateGameState((prev: GameState) => {
+    // Work with internal state (doesn't trigger React re-render)
+    const prev = internalGameStateRef.current;
+
+    const newState: GameState = (() => {
       if (prev.status !== GameStatus.PLAYING) {
         return prev;
       }
@@ -1202,7 +1227,7 @@ export function useGameLoop() {
           previousCount: previousPoisonShotsCount,
           currentCount: newPoisonShots.length,
           shotsRemoved: previousPoisonShotsCount - newPoisonShots.length,
-          obstaclesHit: poisonObstaclesResult.hitObstacles?.length ?? 0,
+          obstaclesHit: 0, // hitObstacles removed from result type
         });
       }
 
@@ -1379,8 +1404,24 @@ export function useGameLoop() {
         activeBoss: activeBoss,
         bossSnake: bossSnake,
       };
-    });
-  }, [updateGameState, gameLoopLogger]);
+    })();
+
+    // Update internal state immediately (no re-render)
+    internalGameStateRef.current = newState;
+
+    // Update gameStateRef for immediate access in game loop
+    gameStateRef.current = newState;
+
+    // Schedule React state update every N frames to sync with render
+    renderUpdateFrameCounterRef.current += 1;
+    if (
+      renderUpdateFrameCounterRef.current >= RENDER_UPDATE_INTERVAL ||
+      newState.status !== GameStatus.PLAYING
+    ) {
+      renderUpdateFrameCounterRef.current = 0;
+      scheduleRenderUpdate();
+    }
+  }, [scheduleRenderUpdate]);
 
   useEffect(() => {
     if (gameState.status !== GameStatus.PLAYING) {
@@ -1398,8 +1439,9 @@ export function useGameLoop() {
 
       const elapsed = currentTime - lastUpdateTimeRef.current;
 
-      // Get latest game state from ref (always up to date)
-      const currentGameState = gameStateRef.current;
+      // Get latest game state from internal ref (always up to date)
+      // Use internal state for game logic to avoid dependency on React render cycle
+      const currentGameState = internalGameStateRef.current;
 
       // Update active power-ups and get effective speed
       const activePowerUps = getActivePowerUps(currentGameState.activePowerUps);

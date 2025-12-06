@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Obstacle } from '@/types/game';
 import { GAME_CONFIG } from '@/constants/game';
 import styles from './Obstacle.module.css';
@@ -6,7 +7,7 @@ interface ObstacleProps {
   obstacle: Obstacle;
 }
 
-export function ObstacleComponent({ obstacle }: ObstacleProps) {
+export const ObstacleComponent = memo(function ObstacleComponent({ obstacle }: ObstacleProps) {
   const x = Math.max(0, Math.min(obstacle.position.x ?? 0, GAME_CONFIG.gridSize - 1));
   const y = Math.max(0, Math.min(obstacle.position.y ?? 0, GAME_CONFIG.gridSize - 1));
 
@@ -22,4 +23,4 @@ export function ObstacleComponent({ obstacle }: ObstacleProps) {
       aria-label={`Obstacle at ${x}, ${y}`}
     />
   );
-}
+});

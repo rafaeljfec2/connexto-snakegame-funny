@@ -1,4 +1,5 @@
 import { Food as FoodType, FoodType as FoodTypeEnum } from '@/types/game';
+import { useTranslation } from 'react-i18next';
 import { GAME_CONFIG } from '@/constants/game';
 import { POWER_UP_CONFIG } from '@/constants/powerUps';
 import { getFoodRemainingPercentage } from '@/utils/foodTimer';
@@ -12,6 +13,7 @@ interface FoodProps {
 }
 
 export function Food({ food, wasEaten }: FoodProps) {
+  const { t } = useTranslation();
   const [jokerColorIndex, setJokerColorIndex] = useState(0);
 
   // Ensure position is within grid bounds
@@ -26,6 +28,35 @@ export function Food({ food, wasEaten }: FoodProps) {
     remainingPercentage <= FOOD_TIMER_CONFIG.warningThreshold &&
     remainingPercentage > FOOD_TIMER_CONFIG.criticalThreshold;
   const isCritical = remainingPercentage <= FOOD_TIMER_CONFIG.criticalThreshold;
+
+  // Get translated power-up name for aria-label
+  const getPowerUpName = (type: FoodTypeEnum): string => {
+    const powerUpKeyMap: Record<FoodTypeEnum, string> = {
+      [FoodTypeEnum.NORMAL]: t('powerUps.normal'),
+      [FoodTypeEnum.SPEED_BOOST]: t('powerUps.speedBoost'),
+      [FoodTypeEnum.BONUS_POINTS]: t('powerUps.bonusPoints'),
+      [FoodTypeEnum.EXTRA_GROWTH]: t('powerUps.extraGrowth'),
+      [FoodTypeEnum.PHASE_THROUGH]: t('powerUps.phaseThrough'),
+      [FoodTypeEnum.REVERSE_CONTROLS]: t('powerUps.reverseControls'),
+      [FoodTypeEnum.SLOW_DOWN]: t('powerUps.slowDown'),
+      [FoodTypeEnum.JOKER]: t('powerUps.joker'),
+      [FoodTypeEnum.EXTRA_LIFE]: t('powerUps.extraLife'),
+      [FoodTypeEnum.PORTAL]: t('powerUps.portal'),
+      [FoodTypeEnum.POISON]: t('powerUps.poison'),
+    };
+    return powerUpKeyMap[type] ?? type;
+  };
+
+  // Get aria-label based on food type
+  const getAriaLabel = (): string => {
+    if (isPowerUp) {
+      return t('food.powerUp', { type: getPowerUpName(food.type) });
+    }
+    if (isJoker) {
+      return t('food.jokerFood');
+    }
+    return t('food.food');
+  };
 
   // List of positive power-up types for joker animation
   const jokerTypes = [
@@ -92,7 +123,7 @@ export function Food({ food, wasEaten }: FoodProps) {
           '--timer-progress': `${remainingPercentage * 100}%`,
         } as React.CSSProperties
       }
-      aria-label={isPowerUp ? `Power-up: ${food.type}` : isJoker ? 'Joker Food' : 'Food'}
+      aria-label={getAriaLabel()}
     >
       {hasTimer && !wasEaten && FOOD_TIMER_CONFIG.showIndicator && (
         <div className={styles.timerIndicator}>

@@ -16,7 +16,8 @@
     "continue": "Continuar",
     "close": "Fechar",
     "next": "Próximo",
-    "previous": "Anterior"
+    "previous": "Anterior",
+    "snakeGame": "SNAKE GAME"
   },
   "gameStatus": {
     "pressSpaceToStart": "Pressione ESPAÇO para iniciar",
@@ -89,43 +90,43 @@
   },
   "phases": {
     "classicSnake": {
-      "name": "Classic Snake",
+      "name": "Cobra Clássica",
       "description": "O jogo clássico sem obstáculos. Perfeito para começar!"
     },
     "obstacleCourse": {
-      "name": "Obstacle Course",
+      "name": "Percurso de Obstáculos",
       "description": "Obstáculos estáticos aparecem. Cuidado com as paredes!"
     },
     "movingHazards": {
-      "name": "Moving Hazards",
+      "name": "Perigos em Movimento",
       "description": "Obstáculos que se movem pelo grid. Fique alerta!"
     },
     "portalMastery": {
-      "name": "Portal Mastery",
+      "name": "Domínio de Portais",
       "description": "Domine o teletransporte através dos portais!"
     },
     "speedChallenge": {
-      "name": "Speed Challenge",
+      "name": "Desafio de Velocidade",
       "description": "Alta velocidade e obstáculos complexos. Reação rápida necessária!"
     },
     "powerUpChaos": {
-      "name": "Power-Up Chaos",
+      "name": "Caos de Power-Ups",
       "description": "Caos de power-ups! Use-os com sabedoria."
     },
     "mazeMaster": {
-      "name": "Maze Master",
+      "name": "Mestre do Labirinto",
       "description": "Labirintos complexos testarão suas habilidades de navegação."
     },
     "survivalMode": {
-      "name": "Survival Mode",
+      "name": "Modo Sobrevivência",
       "description": "Modo sobrevivência extremo. Cada movimento conta!"
     },
     "vortexChallenge": {
-      "name": "Vortex Challenge",
+      "name": "Desafio Vortex",
       "description": "Todos os desafios combinados em um teste épico!"
     },
     "ultimateChallenge": {
-      "name": "Ultimate Challenge",
+      "name": "Desafio Supremo",
       "description": "O desafio final. Todas as mecânicas em velocidade máxima!"
     }
   },
@@ -160,11 +161,40 @@
     "levelInPhase": "Nível {{current}}/5 da Fase"
   },
   "debug": {
+    "title": "🐛 Modo Debug de Boss",
     "selectBoss": "Selecione um boss para testar:",
     "activeBoss": "Boss Ativo:",
     "removeBoss": "Remover Boss",
     "hint": "Pressione <kbd>F1</kbd> ou <kbd>Ctrl+D</kbd> para abrir/fechar este painel",
     "phase": "Fase",
-    "size": "Tamanho"
+    "size": "Tamanho",
+    "behavior": "Comportamento"
+  },
+  "gameInfo": {
+    "level": "Nível:",
+    "score": "Pontuação:",
+    "highScore": "Pontuação Máxima:"
+  },
+  "achievement": {
+    "unlocked": "Conquista Desbloqueada!"
+  },
+  "levelUp": {
+    "title": "Subiu de Nível!",
+    "level": "Nível"
+  },
+  "touchControls": {
+    "moveUp": "Mover Para Cima",
+    "moveLeft": "Mover Para Esquerda",
+    "moveRight": "Mover Para Direita",
+    "moveDown": "Mover Para Baixo",
+    "firePoison": "Atirar Veneno"
+  },
+  "food": {
+    "powerUp": "Power-up: {{type}}",
+    "jokerFood": "Comida Coringa",
+    "food": "Comida"
+  },
+  "livesDisplay": {
+    "lives": "Vidas:"
   }
 }

@@ -16,7 +16,8 @@
     "continue": "Continue",
     "close": "Close",
     "next": "Next",
-    "previous": "Previous"
+    "previous": "Previous",
+    "snakeGame": "SNAKE GAME"
   },
   "gameStatus": {
     "pressSpaceToStart": "Press SPACE to start",
@@ -160,11 +161,40 @@
     "levelInPhase": "Level {{current}}/5 of Course"
   },
   "debug": {
+    "title": "🐛 Boss Debug Mode",
     "selectBoss": "Select a boss to test:",
     "activeBoss": "Active Boss:",
     "removeBoss": "Remove Boss",
     "hint": "Press <kbd>F1</kbd> or <kbd>Ctrl+D</kbd> to open/close this panel",
     "phase": "Course",
-    "size": "Size"
+    "size": "Size",
+    "behavior": "Behavior"
+  },
+  "gameInfo": {
+    "level": "Level:",
+    "score": "Score:",
+    "highScore": "High Score:"
+  },
+  "achievement": {
+    "unlocked": "Achievement Unlocked!"
+  },
+  "levelUp": {
+    "title": "Level Up!",
+    "level": "Level"
+  },
+  "touchControls": {
+    "moveUp": "Move Up",
+    "moveLeft": "Move Left",
+    "moveRight": "Move Right",
+    "moveDown": "Move Down",
+    "firePoison": "Fire Poison"
+  },
+  "food": {
+    "powerUp": "Power-up: {{type}}",
+    "jokerFood": "Joker Food",
+    "food": "Food"
+  },
+  "livesDisplay": {
+    "lives": "Lives:"
   }
 }

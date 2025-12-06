@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { CHEFS } from '@/constants/phases';
 import { Chef } from '@/types/phases';
 import styles from './BossDebugPanel.module.css';
@@ -16,6 +17,7 @@ export function BossDebugPanel({
   onSelectBoss,
   currentBoss,
 }: BossDebugPanelProps) {
+  const { t } = useTranslation();
   const [selectedBossId, setSelectedBossId] = useState<string | null>(null);
 
   if (!isOpen) {
@@ -37,14 +39,14 @@ export function BossDebugPanel({
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.panel} onClick={(e) => e.stopPropagation()}>
         <div className={styles.header}>
-          <h2 className={styles.title}>🐛 Boss Debug Mode</h2>
+          <h2 className={styles.title}>{t('debug.title')}</h2>
           <button className={styles.closeButton} onClick={onClose}>
             ✕
           </button>
         </div>
 
         <div className={styles.content}>
-          <p className={styles.description}>Selecione um boss para testar:</p>
+          <p className={styles.description}>{t('debug.selectBoss')}</p>
 
           <div className={styles.bossList}>
             {CHEFS.map((boss) => (
@@ -63,9 +65,9 @@ export function BossDebugPanel({
                   <div className={styles.bossName}>{boss.name}</div>
                   <div className={styles.bossDescription}>{boss.description}</div>
                   <div className={styles.bossDetails}>
-                    <span className={styles.bossPhase}>Fase {boss.phase}</span>
+                    <span className={styles.bossPhase}>{t('debug.phase')} {boss.phase}</span>
                     <span className={styles.bossBehavior}>• {boss.behavior}</span>
-                    <span className={styles.bossLength}>• Tamanho: {boss.initialLength ?? 3}</span>
+                    <span className={styles.bossLength}>• {t('debug.size')}: {boss.initialLength ?? 3}</span>
                   </div>
                 </div>
               </button>
@@ -74,20 +76,18 @@ export function BossDebugPanel({
 
           {currentBoss && (
             <div className={styles.currentBoss}>
-              <div className={styles.currentBossLabel}>Boss Ativo:</div>
+              <div className={styles.currentBossLabel}>{t('debug.activeBoss')}</div>
               <div className={styles.currentBossName}>
                 {currentBoss.visual.icon} {currentBoss.name}
               </div>
               <button className={styles.removeButton} onClick={handleRemoveBoss}>
-                Remover Boss
+                {t('debug.removeBoss')}
               </button>
             </div>
           )}
 
           <div className={styles.footer}>
-            <p className={styles.hint}>
-              Pressione <kbd>F1</kbd> ou <kbd>Ctrl+D</kbd> para abrir/fechar este painel
-            </p>
+            <p className={styles.hint} dangerouslySetInnerHTML={{ __html: t('debug.hint') }} />
           </div>
         </div>
       </div>

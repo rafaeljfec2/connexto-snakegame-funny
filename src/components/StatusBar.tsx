@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { LIVES_CONFIG } from '@/constants/lives';
 import { getCurrentPhase, getPhaseNumber } from '@/utils/phases';
+import { getPhaseTranslationKey } from '@/utils/phaseTranslations';
 import styles from './StatusBar.module.css';
 
 interface StatusBarProps {
@@ -55,8 +56,8 @@ export function StatusBar({ length, lives, level }: StatusBarProps) {
             <span className={styles.statusIcon}>⭐</span>
             <div className={styles.statusContent}>
               <span className={styles.statusLabel}>{t('common.phase')} {phaseNumber}</span>
-              <span className={`${styles.statusValue} ${styles.phaseName}`} title={phase.name}>
-                {phase.name}
+              <span className={`${styles.statusValue} ${styles.phaseName}`} title={t(`phases.${getPhaseTranslationKey(phase.type)}.name`)}>
+                {t(`phases.${getPhaseTranslationKey(phase.type)}.name`)}
               </span>
             </div>
           </div>

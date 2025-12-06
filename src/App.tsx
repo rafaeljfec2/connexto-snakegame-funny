@@ -20,6 +20,7 @@ import { PhaseCompleteScreen } from './components/PhaseCompleteScreen';
 import { GameStatus } from '@/types/game';
 import { createFinalStatistics, saveGameSession } from '@/utils/statistics';
 import { didPhaseChange, getPhaseNumber, getCurrentPhase } from '@/utils/phases';
+import { getPhaseTranslationKey } from '@/utils/phaseTranslations';
 import { calculatePhaseStatistics, createPhaseStartSnapshot } from '@/utils/phaseStatistics';
 import { calculateGameSpeed } from '@/utils/difficulty';
 import styles from './App.module.css';
@@ -360,7 +361,7 @@ function App() {
       {/* Header HUD */}
       <header className={styles.header}>
         <div className={styles.headerContent}>
-          <h1 className={styles.title}>SNAKE GAME</h1>
+          <h1 className={styles.title}>{t('common.snakeGame')}</h1>
           <div className={styles.headerStats}>
             <GameInfo
               score={gameState.score}
@@ -484,7 +485,13 @@ function App() {
       {gameState.status === GameStatus.PHASE_COMPLETE && (
         <PhaseCompleteScreen
           phaseNumber={getPhaseNumber(gameState.level)}
-          phaseName={getCurrentPhase(gameState.level)?.name ?? t('phase.complete')}
+          phaseName={
+            (() => {
+              const phase = getCurrentPhase(gameState.level);
+              if (!phase) return t('phase.complete');
+              return t(`phases.${getPhaseTranslationKey(phase.type)}.name`);
+            })()
+          }
           statistics={calculatePhaseStatistics(
             gameState,
             gameState.phaseStartSnapshot ?? createPhaseStartSnapshot(gameState),

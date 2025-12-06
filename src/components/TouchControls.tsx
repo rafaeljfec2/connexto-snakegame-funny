@@ -1,4 +1,5 @@
 import { useCallback, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Direction } from '@/types/game';
 import { CONTROL_CONFIG } from '@/constants/game';
 import styles from './TouchControls.module.css';
@@ -18,6 +19,7 @@ export function TouchControls({
   onStopFiringPoison,
   enabled = true,
 }: TouchControlsProps) {
+  const { t } = useTranslation();
   const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
   const lastDirectionRef = useRef<Direction | null>(null);
   const pressedButtonsRef = useRef<Set<Direction>>(new Set());
@@ -191,7 +193,7 @@ export function TouchControls({
           onTouchEnd={handleButtonTouchEnd(Direction.UP)}
           onTouchCancel={handleButtonTouchEnd(Direction.UP)}
           onClick={() => handleButtonClick(Direction.UP)}
-          aria-label='Move Up'
+          aria-label={t('touchControls.moveUp')}
           type='button'
         >
           <span className={styles.buttonIcon}>↑</span>
@@ -204,7 +206,7 @@ export function TouchControls({
           onTouchEnd={handleButtonTouchEnd(Direction.LEFT)}
           onTouchCancel={handleButtonTouchEnd(Direction.LEFT)}
           onClick={() => handleButtonClick(Direction.LEFT)}
-          aria-label='Move Left'
+          aria-label={t('touchControls.moveLeft')}
           type='button'
         >
           <span className={styles.buttonIcon}>←</span>
@@ -225,7 +227,7 @@ export function TouchControls({
             onStopFiringPoison?.();
           }}
           onClick={() => onFirePoison?.()}
-          aria-label='Fire Poison'
+          aria-label={t('touchControls.firePoison')}
           type='button'
         >
           <span className={styles.poisonIcon}>💚</span>
@@ -237,7 +239,7 @@ export function TouchControls({
           onTouchEnd={handleButtonTouchEnd(Direction.RIGHT)}
           onTouchCancel={handleButtonTouchEnd(Direction.RIGHT)}
           onClick={() => handleButtonClick(Direction.RIGHT)}
-          aria-label='Move Right'
+          aria-label={t('touchControls.moveRight')}
           type='button'
         >
           <span className={styles.buttonIcon}>→</span>
@@ -250,7 +252,7 @@ export function TouchControls({
           onTouchEnd={handleButtonTouchEnd(Direction.DOWN)}
           onTouchCancel={handleButtonTouchEnd(Direction.DOWN)}
           onClick={() => handleButtonClick(Direction.DOWN)}
-          aria-label='Move Down'
+          aria-label={t('touchControls.moveDown')}
           type='button'
         >
           <span className={styles.buttonIcon}>↓</span>

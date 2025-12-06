@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import styles from './LevelUpAnimation.module.css';
 
 interface LevelUpAnimationProps {
@@ -8,6 +9,7 @@ interface LevelUpAnimationProps {
 }
 
 export function LevelUpAnimation({ level, show, onAnimationEnd }: LevelUpAnimationProps) {
+  const { t } = useTranslation();
   const [isVisible, setIsVisible] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
   const onAnimationEndRef = useRef(onAnimationEnd);
@@ -68,8 +70,8 @@ export function LevelUpAnimation({ level, show, onAnimationEnd }: LevelUpAnimati
   return (
     <div className={styles.overlay}>
       <div className={`${styles.levelUp} ${isExiting ? styles.exiting : ''}`}>
-        <div className={styles.levelUpTitle}>Level Up!</div>
-        <div className={styles.levelUpNumber}>Level {level}</div>
+        <div className={styles.levelUpTitle}>{t('levelUp.title')}</div>
+        <div className={styles.levelUpNumber}>{t('levelUp.level')} {level}</div>
       </div>
     </div>
   );

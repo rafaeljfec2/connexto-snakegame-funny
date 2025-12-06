@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getCurrentPhase } from '@/utils/phases';
+import { getPhaseTranslationKey } from '@/utils/phaseTranslations';
 import styles from './PhaseIntroScreen.module.css';
 
 interface PhaseIntroScreenProps {
@@ -43,13 +44,15 @@ export function PhaseIntroScreen({ phaseNumber, level, onComplete }: PhaseIntroS
     return null;
   }
 
+  const phaseKey = getPhaseTranslationKey(phase.type);
+
   return (
     <div className={styles.overlay}>
       <div className={styles.container}>
         <div className={styles.phaseInfo}>
           <div className={styles.phaseNumber}>{t('phase.phase')} {phaseNumber}</div>
-          <div className={styles.phaseName}>{phase.name}</div>
-          <div className={styles.phaseDescription}>{phase.description}</div>
+          <div className={styles.phaseName}>{t(`phases.${phaseKey}.name`)}</div>
+          <div className={styles.phaseDescription}>{t(`phases.${phaseKey}.description`)}</div>
         </div>
 
         <div className={styles.countdownContainer}>

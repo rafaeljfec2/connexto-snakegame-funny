@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getCurrentPhase } from '@/utils/phases';
+import { getPhaseTranslationKey } from '@/utils/phaseTranslations';
 import { createLogger, LogContext } from '@/utils/logger';
 import styles from './PhaseTransition.module.css';
 
@@ -87,7 +88,7 @@ export function PhaseTransition({ phaseNumber, level, onComplete }: PhaseTransit
           }}
         >
           <div className={styles.phaseNumber}>{t('phase.phase')} {phaseNumber}</div>
-          <div className={styles.phaseName}>{phase.name}</div>
+          <div className={styles.phaseName}>{t(`phases.${getPhaseTranslationKey(phase.type)}.name`)}</div>
         </div>
       )}
     </div>

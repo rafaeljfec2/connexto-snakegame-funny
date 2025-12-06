@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { ComboState } from '@/types/game';
 import { GAME_CONFIG, COMBO_CONFIG } from '@/constants/game';
 import styles from './ComboDisplay.module.css';
@@ -7,6 +8,7 @@ interface ComboDisplayProps {
 }
 
 export function ComboDisplay({ combo }: ComboDisplayProps) {
+  const { t } = useTranslation();
   if (!GAME_CONFIG.enableCombos) {
     return null;
   }
@@ -23,7 +25,7 @@ export function ComboDisplay({ combo }: ComboDisplayProps) {
   return (
     <div className={styles.comboDisplay}>
       <div className={styles.comboInfo}>
-        <span className={styles.comboLabel}>COMBO</span>
+        <span className={styles.comboLabel}>{t('panels.combo').toUpperCase()}</span>
         <span className={`${styles.comboCount} ${isActive ? styles.active : ''}`}>
           x{combo.multiplier}
         </span>

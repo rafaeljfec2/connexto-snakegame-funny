@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Achievement } from '@/types/game';
 import styles from './AchievementNotification.module.css';
 
@@ -11,6 +12,7 @@ export function AchievementNotification({
   newlyUnlocked,
   allAchievements,
 }: AchievementNotificationProps) {
+  const { t } = useTranslation();
   const [visibleAchievement, setVisibleAchievement] = useState<string | null>(null);
 
   useEffect(() => {
@@ -35,7 +37,7 @@ export function AchievementNotification({
     <div className={styles.notification}>
       <div className={styles.icon}>🏆</div>
       <div className={styles.content}>
-        <div className={styles.title}>Achievement Unlocked!</div>
+        <div className={styles.title}>{t('achievement.unlocked')}</div>
         <div className={styles.name}>{achievement.name}</div>
         <div className={styles.description}>{achievement.description}</div>
       </div>

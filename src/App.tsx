@@ -17,19 +17,22 @@ import { PhaseTransition } from './components/PhaseTransition';
 import { BossDefeatTransition } from './components/BossDefeatTransition';
 import { PhaseIntroScreen } from './components/PhaseIntroScreen';
 import { PhaseCompleteScreen } from './components/PhaseCompleteScreen';
-import { GameStatus } from '@/types/game';
+import { GameStatus, FoodType } from '@/types/game';
 import { createFinalStatistics, saveGameSession } from '@/utils/statistics';
 import { didPhaseChange, getPhaseNumber, getCurrentPhase, getPhaseConfig } from '@/utils/phases';
 import { getPhaseTranslationKey } from '@/utils/phaseTranslations';
 import { calculatePhaseStatistics, createPhaseStartSnapshot } from '@/utils/phaseStatistics';
 import { calculateGameSpeed } from '@/utils/difficulty';
+import { INITIAL_SNAKE_POSITION, INITIAL_DIRECTION, GAME_CONFIG } from '@/constants/game';
+import { generateRandomFood } from '@/utils/gameLogic';
 import styles from './App.module.css';
 import { PhaseDisplay } from './components/PhaseDisplay';
 import { MobileFloatingInfo } from './components/MobileFloatingInfo';
 import { StatusBar } from './components/StatusBar';
 import { BossDebugPanel } from './components/BossDebugPanel';
+import { PhaseDebugPanel } from './components/PhaseDebugPanel';
 import { LanguageSelector } from './components/LanguageSelector';
-import { Chef } from '@/types/phases';
+import { Chef, PhaseType } from '@/types/phases';
 import { CHEFS } from '@/constants/phases';
 
 function App() {
@@ -55,6 +58,7 @@ function App() {
   > | null>(null);
   const [newlyUnlockedAchievements, setNewlyUnlockedAchievements] = useState<string[]>([]);
   const [showBossDebug, setShowBossDebug] = useState(false);
+  const [showPhaseDebug, setShowPhaseDebug] = useState(false);
   const [showPhaseTransition, setShowPhaseTransition] = useState(false);
   const [phaseTransitionNumber, setPhaseTransitionNumber] = useState<number | null>(null);
   const [showBossDefeatTransition, setShowBossDefeatTransition] = useState(false);
@@ -250,6 +254,18 @@ function App() {
           setShowBossDefeatTransition(true);
         }
       }
+
+      // F3 key or Ctrl+F for phase debug mode
+      if (
+        e.key === 'F3' ||
+        (e.key === 'f' &&
+          e.ctrlKey &&
+          e.target === document.body &&
+          !(e.target instanceof HTMLInputElement))
+      ) {
+        e.preventDefault();
+        setShowPhaseDebug((prev) => !prev);
+      }
     };
 
     window.addEventListener('keydown', handleKeyDown);
@@ -261,6 +277,72 @@ function App() {
       spawnBoss(boss);
     },
     [spawnBoss],
+  );
+
+  const handlePhaseSelect = useCallback(
+    (phase: PhaseType | null) => {
+      if (!phase) {
+        return;
+      }
+
+      // Get first level of the selected phase
+      const phaseStartLevel = phase.levelRange[0];
+      const nextSpeed = calculateGameSpeed(phaseStartLevel);
+
+      // Reset game state and advance to selected phase
+      updateGameState((prev) => {
+        // Initialize snake with default position
+        const initialSnake = INITIAL_SNAKE_POSITION;
+        // Generate food not on snake
+        const initialFood = generateRandomFood(
+          initialSnake,
+          GAME_CONFIG.gridSize,
+          [], // No obstacles at phase start
+        );
+
+        // Create snapshot for the new phase
+        const phaseSnapshot = createPhaseStartSnapshot({
+          ...prev,
+          level: phaseStartLevel,
+          snake: initialSnake,
+        });
+
+        return {
+          ...prev,
+          snake: initialSnake,
+          food: initialFood,
+          direction: INITIAL_DIRECTION,
+          nextDirection: INITIAL_DIRECTION,
+          level: phaseStartLevel,
+          gameSpeed: nextSpeed,
+          status: GameStatus.PHASE_INTRO,
+          currentPhase: phase.id,
+          phaseLevelType: phase.type,
+          phaseStartSnapshot: phaseSnapshot,
+          // Reset game elements for fresh start
+          obstacles: [],
+          portals: [],
+          activeBoss: undefined,
+          bossSnake: undefined,
+          activePowerUps: [],
+          poisonShots: [],
+          particles: [],
+          guardianFlag: null,
+          guardianFlagSide: undefined,
+          combo: {
+            count: 0,
+            multiplier: 1,
+            lastFoodTime: 0,
+          },
+          isSpeedBoosted: false,
+          isFiringPoison: false,
+        };
+      });
+
+      // Close the debug panel
+      setShowPhaseDebug(false);
+    },
+    [updateGameState],
   );
 
   // Save statistics when game ends - wait for snake death animation to complete
@@ -606,6 +688,14 @@ function App() {
         onClose={() => setShowBossDebug(false)}
         onSelectBoss={handleBossSelect}
         currentBoss={gameState.activeBoss}
+      />
+
+      {/* Phase Debug Panel */}
+      <PhaseDebugPanel
+        isOpen={showPhaseDebug}
+        onClose={() => setShowPhaseDebug(false)}
+        onSelectPhase={handlePhaseSelect}
+        currentPhaseId={gameState.currentPhase ?? getPhaseNumber(gameState.level)}
       />
     </div>
   );

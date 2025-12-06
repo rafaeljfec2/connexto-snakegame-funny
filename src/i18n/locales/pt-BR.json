@@ -170,6 +170,12 @@
     "size": "Tamanho",
     "behavior": "Comportamento"
   },
+  "phaseDebug": {
+    "title": "🎮 Modo Debug de Fase",
+    "selectPhase": "Selecione uma fase para testar:",
+    "currentPhase": "Fase Atual:",
+    "hint": "Pressione <kbd>F3</kbd> ou <kbd>Ctrl+F</kbd> para abrir/fechar este painel"
+  },
   "gameInfo": {
     "level": "Nível:",
     "score": "Pontuação:",

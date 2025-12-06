@@ -1,6 +1,10 @@
+import { useEffect } from 'react';
 import { PhaseStatistics } from '@/utils/phaseStatistics';
 import { formatTime } from '@/utils/statistics';
+import { createLogger, LogContext } from '@/utils/logger';
 import styles from './PhaseCompleteScreen.module.css';
+
+const logger = createLogger(LogContext.TRANSITION);
 
 interface PhaseCompleteScreenProps {
   phaseNumber: number;
@@ -15,11 +19,9 @@ export function PhaseCompleteScreen({
   statistics,
   onNextPhase,
 }: PhaseCompleteScreenProps) {
-  console.log('📊 PhaseCompleteScreen rendering', {
-    phaseNumber,
-    phaseName,
-    statistics,
-  });
+  useEffect(() => {
+    logger.info({ phaseNumber, phaseName, statistics }, 'Phase complete screen displayed');
+  }, [phaseNumber, phaseName, statistics]);
   
   return (
     <div className={styles.overlay}>

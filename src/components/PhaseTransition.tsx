@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { getCurrentPhase } from '@/utils/phases';
+import { createLogger, LogContext } from '@/utils/logger';
 import styles from './PhaseTransition.module.css';
+
+const logger = createLogger(LogContext.TRANSITION);
 
 interface PhaseTransitionProps {
   phaseNumber: number;
@@ -16,6 +19,7 @@ export function PhaseTransition({ phaseNumber, level, onComplete }: PhaseTransit
   const phase = getCurrentPhase(level);
 
   useEffect(() => {
+    logger.info({ phaseNumber, level, phaseName: phase?.name }, 'Phase transition started');
     setProgress(0);
     setShowText(false);
 
@@ -33,6 +37,7 @@ export function PhaseTransition({ phaseNumber, level, onComplete }: PhaseTransit
 
       if (newProgress >= 100) {
         clearInterval(interval);
+        logger.info({ phaseNumber }, 'Phase transition completed');
         setTimeout(() => {
           onComplete();
         }, 100);
@@ -40,7 +45,7 @@ export function PhaseTransition({ phaseNumber, level, onComplete }: PhaseTransit
     }, 16); // ~60fps
 
     return () => clearInterval(interval);
-  }, [phaseNumber, onComplete, showText]);
+  }, [phaseNumber, onComplete, showText, level, phase?.name, logger]);
 
   if (!phase) {
     return null;

@@ -1,6 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { Chef } from '@/types/phases';
+import { createLogger, LogContext } from '@/utils/logger';
 import styles from './BossDefeatTransition.module.css';
+
+const logger = createLogger(LogContext.TRANSITION);
 
 interface BossDefeatTransitionProps {
   boss: Chef;
@@ -21,7 +24,7 @@ export function BossDefeatTransition({ boss, score, onComplete }: BossDefeatTran
   }, [onComplete]);
 
   useEffect(() => {
-    console.log('🎬 BossDefeatTransition mounted/started', { bossName: boss.name });
+    logger.info({ bossId: boss.id, bossName: boss.name, score }, 'Boss defeat transition started');
     setProgress(0);
     setShowCelebration(false);
 
@@ -49,7 +52,7 @@ export function BossDefeatTransition({ boss, score, onComplete }: BossDefeatTran
       if (currentProgress >= 100) {
         isComplete = true;
         clearInterval(interval);
-        console.log('🎬 BossDefeatTransition animation complete, calling onComplete');
+        logger.info({ bossId: boss.id }, 'Boss defeat transition completed');
         setTimeout(() => {
           onCompleteRef.current();
         }, 100);
@@ -59,7 +62,7 @@ export function BossDefeatTransition({ boss, score, onComplete }: BossDefeatTran
     return () => {
       clearInterval(interval);
     };
-  }, [boss.id]);
+  }, [boss.id, boss.name, score, logger]);
 
   // Calculate zoom and fade based on progress
   // 0-40%: Boss explodes and zooms

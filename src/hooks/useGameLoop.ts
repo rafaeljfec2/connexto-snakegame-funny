@@ -75,6 +75,7 @@ import {
   hasBossBodyCollision,
 } from '@/utils/poison';
 import { POISON_CONFIG } from '@/constants/game';
+import { createLogger, LogContext, logGameEvent } from '@/utils/logger';
 
 // ============================================================================
 // Helper Functions - Direction and Movement
@@ -589,6 +590,8 @@ function handleBossCombat(
 }
 
 export function useGameLoop() {
+  const gameLoopLogger = createLogger(LogContext.GAME_LOOP);
+
   const {
     gameState,
     resetGame,
@@ -609,6 +612,8 @@ export function useGameLoop() {
   const gameStateRef = useRef<GameState>(gameState);
   const poisonFireIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const lastPoisonFireTimeRef = useRef<number>(0);
+  const previousDirectionRef = useRef<Direction | null>(null);
+  const lastMoveLogTimeRef = useRef<number>(0);
 
   // Keep gameStateRef updated with latest state
   useEffect(() => {
@@ -632,6 +637,27 @@ export function useGameLoop() {
 
       // Move snake with new direction
       let newSnake = moveSnake(prev.snake, currentDirection, GAME_CONFIG.gridSize, false);
+
+      // Log snake movement (throttled to avoid spam - every 500ms or on direction change)
+      const moveLogTime = Date.now();
+      const directionChanged =
+        previousDirectionRef.current !== null && previousDirectionRef.current !== currentDirection;
+      const shouldLogMove = directionChanged || moveLogTime - lastMoveLogTimeRef.current > 500;
+
+      if (shouldLogMove && newSnake[0]) {
+        gameLoopLogger.debug(
+          {
+            headPosition: newSnake[0],
+            direction: currentDirection,
+            snakeLength: newSnake.length,
+            directionChanged,
+          },
+          'Snake moved',
+        );
+        lastMoveLogTimeRef.current = moveLogTime;
+      }
+
+      previousDirectionRef.current = currentDirection;
 
       // Initialize particles early for portal teleportation
       // Update particles and apply performance limits
@@ -720,6 +746,28 @@ export function useGameLoop() {
       let newLives = foodResult.lives;
       newParticles = foodResult.particles;
       statistics = foodResult.statistics;
+
+      // Log food eaten event
+      if (ateFood) {
+        logGameEvent('food-eaten', {
+          foodType: prev.food.type,
+          foodPosition: prev.food.position,
+          score: newScore,
+          scoreIncrease: newScore - prev.score,
+          level: prev.level,
+          combo: newCombo.multiplier,
+          snakeLength: finalSnake.length,
+          snakeLengthIncrease: finalSnake.length - newSnake.length,
+        });
+
+        if (atePowerUp) {
+          logGameEvent('power-up-activated', {
+            foodType: prev.food.type,
+            activePowerUpsCount: newActivePowerUps.length,
+            newPowerUpType: prev.food.type,
+          });
+        }
+      }
 
       // Handle Guardian flag capture - instant boss defeat!
       // Check this OUTSIDE the ateFood block so it works independently
@@ -1276,7 +1324,7 @@ export function useGameLoop() {
         bossSnake: bossSnake,
       };
     });
-  }, [updateGameState]);
+  }, [updateGameState, gameLoopLogger]);
 
   useEffect(() => {
     if (gameState.status !== GameStatus.PLAYING) {

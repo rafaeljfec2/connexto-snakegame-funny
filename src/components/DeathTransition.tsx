@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { GameStatus } from '@/types/game';
+import { createLogger, LogContext } from '@/utils/logger';
 import styles from './DeathTransition.module.css';
+
+const logger = createLogger(LogContext.TRANSITION);
 
 interface DeathTransitionProps {
   status: GameStatus;
@@ -15,6 +18,7 @@ export function DeathTransition({ status, lives }: DeathTransitionProps) {
 
   useEffect(() => {
     if (status === GameStatus.DYING && lives > 0) {
+      logger.info({ lives, status }, 'Death transition started');
       setCountdown(3);
       setProgress(0);
 
@@ -30,6 +34,7 @@ export function DeathTransition({ status, lives }: DeathTransitionProps) {
 
         if (remaining <= 0) {
           clearInterval(interval);
+          logger.info({ livesRemaining: lives - 1 }, 'Death transition completed');
         }
       }, 50); // Update every 50ms for smooth animation
 
@@ -38,7 +43,7 @@ export function DeathTransition({ status, lives }: DeathTransitionProps) {
       setCountdown(3);
       setProgress(0);
     }
-  }, [status, lives]);
+  }, [status, lives, logger]);
 
   if (status !== GameStatus.DYING || lives <= 0) {
     return null;

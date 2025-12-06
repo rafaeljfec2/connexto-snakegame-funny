@@ -13,6 +13,7 @@ import { LIVES_CONFIG } from '@/constants/lives';
 import { initializeStatistics } from '@/utils/statistics';
 import { getCurrentPhase, getBossForLevel, shouldSpawnBoss } from '@/utils/phases';
 import { createPhaseStartSnapshot } from '@/utils/phaseStatistics';
+import { logGameStateChange } from '@/utils/logger';
 
 export function useGameState() {
   const [gameState, setGameState] = useState<GameState>(() => {
@@ -95,12 +96,14 @@ export function useGameState() {
       phaseLevelType: initialPhase?.type,
       activeBoss: shouldSpawnBoss(initialLevel) ? getBossForLevel(initialLevel) : undefined,
     });
-  }, []);
+    logGameStateChange(gameState.status, GameStatus.IDLE, { reason: 'reset', level: initialLevel });
+  }, [gameState.status]);
 
   const startGame = useCallback(() => {
     setGameState((prev) => {
       // If starting from IDLE, show phase intro first
       if (prev.status === GameStatus.IDLE) {
+        logGameStateChange(prev.status, GameStatus.PHASE_INTRO, { reason: 'start-game' });
         return {
           ...prev,
           status: GameStatus.PHASE_INTRO,
@@ -109,6 +112,7 @@ export function useGameState() {
       // Otherwise, start playing directly
       // Create phase snapshot when starting a phase
       const phaseSnapshot = createPhaseStartSnapshot(prev);
+      logGameStateChange(prev.status, GameStatus.PLAYING, { reason: 'resume-from-intro' });
       return {
         ...prev,
         status: GameStatus.PLAYING,
@@ -124,6 +128,7 @@ export function useGameState() {
 
       if (prev.status === GameStatus.PLAYING) {
         // Pausing - record pause start time and reset speed boost
+        logGameStateChange(prev.status, GameStatus.PAUSED, { reason: 'pause' });
         return {
           ...prev,
           status: GameStatus.PAUSED,
@@ -137,6 +142,7 @@ export function useGameState() {
       } else if (prev.status === GameStatus.PAUSED && statistics.lastPauseTime) {
         // Resuming - add paused time
         const pausedDuration = now - statistics.lastPauseTime;
+        logGameStateChange(prev.status, GameStatus.PLAYING, { reason: 'resume', pausedDuration });
         return {
           ...prev,
           status: GameStatus.PLAYING,

@@ -19,7 +19,7 @@ import { PhaseIntroScreen } from './components/PhaseIntroScreen';
 import { PhaseCompleteScreen } from './components/PhaseCompleteScreen';
 import { GameStatus } from '@/types/game';
 import { createFinalStatistics, saveGameSession } from '@/utils/statistics';
-import { didPhaseChange, getPhaseNumber, getCurrentPhase } from '@/utils/phases';
+import { didPhaseChange, getPhaseNumber, getCurrentPhase, getPhaseConfig } from '@/utils/phases';
 import { getPhaseTranslationKey } from '@/utils/phaseTranslations';
 import { calculatePhaseStatistics, createPhaseStartSnapshot } from '@/utils/phaseStatistics';
 import { calculateGameSpeed } from '@/utils/difficulty';
@@ -60,6 +60,7 @@ function App() {
   const [showBossDefeatTransition, setShowBossDefeatTransition] = useState(false);
   const [defeatedBoss, setDefeatedBoss] = useState<Chef | null>(null);
   const [bossDefeatScore, setBossDefeatScore] = useState(0);
+  const [defeatedBossPhaseNumber, setDefeatedBossPhaseNumber] = useState<number | null>(null);
   const previousLevelRef = useRef(gameState.level);
   const previousScoreRef = useRef(gameState.score);
   const previousAchievementsRef = useRef(gameState.achievements);
@@ -107,8 +108,16 @@ function App() {
       !gameState.activeBoss
     ) {
       // Boss was defeated (went from having a boss to no boss)
+      // IMPORTANT: Use previousLevelRef to get the level BEFORE any level up happened
+      // The boss is always defeated on a boss level (5, 10, 15, etc.)
+      const bossLevel = previousLevelRef.current;
+      const phaseNumber = getPhaseNumber(bossLevel);
+
       console.log('🎯 Boss defeated detected!', {
         previousBoss: previousActiveBossRef.current?.name,
+        bossLevel,
+        phaseNumber,
+        currentLevel: gameState.level,
         currentBoss: gameState.activeBoss,
         status: gameState.status,
       });
@@ -130,16 +139,19 @@ function App() {
 
       console.log('📊 Setting boss defeat state', {
         boss: previousActiveBossRef.current?.name,
+        phaseNumber,
+        bossLevel,
         scoreIncrease,
       });
       setDefeatedBoss(previousActiveBossRef.current);
       setBossDefeatScore(scoreIncrease);
+      setDefeatedBossPhaseNumber(phaseNumber); // Save the phase number when boss was defeated
       setShowBossDefeatTransition(true);
       console.log('✅ showBossDefeatTransition set to true');
     }
     previousActiveBossRef.current = gameState.activeBoss;
     previousScoreRef.current = gameState.score;
-  }, [gameState.activeBoss, gameState.score, gameState.status, updateGameState]);
+  }, [gameState.activeBoss, gameState.score, gameState.status, gameState.level, updateGameState]);
 
   // Reset level up animation when game ends, resets, or is paused
   useEffect(() => {
@@ -297,6 +309,7 @@ function App() {
     setShowBossDefeatTransition(false);
     setDefeatedBoss(null);
     setBossDefeatScore(0);
+    setDefeatedBossPhaseNumber(null);
     resetGame();
   };
 
@@ -318,15 +331,19 @@ function App() {
           status: GameStatus.PAUSED,
         };
       }
+
+      // Use the phase number saved when boss was defeated
+      // If defeatedBossPhaseNumber is not available yet (shouldn't happen), calculate from level
+      const currentPhaseNumber = defeatedBossPhaseNumber ?? getPhaseNumber(prev.level);
+      const phaseStartLevel = (currentPhaseNumber - 1) * 5 + 1;
+
       console.log('📸 Creating snapshot for phase complete', {
         hasSnapshot: !!prev.phaseStartSnapshot,
         level: prev.level,
-        phaseNumber: getPhaseNumber(prev.level),
+        phaseNumber: currentPhaseNumber,
+        phaseStartLevel,
+        defeatedBossPhaseNumber,
       });
-
-      // Calculate first level of current phase for snapshot
-      const currentPhaseNumber = getPhaseNumber(prev.level);
-      const phaseStartLevel = (currentPhaseNumber - 1) * 5 + 1;
 
       // Create snapshot if it doesn't exist, using phase start level as reference
       // Use existing snapshot if available, otherwise create a fallback
@@ -374,7 +391,7 @@ function App() {
 
       return newState;
     });
-  }, [updateGameState]);
+  }, [updateGameState, defeatedBossPhaseNumber]);
 
   return (
     <div className={styles.app}>
@@ -503,11 +520,12 @@ function App() {
       )}
 
       {/* Phase Complete Screen - Shows after boss is defeated */}
-      {gameState.status === GameStatus.PHASE_COMPLETE && (
+      {gameState.status === GameStatus.PHASE_COMPLETE && defeatedBossPhaseNumber && (
         <PhaseCompleteScreen
-          phaseNumber={getPhaseNumber(gameState.level)}
+          phaseNumber={defeatedBossPhaseNumber}
           phaseName={(() => {
-            const phase = getCurrentPhase(gameState.level);
+            // Use the phase number saved when boss was defeated to get correct phase
+            const phase = getPhaseConfig(defeatedBossPhaseNumber);
             if (!phase) return t('phase.complete');
             return t(`phases.${getPhaseTranslationKey(phase.type)}.name`);
           })()}
@@ -516,9 +534,8 @@ function App() {
             gameState.phaseStartSnapshot ?? createPhaseStartSnapshot(gameState),
           )}
           onNextPhase={() => {
-            // Advance to next phase
-            const currentPhaseNumber = getPhaseNumber(gameState.level);
-            const nextPhaseNumber = currentPhaseNumber + 1;
+            // Advance to next phase - use the saved phase number
+            const nextPhaseNumber = defeatedBossPhaseNumber + 1;
 
             // Check if there's a next phase (max 10 phases)
             if (nextPhaseNumber <= 10) {

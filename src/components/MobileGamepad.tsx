@@ -135,7 +135,9 @@ export function MobileGamepad({
   const handleJoystickTouchStart = useCallback(
     (e: React.TouchEvent) => {
       if (!enabled || !joystickRef.current) return;
-      e.preventDefault();
+      if (e.cancelable) {
+        e.preventDefault();
+      }
 
       const touch = e.touches[0];
       if (!touch) return;
@@ -152,7 +154,10 @@ export function MobileGamepad({
   const handleJoystickTouchMove = useCallback(
     (e: React.TouchEvent) => {
       if (!enabled || !isDraggingRef.current) return;
-      e.preventDefault();
+      if (e.cancelable) {
+        e.preventDefault();
+      }
+      e.stopPropagation();
 
       const touch = e.touches[0];
       if (!touch) return;
@@ -168,7 +173,10 @@ export function MobileGamepad({
   const handleJoystickTouchEnd = useCallback(
     (e: React.TouchEvent) => {
       if (!enabled) return;
-      e.preventDefault();
+      if (e.cancelable) {
+        e.preventDefault();
+      }
+      e.stopPropagation();
 
       isDraggingRef.current = false;
       setKnobPosition({ x: 0, y: 0 });
@@ -211,7 +219,9 @@ export function MobileGamepad({
 
     const handleGlobalTouchMove = (e: TouchEvent) => {
       if (isDraggingRef.current && joystickRef.current) {
-        e.preventDefault();
+        if (e.cancelable) {
+          e.preventDefault();
+        }
         const touch = e.touches[0];
         if (touch) {
           const pos = getTouchPosition(touch);
@@ -224,7 +234,9 @@ export function MobileGamepad({
 
     const handleGlobalTouchEnd = (e: TouchEvent) => {
       if (isDraggingRef.current) {
-        e.preventDefault();
+        if (e.cancelable) {
+          e.preventDefault();
+        }
         isDraggingRef.current = false;
         setKnobPosition({ x: 0, y: 0 });
         currentDirectionRef.current = null;
@@ -277,17 +289,26 @@ export function MobileGamepad({
         className={styles.fireButton}
         onTouchStart={(e) => {
           if (!enabled) return;
-          e.preventDefault();
+          if (e.cancelable) {
+            e.preventDefault();
+          }
+          e.stopPropagation();
           onFirePoison?.();
         }}
         onTouchEnd={(e) => {
           if (!enabled) return;
-          e.preventDefault();
+          if (e.cancelable) {
+            e.preventDefault();
+          }
+          e.stopPropagation();
           onStopFiringPoison?.();
         }}
         onTouchCancel={(e) => {
           if (!enabled) return;
-          e.preventDefault();
+          if (e.cancelable) {
+            e.preventDefault();
+          }
+          e.stopPropagation();
           onStopFiringPoison?.();
         }}
         onClick={(e) => {

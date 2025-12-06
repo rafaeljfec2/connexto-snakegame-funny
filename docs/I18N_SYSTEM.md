@@ -4,7 +4,7 @@
 
 O sistema de internacionalização foi implementado usando **react-i18next**, permitindo que o jogo seja traduzido para múltiplos idiomas. Atualmente, os idiomas suportados são:
 
-- **Português (Brasil)** - `pt-BR`
+- **Português (Brasil)** - `pt-BR` (padrão)
 - **Inglês (US)** - `en-US`
 
 ## Estrutura de Arquivos
@@ -17,7 +17,7 @@ src/
 │       ├── pt-BR.json              # Traduções em Português
 │       └── en-US.json              # Traduções em Inglês
 ├── components/
-│   └── LanguageSelector.tsx         # Componente seletor de idioma
+│   └── LanguageSelector.tsx         # Componente seletor de idioma (oculto no mobile)
 └── main.tsx                         # Importação da configuração i18n
 ```
 
@@ -28,153 +28,88 @@ src/
 O sistema de i18n é configurado para:
 
 - Detectar automaticamente o idioma do navegador
-- Salvar a preferência do usuário no `localStorage`
-- Usar `en-US` como idioma padrão (fallback)
+- Salvar a preferência do usuário no `localStorage` (chave: `i18nextLng`)
+- Usar `pt-BR` como idioma padrão (fallback)
 - Suportar React sem Suspense
+- Recarregar recursos quando o idioma muda
 
 ### Detecção de Idioma
 
 O sistema detecta o idioma na seguinte ordem:
 
-1. **localStorage** - Idioma salvo pelo usuário
+1. **localStorage** - Idioma salvo pelo usuário (`i18nextLng`)
 2. **Navegador** - Idioma do navegador (`navigator.language`)
-3. **Fallback** - `en-US` como padrão
+3. **Fallback** - `pt-BR` como padrão
+
+### Persistência
+
+A preferência de idioma é automaticamente salva no `localStorage` quando o usuário muda o idioma usando o seletor.
 
 ## Arquivos de Tradução
 
-Os arquivos de tradução estão organizados por contexto:
+Os arquivos de tradução estão organizados por contexto e seguem uma estrutura hierárquica.
 
 ### Estrutura de Chaves
 
 ```json
 {
   "common": {
-    "phase": "Fase",
-    "level": "Nível",
-    "score": "Pontuação",
-    ...
-  },
-  "gameStatus": {
-    "pressSpaceToStart": "Pressione ESPAÇO para iniciar",
-    "playing": "Jogando...",
-    ...
-  },
-  "statusBar": {
-    "length": "Tamanho",
-    "lives": "Vidas",
-    ...
-  },
-  "controls": {
-    "instructions": "..."
-  },
-  "phase": {
-    "phase": "FASE",
-    "complete": "COMPLETA!",
-    ...
-  },
-  "phaseComplete": {
-    "title": "FASE {{phaseNumber}} COMPLETA!",
-    "scoreGained": "Pontuação",
-    ...
-  },
-  "bossDefeat": {
-    "victory": "VITÓRIA!",
-    ...
-  },
-  "death": {
-    "lifeLost": "Vida Perdida!",
-    "continuingIn": "Continuing in {{seconds}} seconds...",
-    "livesRemaining": "{{count}} vida restante",
-    "livesRemaining_plural": "{{count}} vidas restantes"
-  },
-  "powerUps": {
-    "speedBoost": "Speed Boost",
-    ...
-  },
-  "powerUpDescriptions": {
-    "speedBoost": "Mova-se mais rápido por 5s",
-    ...
+    "play": "Jogar",
+    "pause": "Pausar",
+    "gameOver": "Game Over"
   },
   "phases": {
-    "classicSnake": {
-      "name": "Classic Snake",
+    "phase1": {
+      "name": "Cobra Clássica",
       "description": "..."
-    },
-    ...
+    }
   },
-  "statistics": {
-    "title": "Estatísticas do Jogo",
-    ...
+  "bosses": {
+    "classic": {
+      "name": "O Clássico",
+      "description": "...",
+      "behavior": "..."
+    }
   },
-  "language": {
-    "title": "Idioma",
-    "ptBR": "Português (Brasil)",
-    "enUS": "English (US)"
-  },
-  "panels": {
-    "powerUps": "Power-Ups",
-    "combo": "Combo"
-  },
-  "phaseDisplay": {
-    "phase": "Fase",
-    "levelInPhase": "Nível {{current}}/5 da Fase"
-  },
-  "debug": {
-    "selectBoss": "Selecione um boss para testar:",
-    ...
+  "powerUps": {
+    "speedBoost": {
+      "name": "Velocidade Aumentada",
+      "description": "..."
+    }
   }
 }
 ```
 
-### Interpolação
-
-O sistema suporta interpolação de variáveis:
-
-```typescript
-t('phaseComplete.title', { phaseNumber: 5 });
-// Resultado: "FASE 5 COMPLETA!"
-```
-
-### Pluralização
-
-O sistema suporta pluralização automática:
-
-```typescript
-t('death.livesRemaining', { count: 1 });
-// Resultado: "1 vida restante"
-
-t('death.livesRemaining', { count: 3 });
-// Resultado: "3 vidas restantes"
-```
-
-## Componentes Atualizados
-
-Os seguintes componentes foram atualizados para usar o sistema de i18n:
+## Componentes Traduzidos
 
 ### Componentes Principais
 
-1. **StatusMessage** - Mensagens de status do jogo
-2. **GameControls** - Botões de controle (Start, Pause, Resume, etc.)
-3. **StatusBar** - Barra de status (Length, Lives, Phase)
-4. **PhaseTransition** - Transições de fase
-5. **PhaseIntroScreen** - Tela de introdução da fase
-6. **PhaseCompleteScreen** - Tela de fase completa
-7. **DeathTransition** - Transição de morte
-8. **BossDefeatTransition** - Transição de derrota do boss
-9. **PhaseDisplay** - Exibição da fase atual
-10. **LanguageSelector** - Seletor de idioma
+- ✅ `App.tsx` - Interface principal
+- ✅ `GameInfo.tsx` - Informações do jogo
+- ✅ `StatusBar.tsx` - Barra de status
+- ✅ `GameControls.tsx` - Controles
+- ✅ `PhaseIntroScreen.tsx` - Tela de introdução
+- ✅ `PhaseCompleteScreen.tsx` - Tela de conclusão
+- ✅ `BossDefeatTransition.tsx` - Animação de derrota do boss
+- ✅ `DeathTransition.tsx` - Animação de morte
+- ✅ `GameStatistics.tsx` - Estatísticas
+- ✅ `BossDebugPanel.tsx` - Painel de debug de bosses
+- ✅ `PhaseDebugPanel.tsx` - Painel de debug de fases
 
-### Componente App
+### Componentes de Power-Ups
 
-O componente principal (`App.tsx`) foi atualizado para:
+- ✅ `ActivePowerUps.tsx` - Power-ups ativos
+- ✅ `MobileFloatingInfo.tsx` - Informações mobile
+- ✅ `PowerUpToast.tsx` - Toasts de power-ups
 
-- Importar o hook `useTranslation`
-- Usar traduções em instruções e textos do painel
-- Incluir o seletor de idioma no header
+### Componentes de Sistema
+
+- ✅ `LanguageSelector.tsx` - Seletor de idioma (oculto no mobile)
+- ✅ Todas as mensagens de erro e validação
 
 ## Uso nos Componentes
 
-### Hook `useTranslation`
+### Hook useTranslation
 
 ```typescript
 import { useTranslation } from 'react-i18next';
@@ -182,152 +117,191 @@ import { useTranslation } from 'react-i18next';
 function MyComponent() {
   const { t } = useTranslation();
 
-  return <div>{t('common.phase')}</div>;
+  return <div>{t('common.play')}</div>;
 }
 ```
 
-### Interpolação com Variáveis
+### Interpolação
 
 ```typescript
-const { t } = useTranslation();
-const phaseNumber = 5;
+// Tradução
+{
+  "welcome": "Bem-vindo, {{name}}!"
+}
 
-return <div>{t('phaseComplete.title', { phaseNumber })}</div>;
+// Uso
+t('welcome', { name: 'Jogador' })
 ```
 
 ### Pluralização
 
 ```typescript
-const { t } = useTranslation();
-const lives = 3;
+// Tradução
+{
+  "items_one": "{{count}} item",
+  "items_other": "{{count}} itens"
+}
 
-return <div>{t('death.livesRemaining', { count: lives - 1 })}</div>;
+// Uso
+t('items', { count: 5 })
 ```
 
-### HTML com Interpolação
+## Contextos de Tradução
 
-Para textos com HTML (como instruções com `<kbd>`):
+### Fases
 
-```typescript
-<p dangerouslySetInnerHTML={{ __html: t('controls.instructions') }} />
+Todas as 10 fases têm traduções completas:
+
+- Nome da fase
+- Descrição
+- Tipo de nível
+
+### Bosses
+
+Todos os 10 bosses têm traduções completas:
+
+- Nome do boss
+- Descrição
+- Comportamento/táticas
+
+### Power-Ups
+
+Todos os 10 power-ups têm traduções:
+
+- Nome do power-up
+- Descrição do efeito
+
+### UI e Mensagens
+
+- Botões e ações
+- Mensagens de status
+- Mensagens de transição
+- Estatísticas
+- Conquistas
+- Mensagens de erro
+
+## Características Especiais
+
+### Seletor de Idioma
+
+O componente `LanguageSelector` permite ao usuário escolher o idioma:
+
+- Disponível no header (desktop)
+- Oculto no mobile para economizar espaço
+- Persiste a escolha automaticamente
+
+### Tradução Dinâmica
+
+Algumas strings são geradas dinamicamente:
+
+- Nomes de fases e bosses são traduzidos via funções helper
+- Estatísticas usam interpolação para números
+- Mensagens de transição incluem informações dinâmicas
+
+## Exemplos de Tradução
+
+### Português (pt-BR)
+
+```json
+{
+  "phases": {
+    "phase1": {
+      "name": "Cobra Clássica",
+      "description": "O jogo clássico sem obstáculos"
+    }
+  },
+  "bosses": {
+    "classic": {
+      "name": "O Clássico",
+      "description": "Um boss básico que segue padrões simples",
+      "behavior": "Move-se de forma previsível"
+    }
+  },
+  "powerUps": {
+    "speedBoost": {
+      "name": "Velocidade Aumentada",
+      "description": "Move mais rápido por 5 segundos"
+    }
+  }
+}
 ```
 
-## Seletor de Idioma
+### Inglês (en-US)
 
-O componente `LanguageSelector` foi criado e adicionado ao header do jogo. Ele permite:
+```json
+{
+  "phases": {
+    "phase1": {
+      "name": "Classic Snake",
+      "description": "The classic game without obstacles"
+    }
+  },
+  "bosses": {
+    "classic": {
+      "name": "The Classic",
+      "description": "A basic boss that follows simple patterns",
+      "behavior": "Moves predictably"
+    }
+  },
+  "powerUps": {
+    "speedBoost": {
+      "name": "Speed Boost",
+      "description": "Move faster for 5 seconds"
+    }
+  }
+}
+```
 
-- Selecionar entre os idiomas disponíveis
-- Salvar a preferência no `localStorage`
-- Atualizar a interface automaticamente ao mudar o idioma
-
-### Localização
-
-O seletor de idioma está localizado no header, no canto superior direito.
-
-## Adicionar Novos Idiomas
+## Adicionar Novo Idioma
 
 Para adicionar um novo idioma:
 
-1. **Criar arquivo de tradução** em `src/i18n/locales/`:
+1. Criar arquivo `src/i18n/locales/[codigo-idioma].json`
+2. Copiar estrutura de `pt-BR.json` ou `en-US.json`
+3. Traduzir todas as strings
+4. Adicionar o código do idioma em `src/i18n/config.ts`:
 
-   ```json
-   // src/i18n/locales/es-ES.json
-   {
-     "common": {
-       "phase": "Fase",
-       ...
-     }
-   }
-   ```
+```typescript
+resources: {
+  'pt-BR': { translation: ptBR },
+  'en-US': { translation: enUS },
+  'es-ES': { translation: esES }, // Novo idioma
+}
+```
 
-2. **Atualizar configuração** em `src/i18n/config.ts`:
+## Boas Práticas
 
-   ```typescript
-   import esES from './locales/es-ES.json';
+1. **Chaves Descritivas**: Use chaves que descrevam o contexto
+   - ✅ `phases.phase1.name`
+   - ❌ `p1n`
 
-   i18n.init({
-     resources: {
-       'pt-BR': { translation: ptBR },
-       'en-US': { translation: enUS },
-       'es-ES': { translation: esES }, // Novo idioma
-     },
-     // ...
-   });
-   ```
+2. **Interpolação**: Use interpolação para valores dinâmicos
+   - ✅ `t('score', { value: score })`
+   - ❌ `t('score') + ' ' + score`
 
-3. **Adicionar opção no seletor** em `src/components/LanguageSelector.tsx`:
+3. **Namespace**: Organize por contexto (phases, bosses, powerUps, etc.)
 
-   ```typescript
-   <option value="es-ES">{t('language.esES')}</option>
-   ```
+4. **Consistência**: Mantenha a mesma estrutura em todos os arquivos de idioma
 
-4. **Adicionar tradução do nome** nos arquivos de tradução:
-   ```json
-   "language": {
-     "esES": "Español (España)"
-   }
-   ```
+## Troubleshooting
 
-## Melhores Práticas
+### Idioma não muda
 
-1. **Organização**: Mantenha as chaves organizadas por contexto (common, gameStatus, phase, etc.)
+- Verifique se o arquivo de tradução está importado em `config.ts`
+- Verifique se a chave existe no arquivo JSON
+- Limpe o `localStorage` e recarregue
 
-2. **Nomes Descritivos**: Use nomes de chaves descritivos e hierárquicos:
-   - ✅ `phaseComplete.title`
-   - ❌ `title1`
+### Tradução não aparece
 
-3. **Reutilização**: Use chaves comuns para textos repetidos:
-   - ✅ `common.start`, `common.pause`
-   - ❌ Duplicar textos
+- Verifique se está usando a chave correta
+- Verifique se há erros no console
+- Use `t('chave', { defaultValue: 'Fallback' })` para debug
 
-4. **Interpolação**: Use interpolação para valores dinâmicos:
-   - ✅ `t('phaseComplete.title', { phaseNumber })`
-   - ❌ `t('phaseComplete.title') + ' ' + phaseNumber`
+## Status
 
-5. **Pluralização**: Use pluralização para textos com números:
-   - ✅ `t('death.livesRemaining', { count })`
-   - ❌ `count === 1 ? 'vida' : 'vidas'`
-
-## Manutenção
-
-### Atualizar Traduções
-
-1. Edite os arquivos JSON em `src/i18n/locales/`
-2. Mantenha a estrutura consistente entre idiomas
-3. Teste todas as traduções no jogo
-
-### Adicionar Novas Chaves
-
-1. Adicione a chave em todos os arquivos de tradução
-2. Use a tradução nos componentes
-3. Verifique se não há textos hardcoded restantes
-
-## Status da Implementação
-
-### ✅ Componentes Completos
-
-- StatusMessage
-- GameControls
-- StatusBar
-- PhaseTransition
-- PhaseIntroScreen
-- PhaseCompleteScreen
-- DeathTransition
-- BossDefeatTransition
-- PhaseDisplay
-- LanguageSelector
-- App (instruções e painéis)
-
-### 🔄 Componentes Parciais
-
-Alguns componentes ainda podem ter textos hardcoded. Verifique:
-
-- GameStatistics
-- ActivePowerUps
-- MobileFloatingInfo
-- BossDebugPanel
-- AchievementNotification
-
-## Conclusão
-
-O sistema de internacionalização está funcional e permite traduzir o jogo para múltiplos idiomas. O sistema é extensível e fácil de manter, seguindo as melhores práticas do react-i18next.
+✅ Sistema completamente implementado e funcional
+✅ Todas as strings do jogo traduzidas
+✅ Suporte para 2 idiomas (pt-BR, en-US)
+✅ Seletor de idioma funcional
+✅ Persistência de preferência
+✅ Detecção automática de idioma

@@ -25,7 +25,7 @@ export function PhaseCompleteScreen({
   useEffect(() => {
     logger.info({ phaseNumber, phaseName, statistics }, 'Phase complete screen displayed');
   }, [phaseNumber, phaseName, statistics]);
-  
+
   return (
     <div className={styles.overlay}>
       <div className={styles.container}>
@@ -75,4 +75,3 @@ export function PhaseCompleteScreen({
     </div>
   );
 }
-

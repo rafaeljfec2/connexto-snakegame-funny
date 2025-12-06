@@ -61,23 +61,21 @@ const createBrowserDestination = () => {
 /**
  * Create logger instance with appropriate configuration
  */
-export const logger = pino(
-  {
-    level: isDevelopment ? 'debug' : isProduction ? 'warn' : 'info',
-    browser: {
-      write: createBrowserDestination().write,
-    },
-    base: {
-      env: import.meta.env.MODE,
-      timestamp: pino.stdTimeFunctions.isoTime,
-    },
-    formatters: {
-      level: (label: string) => {
-        return { level: label };
-      },
+export const logger = pino({
+  level: isDevelopment ? 'debug' : isProduction ? 'warn' : 'info',
+  browser: {
+    write: createBrowserDestination().write,
+  },
+  base: {
+    env: import.meta.env.MODE,
+    timestamp: pino.stdTimeFunctions.isoTime,
+  },
+  formatters: {
+    level: (label: string) => {
+      return { level: label };
     },
   },
-);
+});
 
 /**
  * Logger context types for better organization
@@ -114,11 +112,7 @@ export function createLogger(context: LogContext, additionalContext?: Record<str
 /**
  * Log game state changes
  */
-export function logGameStateChange(
-  from: string,
-  to: string,
-  metadata?: Record<string, unknown>,
-) {
+export function logGameStateChange(from: string, to: string, metadata?: Record<string, unknown>) {
   logger.info(
     {
       context: LogContext.GAME_STATE,
@@ -147,7 +141,11 @@ export function logGameEvent(event: string, metadata?: Record<string, unknown>) 
 /**
  * Log errors with context
  */
-export function logError(error: Error | unknown, context?: LogContext, metadata?: Record<string, unknown>) {
+export function logError(
+  error: Error | unknown,
+  context?: LogContext,
+  metadata?: Record<string, unknown>,
+) {
   const errorMessage = error instanceof Error ? error.message : String(error);
   const errorStack = error instanceof Error ? error.stack : undefined;
 
@@ -165,7 +163,11 @@ export function logError(error: Error | unknown, context?: LogContext, metadata?
 /**
  * Log performance metrics
  */
-export function logPerformance(operation: string, duration: number, metadata?: Record<string, unknown>) {
+export function logPerformance(
+  operation: string,
+  duration: number,
+  metadata?: Record<string, unknown>,
+) {
   logger.debug(
     {
       context: LogContext.PERFORMANCE,

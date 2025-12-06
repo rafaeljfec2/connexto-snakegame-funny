@@ -17,10 +17,9 @@ export function LanguageSelector() {
         className={styles.select}
         aria-label={t('language.title')}
       >
-        <option value="pt-BR">{t('language.ptBR')}</option>
-        <option value="en-US">{t('language.enUS')}</option>
+        <option value='pt-BR'>{t('language.ptBR')}</option>
+        <option value='en-US'>{t('language.enUS')}</option>
       </select>
     </div>
   );
 }
-

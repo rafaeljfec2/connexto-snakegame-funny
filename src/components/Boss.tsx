@@ -32,4 +32,3 @@ export function Boss({ boss, position, gridSize }: BossProps) {
     </div>
   );
 }
-

@@ -139,7 +139,7 @@
 /* Border colors for all power-ups - Positive */
 .powerUpItem.speed-boost {
   border-color: rgba(251, 146, 60, 0.5) !important;
-  box-shadow: 
+  box-shadow:
     0 2px 8px rgba(0, 0, 0, 0.2),
     0 0 0 1px rgba(251, 146, 60, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
@@ -147,7 +147,7 @@
 
 .powerUpItem.speed-boost:hover {
   border-color: rgba(251, 146, 60, 0.7) !important;
-  box-shadow: 
+  box-shadow:
     0 6px 16px rgba(0, 0, 0, 0.3),
     0 0 0 1px rgba(251, 146, 60, 0.5),
     0 0 20px rgba(251, 146, 60, 0.3),
@@ -156,7 +156,7 @@
 
 .powerUpItem.bonus-points {
   border-color: rgba(245, 158, 11, 0.5) !important;
-  box-shadow: 
+  box-shadow:
     0 2px 8px rgba(0, 0, 0, 0.2),
     0 0 0 1px rgba(245, 158, 11, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
@@ -164,7 +164,7 @@
 
 .powerUpItem.bonus-points:hover {
   border-color: rgba(245, 158, 11, 0.7) !important;
-  box-shadow: 
+  box-shadow:
     0 6px 16px rgba(0, 0, 0, 0.3),
     0 0 0 1px rgba(245, 158, 11, 0.5),
     0 0 20px rgba(245, 158, 11, 0.3),
@@ -173,7 +173,7 @@
 
 .powerUpItem.extra-growth {
   border-color: rgba(96, 165, 250, 0.5) !important;
-  box-shadow: 
+  box-shadow:
     0 2px 8px rgba(0, 0, 0, 0.2),
     0 0 0 1px rgba(96, 165, 250, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
@@ -181,7 +181,7 @@
 
 .powerUpItem.extra-growth:hover {
   border-color: rgba(96, 165, 250, 0.7) !important;
-  box-shadow: 
+  box-shadow:
     0 6px 16px rgba(0, 0, 0, 0.3),
     0 0 0 1px rgba(96, 165, 250, 0.5),
     0 0 20px rgba(96, 165, 250, 0.3),
@@ -190,7 +190,7 @@
 
 .powerUpItem.phase-through {
   border-color: rgba(168, 85, 247, 0.5) !important;
-  box-shadow: 
+  box-shadow:
     0 2px 8px rgba(0, 0, 0, 0.2),
     0 0 0 1px rgba(168, 85, 247, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
@@ -198,7 +198,7 @@
 
 .powerUpItem.phase-through:hover {
   border-color: rgba(168, 85, 247, 0.7) !important;
-  box-shadow: 
+  box-shadow:
     0 6px 16px rgba(0, 0, 0, 0.3),
     0 0 0 1px rgba(168, 85, 247, 0.5),
     0 0 20px rgba(168, 85, 247, 0.3),
@@ -207,7 +207,7 @@
 
 .powerUpItem.joker {
   border-color: rgba(236, 72, 153, 0.5) !important;
-  box-shadow: 
+  box-shadow:
     0 2px 8px rgba(0, 0, 0, 0.2),
     0 0 0 1px rgba(236, 72, 153, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
@@ -215,7 +215,7 @@
 
 .powerUpItem.joker:hover {
   border-color: rgba(236, 72, 153, 0.7) !important;
-  box-shadow: 
+  box-shadow:
     0 6px 16px rgba(0, 0, 0, 0.3),
     0 0 0 1px rgba(236, 72, 153, 0.5),
     0 0 20px rgba(236, 72, 153, 0.3),
@@ -224,7 +224,7 @@
 
 .powerUpItem.extra-life {
   border-color: rgba(244, 63, 94, 0.5) !important;
-  box-shadow: 
+  box-shadow:
     0 2px 8px rgba(0, 0, 0, 0.2),
     0 0 0 1px rgba(244, 63, 94, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
@@ -232,7 +232,7 @@
 
 .powerUpItem.extra-life:hover {
   border-color: rgba(244, 63, 94, 0.7) !important;
-  box-shadow: 
+  box-shadow:
     0 6px 16px rgba(0, 0, 0, 0.3),
     0 0 0 1px rgba(244, 63, 94, 0.5),
     0 0 20px rgba(244, 63, 94, 0.3),
@@ -242,7 +242,7 @@
 /* Border colors for negative power-ups */
 .powerUpItem.poison {
   border-color: rgba(16, 185, 129, 0.5) !important;
-  box-shadow: 
+  box-shadow:
     0 2px 8px rgba(0, 0, 0, 0.2),
     0 0 0 1px rgba(16, 185, 129, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
@@ -250,7 +250,7 @@
 
 .powerUpItem.poison:hover {
   border-color: rgba(16, 185, 129, 0.7) !important;
-  box-shadow: 
+  box-shadow:
     0 6px 16px rgba(0, 0, 0, 0.3),
     0 0 0 1px rgba(16, 185, 129, 0.5),
     0 0 20px rgba(16, 185, 129, 0.3),
@@ -259,7 +259,7 @@
 
 .powerUpItem.reverse-controls {
   border-color: rgba(236, 72, 153, 0.5) !important;
-  box-shadow: 
+  box-shadow:
     0 2px 8px rgba(0, 0, 0, 0.2),
     0 0 0 1px rgba(236, 72, 153, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
@@ -267,7 +267,7 @@
 
 .powerUpItem.reverse-controls:hover {
   border-color: rgba(236, 72, 153, 0.7) !important;
-  box-shadow: 
+  box-shadow:
     0 6px 16px rgba(0, 0, 0, 0.3),
     0 0 0 1px rgba(236, 72, 153, 0.5),
     0 0 20px rgba(236, 72, 153, 0.3),
@@ -276,19 +276,21 @@
 
 .powerUpItem.slow-down {
   border-color: rgba(99, 102, 241, 0.5) !important;
-  box-shadow: 
+  box-shadow:
     0 2px 8px rgba(0, 0, 0, 0.2),
     0 0 0 1px rgba(99, 102, 241, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  background: linear-gradient(135deg, 
-    rgba(15, 23, 42, 0.8) 0%, 
+  background: linear-gradient(
+    135deg,
+    rgba(15, 23, 42, 0.8) 0%,
     rgba(30, 41, 59, 0.7) 100%,
-    rgba(99, 102, 241, 0.1) 100%);
+    rgba(99, 102, 241, 0.1) 100%
+  );
 }
 
 .powerUpItem.slow-down:hover {
   border-color: rgba(168, 85, 247, 0.7) !important;
-  box-shadow: 
+  box-shadow:
     0 6px 16px rgba(0, 0, 0, 0.3),
     0 0 0 1px rgba(168, 85, 247, 0.5),
     0 0 20px rgba(168, 85, 247, 0.3),

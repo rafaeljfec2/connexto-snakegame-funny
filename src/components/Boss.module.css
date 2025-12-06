@@ -20,11 +20,7 @@
   position: absolute;
   inset: -20%;
   border-radius: 50%;
-  background: radial-gradient(
-    circle,
-    var(--boss-color, #3b82f6) 0%,
-    transparent 70%
-  );
+  background: radial-gradient(circle, var(--boss-color, #3b82f6) 0%, transparent 70%);
   opacity: 0.6;
   animation: bossGlow 2s ease-in-out infinite;
   z-index: 1;
@@ -79,4 +75,3 @@
     top: -1.2rem;
   }
 }
-

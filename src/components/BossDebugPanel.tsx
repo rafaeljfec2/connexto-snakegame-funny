@@ -65,9 +65,15 @@ export function BossDebugPanel({
                   <div className={styles.bossName}>{t(`bosses.${boss.id}.name`)}</div>
                   <div className={styles.bossDescription}>{t(`bosses.${boss.id}.description`)}</div>
                   <div className={styles.bossDetails}>
-                    <span className={styles.bossPhase}>{t('debug.phase')} {boss.phase}</span>
-                    <span className={styles.bossBehavior}>• {t(`bossBehaviors.${boss.behavior ?? 'random'}`)}</span>
-                    <span className={styles.bossLength}>• {t('debug.size')}: {boss.initialLength ?? 3}</span>
+                    <span className={styles.bossPhase}>
+                      {t('debug.phase')} {boss.phase}
+                    </span>
+                    <span className={styles.bossBehavior}>
+                      • {t(`bossBehaviors.${boss.behavior ?? 'random'}`)}
+                    </span>
+                    <span className={styles.bossLength}>
+                      • {t('debug.size')}: {boss.initialLength ?? 3}
+                    </span>
                   </div>
                 </div>
               </button>

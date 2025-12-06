@@ -48,4 +48,3 @@ export function Portal({ portal, isFirst }: PortalProps) {
     </div>
   );
 }
-

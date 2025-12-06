@@ -39,10 +39,9 @@ export function GameControls({ onStart, onPause, onReset, status }: GameControls
           {t('common.playAgain')}
         </button>
       )}
-      {(status === GameStatus.PHASE_INTRO || status === GameStatus.PHASE_COMPLETE) && (
+      {(status === GameStatus.PHASE_INTRO || status === GameStatus.PHASE_COMPLETE) &&
         // Hide controls during phase transitions
-        null
-      )}
+        null}
     </div>
   );
 }

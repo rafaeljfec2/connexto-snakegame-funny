@@ -13,7 +13,9 @@
   -ms-user-select: none;
   width: auto;
   max-width: 95vw;
-  transition: opacity 0.3s ease, transform 0.3s ease;
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease;
 }
 
 .touchControls.disabled {
@@ -205,7 +207,7 @@
     opacity: 1;
     bottom: 15px;
   }
-  
+
   /* Even when disabled, keep visible but dimmed */
   .touchControls.disabled {
     opacity: 0.4;
@@ -233,7 +235,7 @@
     opacity: 1;
     bottom: 8px;
   }
-  
+
   /* Even when disabled, keep visible but dimmed */
   .touchControls.disabled {
     opacity: 0.4;

@@ -131,7 +131,7 @@ Os arquivos de tradução estão organizados por contexto:
 O sistema suporta interpolação de variáveis:
 
 ```typescript
-t('phaseComplete.title', { phaseNumber: 5 })
+t('phaseComplete.title', { phaseNumber: 5 });
 // Resultado: "FASE 5 COMPLETA!"
 ```
 
@@ -140,10 +140,10 @@ t('phaseComplete.title', { phaseNumber: 5 })
 O sistema suporta pluralização automática:
 
 ```typescript
-t('death.livesRemaining', { count: 1 })
+t('death.livesRemaining', { count: 1 });
 // Resultado: "1 vida restante"
 
-t('death.livesRemaining', { count: 3 })
+t('death.livesRemaining', { count: 3 });
 // Resultado: "3 vidas restantes"
 ```
 
@@ -181,7 +181,7 @@ import { useTranslation } from 'react-i18next';
 
 function MyComponent() {
   const { t } = useTranslation();
-  
+
   return <div>{t('common.phase')}</div>;
 }
 ```
@@ -229,6 +229,7 @@ O seletor de idioma está localizado no header, no canto superior direito.
 Para adicionar um novo idioma:
 
 1. **Criar arquivo de tradução** em `src/i18n/locales/`:
+
    ```json
    // src/i18n/locales/es-ES.json
    {
@@ -240,9 +241,10 @@ Para adicionar um novo idioma:
    ```
 
 2. **Atualizar configuração** em `src/i18n/config.ts`:
+
    ```typescript
    import esES from './locales/es-ES.json';
-   
+
    i18n.init({
      resources: {
        'pt-BR': { translation: ptBR },
@@ -254,6 +256,7 @@ Para adicionar um novo idioma:
    ```
 
 3. **Adicionar opção no seletor** em `src/components/LanguageSelector.tsx`:
+
    ```typescript
    <option value="es-ES">{t('language.esES')}</option>
    ```
@@ -328,4 +331,3 @@ Alguns componentes ainda podem ter textos hardcoded. Verifique:
 ## Conclusão
 
 O sistema de internacionalização está funcional e permite traduzir o jogo para múltiplos idiomas. O sistema é extensível e fácil de manter, seguindo as melhores práticas do react-i18next.
-

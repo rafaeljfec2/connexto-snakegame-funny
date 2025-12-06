@@ -63,4 +63,3 @@ export interface PhaseType {
   chefId: string;
   config: PhaseConfig;
 }
-

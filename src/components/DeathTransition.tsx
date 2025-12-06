@@ -57,21 +57,13 @@ export function DeathTransition({ status, lives }: DeathTransitionProps) {
         <div className={styles.content}>
           <div className={styles.icon}>💀</div>
           <h2 className={styles.title}>{t('death.lifeLost')}</h2>
-          <p className={styles.message}>
-            {t('death.continuingIn', { seconds: countdown })}
-          </p>
+          <p className={styles.message}>{t('death.continuingIn', { seconds: countdown })}</p>
           <div className={styles.progressBar}>
-            <div
-              className={styles.progressFill}
-              style={{ width: `${progress}%` }}
-            />
+            <div className={styles.progressFill} style={{ width: `${progress}%` }} />
           </div>
-          <p className={styles.livesRemaining}>
-            {t('death.livesRemaining', { count: lives - 1 })}
-          </p>
+          <p className={styles.livesRemaining}>{t('death.livesRemaining', { count: lives - 1 })}</p>
         </div>
       </div>
     </div>
   );
 }
-

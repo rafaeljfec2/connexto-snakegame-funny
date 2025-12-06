@@ -32,4 +32,3 @@ export const PORTAL_CONFIG = {
     },
   },
 } as const;
-

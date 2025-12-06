@@ -50,16 +50,16 @@ export function PhaseIntroScreen({ phaseNumber, level, onComplete }: PhaseIntroS
     <div className={styles.overlay}>
       <div className={styles.container}>
         <div className={styles.phaseInfo}>
-          <div className={styles.phaseNumber}>{t('phase.phase')} {phaseNumber}</div>
+          <div className={styles.phaseNumber}>
+            {t('phase.phase')} {phaseNumber}
+          </div>
           <div className={styles.phaseName}>{t(`phases.${phaseKey}.name`)}</div>
           <div className={styles.phaseDescription}>{t(`phases.${phaseKey}.description`)}</div>
         </div>
 
         <div className={styles.countdownContainer}>
           <div
-            className={`${styles.countdown} ${
-              typeof countdown === 'string' ? styles.go : ''
-            }`}
+            className={`${styles.countdown} ${typeof countdown === 'string' ? styles.go : ''}`}
             key={countdown}
           >
             {countdown}
@@ -69,4 +69,3 @@ export function PhaseIntroScreen({ phaseNumber, level, onComplete }: PhaseIntroS
     </div>
   );
 }
-

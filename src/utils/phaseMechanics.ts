@@ -5,7 +5,10 @@ import { getCurrentPhase } from './phases';
 /**
  * Apply phase-specific rules and mechanics to the game state
  */
-export function applyPhaseRules(phaseConfig: PhaseConfig, gameState: GameState): Partial<GameState> {
+export function applyPhaseRules(
+  phaseConfig: PhaseConfig,
+  gameState: GameState,
+): Partial<GameState> {
   const updates: Partial<GameState> = {};
 
   // Speed modifier based on phase
@@ -107,4 +110,3 @@ export function applyPhaseMechanics(gameState: GameState): Partial<GameState> {
 
   return applyPhaseRules(phase.config, gameState);
 }
-

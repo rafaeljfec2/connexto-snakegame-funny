@@ -63,14 +63,14 @@ export function GameBoard({
           // Get available space (accounting for padding)
           const containerRect = container.getBoundingClientRect();
           const padding = 8; // Account for container padding (0.5rem = 8px)
-          const availableWidth = containerRect.width - (padding * 2);
-          const availableHeight = containerRect.height - (padding * 2);
-          
+          const availableWidth = containerRect.width - padding * 2;
+          const availableHeight = containerRect.height - padding * 2;
+
           // Calculate cell size to fit the grid (use the smaller dimension to maintain square)
           const calculatedCellSize = Math.floor(
-            Math.min(availableWidth, availableHeight) / GAME_CONFIG.gridSize
+            Math.min(availableWidth, availableHeight) / GAME_CONFIG.gridSize,
           );
-          
+
           // Ensure minimum cell size (at least 8px)
           const finalCellSize = Math.max(calculatedCellSize, 8);
           setCellSize(finalCellSize);

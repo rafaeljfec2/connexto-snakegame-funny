@@ -3,18 +3,21 @@
 ## ✅ Implementado
 
 ### 1. Sistema Base
+
 - ✅ Utilitário de logging (`src/utils/logger.ts`)
 - ✅ Instalação do Pino
 - ✅ Configuração para browser
 - ✅ Contextos organizados por área
 
 ### 2. useGameState
+
 - ✅ Logs de mudanças de estado
 - ✅ Logs de reset do jogo
 - ✅ Logs de pause/resume
 - ✅ Logs de inicialização
 
 ### 3. Componentes de Transição
+
 - ✅ `PhaseTransition` - logs de início e fim
 - ✅ `BossDefeatTransition` - logs de início e fim
 - ✅ `PhaseCompleteScreen` - logs de exibição
@@ -23,6 +26,7 @@
 ## 🚧 Pendente (Guias Criados)
 
 ### useGameLoop - Eventos Principais
+
 Os logs devem ser adicionados nos seguintes pontos (guia completo em `LOGGING_IMPLEMENTATION_GUIDE.md`):
 
 1. **Colisões** (linha ~665)
@@ -63,6 +67,7 @@ Os logs devem ser adicionados nos seguintes pontos (guia completo em `LOGGING_IM
    - Log de estatísticas finais
 
 ### Sistemas de Colisão e Combate
+
 - [ ] `src/utils/obstacleDestruction.ts` - logs de destruição de obstáculos
 - [ ] `src/utils/poison.ts` - logs de criação e impacto de poison
 - [ ] `src/utils/bossSnake.ts` - logs de enfraquecimento de boss
@@ -70,6 +75,7 @@ Os logs devem ser adicionados nos seguintes pontos (guia completo em `LOGGING_IM
 ## 📝 Notas
 
 Todos os guias de implementação estão em:
+
 - `LOGGING_IMPLEMENTATION_GUIDE.md` - Guia detalhado de implementação
 - `LOGGING_SYSTEM.md` - Documentação do sistema
 
@@ -101,4 +107,3 @@ if (ateFood) {
   // processar comida
 }
 ```
-

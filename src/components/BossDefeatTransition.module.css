@@ -7,11 +7,7 @@
   z-index: 3000;
   pointer-events: none;
   overflow: hidden;
-  background: radial-gradient(
-    circle at center,
-    rgba(0, 0, 0, 0.8) 0%,
-    rgba(0, 0, 0, 0.95) 100%
-  );
+  background: radial-gradient(circle at center, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.95) 100%);
 }
 
 .particleBackground {
@@ -54,7 +50,9 @@
   width: clamp(100px, 30vw, 200px);
   height: clamp(100px, 30vw, 200px);
   transform-origin: center center;
-  transition: transform 0.5s ease-out, opacity 0.5s ease-out;
+  transition:
+    transform 0.5s ease-out,
+    opacity 0.5s ease-out;
   pointer-events: none;
 }
 
@@ -107,7 +105,9 @@
   align-items: center;
   justify-content: center;
   gap: clamp(0.25rem, 1vh, 1rem);
-  transition: opacity 0.5s ease, transform 0.5s ease;
+  transition:
+    opacity 0.5s ease,
+    transform 0.5s ease;
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
@@ -157,7 +157,8 @@
 }
 
 @keyframes victoryPulse {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
   }
   50% {
@@ -171,7 +172,9 @@
   align-items: center;
   justify-content: center;
   gap: clamp(0.25rem, 1vh, 1rem);
-  transition: opacity 0.5s ease, transform 0.5s ease;
+  transition:
+    opacity 0.5s ease,
+    transform 0.5s ease;
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
@@ -213,7 +216,8 @@
 }
 
 @keyframes scoreGlow {
-  0%, 100% {
+  0%,
+  100% {
     text-shadow:
       0 0 clamp(10px, 2vw, 20px) rgba(0, 255, 0, 0.8),
       0 0 clamp(20px, 4vw, 40px) rgba(0, 255, 0, 0.6),
@@ -232,15 +236,15 @@
     gap: clamp(0.5rem, 2vh, 1rem);
     padding: clamp(0.5rem, 2vw, 0.75rem);
   }
-  
+
   .victoryText {
     gap: clamp(0.25rem, 1vh, 0.5rem);
   }
-  
+
   .results {
     gap: clamp(0.25rem, 1vh, 0.5rem);
   }
-  
+
   /* clamp() already handles mobile sizing, but we can add extra constraints */
   .victoryTitle {
     font-size: clamp(1.25rem, 7vw, 2.5rem); /* Smaller range for mobile */
@@ -266,7 +270,7 @@
     gap: clamp(0.4rem, 1.5vh, 0.75rem);
     padding: clamp(0.4rem, 1.5vw, 0.6rem);
   }
-  
+
   .victoryTitle {
     font-size: clamp(1rem, 6vw, 2rem); /* Even smaller for very small screens */
     letter-spacing: clamp(0.02em, 0.6vw, 0.1em);
@@ -284,4 +288,3 @@
     font-size: clamp(0.5625rem, 2vw, 0.875rem);
   }
 }
-

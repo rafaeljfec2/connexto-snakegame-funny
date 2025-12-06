@@ -71,7 +71,9 @@ export function LevelUpAnimation({ level, show, onAnimationEnd }: LevelUpAnimati
     <div className={styles.overlay}>
       <div className={`${styles.levelUp} ${isExiting ? styles.exiting : ''}`}>
         <div className={styles.levelUpTitle}>{t('levelUp.title')}</div>
-        <div className={styles.levelUpNumber}>{t('levelUp.level')} {level}</div>
+        <div className={styles.levelUpNumber}>
+          {t('levelUp.level')} {level}
+        </div>
       </div>
     </div>
   );

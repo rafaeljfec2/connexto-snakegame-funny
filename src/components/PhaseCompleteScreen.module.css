@@ -71,7 +71,8 @@
 }
 
 @keyframes textGlow {
-  0%, 100% {
+  0%,
+  100% {
     text-shadow:
       0 0 20px rgba(0, 217, 255, 0.8),
       0 0 40px rgba(0, 217, 255, 0.6),
@@ -109,7 +110,9 @@
   border-radius: 12px;
   padding: 1.5rem;
   text-align: center;
-  transition: transform 0.2s, border-color 0.2s;
+  transition:
+    transform 0.2s,
+    border-color 0.2s;
   animation: cardFloat 2s ease-in-out infinite;
 }
 
@@ -122,7 +125,8 @@
 }
 
 @keyframes cardFloat {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0);
   }
   50% {
@@ -174,7 +178,8 @@
 }
 
 @keyframes buttonPulse {
-  0%, 100% {
+  0%,
+  100% {
     box-shadow:
       0 4px 15px rgba(0, 217, 255, 0.4),
       inset 0 0 20px rgba(255, 255, 255, 0.1);
@@ -230,4 +235,3 @@
     font-size: 1.2rem;
   }
 }
-

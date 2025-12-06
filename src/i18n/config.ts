@@ -13,35 +13,32 @@ const getInitialLanguage = (): string => {
 
   // Fallback to browser language
   const browserLang = navigator.language || navigator.languages?.[0] || 'en';
-  
+
   // Map browser language to supported languages
   if (browserLang.startsWith('pt')) {
     return 'pt-BR';
   }
-  
+
   return 'en-US';
 };
 
-i18n
-  .use(initReactI18next)
-  .init({
-    resources: {
-      'pt-BR': {
-        translation: ptBR,
-      },
-      'en-US': {
-        translation: enUS,
-      },
+i18n.use(initReactI18next).init({
+  resources: {
+    'pt-BR': {
+      translation: ptBR,
     },
-    lng: getInitialLanguage(),
-    fallbackLng: 'en-US',
-    interpolation: {
-      escapeValue: false, // React already escapes values
+    'en-US': {
+      translation: enUS,
     },
-    react: {
-      useSuspense: false,
-    },
-  });
+  },
+  lng: getInitialLanguage(),
+  fallbackLng: 'en-US',
+  interpolation: {
+    escapeValue: false, // React already escapes values
+  },
+  react: {
+    useSuspense: false,
+  },
+});
 
 export default i18n;
-

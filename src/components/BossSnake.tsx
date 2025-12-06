@@ -53,4 +53,3 @@ export function BossSnake({ bossSnake, boss }: BossSnakeProps) {
     </>
   );
 }
-

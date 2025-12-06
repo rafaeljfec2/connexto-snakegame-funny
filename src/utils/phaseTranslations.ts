@@ -18,4 +18,3 @@ export function getPhaseTranslationKey(phaseType: PhaseLevelType): string {
   };
   return phaseKeyMap[phaseType] ?? 'classicSnake';
 }
-

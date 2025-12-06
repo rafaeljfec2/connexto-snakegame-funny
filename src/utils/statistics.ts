@@ -1,4 +1,9 @@
-import { GameStatistics, GameSession, StatisticsHistory, GameStatisticsTracking } from '@/types/statistics';
+import {
+  GameStatistics,
+  GameSession,
+  StatisticsHistory,
+  GameStatisticsTracking,
+} from '@/types/statistics';
 import { GameState, FoodType } from '@/types/game';
 
 const STORAGE_KEY = 'snake-game-statistics';

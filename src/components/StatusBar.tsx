@@ -39,7 +39,9 @@ export function StatusBar({ length, lives, level }: StatusBarProps) {
                   <span
                     key={index}
                     className={`${styles.lifeDot} ${index < lives ? styles.lifeActive : styles.lifeInactive}`}
-                    aria-label={index < lives ? t('statusBar.lifeRemaining') : t('statusBar.lifeLost')}
+                    aria-label={
+                      index < lives ? t('statusBar.lifeRemaining') : t('statusBar.lifeLost')
+                    }
                   />
                 ))}
               </div>
@@ -55,8 +57,13 @@ export function StatusBar({ length, lives, level }: StatusBarProps) {
           <div className={styles.statusItem}>
             <span className={styles.statusIcon}>⭐</span>
             <div className={styles.statusContent}>
-              <span className={styles.statusLabel}>{t('common.phase')} {phaseNumber}</span>
-              <span className={`${styles.statusValue} ${styles.phaseName}`} title={t(`phases.${getPhaseTranslationKey(phase.type)}.name`)}>
+              <span className={styles.statusLabel}>
+                {t('common.phase')} {phaseNumber}
+              </span>
+              <span
+                className={`${styles.statusValue} ${styles.phaseName}`}
+                title={t(`phases.${getPhaseTranslationKey(phase.type)}.name`)}
+              >
                 {t(`phases.${getPhaseTranslationKey(phase.type)}.name`)}
               </span>
             </div>

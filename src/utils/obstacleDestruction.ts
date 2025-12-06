@@ -98,9 +98,7 @@ export function destroyObstaclesAtPositions(
 ): ObstacleDestructionResult {
   // Find obstacles at specified positions
   const obstaclesToDestroy = obstacles.filter((obstacle) =>
-    positions.some(
-      (pos) => pos.x === obstacle.position.x && pos.y === obstacle.position.y,
-    ),
+    positions.some((pos) => pos.x === obstacle.position.x && pos.y === obstacle.position.y),
   );
 
   return destroyObstacles(obstacles, obstaclesToDestroy, existingParticles);
@@ -118,4 +116,3 @@ export function canDestroyObstacle(obstacle: Obstacle): boolean {
   // Future: could add invincible obstacles, etc.
   return true;
 }
-

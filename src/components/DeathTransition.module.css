@@ -62,7 +62,8 @@
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0.3;
   }
   50% {
@@ -83,7 +84,8 @@
 }
 
 @keyframes float {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0) rotate(0deg);
   }
   50% {
@@ -134,7 +136,8 @@
 }
 
 @keyframes pulseCountdown {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
   }
   50% {
@@ -162,7 +165,8 @@
 }
 
 @keyframes progressGlow {
-  0%, 100% {
+  0%,
+  100% {
     box-shadow: 0 0 10px rgba(220, 38, 38, 0.6);
   }
   50% {
@@ -198,4 +202,3 @@
     font-size: 1.25rem;
   }
 }
-

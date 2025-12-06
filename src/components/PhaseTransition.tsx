@@ -87,8 +87,12 @@ export function PhaseTransition({ phaseNumber, level, onComplete }: PhaseTransit
             opacity: progress >= 30 && progress <= 70 ? 1 : 0,
           }}
         >
-          <div className={styles.phaseNumber}>{t('phase.phase')} {phaseNumber}</div>
-          <div className={styles.phaseName}>{t(`phases.${getPhaseTranslationKey(phase.type)}.name`)}</div>
+          <div className={styles.phaseNumber}>
+            {t('phase.phase')} {phaseNumber}
+          </div>
+          <div className={styles.phaseName}>
+            {t(`phases.${getPhaseTranslationKey(phase.type)}.name`)}
+          </div>
         </div>
       )}
     </div>

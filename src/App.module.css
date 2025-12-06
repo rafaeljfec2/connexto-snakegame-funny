@@ -624,25 +624,34 @@
     flex-shrink: 0;
   }
 
-  /* StatusBar visible on mobile - Above game container */
+  /* MobileFloatingInfo - Position absolute, doesn't affect flow */
+  .gameArea > :global(.mobileFloatingInfo) {
+    order: 0 !important; /* Doesn't interfere with layout */
+    position: absolute !important;
+    z-index: 100;
+  }
+
+  /* GameContainer order first - Centered, appears at top */
+  .gameArea > .gameContainer {
+    order: 1 !important; /* Force first position - appears at top */
+    flex: 0 0 auto !important; /* Maintain size, don't grow */
+    min-height: 0;
+    margin: 0 auto !important; /* Ensure centered */
+    position: relative !important;
+  }
+
+  /* StatusBar visible on mobile - Below game container (at the bottom/footer) */
   .gameArea > :global(.statusBar) {
     display: flex !important;
     visibility: visible !important;
     opacity: 1 !important;
-    margin: 0 auto 0.5rem auto;
-    order: 1; /* Show before game container */
-    flex-shrink: 0;
-    width: min(95%, calc(100vw - 1rem));
-    max-width: min(95%, calc(100vw - 1rem));
+    margin: 0.5rem auto 0 auto !important; /* Spacing above StatusBar */
+    order: 2 !important; /* Force after game container - appears at bottom */
+    flex-shrink: 0 !important;
+    width: min(95%, calc(100vw - 1rem)) !important;
+    max-width: min(95%, calc(100vw - 1rem)) !important;
     box-sizing: border-box;
-  }
-
-  /* GameContainer order after StatusBar - Centered */
-  .gameArea > .gameContainer {
-    order: 2; /* Show after status bar */
-    flex: 0 0 auto; /* Maintain size, don't grow */
-    min-height: 0;
-    margin: 0 auto; /* Ensure centered */
+    position: relative !important; /* Ensure normal flow */
   }
 
   /* Hide StatusMessage and Controls on mobile - they're redundant */
@@ -693,12 +702,19 @@
     border-radius: 10px;
   }
 
-  /* StatusBar - More compact, match game container width */
+  /* StatusBar - More compact, match game container width, at the bottom */
   .gameArea > :global(.statusBar) {
-    width: min(98%, calc(100vw - 0.8rem));
-    max-width: min(98%, calc(100vw - 0.8rem));
-    margin: 0 auto 0.4rem auto;
+    width: min(98%, calc(100vw - 0.8rem)) !important;
+    max-width: min(98%, calc(100vw - 0.8rem)) !important;
+    margin: 0.4rem auto 0 auto !important; /* Spacing above StatusBar */
     box-sizing: border-box;
+    order: 2 !important; /* Force after game container (at the bottom) */
+    position: relative !important;
+  }
+
+  /* GameContainer at the top on small screens */
+  .gameArea > .gameContainer {
+    order: 1 !important; /* Force before StatusBar */
   }
 
   /* Ultra Compact Stats */

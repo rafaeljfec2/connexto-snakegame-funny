@@ -19,11 +19,11 @@ Contém todas as funções genéricas para destruição de obstáculos:
 ```typescript
 OBSTACLE_DESTRUCTION_CONFIG = {
   particles: {
-    count: 8,        // Número de partículas
+    count: 8, // Número de partículas
     color: '#ef4444', // Cor vermelha
-    lifetime: 400,    // Tempo de vida em ms
-  }
-}
+    lifetime: 400, // Tempo de vida em ms
+  },
+};
 ```
 
 **IMPORTANTE**: Esta configuração é a mesma para **TODOS** os tipos de destruição no jogo.
@@ -59,6 +59,7 @@ const destructionResult = destroyObstacles(
 ```
 
 **Comportamento**:
+
 - Poison shot atinge obstáculo
 - Obstáculo é destruído usando sistema genérico
 - Partículas de destruição são criadas
@@ -98,11 +99,7 @@ destroyObstacles(
 
 ```typescript
 // Destruir obstáculos por referência
-const result = destroyObstacles(
-  currentObstacles,
-  [obstacle1, obstacle2],
-  currentParticles,
-);
+const result = destroyObstacles(currentObstacles, [obstacle1, obstacle2], currentParticles);
 
 // Destruir obstáculos por ID
 const result = destroyObstacles(
@@ -121,7 +118,10 @@ newParticles = result.particles;
 ```typescript
 const result = destroyObstaclesAtPositions(
   currentObstacles,
-  [{ x: 10, y: 15 }, { x: 11, y: 15 }],
+  [
+    { x: 10, y: 15 },
+    { x: 11, y: 15 },
+  ],
   currentParticles,
 );
 ```
@@ -131,6 +131,7 @@ const result = destroyObstaclesAtPositions(
 ### `canDestroyObstacle(obstacle: Obstacle): boolean`
 
 Atualmente retorna `true` para todos os obstáculos. Futuramente pode ser estendido para:
+
 - Obstáculos invencíveis
 - Obstáculos que requerem múltiplos hits
 - Obstáculos especiais
@@ -166,6 +167,7 @@ src/hooks/useGameLoop.ts
 ## Futuras Expansões
 
 O sistema genérico permite fácil expansão para:
+
 - Diferentes tipos de destruição (explosão, laser, etc.)
 - Obstáculos com diferentes resistências
 - Efeitos visuais customizados por tipo
@@ -175,4 +177,3 @@ O sistema genérico permite fácil expansão para:
 ## Conclusão
 
 O sistema de destruição de obstáculos é **completamente genérico e padronizado**. Qualquer mecanismo que destrua obstáculos deve usar as funções em `src/utils/obstacleDestruction.ts` para garantir consistência física e visual em todo o jogo.
-

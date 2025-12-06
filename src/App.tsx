@@ -396,11 +396,6 @@ function App() {
             lives={gameState.lives}
             level={gameState.level}
           />
-          <StatusBar
-            length={gameState.snake.length}
-            lives={gameState.lives}
-            level={gameState.level}
-          />
           <div className={styles.gameContainer}>
             <GameBoard
               snake={gameState.snake}
@@ -416,6 +411,11 @@ function App() {
               guardianFlag={gameState.guardianFlag}
             />
           </div>
+          <StatusBar
+            length={gameState.snake.length}
+            lives={gameState.lives}
+            level={gameState.level}
+          />
 
           <div className={styles.gameControls}>
             <GameControls
@@ -485,13 +485,11 @@ function App() {
       {gameState.status === GameStatus.PHASE_COMPLETE && (
         <PhaseCompleteScreen
           phaseNumber={getPhaseNumber(gameState.level)}
-          phaseName={
-            (() => {
-              const phase = getCurrentPhase(gameState.level);
-              if (!phase) return t('phase.complete');
-              return t(`phases.${getPhaseTranslationKey(phase.type)}.name`);
-            })()
-          }
+          phaseName={(() => {
+            const phase = getCurrentPhase(gameState.level);
+            if (!phase) return t('phase.complete');
+            return t(`phases.${getPhaseTranslationKey(phase.type)}.name`);
+          })()}
           statistics={calculatePhaseStatistics(
             gameState,
             gameState.phaseStartSnapshot ?? createPhaseStartSnapshot(gameState),

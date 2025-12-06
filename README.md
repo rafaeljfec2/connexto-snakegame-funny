@@ -236,6 +236,7 @@ Ajuste as configurações em `src/constants/game.ts`:
 ### Configurações de Fases
 
 Edite `src/constants/phases.ts` para modificar:
+
 - Nomes e descrições das fases
 - Configurações de cada fase (obstáculos, portais, power-ups)
 - Bosses e suas habilidades
@@ -269,6 +270,7 @@ O jogo é totalmente responsivo e otimizado para dispositivos móveis:
 ## 🐛 Debug Mode
 
 Pressione **F1** ou **Ctrl+D** durante o jogo para abrir o painel de debug de bosses. Permite:
+
 - Selecionar qualquer boss para testar
 - Visualizar informações dos bosses
 - Ativar/remover bosses durante o jogo

@@ -25,13 +25,17 @@ export function PhaseDisplay({ level, currentPhase }: PhaseDisplayProps) {
   return (
     <div className={styles.phaseDisplay}>
       <div className={styles.phaseHeader}>
-        <span className={styles.phaseLabel}>{t('phaseDisplay.phase')} {phaseNumber}</span>
+        <span className={styles.phaseLabel}>
+          {t('phaseDisplay.phase')} {phaseNumber}
+        </span>
         <span className={styles.phaseName}>{t(`phases.${phaseKey}.name`)}</span>
       </div>
       <div className={styles.progressBar}>
         <div className={styles.progressFill} style={{ width: `${progress * 100}%` }} />
       </div>
-      <div className={styles.levelInfo}>{t('phaseDisplay.levelInPhase', { current: levelInPhase })}</div>
+      <div className={styles.levelInfo}>
+        {t('phaseDisplay.levelInPhase', { current: levelInPhase })}
+      </div>
     </div>
   );
 }

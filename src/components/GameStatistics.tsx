@@ -58,7 +58,9 @@ export function GameStatistics({ statistics, onClose }: GameStatisticsProps) {
             </div>
             <div className={`${styles.statCard} ${styles.statCard3}`}>
               <div className={styles.statIcon}>⭐</div>
-              <div className={styles.statValue}>{t('common.level')} {statistics.level}</div>
+              <div className={styles.statValue}>
+                {t('common.level')} {statistics.level}
+              </div>
               <div className={styles.statLabel}>{t('statistics.levelReached')}</div>
             </div>
             <div className={`${styles.statCard} ${styles.statCard4}`}>

@@ -828,16 +828,28 @@ export function useGameLoop() {
         forcedFoodTypeRef.current = null;
       }
 
-      // Calculate level from score, but preserve explicit level if score is 0 and we have a currentPhase set
-      // This handles the debug case where we set a specific phase but score is reset to 0
+      // Calculate level from score, but preserve explicit level when phase was explicitly set
+      // This handles the debug case and phase changes where level should start from phase beginning
       // Only recalculate if score changed (optimization)
       let newLevel = prev.level;
       if (newScore !== prev.score) {
-        newLevel = calculateLevel(newScore);
-        if (newLevel === 1 && newScore === 0 && prev.currentPhase && prev.level > 1) {
-          // If score is 0, level calculated would be 1, but we want to preserve the debug-selected level
-          // Only do this if we have an explicit currentPhase set and the level was explicitly set
+        const calculatedLevel = calculateLevel(newScore);
+
+        // Preserve level if:
+        // 1. Score is 0 and we have an explicit phase set (debug mode)
+        // 2. Current level is at the start of a phase (level % 5 === 1 or level === 1) and phase was recently set
+        // This ensures that when changing phases, level starts from the beginning of that phase
+        const isPhaseStartLevel = prev.level % 5 === 1 || prev.level === 1;
+        const shouldPreserveLevel =
+          (newScore === 0 && prev.currentPhase && prev.level > 1) ||
+          (isPhaseStartLevel && prev.currentPhase && calculatedLevel < prev.level);
+
+        if (shouldPreserveLevel) {
+          // Preserve the explicitly set level (from phase change or debug)
           newLevel = prev.level;
+        } else {
+          // Normal progression: calculate level from score
+          newLevel = calculatedLevel;
         }
       }
 

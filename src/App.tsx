@@ -632,20 +632,50 @@ function App() {
                 // Set level to first level of next phase
                 const nextSpeed = calculateGameSpeed(nextPhaseStartLevel);
 
+                // Reset snake and food for new phase
+                const initialSnake = INITIAL_SNAKE_POSITION;
+                const initialFood = generateRandomFood(
+                  initialSnake,
+                  GAME_CONFIG.gridSize,
+                  [], // No obstacles at phase start
+                );
+
                 // Create snapshot BEFORE updating level (for next phase tracking)
                 const nextPhaseSnapshot = createPhaseStartSnapshot({
                   ...prev,
                   level: nextPhaseStartLevel,
+                  snake: initialSnake,
                 });
 
                 return {
                   ...prev,
-                  level: nextPhaseStartLevel,
+                  snake: initialSnake,
+                  food: initialFood,
+                  direction: INITIAL_DIRECTION,
+                  nextDirection: INITIAL_DIRECTION,
+                  level: nextPhaseStartLevel, // Reset to first level of new phase
                   gameSpeed: nextSpeed,
                   status: GameStatus.PHASE_INTRO,
                   currentPhase: nextPhase?.id,
                   phaseLevelType: nextPhase?.type,
                   phaseStartSnapshot: nextPhaseSnapshot,
+                  // Reset game elements for fresh phase start
+                  obstacles: [],
+                  portals: [],
+                  activeBoss: undefined,
+                  bossSnake: undefined,
+                  activePowerUps: [],
+                  poisonShots: [],
+                  particles: [],
+                  guardianFlag: null,
+                  guardianFlagSide: undefined,
+                  combo: {
+                    count: 0,
+                    multiplier: 1,
+                    lastFoodTime: 0,
+                  },
+                  isSpeedBoosted: false,
+                  isFiringPoison: false,
                 };
               });
             } else {

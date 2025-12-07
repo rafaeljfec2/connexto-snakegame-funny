@@ -9,11 +9,12 @@ const logger = createLogger(LogContext.TRANSITION);
 interface DeathTransitionProps {
   status: GameStatus;
   lives: number;
+  onComplete?: () => void;
 }
 
 const TRANSITION_DURATION = 3000; // 3 seconds
 
-export function DeathTransition({ status, lives }: DeathTransitionProps) {
+export function DeathTransition({ status, lives, onComplete }: DeathTransitionProps) {
   const { t } = useTranslation();
   const [countdown, setCountdown] = useState(3);
   const [progress, setProgress] = useState(0);
@@ -37,6 +38,7 @@ export function DeathTransition({ status, lives }: DeathTransitionProps) {
         if (remaining <= 0) {
           clearInterval(interval);
           logger.info({ livesRemaining: lives - 1 }, 'Death transition completed');
+          onComplete?.();
         }
       }, 50); // Update every 50ms for smooth animation
 
@@ -45,7 +47,7 @@ export function DeathTransition({ status, lives }: DeathTransitionProps) {
       setCountdown(3);
       setProgress(0);
     }
-  }, [status, lives, logger]);
+  }, [status, lives, logger, onComplete]);
 
   if (status !== GameStatus.DYING || lives <= 0) {
     return null;

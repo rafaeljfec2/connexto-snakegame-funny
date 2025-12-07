@@ -132,7 +132,23 @@ export const GameBoard = memo(function GameBoard({
       };
 
   const previousLevelRef = useRef(level);
+  const previousFoodKeyRef = useRef(`${food.position.x}-${food.position.y}-${food.type}`);
   const [isLevelUp, setIsLevelUp] = useState(false);
+  const [isEating, setIsEating] = useState(false);
+
+  // Detect food eaten (head eating animation)
+  useEffect(() => {
+    const currentFoodKey = `${food.position.x}-${food.position.y}-${food.type}`;
+    const foodChanged = currentFoodKey !== previousFoodKeyRef.current;
+
+    // Food was eaten if position changed OR type changed while playing
+    if (foodChanged && status === GameStatus.PLAYING && snake.length > 0) {
+      setIsEating(true);
+      setTimeout(() => setIsEating(false), 200); // Shorter duration for snappy feel
+    }
+
+    previousFoodKeyRef.current = currentFoodKey;
+  }, [food.position, food.type, status, snake.length]);
 
   // Detect level up for board animation
   useEffect(() => {
@@ -211,6 +227,7 @@ export const GameBoard = memo(function GameBoard({
           cellSize={cellSize}
           isMobile={isMobile}
           gridSize={GAME_CONFIG.gridSize}
+          isEating={isEating}
         />
 
         <Food key={foodKey} food={food} />

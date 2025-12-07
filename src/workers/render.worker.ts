@@ -8,7 +8,6 @@ let ctx: OffscreenCanvasRenderingContext2D | null = null;
 let width = 0;
 let height = 0;
 let dpr = 1;
-let animationFrameId: number;
 
 // Game State
 let snake: Position[] = [];
@@ -25,6 +24,9 @@ let isMobile = false;
 // Animation State
 const growthAnims = new Map<number, number>(); // index -> progress
 let headPulseAnim = 0;
+let lastTongueFlick = 0;
+let nextTongueFlick = 0;
+let tongueProgress = 0;
 
 // Helper to interpolate
 // Helper to darken hex color
@@ -133,6 +135,36 @@ const drawSnakeSegment = (
 
   // Eyes for Head
   if (isHead && !isBoss) {
+    // Tongue Animation
+    if (tongueProgress > 0.1) {
+        ctx.save();
+        const tLength = radius * 1.2 * tongueProgress;
+        const tWidth = radius * 0.15;
+        
+        ctx.beginPath();
+        ctx.strokeStyle = '#ef4444'; // Red
+        ctx.lineWidth = tWidth;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        
+        // Main tongue stem
+        ctx.moveTo(radius * 0.5, 0); // Start slightly inside head
+        ctx.lineTo(radius + tLength, 0);
+        
+        // Fork
+        const forkLen = radius * 0.4 * tongueProgress;
+        const forkSpread = radius * 0.3 * tongueProgress;
+        
+        ctx.moveTo(radius + tLength, 0);
+        ctx.lineTo(radius + tLength + forkLen, -forkSpread);
+        
+        ctx.moveTo(radius + tLength, 0);
+        ctx.lineTo(radius + tLength + forkLen, forkSpread);
+        
+        ctx.stroke();
+        ctx.restore();
+    }
+
     ctx.shadowColor = 'transparent';
     const eyeRadius = radius * 0.35;
     const eyeOffset = radius * 0.4;
@@ -194,6 +226,18 @@ const render = () => {
   const now = performance.now();
   const elapsed = now - lastUpdate;
   const t = Math.min(Math.max(elapsed / speed, 0), 1);
+
+  // Tongue Logic
+  if (now > nextTongueFlick) {
+      lastTongueFlick = now;
+      nextTongueFlick = now + 500 + Math.random() * 1500;
+  }
+  const flickDur = 200;
+  if (now - lastTongueFlick < flickDur) {
+      tongueProgress = Math.sin(((now - lastTongueFlick) / flickDur) * Math.PI);
+  } else {
+      tongueProgress = 0;
+  }
 
   // Clear
   ctx.clearRect(0, 0, width, height);
@@ -272,7 +316,7 @@ const render = () => {
      drawShot(shot, cellSize);
   });
 
-  animationFrameId = requestAnimationFrame(render);
+  requestAnimationFrame(render);
 };
 
 self.onmessage = (e: MessageEvent) => {

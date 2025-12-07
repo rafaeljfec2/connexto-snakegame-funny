@@ -66,6 +66,7 @@ let gameState: GameState | null = null;
 let gameLoopId: number | null = null;
 let lastUpdateTime = 0;
 let lastObstacleSpawnTime = 0;
+let lastPoisonFireTime = 0;
 let forcedFoodType: FoodType | null = null;
 let bossAbilityCooldowns = new Map<string, number>();
 let pendingPoisonShots: import('@/types/game').PoisonShot[] = [];
@@ -180,6 +181,7 @@ self.onmessage = (e: MessageEvent) => {
       break;
 
     case 'FIRE_POISON':
+      console.log('[GameWorker] FIRE_POISON received');
       if (gameState && gameState.status === GameStatus.PLAYING) {
         // Add a poison shot to pending list
         const headPosition = gameState.snake[0];
@@ -978,10 +980,17 @@ function updateGame(currentTime: number) {
     }
   }
 
-  // Poison Shots
-  if (gameState.isFiringPoison && !pendingPoisonShots.some((p) => p.spawnTime === currentTime)) {
-    // Interval logic handled in loop or simplified here if needed
-    // Main thread sends FIRE_POISON event, so we trust pendingPoisonShots
+  // Poison Shots Auto-Fire
+  if (gameState.isFiringPoison) {
+    const fireInterval = POISON_CONFIG.fireInterval ?? 200;
+    if (currentTime - lastPoisonFireTime >= fireInterval) {
+      const headPosition = gameState.snake[0];
+      if (headPosition) {
+        const newShot = createPoisonShot(headPosition, gameState.direction);
+        pendingPoisonShots.push(newShot);
+        lastPoisonFireTime = currentTime;
+      }
+    }
   }
 
   // Merge pending shots

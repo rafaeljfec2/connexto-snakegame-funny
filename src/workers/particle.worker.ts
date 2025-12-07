@@ -13,7 +13,18 @@ interface Particle {
   size: number;
 }
 
+// External entities (like poison shots) to be rendered
+interface ExternalEntity {
+  x: number;
+  y: number;
+  color: string;
+  size: number;
+  type: 'rect' | 'circle';
+  glow?: boolean;
+}
+
 let particles: Particle[] = [];
+let externalEntities: ExternalEntity[] = [];
 let ctx: OffscreenCanvasRenderingContext2D | null = null;
 let width = 0;
 let height = 0;
@@ -36,6 +47,7 @@ selfWorker.onmessage = (e: MessageEvent) => {
       break;
 
     case 'RESIZE':
+      console.log('[ParticleWorker] RESIZE received:', payload.width, payload.height);
       width = payload.width;
       height = payload.height;
       if (ctx && ctx.canvas) {
@@ -47,6 +59,14 @@ selfWorker.onmessage = (e: MessageEvent) => {
     case 'SPAWN':
       // Payload: { x, y, color, count, size, speed }
       spawnParticles(payload);
+      break;
+
+    case 'UPDATE_ENTITIES':
+      // Payload: { entities: ExternalEntity[] }
+      // This allows the main thread to push renderable objects to this worker
+      if (payload.entities) {
+        externalEntities = payload.entities;
+      }
       break;
   }
 };
@@ -107,7 +127,42 @@ function render() {
   // Clear canvas
   ctx.clearRect(0, 0, width, height);
 
-  // Draw particles
+  // 1. Draw External Entities (like Poison Shots)
+  // We draw them first or last depending on desired z-order.
+  // Drawing them here (before particles) puts them "under" explosions
+  if (externalEntities.length > 0) {
+     // console.log('[ParticleWorker] Rendering entities:', externalEntities.length); // Uncomment sparingly
+  }
+  for (const entity of externalEntities) {
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = entity.color;
+
+    // Add glow effect if requested (expensive, use sparingly)
+    if (entity.glow) {
+      ctx.shadowBlur = 10;
+      ctx.shadowColor = entity.color;
+    } else {
+      ctx.shadowBlur = 0;
+    }
+
+    ctx.beginPath();
+    if (entity.type === 'circle') {
+      ctx.arc(entity.x, entity.y, entity.size / 2, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      ctx.fillRect(
+        entity.x - entity.size / 2,
+        entity.y - entity.size / 2,
+        entity.size,
+        entity.size,
+      );
+    }
+  }
+
+  // Reset shadow for particles
+  ctx.shadowBlur = 0;
+
+  // 2. Draw particles
   for (const p of particles) {
     const opacity = Math.max(0, p.life / p.maxLife);
 
@@ -115,7 +170,7 @@ function render() {
     ctx.fillStyle = p.color;
 
     ctx.beginPath();
-    // Draw squares instead of circles for raw performance
+    // Draw squares instead of circles for raw performance on particles
     ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
   }
 }

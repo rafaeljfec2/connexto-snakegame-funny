@@ -1,5 +1,6 @@
 import { useEffect, useRef, memo } from 'react';
 import { GAME_CONFIG } from '@/constants/game';
+import { PoisonShot } from '@/types/game';
 
 // Define the event type for TypeScript
 declare global {
@@ -15,24 +16,42 @@ declare global {
   }
 }
 
-export const ParticleSystem = memo(function ParticleSystem() {
+interface ParticleSystemProps {
+  poisonShots?: PoisonShot[];
+  gridSize?: number;
+}
+
+export const ParticleSystem = memo(function ParticleSystem({ poisonShots, gridSize = GAME_CONFIG.gridSize }: ParticleSystemProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const workerRef = useRef<Worker | null>(null);
+  const containerRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
-    if (!GAME_CONFIG.enableParticles || !canvasRef.current) return;
+    console.log('[ParticleSystem] Mounting...');
+    // Remove check for GAME_CONFIG.enableParticles here to allow poison shots rendering
+    // We still need the canvas ref though
+    if (!canvasRef.current) {
+      console.error('[ParticleSystem] No canvas ref!');
+      return;
+    }
 
+    console.log('[ParticleSystem] Initializing Worker...');
     // Initialize Worker
     workerRef.current = new Worker(new URL('../workers/particle.worker.ts', import.meta.url), {
       type: 'module',
     });
 
+    workerRef.current.onerror = (e) => {
+        console.error('[ParticleSystem] Worker Error:', e);
+    };
+
     const canvas = canvasRef.current;
     const container = canvas.parentElement;
+    containerRef.current = container;
 
     // Support for OffscreenCanvas is required for this optimization
     if (!canvas.transferControlToOffscreen) {
-      console.warn('OffscreenCanvas not supported, particles disabled');
+      console.warn('[ParticleSystem] OffscreenCanvas not supported, particles disabled');
       return;
     }
 
@@ -66,6 +85,9 @@ export const ParticleSystem = memo(function ParticleSystem() {
 
       // Only add resize listener if initialization was successful
       window.addEventListener('resize', updateSize);
+      
+      // Force an update after a short delay to ensure layout is settled
+      setTimeout(updateSize, 100);
     } catch (err) {
       // In React Strict Mode or during HMR, this effect might run twice on the same canvas
       // We ignore the error if the control has already been transferred
@@ -74,13 +96,16 @@ export const ParticleSystem = memo(function ParticleSystem() {
 
     // Event Listener for spawning particles from anywhere in the game
     const handleSpawn = (e: CustomEvent) => {
+      // ONLY spawn particles if enabled in config
+      if (!GAME_CONFIG.enableParticles) return;
+      
       if (!container) return;
 
       const { x, y, color, count, size, lifetime } = e.detail;
 
       // Convert Grid Coordinates to Pixel Coordinates
       const rect = container.getBoundingClientRect();
-      const cellSize = rect.width / GAME_CONFIG.gridSize;
+      const cellSize = rect.width / gridSize;
 
       const pixelX = x * cellSize + cellSize / 2;
       const pixelY = y * cellSize + cellSize / 2;
@@ -106,9 +131,41 @@ export const ParticleSystem = memo(function ParticleSystem() {
       window.removeEventListener('game-spawn-particles', handleSpawn);
       workerRef.current?.terminate();
     };
-  }, []);
+  }, [gridSize]);
 
-  if (!GAME_CONFIG.enableParticles) return null;
+  // Sync external entities (like poison shots) with the worker
+  useEffect(() => {
+    if (!poisonShots || !containerRef.current || !workerRef.current) return;
+
+    const container = containerRef.current;
+    const rect = container.getBoundingClientRect();
+    const cellSize = rect.width / gridSize;
+
+    // DEBUG LOG
+    if (poisonShots.length > 0) {
+        console.log(`[ParticleSystem] Syncing ${poisonShots.length} shots. CellSize: ${cellSize}, Container W: ${rect.width}`);
+        console.log(`[ParticleSystem] First shot pos:`, poisonShots[0].position);
+    }
+
+    // Transform game entities to renderable format
+    const entities = poisonShots.map(shot => ({
+      x: shot.position.x * cellSize + cellSize / 2,
+      y: shot.position.y * cellSize + cellSize / 2,
+      color: '#10b981', // Poison Green
+      size: cellSize * 0.6, // Slightly smaller than grid cell
+      type: 'circle',
+      glow: true
+    }));
+
+    workerRef.current.postMessage({
+      type: 'UPDATE_ENTITIES',
+      payload: { entities }
+    });
+
+  }, [poisonShots, gridSize]);
+
+  // Removed the early return based on enableParticles
+  // if (!GAME_CONFIG.enableParticles) return null;
 
   return (
     <canvas

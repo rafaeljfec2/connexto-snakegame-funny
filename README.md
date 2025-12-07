@@ -2,12 +2,15 @@
 
 Um jogo Snake moderno e completo desenvolvido com React, TypeScript e Vite. Interface moderna, responsiva, totalmente internacionalizada e com sistema de progressão complexo incluindo fases, bosses, power-ups, efeitos climáticos visuais e muito mais.
 
+**Agora com arquitetura multi-thread de alta performance (60 FPS no Mobile)!**
+
 ## 🚀 Tecnologias
 
 - **React 18** - Biblioteca UI
 - **TypeScript** - Tipagem estática
 - **Vite** - Build tool rápido
-- **Vitest** - Framework de testes
+- **Web Workers** - Processamento paralelo (Lógica, Renderização, Clima, Partículas)
+- **OffscreenCanvas** - Renderização gráfica fora da thread principal
 - **CSS Modules** - Estilização escopada
 - **i18next & react-i18next** - Sistema de internacionalização
 - **Pino** - Sistema de logging estruturado
@@ -40,8 +43,9 @@ npm install
    - **F3** ou **Ctrl+F**: Abrir painel de debug de fases
 
 3. **Controles Mobile:**
-   - **Joystick Analógico** (esquerda): Controle a direção da cobra
+   - **Joystick Analógico** (esquerda): Controle preciso de direção
    - **Botão FIRE** (direita): Dispara veneno para destruir obstáculos e bosses
+   - **Feedback Tátil**: Vibração ao interagir
    - Controles sempre visíveis e otimizados para touch
 
 4. **Objetivo:**
@@ -65,12 +69,7 @@ npm install
 - Detecção automática do idioma do navegador
 - Persistência da preferência de idioma no localStorage
 - Seletor de idioma na interface (oculto no mobile)
-- Todas as strings do jogo traduzidas:
-  - Nomes e descrições de fases
-  - Nomes e descrições de bosses
-  - Power-ups e suas descrições
-  - Mensagens de UI e transições
-  - Estatísticas e conquistas
+- Todas as strings do jogo traduzidas
 
 ### 🌦️ Sistema de Efeitos Climáticos
 
@@ -132,12 +131,7 @@ Cada fase possui um boss único com habilidades especiais:
 - Tempo de jogo
 - Nível alcançado
 - Fase alcançada
-- Tamanho máximo da cobra
-- Combo máximo
-- Comida consumida (por tipo)
-- Obstáculos encontrados
-- Vidas perdidas
-- Estatísticas por fase
+- Estatísticas detalhadas ao final do jogo
 
 ### 🎨 Interface
 
@@ -145,33 +139,27 @@ Cada fase possui um boss único com habilidades especiais:
 - **Totalmente Responsiva** - Otimizado para desktop, tablet e mobile
 - **Controles Touch Avançados** - Joystick analógico e botão de fogo para mobile
 - **Animações Suaves** - Transições e animações em todos os elementos
-- **Tema Escuro** - Visual moderno e confortável
 - **Layout Game-Like** - Interface estilo jogo com HUD integrado
 - **Efeitos Visuais Dinâmicos** - Backgrounds e efeitos que mudam por fase
 
 ### 🔧 Funcionalidades Técnicas
 
+- **Arquitetura Multi-Thread (Web Workers)**:
+  - `game.worker.ts`: Processa toda a lógica do jogo (movimento, colisões, IA) em uma thread separada para não bloquear a UI.
+  - `render.worker.ts`: Renderiza o tabuleiro do jogo (Snake, Comida, Obstáculos, Portais) usando `OffscreenCanvas` em outra thread, garantindo gráficos fluidos.
+  - `weather.worker.ts`: Gerencia os efeitos climáticos de fundo.
+  - `particle.worker.ts`: Gerencia o sistema de partículas e explosões.
+- **Performance Mobile**:
+  - Otimizações para 60 FPS estáveis.
+  - Remoção de sombras pesadas em mobile.
+  - Batching de atualizações de estado.
 - Sistema de salvamento automático (high score e conquistas)
 - Sistema de logging estruturado com Pino para debugging
-- Performance otimizada com:
-  - Frame buffering (separação de lógica e renderização)
-  - Limites de partículas, portais e disparos simultâneos
-  - Memoização de componentes e cálculos
-  - Batching de atualizações de estado
 - Grid responsivo que se adapta ao tamanho da tela
-- Sistema de detecção de mudanças de fase
-- Validação de progressão de jogo
-- Proteção contra manipulação de estado
 
 ### 📝 Sistema de Logging
 
-O jogo possui um sistema completo de logging para debugging e observabilidade:
-
-- **Contextos de Log**: Categorização por área do jogo (GAME_LOOP, BOSS, PHASE, COLLISION, etc.)
-- **Níveis de Log**: TRACE, DEBUG, INFO, WARN, ERROR, FATAL
-- **Logs de Eventos**: Todos os eventos importantes são registrados
-- **Logs Estruturados**: Dados estruturados para facilitar análise
-- **Não Intrusivo**: Logs não interferem na lógica do jogo
+O jogo possui um sistema completo de logging para debugging e observabilidade, categorizado por contextos (GAME_LOOP, BOSS, PHASE, etc.) e níveis de log.
 
 ## 🧪 Testes
 
@@ -179,24 +167,6 @@ Execute os testes unitários:
 
 ```bash
 pnpm test
-# ou
-npm test
-```
-
-Execute os testes com cobertura:
-
-```bash
-pnpm test:coverage
-# ou
-npm run test:coverage
-```
-
-Interface visual dos testes:
-
-```bash
-pnpm test:ui
-# ou
-npm run test:ui
 ```
 
 ## 🏗️ Build
@@ -205,71 +175,20 @@ Para criar uma build de produção:
 
 ```bash
 pnpm build
-# ou
-npm run build
-```
-
-Para preview da build:
-
-```bash
-pnpm preview
-# ou
-npm run preview
 ```
 
 ## 📁 Estrutura do Projeto
 
 ```
 src/
-├── components/          # Componentes React
-│   ├── GameBoard.tsx           # Tabuleiro principal do jogo
-│   ├── SnakeSegment.tsx        # Segmento da cobra
-│   ├── Food.tsx                # Comida e power-ups
-│   ├── Obstacle.tsx            # Obstáculos
-│   ├── Portal.tsx              # Portais de teletransporte
-│   ├── Boss.tsx                # Componente de boss
-│   ├── BossSnake.tsx           # Cobra do boss
-│   ├── GameInfo.tsx            # Informações do jogo
-│   ├── StatusBar.tsx           # Barra de status
-│   ├── GameControls.tsx        # Controles do jogo
-│   ├── PhaseIntroScreen.tsx    # Tela de introdução da fase
-│   ├── PhaseCompleteScreen.tsx # Tela de conclusão da fase
-│   ├── BossDefeatTransition.tsx # Animação de derrota do boss
-│   ├── DeathTransition.tsx     # Animação de morte
-│   ├── MobileGamepad.tsx       # Controles com joystick analógico
-│   ├── LanguageSelector.tsx    # Seletor de idioma
-│   ├── WeatherEffect.tsx       # Efeitos climáticos por fase
-│   ├── StormEffect.tsx         # Efeito de tempestade (Fase 9)
-│   └── ...
+├── workers/            # Web Workers (Lógica, Render, Clima, Partículas)
+├── components/         # Componentes React (UI)
 ├── hooks/              # Custom Hooks
-│   ├── useGameLoop.ts          # Loop principal do jogo
-│   ├── useGameState.ts         # Gerenciamento de estado
-│   └── useKeyboard.ts          # Handlers de teclado
 ├── types/              # Definições de tipos
-│   ├── game.ts                 # Tipos do jogo
-│   ├── phases.ts               # Tipos de fases e bosses
-│   └── statistics.ts           # Tipos de estatísticas
 ├── utils/              # Funções utilitárias
-│   ├── gameLogic.ts            # Lógica do jogo
-│   ├── phases.ts               # Utilitários de fases
-│   ├── bosses.ts               # Utilitários de bosses
-│   ├── phaseMechanics.ts       # Mecânicas por tipo de fase
-│   ├── phaseStatistics.ts      # Estatísticas de fases
-│   ├── phaseTranslations.ts    # Traduções de fases
-│   ├── logger.ts               # Sistema de logging (Pino)
-│   └── poison.ts               # Sistema de disparos de veneno
 ├── constants/          # Constantes do jogo
-│   ├── game.ts                 # Configurações gerais
-│   ├── phases.ts               # Configurações de fases e bosses
-│   ├── powerUps.ts             # Configurações de power-ups
-│   └── obstacles.ts            # Configurações de obstáculos
 ├── i18n/               # Internacionalização
-│   ├── config.ts               # Configuração do i18next
-│   └── locales/                # Arquivos de tradução
-│       ├── pt-BR.json          # Português (Brasil)
-│       └── en-US.json          # Inglês (US)
 └── test/               # Setup de testes
-    └── setup.ts
 ```
 
 ## 🎨 Customização
@@ -278,130 +197,44 @@ src/
 
 Ajuste as configurações em `src/constants/game.ts`:
 
-- `gridSize`: Número de células no grid (padrão: 40x40, total de 1600 células)
-- `cellSize`: Tamanho de cada célula em pixels (padrão: 12px)
-  - **Nota Importante**: No desktop, `cellSize` controla tanto o tamanho de cada célula quanto o tamanho total do grid. O tamanho do grid será `gridSize × cellSize` (por padrão: 40 × 12 = 480px). Alterar `cellSize` alterará o tamanho total do grid proporcionalmente.
-  - No mobile, o `cellSize` é calculado automaticamente para se adaptar ao tamanho da tela, respeitando o tamanho disponível e ignorando o valor configurado.
-- `gameSpeed`: Velocidade base do jogo em milissegundos
-- `initialSnakeLength`: Comprimento inicial da cobra
-- `POISON_CONFIG`: Configurações dos disparos de veneno
-
-### Configurações de Fases
-
-Edite `src/constants/phases.ts` para modificar:
-
-- Nomes e descrições das fases
-- Configurações de cada fase (obstáculos, portais, power-ups)
-- Bosses e suas habilidades
-- Efeitos climáticos visuais
-
-### Traduções
-
-Adicione novos idiomas em `src/i18n/locales/` seguindo o padrão dos arquivos existentes (`pt-BR.json`, `en-US.json`).
-
-## 🎯 Fases do Jogo
-
-1. **Cobra Clássica** - O jogo básico sem obstáculos (Clima: Estrelado)
-2. **Percurso de Obstáculos** - Obstáculos estáticos aparecem (Clima: Névoa Azul)
-3. **Perigos em Movimento** - Obstáculos que se movem pelo grid (Clima: Deserto)
-4. **Domínio de Portais** - Portais e teletransporte (Clima: Cósmico)
-5. **Desafio de Velocidade** - Alta velocidade e obstáculos complexos (Clima: Fogo)
-6. **Caos de Power-Ups** - Muitos power-ups positivos e negativos (Clima: Psicodélico)
-7. **Mestre do Labirinto** - Labirintos complexos (Clima: Névoa e Geometria)
-8. **Modo Sobrevivência** - Sobrevivência extrema (Clima: Apocalíptico)
-9. **Desafio Vortex** - Mecânicas complexas combinadas (Clima: Tempestade)
-10. **Desafio Supremo** - Todas as mecânicas em velocidade máxima (Clima: Celestial)
+- `gridSize`: Número de células no grid
+- `cellSize`: Tamanho base da célula (adaptativo no mobile)
+- `gameSpeed`: Velocidade base do jogo
 
 ## 📱 Suporte Mobile
 
 O jogo é totalmente responsivo e otimizado para dispositivos móveis:
 
-- **Grid Adaptativo**: Grid que se ajusta ao tamanho da tela mantendo proporções
-- **Controles Touch Nativos**:
-  - Joystick analógico para movimento preciso
-  - Botão de fogo para disparos
-  - Controles sempre visíveis (não sobrepõem modais)
-- **Layout Otimizado**:
-  - Status bar no rodapé da área de combate
-  - HUD compacto e informativo
-  - Toasts posicionados abaixo do header
-- **Performance Otimizada**:
-  - Frame buffering para separar lógica e renderização
-  - Limites de entidades ativas
-  - Animações otimizadas com GPU
-- **Experiência Touch Melhorada**:
-  - Prevenção de pull-to-refresh
-  - Touch action otimizado
-  - Sem seleção de texto acidental
+- **Performance 60 FPS**: Graças à arquitetura de Workers e OffscreenCanvas.
+- **Grid Adaptativo**: Ajusta-se perfeitamente a qualquer tamanho de tela.
+- **Controles Touch Nativos**: Joystick e botões otimizados.
+- **Prevenção de Gestos**: Bloqueio de zoom e pull-to-refresh acidentais.
 
 ## 🐛 Debug Mode
 
-### Painel de Debug de Bosses
-
-Pressione **F1** ou **Ctrl+D** durante o jogo para abrir o painel de debug de bosses. Permite:
-
-- Selecionar qualquer boss para testar
-- Visualizar informações dos bosses (nome, descrição, comportamento)
-- Ativar/remover bosses durante o jogo
-- Testar habilidades especiais de cada boss
-
-### Painel de Debug de Fases
-
-Pressione **F3** ou **Ctrl+F** durante o jogo para abrir o painel de debug de fases. Permite:
-
-- Selecionar qualquer fase para testar
-- Visualizar informações das fases
-- Resetar o jogo para iniciar em uma fase específica
-- Testar mecânicas específicas de cada fase
-
-## 📝 Logging e Observabilidade
-
-O jogo possui um sistema completo de logging usando Pino:
-
-### Contextos de Log Disponíveis
-
-- `GAME_STATE`: Mudanças de estado do jogo
-- `GAME_LOOP`: Loop principal do jogo
-- `BOSS`: Eventos relacionados a bosses
-- `PHASE`: Eventos relacionados a fases
-- `COLLISION`: Detecção de colisões
-- `TRANSITION`: Transições de tela
-- `POWER_UP`: Ativação de power-ups
-- `COMBAT`: Sistema de combate com bosses
-
-### Exemplo de Uso
-
-Os logs são automaticamente gerados durante o jogo. Em desenvolvimento, você pode visualizá-los no console do navegador.
+- **F1 / Ctrl+D**: Painel de Debug de Bosses
+- **F3 / Ctrl+F**: Painel de Debug de Fases
 
 ## 🔒 Segurança
 
-O jogo implementa várias práticas de segurança:
-
-- **Headers de Segurança**: CSP, X-Frame-Options, X-XSS-Protection
-- **Validação de Entrada**: Sanitização de inputs
-- **Proteção de Estado**: Validação de mudanças de estado do jogo
-- **Rate Limiting**: Limites de ações por segundo
-- **Detecção de Manipulação**: Verificação de valores suspeitos
+- Headers de Segurança (CSP, X-Frame-Options)
+- Validação de Entrada
+- Proteção de Estado
 
 ## 📊 Performance
 
-O jogo foi otimizado para performance:
-
-- **Frame Buffering**: Separação de lógica (60fps) e renderização React
-- **Memoização**: Componentes e cálculos memoizados
-- **Limites de Entidades**: Máximo de partículas, portais e disparos simultâneos
-- **Batching**: Agrupamento de atualizações de estado
-- **CSS Otimizado**: Uso de `transform` e `will-change` para animações GPU
+- **Web Workers**: Separação total de lógica e renderização da thread principal.
+- **OffscreenCanvas**: Gráficos complexos sem custo para a UI thread.
+- **Memoização**: Uso eficiente de React.memo e useMemo.
 
 ## 📚 Documentação Adicional
 
 Consulte os documentos em `docs/` para mais detalhes:
 
-- `I18N_SYSTEM.md` - Documentação do sistema de internacionalização
-- `LOGGING_SYSTEM.md` - Documentação do sistema de logging
-- `PERFORMANCE_OPTIMIZATION_PLAN.md` - Plano de otimização de performance
-- `SISTEMA_COMBATE_BOSS.md` - Sistema de combate com bosses
-- `SISTEMA_TRANSICOES_FASE.md` - Sistema de transições de fase
+- `I18N_SYSTEM.md`
+- `LOGGING_SYSTEM.md`
+- `PERFORMANCE_OPTIMIZATION_PLAN.md`
+- `SISTEMA_COMBATE_BOSS.md`
 
 ## 📝 Licença
 

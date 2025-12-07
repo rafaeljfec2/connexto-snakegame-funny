@@ -170,6 +170,23 @@ for (let i = 0; i < shots.length; i++) {
 - Melhor performance em loops grandes
 - Menor overhead
 
+### 11. Arquitetura Multi-Thread (Web Workers)
+
+**Problema**: A thread principal do navegador (UI Thread) estava sobrecarregada processando lógica do jogo, renderização React, eventos de touch, animações CSS e cálculos de física simultaneamente, causando quedas de FPS.
+
+**Solução**: Separação completa de responsabilidades em Workers dedicados:
+
+- **Game Worker**: Roda o loop de lógica (update position, collision, AI) a 60 ticks/s.
+- **Render Worker**: Recebe o estado do jogo e desenha no `OffscreenCanvas` (Snake, Comida, Obstáculos, Portais).
+- **Weather/Particle Workers**: Processam efeitos visuais pesados.
+
+**Benefícios**:
+
+- A UI Thread fica livre para responder a inputs e animar elementos DOM (como o HUD).
+- O jogo mantém 60 FPS estáveis, especialmente em mobile.
+- Aproveitamento de múltiplos núcleos da CPU.
+- Renderização de milhares de partículas sem custo para a UI.
+
 ## 📊 Métricas de Performance
 
 ### Antes das Otimizações
@@ -237,12 +254,6 @@ for (let i = 0; i < shots.length; i++) {
 - Otimização de animações
 
 ## 🎯 Melhorias Futuras Possíveis
-
-### Web Workers
-
-- Mover lógica pesada para Web Workers
-- Processamento de partículas em background
-- Cálculos de física separados
 
 ### Virtualização
 

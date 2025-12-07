@@ -107,6 +107,9 @@ Este documento descreve o status atual de todas as funcionalidades implementadas
 
 ### Performance
 
+- [x] Web Workers para lógica do jogo (game.worker.ts)
+- [x] Web Workers para renderização (render.worker.ts + OffscreenCanvas)
+- [x] Web Workers para partículas e clima (particle/weather workers)
 - [x] Frame buffering (separação de lógica e renderização)
 - [x] Memoização de componentes (React.memo)
 - [x] Memoização de cálculos (useMemo)

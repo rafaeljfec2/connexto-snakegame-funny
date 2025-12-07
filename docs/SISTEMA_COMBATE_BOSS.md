@@ -109,7 +109,7 @@ Todos os bosses (10 bosses no total) usam o **mesmo sistema de combate estratég
 
 O sistema de combate está implementado em:
 
-- `src/hooks/useGameLoop.ts` (linhas 1010-1105) - Lógica principal
+- `src/workers/game.worker.ts` - Lógica principal (dentro do game loop)
 - `src/utils/bossSnake.ts` - Funções auxiliares de combate
 
 Todas as verificações são **genéricas** e não dependem do tipo de boss. O sistema funciona automaticamente para todos os bosses através do `bossSnake` e `activeBoss`.

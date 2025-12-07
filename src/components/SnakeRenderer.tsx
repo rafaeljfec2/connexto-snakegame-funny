@@ -106,7 +106,7 @@ export const SnakeRenderer = memo(function SnakeRenderer({
       }
 
       // 3D Style Configuration
-      const gap = 0; // No gap for fuller look
+
       const segmentRadius = currentCellSize / 2;
 
       // Update growth animations (Slower speed: 0.05 per frame)

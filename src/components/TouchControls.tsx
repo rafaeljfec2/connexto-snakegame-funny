@@ -176,9 +176,11 @@ export const TouchControls = memo(function TouchControls({
     }
   }, [enabled, onSpeedBoost]);
 
+  if (!enabled) return null;
+
   return (
     <div
-      className={`${styles.touchControls} ${!enabled ? styles.disabled : ''}`}
+      className={styles.touchControls}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
       onTouchCancel={handleTouchEnd}

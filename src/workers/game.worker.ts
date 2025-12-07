@@ -11,6 +11,7 @@ import {
   wouldCauseCollision,
 } from '@/utils/gameLogic';
 import { GAME_CONFIG, INITIAL_SNAKE_POSITION, INITIAL_DIRECTION } from '@/constants/game';
+import { CHEFS } from '@/constants/phases';
 import { calculateLevel, calculateGameSpeed } from '@/utils/difficulty';
 import {
   applyPowerUpEffect,
@@ -256,16 +257,49 @@ function handleSpawnBoss(bossId: string | null) {
     gameState.bossSnake = undefined;
     gameState.currentPhase = levelPhase?.id;
     gameState.phaseLevelType = levelPhase?.type;
+    gameState.guardianFlag = null;
   } else {
-    // Spawn specific boss (debug)
-    // Find boss by ID
-    // Since we don't have CHEFS imported directly (it's in constants), we might need to rely on getBossForLevel or passed payload
-    // Ideally payload should contain full boss object or we import CHEFS
-    // For now, let's assume we can't easily get the boss object by ID without iterating CHEFS which might not be available here
-    // But getBossForLevel works by level.
-    // Let's assume we pass the full boss object in payload or logic handles it in main thread?
-    // No, worker needs to do it.
-    // Let's import CHEFS or just ignore debug spawn for a moment or implement a helper
+    const boss = CHEFS.find((c) => c.id === bossId);
+    if (boss) {
+      gameState.activeBoss = boss;
+
+      // Clean up existing boss/resources if any
+      bossAbilityCooldowns.clear();
+      forcedFoodType = null;
+      gameState.guardianFlag = null;
+
+      const bossResources = generateBossInitialResources(
+        boss,
+        gameState.snake,
+        gameState.obstacles,
+        gameState.portals,
+        GAME_CONFIG.gridSize,
+      );
+
+      gameState.obstacles = bossResources.obstacles;
+      gameState.portals = bossResources.portals;
+
+      gameState.bossSnake =
+        initializeBossSnake(boss, gameState.snake, gameState.obstacles, GAME_CONFIG.gridSize) ??
+        undefined;
+
+      if (boss.id === 'guardian') {
+        const flagPos = generateGuardianFlagPosition(
+          gameState.snake,
+          gameState.bossSnake?.positions ?? [],
+          gameState.obstacles,
+          GAME_CONFIG.gridSize,
+        );
+        if (flagPos) {
+          gameState.guardianFlag = {
+            position: flagPos,
+            type: FoodType.EXTRA_LIFE,
+            spawnTime: Date.now(),
+            duration: undefined,
+          };
+        }
+      }
+    }
   }
   broadcastState();
 }

@@ -12,10 +12,7 @@ import {
 import { GAME_CONFIG } from '@/constants/game';
 import { calculateGameSpeed } from '@/utils/difficulty';
 import { WeatherCanvas } from './WeatherCanvas';
-import { Food } from './Food';
-import { ObstacleComponent } from './Obstacle';
 import { ParticleSystem } from './ParticleSystem';
-import { Portal as PortalComponent } from './Portal';
 import { useEffect, useRef, useState, useMemo, memo } from 'react';
 import styles from './GameBoard.module.css';
 import { Chef } from '@/types/phases';
@@ -203,6 +200,9 @@ export const GameBoard = memo(function GameBoard({
         snake,
         bossSnake,
         shots: poisonShots,
+        food,
+        obstacles: GAME_CONFIG.enableObstacles ? obstacles : [],
+        portals,
         activeBoss: activeBoss
           ? {
               color: activeBoss.visual.color,
@@ -216,7 +216,20 @@ export const GameBoard = memo(function GameBoard({
         status,
       },
     });
-  }, [snake, bossSnake, poisonShots, activeBoss, guardianFlag, isEating, speed, t, status]);
+  }, [
+    snake,
+    bossSnake,
+    poisonShots,
+    food,
+    obstacles,
+    portals,
+    activeBoss,
+    guardianFlag,
+    isEating,
+    speed,
+    t,
+    status,
+  ]);
 
   const gridStyle = isMobile
     ? {
@@ -247,18 +260,6 @@ export const GameBoard = memo(function GameBoard({
     status === GameStatus.GAME_OVER ? styles.gameOver : ''
   } ${isLevelUp ? styles.levelUp : ''}`;
 
-  const foodKey = `food-${food.position.x}-${food.position.y}-${food.type}`;
-
-  const portalPairs = useMemo(() => {
-    const pairs = new Map<string, Portal[]>();
-    portals.forEach((portal) => {
-      const pair = pairs.get(portal.pairId) ?? [];
-      pair.push(portal);
-      pairs.set(portal.pairId, pair);
-    });
-    return pairs;
-  }, [portals]);
-
   return (
     <div
       ref={boardRef}
@@ -277,17 +278,7 @@ export const GameBoard = memo(function GameBoard({
       <div className={styles.gameLayer} style={gridStyle}>
         <WeatherCanvas level={level} isMobile={isMobile} />
 
-        {/* DOM Elements for Static/Interactables */}
-        {GAME_CONFIG.enableObstacles &&
-          obstacles.map((obstacle) => <ObstacleComponent key={obstacle.id} obstacle={obstacle} />)}
-
-        {portals.map((portal) => {
-          const pair = portalPairs.get(portal.pairId) ?? [];
-          const isFirst = pair.length > 0 && pair[0]?.id === portal.id;
-          return <PortalComponent key={portal.id} portal={portal} isFirst={isFirst} />;
-        })}
-
-        {/* WORKER RENDER LAYER: Snake, Boss, Shots */}
+        {/* WORKER RENDER LAYER: Snake, Boss, Shots, Food, Obstacles, Portals */}
         <canvas
           key={canvasKey}
           ref={renderCanvasRef}
@@ -298,12 +289,9 @@ export const GameBoard = memo(function GameBoard({
             width: '100%',
             height: '100%',
             pointerEvents: 'none',
-            zIndex: 20, // Ensure above obstacles/floor but below HUD/particles?
-            // Particles are zIndex 5 in CSS usually or handled via layer order.
+            zIndex: 20,
           }}
         />
-
-        <Food key={foodKey} food={food} />
 
         {/* Particle System (Separate Worker) */}
         <ParticleSystem />

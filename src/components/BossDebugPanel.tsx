@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { CHEFS } from '@/constants/phases';
 import { Chef } from '@/types/phases';
@@ -35,7 +36,7 @@ export function BossDebugPanel({
     setSelectedBossId(null);
   };
 
-  return (
+  return createPortal(
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.panel} onClick={(e) => e.stopPropagation()}>
         <div className={styles.header}>
@@ -97,6 +98,7 @@ export function BossDebugPanel({
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

@@ -1,6 +1,6 @@
 /// <reference lib="webworker" />
 
-import { Position, PoisonShot, BossSnake } from '@/types/game';
+import { Position, PoisonShot, BossSnake, Food as FoodType, Obstacle, Portal } from '@/types/game';
 import { GAME_CONFIG } from '@/constants/game';
 
 // State
@@ -17,6 +17,9 @@ let prevBossSnake: Position[] = []; // Track boss body
 let activeBoss: { color: string; icon?: string; name?: string } | null = null;
 let guardianFlag: { position: Position; type: string } | null = null;
 let shots: PoisonShot[] = [];
+let food: FoodType | null = null;
+let obstacles: Obstacle[] = [];
+let portals: Portal[] = [];
 let isEating = false;
 let speed = 150;
 let lastUpdate = 0;
@@ -189,62 +192,159 @@ const drawSnakeSegment = (
   ctx.restore();
 };
 
-const drawShot = (shot: PoisonShot, cellSize: number) => {
+const drawFood = (food: FoodType, cellSize: number, now: number) => {
   if (!ctx) return;
-
-  const x = shot.position.x * cellSize;
-  const y = shot.position.y * cellSize;
-  const size = cellSize * 0.6;
-  const cx = x + cellSize / 2;
-  const cy = y + cellSize / 2;
-
-  ctx.fillStyle = '#10b981';
-
-  if (!isMobile) {
-    ctx.shadowColor = '#10b981';
-    ctx.shadowBlur = 10;
-  }
-
-  ctx.beginPath();
-  ctx.arc(cx, cy, size / 2, 0, Math.PI * 2);
-  ctx.fill();
-
-  if (!isMobile) {
-    ctx.shadowBlur = 0;
-  }
-};
-
-const drawGuardianFlag = (flag: { position: Position; type: string }, cellSize: number) => {
-  if (!ctx) return;
-
-  const cx = flag.position.x * cellSize + cellSize / 2;
-  const cy = flag.position.y * cellSize + cellSize / 2;
-  const size = cellSize * 0.8;
+  const { x, y } = food.position;
+  const cx = x * cellSize + cellSize / 2;
+  const cy = y * cellSize + cellSize / 2;
+  const r = cellSize * 0.4; // Slightly smaller than cell
 
   ctx.save();
   ctx.translate(cx, cy);
 
-  // Draw Flag Pole
-  ctx.strokeStyle = '#cbd5e1';
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(-size / 4, size / 2);
-  ctx.lineTo(-size / 4, -size / 2);
-  ctx.stroke();
+  // Pulse
+  const pulse = 1 + Math.sin(now / 200) * 0.1;
+  ctx.scale(pulse, pulse);
 
-  // Draw Flag Fabric (Green/Red gradient)
-  ctx.fillStyle = '#10b981';
+  let color1 = '#ef4444';
+  let color2 = '#dc2626';
+
+  switch (food.type) {
+    case 'POISON':
+      color1 = '#10b981';
+      color2 = '#059669';
+      break; // Green
+    case 'SPEED_BOOST':
+      color1 = '#3b82f6';
+      color2 = '#2563eb';
+      break; // Blue
+    case 'EXTRA_LIFE':
+      color1 = '#ec4899';
+      color2 = '#db2777';
+      break; // Pink
+    case 'BONUS_POINTS':
+      color1 = '#fbbf24';
+      color2 = '#d97706';
+      break; // Gold
+    case 'REVERSE_CONTROLS':
+      color1 = '#f59e0b';
+      color2 = '#b45309';
+      break; // Amber
+    case 'SLOW_DOWN':
+      color1 = '#6366f1';
+      color2 = '#4f46e5';
+      break; // Indigo
+    case 'PHASE_THROUGH':
+      color1 = '#8b5cf6';
+      color2 = '#7c3aed';
+      break; // Purple
+  }
+
+  const grad = ctx.createRadialGradient(-r * 0.3, -r * 0.3, r * 0.1, 0, 0, r);
+  grad.addColorStop(0, color1);
+  grad.addColorStop(1, color2);
+
+  ctx.fillStyle = grad;
+
+  if (!isMobile) {
+    ctx.shadowColor = color1;
+    ctx.shadowBlur = 10;
+  }
+
   ctx.beginPath();
-  ctx.moveTo(-size / 4, -size / 2);
-  ctx.lineTo(size / 2, -size / 4);
-  ctx.lineTo(-size / 4, 0);
+  ctx.arc(0, 0, r, 0, Math.PI * 2);
   ctx.fill();
 
-  // Draw Heart Icon inside
-  ctx.font = `${size * 0.6}px Arial`;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText('❤️', 0, -size / 4);
+  ctx.shadowBlur = 0;
+  ctx.restore();
+};
+
+const drawObstacle = (obs: Obstacle, cellSize: number) => {
+  if (!ctx) return;
+  const { x, y } = obs.position;
+  const px = x * cellSize;
+  const py = y * cellSize;
+  const s = cellSize;
+
+  ctx.save();
+  ctx.translate(px, py);
+
+  const isMoving = obs.type === 'moving';
+
+  // Gradient
+  const grad = ctx.createLinearGradient(0, 0, s, s);
+  if (isMoving) {
+    grad.addColorStop(0, '#fecaca'); // Red light
+    grad.addColorStop(1, '#ef4444'); // Red dark
+    ctx.strokeStyle = '#b91c1c';
+  } else {
+    grad.addColorStop(0, '#e2e8f0'); // Slate light
+    grad.addColorStop(1, '#64748b'); // Slate dark
+    ctx.strokeStyle = '#475569';
+  }
+
+  ctx.fillStyle = grad;
+  ctx.lineWidth = 2;
+
+  // Rounded Rect
+  ctx.beginPath();
+  if (ctx.roundRect) {
+    ctx.roundRect(2, 2, s - 4, s - 4, 4);
+  } else {
+    ctx.rect(2, 2, s - 4, s - 4);
+  }
+  ctx.fill();
+  ctx.stroke();
+
+  // Cross pattern
+  ctx.beginPath();
+  ctx.strokeStyle = isMoving ? 'rgba(127, 29, 29, 0.5)' : 'rgba(71, 85, 105, 0.5)';
+  ctx.lineWidth = 2;
+
+  // X shape
+  const pad = s * 0.25;
+  ctx.moveTo(pad, pad);
+  ctx.lineTo(s - pad, s - pad);
+  ctx.moveTo(s - pad, pad);
+  ctx.lineTo(pad, s - pad);
+  ctx.stroke();
+
+  ctx.restore();
+};
+
+const drawPortal = (portal: Portal, cellSize: number, now: number) => {
+  if (!ctx) return;
+  const { x, y } = portal.position;
+  const cx = x * cellSize + cellSize / 2;
+  const cy = y * cellSize + cellSize / 2;
+  const r = cellSize * 0.45;
+
+  ctx.save();
+  ctx.translate(cx, cy);
+
+  const pulse = 1 + Math.sin(now / 500) * 0.1;
+  ctx.scale(pulse, pulse);
+
+  const grad = ctx.createRadialGradient(0, 0, r * 0.2, 0, 0, r);
+  grad.addColorStop(0, '#d8b4fe'); // Purple light
+  grad.addColorStop(1, '#6b21a8'); // Purple dark
+
+  ctx.fillStyle = grad;
+  if (!isMobile) {
+    ctx.shadowColor = '#a855f7';
+    ctx.shadowBlur = 15;
+  }
+
+  ctx.beginPath();
+  ctx.arc(0, 0, r, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Swirl effect? Simple circles for now
+  ctx.beginPath();
+  ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+  ctx.lineWidth = 1;
+  ctx.arc(0, 0, r * 0.6, 0, Math.PI * 2);
+  ctx.stroke();
 
   ctx.restore();
 };
@@ -276,6 +376,15 @@ const render = () => {
   // Grid size is fixed (20x20 usually), canvas size varies
   // We assume canvas fills the board area
   const cellSize = width / GAME_CONFIG.gridSize;
+
+  // Draw Obstacles
+  obstacles.forEach((obs) => drawObstacle(obs, cellSize));
+
+  // Draw Portals
+  portals.forEach((p) => drawPortal(p, cellSize, now));
+
+  // Draw Food
+  if (food) drawFood(food, cellSize, now);
 
   // Draw Snake
   if (snake && snake.length > 0) {
@@ -429,6 +538,18 @@ self.onmessage = (e: MessageEvent) => {
 
         if (payload.activeBoss) {
           activeBoss = payload.activeBoss;
+        }
+
+        if (payload.food) {
+          food = payload.food;
+        }
+
+        if (payload.obstacles) {
+          obstacles = payload.obstacles;
+        }
+
+        if (payload.portals) {
+          portals = payload.portals;
         }
 
         if (payload.guardianFlag !== undefined) {

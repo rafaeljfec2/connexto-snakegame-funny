@@ -31,7 +31,7 @@ import {
   hasPhaseThrough,
 } from '@/utils/powerUps';
 import { updateCombo } from '@/utils/combos';
-import { createParticles, updateParticles } from '@/utils/particles';
+import { spawnParticles } from '@/utils/particles';
 import { generateObstacles, hasObstacleCollision, getActiveObstacles } from '@/utils/obstacles';
 import { destroyObstacles } from '@/utils/obstacleDestruction';
 import { OBSTACLE_CONFIG } from '@/constants/obstacles';
@@ -132,7 +132,7 @@ interface PortalTeleportResult {
 function handlePortalTeleport(
   snake: Position[],
   portals: Portal[],
-  particles: Particle[],
+  _particles: Particle[],
 ): PortalTeleportResult {
   const activePortals = getActivePortals(portals, PERFORMANCE_CONFIG.maxPortals);
   let newSnake = snake;
@@ -150,21 +150,20 @@ function handlePortalTeleport(
         // Create teleportation particles
         if (GAME_CONFIG.enableParticles) {
           const portalColor = PORTAL_CONFIG.colors.portal1.primary;
+          spawnParticles(headPosition, portalColor, 12, 800);
+          spawnParticles(pairedPortal.position, portalColor, 12, 800);
+
           return {
             snake: newSnake,
             headPosition,
-            particles: [
-              ...particles,
-              ...createParticles(headPosition, portalColor, 12, 800),
-              ...createParticles(pairedPortal.position, portalColor, 12, 800),
-            ],
+            particles: [], // Worker handles particles
           };
         }
       }
     }
   }
 
-  return { snake: newSnake, headPosition, particles };
+  return { snake: newSnake, headPosition, particles: [] };
 }
 
 // ============================================================================
@@ -193,7 +192,7 @@ function handleFoodAndPowerUps(
   combo: import('@/types/game').ComboState,
   activePowerUps: ActivePowerUp[],
   lives: number,
-  particles: Particle[],
+  _particles: Particle[],
   statistics: GameStatisticsTracking,
 ): FoodProcessingResult {
   const newActivePowerUps = [...activePowerUps];
@@ -252,7 +251,7 @@ function handleFoodAndPowerUps(
     // Create particles
     if (GAME_CONFIG.enableParticles) {
       const foodColor = POWER_UP_CONFIG.colors[food.type]?.primary || '#ef4444';
-      particles = [...particles, ...createParticles(snake[0], foodColor, 8, 600)];
+      spawnParticles(snake[0], foodColor, 8, 600);
     }
 
     // Apply growth (positive or negative)
@@ -302,7 +301,7 @@ function handleFoodAndPowerUps(
     score: newScore,
     activePowerUps: newActivePowerUps,
     combo: newCombo,
-    particles,
+    particles: [],
     lives: newLives,
     statistics,
     atePowerUp,
@@ -399,14 +398,13 @@ interface PoisonShotsObstaclesResult {
 function handlePoisonShotsObstacles(
   poisonShots: import('@/types/game').PoisonShot[],
   obstacles: Obstacle[],
-  particles: Particle[],
+  _particles: Particle[],
 ): PoisonShotsObstaclesResult {
   // Update poison shots: move them and check collisions with obstacles
   const poisonUpdateResult = updatePoisonShots(poisonShots, GAME_CONFIG.gridSize, obstacles);
 
   const newPoisonShots = poisonUpdateResult.shots;
   let newObstacles = obstacles;
-  let newParticles = particles;
 
   // Process obstacles hit by poison shots (destroy obstacles)
   // Use generic destruction system for consistent physics
@@ -414,160 +412,21 @@ function handlePoisonShotsObstacles(
     const destructionResult = destroyObstacles(
       newObstacles,
       poisonUpdateResult.hitObstacles,
-      newParticles,
+      [], // Pass empty array, function will spawn via event if we update it
     );
     newObstacles = destructionResult.remainingObstacles;
-    newParticles = destructionResult.particles;
   }
 
   return {
     poisonShots: newPoisonShots,
     obstacles: newObstacles,
-    particles: newParticles,
+    particles: [],
   };
 }
 
 // ============================================================================
 // Helper Functions - Boss Combat
 // ============================================================================
-
-interface BossCombatResult {
-  bossDefeated: boolean;
-  bossSnake: import('@/types/game').BossSnake | undefined;
-  score: number;
-  particles: Particle[];
-  shouldEndGame: boolean;
-  gameStatus?: GameStatus;
-}
-
-/**
- * Handle boss combat collision - unified system for ALL bosses
- * Strategic battle system:
- * - Hit body: weaken boss (remove 2 segments)
- * - Hit head when weak (≤3 segments): defeat boss
- * - Hit head when strong (>3 segments): player loses life/game over
- */
-// @ts-ignore - Reserved for future use
-function _handleBossCombat(
-  headPosition: Position | undefined,
-  bossSnake: import('@/types/game').BossSnake | undefined,
-  activeBoss: Chef | undefined,
-  score: number,
-  particles: Particle[],
-  lives: number,
-): BossCombatResult {
-  if (!bossSnake || !headPosition) {
-    return {
-      bossDefeated: false,
-      bossSnake,
-      score,
-      particles,
-      shouldEndGame: false,
-    };
-  }
-
-  const hitPart = getBossHitPart(headPosition, bossSnake);
-
-  if (hitPart === 'head') {
-    // Player hit boss head
-    if (canDefeatBoss(bossSnake)) {
-      // Boss is weakened enough - can be defeated!
-      let newScore = score;
-      let newParticles = particles;
-
-      if (activeBoss) {
-        const bossReward = handleBossDefeat(activeBoss, {
-          score,
-          lives,
-        } as GameState);
-        newScore += bossReward.scoreIncrease;
-
-        // Create particles for boss defeat
-        if (GAME_CONFIG.enableParticles && bossSnake.positions[0]) {
-          const bossColor = activeBoss.visual.color;
-          newParticles = [
-            ...newParticles,
-            ...createParticles(bossSnake.positions[0], bossColor, 30, 1500),
-          ];
-        }
-      }
-
-      return {
-        bossDefeated: true,
-        bossSnake: undefined,
-        score: newScore,
-        particles: newParticles,
-        shouldEndGame: false,
-      };
-    } else {
-      // Boss is still too strong - player loses life/game over
-      return {
-        bossDefeated: false,
-        bossSnake,
-        score,
-        particles,
-        shouldEndGame: true,
-        gameStatus: isLivesEnabled() && lives > 0 ? GameStatus.DYING : GameStatus.GAME_OVER,
-      };
-    }
-  } else if (hitPart === 'body') {
-    // Player hit boss body - weaken the boss!
-    const weakenResult = weakenBossSnake(bossSnake, 2);
-    const newBossSnake = weakenResult.newBossSnake;
-    let newScore = score + weakenResult.pointsEarned;
-    let newParticles = particles;
-
-    // Create particles for weakening
-    if (GAME_CONFIG.enableParticles && headPosition) {
-      const bossColor = activeBoss?.visual.color ?? '#3b82f6';
-      newParticles = [...newParticles, ...createParticles(headPosition, bossColor, 10, 600)];
-    }
-
-    // If boss was weakened to death (1 segment left)
-    if (newBossSnake.positions.length <= 1) {
-      // Boss automatically defeated
-      if (activeBoss) {
-        const bossReward = handleBossDefeat(activeBoss, {
-          score: newScore,
-          lives,
-        } as GameState);
-        newScore += bossReward.scoreIncrease;
-
-        if (GAME_CONFIG.enableParticles && newBossSnake.positions[0]) {
-          const bossColor = activeBoss.visual.color;
-          newParticles = [
-            ...newParticles,
-            ...createParticles(newBossSnake.positions[0], bossColor, 30, 1500),
-          ];
-        }
-      }
-
-      return {
-        bossDefeated: true,
-        bossSnake: undefined,
-        score: newScore,
-        particles: newParticles,
-        shouldEndGame: false,
-      };
-    }
-
-    return {
-      bossDefeated: false,
-      bossSnake: newBossSnake,
-      score: newScore,
-      particles: newParticles,
-      shouldEndGame: false,
-    };
-  }
-
-  return {
-    bossDefeated: false,
-    bossSnake,
-    score,
-    particles,
-    shouldEndGame: false,
-  };
-}
 
 export function useGameLoop() {
   // @ts-ignore - Reserved for future logging
@@ -674,11 +533,9 @@ export function useGameLoop() {
 
       previousDirectionRef.current = currentDirection;
 
-      // Initialize particles early for portal teleportation
-      // Update particles and apply performance limits
-      let newParticles = GAME_CONFIG.enableParticles
-        ? updateParticles(prev.particles, PERFORMANCE_CONFIG.getMaxParticles())
-        : prev.particles;
+      // Particles are now handled by the Worker via events in 'spawnParticles'
+      // We no longer manage particle state in the React loop
+      let newParticles: Particle[] = [];
 
       // Handle portal teleportation BEFORE collision checks
       const portalResult = handlePortalTeleport(newSnake, prev.portals, newParticles);
@@ -800,10 +657,7 @@ export function useGameLoop() {
         // Create particles for flag capture
         if (GAME_CONFIG.enableParticles && prev.guardianFlag) {
           const flagColor = '#10b981'; // Green for success
-          newParticles = [
-            ...newParticles,
-            ...createParticles(prev.guardianFlag.position, flagColor, 30, 1500),
-          ];
+          spawnParticles(prev.guardianFlag.position, flagColor, 30, 1500);
         }
 
         // Clear boss ability cooldowns
@@ -1121,10 +975,7 @@ export function useGameLoop() {
               // Create particles for boss defeat
               if (GAME_CONFIG.enableParticles && bossSnake.positions[0]) {
                 const bossColor = activeBoss.visual.color;
-                newParticles = [
-                  ...newParticles,
-                  ...createParticles(bossSnake.positions[0], bossColor, 30, 1500),
-                ];
+                spawnParticles(bossSnake.positions[0], bossColor, 30, 1500);
               }
 
               // Clear boss after defeat
@@ -1173,7 +1024,7 @@ export function useGameLoop() {
           // Create particles for weakening
           if (GAME_CONFIG.enableParticles && headPosition) {
             const bossColor = activeBoss?.visual.color ?? '#3b82f6';
-            newParticles = [...newParticles, ...createParticles(headPosition, bossColor, 10, 600)];
+            spawnParticles(headPosition, bossColor, 10, 600);
           }
 
           // If boss was weakened to death (1 segment left)
@@ -1186,10 +1037,7 @@ export function useGameLoop() {
               // Create particles for boss defeat
               if (GAME_CONFIG.enableParticles && bossSnake.positions[0]) {
                 const bossColor = activeBoss.visual.color;
-                newParticles = [
-                  ...newParticles,
-                  ...createParticles(bossSnake.positions[0], bossColor, 30, 1500),
-                ];
+                spawnParticles(bossSnake.positions[0], bossColor, 30, 1500);
               }
 
               // Clear boss after defeat
@@ -1249,10 +1097,7 @@ export function useGameLoop() {
                 // Create particles for boss defeat
                 if (GAME_CONFIG.enableParticles && bossSnake.positions[0]) {
                   const bossColor = activeBoss.visual.color;
-                  newParticles = [
-                    ...newParticles,
-                    ...createParticles(bossSnake.positions[0], bossColor, 30, 1500),
-                  ];
+                  spawnParticles(bossSnake.positions[0], bossColor, 30, 1500);
                 }
 
                 // Clear boss after defeat
@@ -1269,10 +1114,7 @@ export function useGameLoop() {
                 // Create particles for weakening
                 if (GAME_CONFIG.enableParticles && shot.position) {
                   const bossColor = activeBoss.visual.color;
-                  newParticles = [
-                    ...newParticles,
-                    ...createParticles(shot.position, bossColor, 10, 600),
-                  ];
+                  spawnParticles(shot.position, bossColor, 10, 600);
                 }
               }
             }
@@ -1287,10 +1129,7 @@ export function useGameLoop() {
               // Create particles for weakening
               if (GAME_CONFIG.enableParticles && shot.position) {
                 const bossColor = activeBoss.visual.color;
-                newParticles = [
-                  ...newParticles,
-                  ...createParticles(shot.position, bossColor, 8, 500),
-                ];
+                spawnParticles(shot.position, bossColor, 8, 500);
               }
 
               // If boss was weakened to death (1 segment left)
@@ -1300,10 +1139,7 @@ export function useGameLoop() {
 
                 if (GAME_CONFIG.enableParticles && bossSnake.positions[0]) {
                   const bossColor = activeBoss.visual.color;
-                  newParticles = [
-                    ...newParticles,
-                    ...createParticles(bossSnake.positions[0], bossColor, 30, 1500),
-                  ];
+                  spawnParticles(bossSnake.positions[0], bossColor, 30, 1500);
                 }
 
                 activeBoss = undefined;

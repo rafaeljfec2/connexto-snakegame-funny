@@ -31,7 +31,7 @@ interface GameBoardProps {
   level: number;
   obstacles?: Obstacle[];
   portals?: Portal[];
-  particles?: Particle[];
+  particles?: Particle[]; // Kept in interface for compatibility but unused
   poisonShots?: PoisonShot[];
   activeBoss?: Chef;
   bossSnake?: BossSnake;
@@ -45,7 +45,6 @@ export const GameBoard = memo(function GameBoard({
   level,
   obstacles = [],
   portals = [],
-  particles = [],
   poisonShots = [],
   activeBoss,
   bossSnake,
@@ -282,7 +281,7 @@ export const GameBoard = memo(function GameBoard({
         {poisonShots.map((shot) => (
           <PoisonShotComponent key={shot.id} shot={shot} />
         ))}
-        {GAME_CONFIG.enableParticles && <ParticleSystem particles={particles} />}
+        {GAME_CONFIG.enableParticles && <ParticleSystem />}
       </div>
     </div>
   );

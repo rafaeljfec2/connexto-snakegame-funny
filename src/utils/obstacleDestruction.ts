@@ -1,118 +1,69 @@
-import { Obstacle, Particle, Position } from '@/types/game';
-import { createParticles } from './particles';
-import { GAME_CONFIG } from '@/constants/game';
+import { Obstacle, Position, Direction, Particle } from '@/types/game';
+import { getNextHeadPosition } from './gameLogic';
+import { spawnParticles } from './particles';
 
 /**
- * Configuration for obstacle destruction physics
- * Generic system used throughout the game
+ * Check if a poison shot collides with an obstacle
  */
-export const OBSTACLE_DESTRUCTION_CONFIG = {
-  // Particle configuration for destruction
-  particles: {
-    count: 8, // Number of particles created when obstacle is destroyed
-    color: '#ef4444', // Red color for destruction
-    lifetime: 400, // Particle lifetime in milliseconds
-  },
-} as const;
-
-/**
- * Result of destroying obstacles
- */
-export interface ObstacleDestructionResult {
-  remainingObstacles: Obstacle[];
-  destroyedObstacles: Obstacle[];
-  particles: Particle[];
-}
-
-/**
- * Generic function to destroy obstacles - used throughout the game
- * This ensures consistent physics and particle effects for all destruction
- *
- * @param obstacles - Current list of obstacles
- * @param obstaclesToDestroy - Obstacles to destroy (by ID or reference)
- * @param existingParticles - Current particles to merge with new destruction particles
- * @returns Result with remaining obstacles, destroyed obstacles, and particles
- */
-export function destroyObstacles(
+export function hasObstacleCollision(
+  shotPosition: Position,
   obstacles: Obstacle[],
-  obstaclesToDestroy: Obstacle[] | string[], // Can pass obstacles or IDs
-  existingParticles: Particle[] = [],
-): ObstacleDestructionResult {
-  const destroyedObstacles: Obstacle[] = [];
-  const obstaclesToRemoveIds = new Set<string>();
-
-  // Convert to IDs if obstacles were passed
-  obstaclesToDestroy.forEach((item) => {
-    if (typeof item === 'string') {
-      obstaclesToRemoveIds.add(item);
-    } else {
-      obstaclesToRemoveIds.add(item.id);
-    }
-  });
-
-  // Filter out destroyed obstacles and collect them
-  const remainingObstacles = obstacles.filter((obstacle) => {
-    if (obstaclesToRemoveIds.has(obstacle.id)) {
-      destroyedObstacles.push(obstacle);
-      return false; // Remove this obstacle
-    }
-    return true; // Keep this obstacle
-  });
-
-  // Create destruction particles for each destroyed obstacle
-  let newParticles = [...existingParticles];
-  if (GAME_CONFIG.enableParticles) {
-    destroyedObstacles.forEach((destroyedObstacle) => {
-      newParticles = [
-        ...newParticles,
-        ...createParticles(
-          destroyedObstacle.position,
-          OBSTACLE_DESTRUCTION_CONFIG.particles.color,
-          OBSTACLE_DESTRUCTION_CONFIG.particles.count,
-          OBSTACLE_DESTRUCTION_CONFIG.particles.lifetime,
-        ),
-      ];
-    });
-  }
-
-  return {
-    remainingObstacles,
-    destroyedObstacles,
-    particles: newParticles,
-  };
-}
-
-/**
- * Destroy obstacles at specific positions
- * Generic function for position-based destruction
- *
- * @param obstacles - Current list of obstacles
- * @param positions - Positions where obstacles should be destroyed
- * @param existingParticles - Current particles to merge with new destruction particles
- * @returns Result with remaining obstacles, destroyed obstacles, and particles
- */
-export function destroyObstaclesAtPositions(
-  obstacles: Obstacle[],
-  positions: Position[],
-  existingParticles: Particle[] = [],
-): ObstacleDestructionResult {
-  // Find obstacles at specified positions
-  const obstaclesToDestroy = obstacles.filter((obstacle) =>
-    positions.some((pos) => pos.x === obstacle.position.x && pos.y === obstacle.position.y),
+): Obstacle | undefined {
+  return obstacles.find(
+    (obstacle) => obstacle.position.x === shotPosition.x && obstacle.position.y === shotPosition.y,
   );
+}
 
-  return destroyObstacles(obstacles, obstaclesToDestroy, existingParticles);
+/**
+ * Remove an obstacle from the list
+ */
+export function removeObstacle(obstacles: Obstacle[], obstacleId: string): Obstacle[] {
+  return obstacles.filter((obstacle) => obstacle.id !== obstacleId);
 }
 
 /**
  * Check if an obstacle can be destroyed
- * Generic validation for destruction eligibility
- *
- * @param obstacle - Obstacle to check
- * @returns True if obstacle can be destroyed
  */
 export function canDestroyObstacle(_obstacle: Obstacle): boolean {
-  // Currently all obstacles can be destroyed
-  // Future: could add invincible obstacles, etc.
   return true;
+}
+
+/**
+ * Check if a snake's next head position would collide with an obstacle
+ */
+export function wouldCollideWithObstacle(
+  snakeHead: Position,
+  direction: Direction,
+  obstacles: Obstacle[],
+  gridSize: number,
+): boolean {
+  const nextHeadPosition = getNextHeadPosition(snakeHead, direction, gridSize);
+  return obstacles.some(
+    (obstacle) =>
+      obstacle.position.x === nextHeadPosition.x && obstacle.position.y === nextHeadPosition.y,
+  );
+}
+
+/**
+ * Handle generic obstacle destruction
+ * Now uses spawnParticles event internally
+ */
+export function destroyObstacles(
+  obstacles: Obstacle[],
+  obstaclesToDestroy: Obstacle[],
+  _particles: Particle[] = [], // Kept for signature compatibility but unused
+): { remainingObstacles: Obstacle[]; particles: Particle[] } {
+  let remainingObstacles = [...obstacles];
+
+  obstaclesToDestroy.forEach((obstacle) => {
+    remainingObstacles = removeObstacle(remainingObstacles, obstacle.id);
+
+    // Spawn particles via worker event
+    spawnParticles(obstacle.position, '#9ca3af', 6, 500);
+  });
+
+  return {
+    remainingObstacles,
+    particles: [], // Return empty array as particles are handled by worker
+  };
 }

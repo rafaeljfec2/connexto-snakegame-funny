@@ -1,59 +1,45 @@
-import { Particle, Position } from '@/types/game';
-
-// Counter to ensure unique particle IDs even when created in the same millisecond
-let particleCounter = 0;
+import { Position } from '@/types/game';
 
 /**
- * Check if device is mobile
+ * Utility to spawn particles via the Global Event Bus
+ * This decouples the Game Loop from the Particle System (Worker)
  */
-function isMobileDevice(): boolean {
-  if (typeof window === 'undefined') return false;
-  return window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+export function spawnParticles(
+  position: Position,
+  color: string,
+  count: number = 10,
+  lifetime: number = 800,
+  size: number = 4,
+) {
+  const event = new CustomEvent('game-spawn-particles', {
+    detail: {
+      x: position.x,
+      y: position.y,
+      color,
+      count,
+      lifetime,
+      size,
+    },
+  });
+  window.dispatchEvent(event);
 }
 
+// Re-export for compatibility but implemented as no-op or wrapper
+// These were used in the old state-based system
 export function createParticles(
   position: Position,
   color: string,
-  count: number = 5,
-  lifetime: number = 500,
-): Particle[] {
-  // Reduce particle count on mobile for better performance
-  const isMobile = isMobileDevice();
-  const actualCount = isMobile ? Math.max(1, Math.floor(count * 0.4)) : count; // Mobile: 40% of particles
-  
-  const particles: Particle[] = [];
-  const now = Date.now();
-
-  for (let i = 0; i < actualCount; i++) {
-    particleCounter += 1;
-    particles.push({
-      id: `particle-${now}-${particleCounter}-${i}`,
-      position: {
-        x: position.x + (Math.random() - 0.5) * 0.5,
-        y: position.y + (Math.random() - 0.5) * 0.5,
-      },
-      color,
-      lifetime,
-      startTime: now,
-    });
-  }
-
-  return particles;
+  count: number,
+  lifetime: number,
+) {
+  // In the new system, we fire the event immediately and return empty array
+  // This maintains type compatibility with existing code that expects an array return
+  // but the actual logic happens in the worker via event
+  spawnParticles(position, color, count, lifetime);
+  return [];
 }
 
-export function updateParticles(particles: Particle[], maxParticles: number = 100): Particle[] {
-  const now = Date.now();
-  // Remove expired particles first
-  let activeParticles = particles.filter(
-    (particle) => now - particle.startTime < particle.lifetime,
-  );
-
-  // Limit total particles to prevent memory issues
-  if (activeParticles.length > maxParticles) {
-    // Keep the most recently created particles (by startTime)
-    activeParticles.sort((a, b) => b.startTime - a.startTime);
-    activeParticles = activeParticles.slice(0, maxParticles);
-  }
-
-  return activeParticles;
+export function updateParticles(_particles: any[], _max: number) {
+  // No-op: particles are updated in the worker
+  return [];
 }

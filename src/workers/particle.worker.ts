@@ -30,6 +30,7 @@ let width = 0;
 let height = 0;
 let lastTime = 0;
 let animationFrameId: number;
+let dpr = 1;
 
 const selfWorker = self as unknown as Worker;
 
@@ -39,20 +40,32 @@ selfWorker.onmessage = (e: MessageEvent) => {
   switch (type) {
     case 'INIT':
       const canvas = payload.canvas as OffscreenCanvas;
+      dpr = payload.dpr || 1;
       width = payload.width;
       height = payload.height;
+      
+      // Set physical size
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      
       ctx = canvas.getContext('2d');
+      if (ctx) {
+          ctx.scale(dpr, dpr);
+      }
+      
       lastTime = performance.now();
       loop();
       break;
 
     case 'RESIZE':
-      console.log('[ParticleWorker] RESIZE received:', payload.width, payload.height);
       width = payload.width;
       height = payload.height;
+      dpr = payload.dpr || dpr;
+      
       if (ctx && ctx.canvas) {
-        ctx.canvas.width = width;
-        ctx.canvas.height = height;
+        ctx.canvas.width = width * dpr;
+        ctx.canvas.height = height * dpr;
+        ctx.scale(dpr, dpr);
       }
       break;
 
@@ -63,7 +76,6 @@ selfWorker.onmessage = (e: MessageEvent) => {
 
     case 'UPDATE_ENTITIES':
       // Payload: { entities: ExternalEntity[] }
-      // This allows the main thread to push renderable objects to this worker
       if (payload.entities) {
         externalEntities = payload.entities;
       }
@@ -124,20 +136,16 @@ function update(dt: number) {
 function render() {
   if (!ctx) return;
 
-  // Clear canvas
+  // Clear canvas (using logical dimensions because context is scaled)
+  // But usually clearRect needs to cover everything.
+  // Since we scaled, 0,0 to width,height covers the logical area which maps to physical.
   ctx.clearRect(0, 0, width, height);
 
-  // 1. Draw External Entities (like Poison Shots)
-  // We draw them first or last depending on desired z-order.
-  // Drawing them here (before particles) puts them "under" explosions
-  if (externalEntities.length > 0) {
-    // console.log('[ParticleWorker] Rendering entities:', externalEntities.length); // Uncomment sparingly
-  }
+  // 1. Draw External Entities
   for (const entity of externalEntities) {
     ctx.globalAlpha = 1;
     ctx.fillStyle = entity.color;
 
-    // Add glow effect if requested (expensive, use sparingly)
     if (entity.glow) {
       ctx.shadowBlur = 10;
       ctx.shadowColor = entity.color;
@@ -159,7 +167,7 @@ function render() {
     }
   }
 
-  // Reset shadow for particles
+  // Reset shadow
   ctx.shadowBlur = 0;
 
   // 2. Draw particles
@@ -170,7 +178,6 @@ function render() {
     ctx.fillStyle = p.color;
 
     ctx.beginPath();
-    // Draw squares instead of circles for raw performance on particles
     ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
   }
 }

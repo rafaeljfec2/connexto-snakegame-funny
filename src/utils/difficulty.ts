@@ -23,6 +23,8 @@ export function calculateLevel(score: number): number {
  * Lower values = faster game
  * Now considers phase-specific speed modifiers
  * Applies mobile speed boost for better responsiveness
+ * 
+ * MODIFIED: Resets speed curve at the start of each phase (every 5 levels)
  */
 export function calculateGameSpeed(level: number): number {
   const isMobile = isMobileDevice();
@@ -31,8 +33,14 @@ export function calculateGameSpeed(level: number): number {
   const mobileSpeedMultiplier = isMobile ? 0.7 : 1.0;
   const adjustedBaseSpeed = Math.floor(DIFFICULTY_CONFIG.baseSpeed * mobileSpeedMultiplier);
   
-  const speedReduction =
-    (level - DIFFICULTY_CONFIG.initialLevel) * DIFFICULTY_CONFIG.speedReductionPerLevel;
+  // Calculate level within the current phase (1-5)
+  // We assume phases switch every 5 levels as per game logic
+  const LEVELS_PER_PHASE = 5;
+  const relativeLevelIndex = (level - DIFFICULTY_CONFIG.initialLevel) % LEVELS_PER_PHASE;
+  
+  // Speed reduces (gets faster) as we progress WITHIN the phase
+  const speedReduction = relativeLevelIndex * DIFFICULTY_CONFIG.speedReductionPerLevel;
+  
   const calculatedSpeed = adjustedBaseSpeed - speedReduction;
 
   // Ensure we never go below minimum speed
@@ -40,11 +48,11 @@ export function calculateGameSpeed(level: number): number {
   const mobileMinSpeed = isMobile ? Math.floor(DIFFICULTY_CONFIG.minSpeed * 0.8) : DIFFICULTY_CONFIG.minSpeed;
   const baseSpeed = Math.max(calculatedSpeed, mobileMinSpeed);
 
-  // Apply phase-specific speed modifier
+  // Apply phase-specific speed modifier (e.g., Phase 5 is naturally faster)
   const phaseModifier = getPhaseSpeedModifier(level);
   const phaseAdjustedSpeed = Math.floor(baseSpeed * phaseModifier);
 
-  // Ensure we still respect minimum speed
+  // Ensure we still respect minimum speed limit
   return Math.max(phaseAdjustedSpeed, mobileMinSpeed);
 }
 

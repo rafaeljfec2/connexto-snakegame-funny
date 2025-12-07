@@ -7,6 +7,7 @@ interface SnakeRendererProps {
   isMobile: boolean;
   gridSize: number;
   isEating: boolean;
+  speed?: number; // Interval in ms per tick
 }
 
 export const SnakeRenderer = memo(function SnakeRenderer({
@@ -15,11 +16,15 @@ export const SnakeRenderer = memo(function SnakeRenderer({
   isMobile,
   gridSize,
   isEating,
+  speed = 150,
 }: SnakeRendererProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   // Refs for animation loop
   const snakeRef = useRef(snake);
+  const prevSnakeRef = useRef<Position[]>(snake);
+  const lastUpdateRef = useRef<number>(0);
+
   const cellSizeRef = useRef(cellSize);
   const isMobileRef = useRef(isMobile);
   const isEatingRef = useRef(isEating);
@@ -32,6 +37,8 @@ export const SnakeRenderer = memo(function SnakeRenderer({
 
   // Sync props to refs
   useEffect(() => {
+    const now = performance.now();
+
     // Detect growth
     if (snake.length > prevLengthRef.current) {
       // Start animation for the NEW tail segment
@@ -44,7 +51,23 @@ export const SnakeRenderer = memo(function SnakeRenderer({
       headPulseAnimRef.current = 1;
     }
 
-    snakeRef.current = snake;
+    // Update motion state only if snake positions actually changed (tick)
+    // Simple check on head position or length
+    const headChanged =
+      snake.length > 0 &&
+      snakeRef.current.length > 0 &&
+      (snake[0].x !== snakeRef.current[0].x || snake[0].y !== snakeRef.current[0].y);
+
+    if (headChanged || snake.length !== snakeRef.current.length) {
+      prevSnakeRef.current = snakeRef.current;
+      snakeRef.current = snake;
+      lastUpdateRef.current = now;
+    } else {
+      // Just props update (e.g. resize), keep refs but update snakeRef for render
+      // Do not reset prevSnakeRef or timer to avoid jitter
+      snakeRef.current = snake;
+    }
+
     prevLengthRef.current = snake.length;
     cellSizeRef.current = cellSize;
     isMobileRef.current = isMobile;
@@ -62,9 +85,18 @@ export const SnakeRenderer = memo(function SnakeRenderer({
 
     const render = () => {
       const currentSnake = snakeRef.current;
+      const prevSnake = prevSnakeRef.current;
       const currentCellSize = cellSizeRef.current;
       const width = canvas.width;
       const height = canvas.height;
+
+      // Time calculation for interpolation
+      const now = performance.now();
+      const elapsed = now - lastUpdateRef.current;
+      // Clamp t to [0, 1]
+      // Using speed from props which matches game tick rate
+      // Add small buffer to speed to ensure smoothness (e.g. 1.0)
+      const t = Math.min(Math.max(elapsed / speed, 0), 1);
 
       ctx.clearRect(0, 0, width, height);
 
@@ -74,8 +106,8 @@ export const SnakeRenderer = memo(function SnakeRenderer({
       }
 
       // 3D Style Configuration
-      const gap = 0.5; // Very small gap for bead-like effect
-      const segmentRadius = (currentCellSize - gap * 2) / 2;
+      const gap = 0; // No gap for fuller look
+      const segmentRadius = currentCellSize / 2;
 
       // Update growth animations (Slower speed: 0.05 per frame)
       growthAnimsRef.current.forEach((progress, index) => {
@@ -92,25 +124,54 @@ export const SnakeRenderer = memo(function SnakeRenderer({
         headPulseAnimRef.current = Math.max(0, headPulseAnimRef.current - 0.05);
       }
 
+      const getInterpolatedPosition = (index: number, currPos: Position) => {
+        // Handle new segment (growth) or index mismatch
+        // If wrapping (game reset or teleport), snap to current
+        if (index >= prevSnake.length && prevSnake.length > 0) {
+          // New tail segment spawns from the old tail
+          const oldTail = prevSnake[prevSnake.length - 1];
+          // Interpolate from old tail to current pos (which is same as old tail visually usually?)
+          // Actually, new tail takes position of what was previously empty?
+          // Standard snake: new tail stays in place of old tail for 1 tick?
+          // Simplified: spawn from old tail
+          return lerpPosition(oldTail, currPos, t);
+        }
+
+        const prevPos = prevSnake[index] || currPos;
+
+        // If distance is large (wrap/teleport), snap
+        if (Math.abs(currPos.x - prevPos.x) > 1 || Math.abs(currPos.y - prevPos.y) > 1) {
+          return { x: currPos.x * currentCellSize, y: currPos.y * currentCellSize };
+        }
+
+        return lerpPosition(prevPos, currPos, t);
+      };
+
+      const lerpPosition = (p1: Position, p2: Position, time: number) => {
+        const x = p1.x + (p2.x - p1.x) * time;
+        const y = p1.y + (p2.y - p1.y) * time;
+        return { x: x * currentCellSize, y: y * currentCellSize };
+      };
+
       const drawSegment = (
         index: number,
-        x: number,
-        y: number,
+        pixelPos: { x: number; y: number },
         isHead: boolean,
         direction?: string,
       ) => {
-        const px = x * currentCellSize;
-        const py = y * currentCellSize;
+        const px = pixelPos.x;
+        const py = pixelPos.y;
         const cx = px + currentCellSize / 2;
         const cy = py + currentCellSize / 2;
 
-        let scale = 1;
+        // Base scale > 1 to make snake look "thick" and connected
+        let scale = 1.15;
 
         // Tapering tail effect
         if (index === currentSnake.length - 1 && currentSnake.length > 3) {
-          scale = 0.7; // Tail is smaller
+          scale = 0.85; // Tail is smaller but still substantial
         } else if (index === currentSnake.length - 2 && currentSnake.length > 3) {
-          scale = 0.85;
+          scale = 1.0;
         }
 
         // Apply Growth Animation (Tail)
@@ -258,7 +319,8 @@ export const SnakeRenderer = memo(function SnakeRenderer({
 
       // Draw body (reverse order so head is on top if overlapping)
       for (let i = currentSnake.length - 1; i > 0; i--) {
-        drawSegment(i, currentSnake[i].x, currentSnake[i].y, false);
+        const pos = getInterpolatedPosition(i, currentSnake[i]);
+        drawSegment(i, pos, false);
       }
 
       // Head Direction Logic
@@ -276,7 +338,8 @@ export const SnakeRenderer = memo(function SnakeRenderer({
 
       // Draw head last
       if (currentSnake.length > 0) {
-        drawSegment(0, currentSnake[0].x, currentSnake[0].y, true, dir);
+        const pos = getInterpolatedPosition(0, currentSnake[0]);
+        drawSegment(0, pos, true, dir);
       }
 
       animationFrameId = requestAnimationFrame(render);
@@ -287,7 +350,7 @@ export const SnakeRenderer = memo(function SnakeRenderer({
     return () => {
       cancelAnimationFrame(animationFrameId);
     };
-  }, []); // Deps empty, using refs
+  }, [speed]); // Re-bind if speed changes (though refs handle updates mostly)
 
   return (
     <canvas

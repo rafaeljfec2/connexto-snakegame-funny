@@ -9,6 +9,7 @@ import {
   PoisonShot,
 } from '@/types/game';
 import { GAME_CONFIG } from '@/constants/game';
+import { calculateGameSpeed } from '@/utils/difficulty';
 import { WeatherCanvas } from './WeatherCanvas';
 import { SnakeRenderer } from './SnakeRenderer';
 import { Food } from './Food';
@@ -133,6 +134,9 @@ export const GameBoard = memo(function GameBoard({
   const [isLevelUp, setIsLevelUp] = useState(false);
   const [isEating, setIsEating] = useState(false);
 
+  // Calculate current game speed for interpolation
+  const speed = useMemo(() => calculateGameSpeed(level), [level]);
+
   // Detect food eaten (head eating animation)
   useEffect(() => {
     const currentFoodKey = `${food.position.x}-${food.position.y}-${food.type}`;
@@ -212,6 +216,7 @@ export const GameBoard = memo(function GameBoard({
           isMobile={isMobile}
           gridSize={GAME_CONFIG.gridSize}
           isEating={isEating}
+          speed={speed}
         />
 
         <Food key={foodKey} food={food} />

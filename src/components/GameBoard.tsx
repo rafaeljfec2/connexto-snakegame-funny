@@ -277,34 +277,36 @@ export const GameBoard = memo(function GameBoard({
           />
         )}
         {activeBoss && bossSnake && <BossSnakeComponent bossSnake={bossSnake} boss={activeBoss} />}
-        
-        {/* Poison Shots are now rendered by ParticleSystem via Worker canvas, removed React component render */}
-        <ParticleSystem poisonShots={poisonShots} />
 
-        {/* DEBUG FALLBACK: Render shots directly in DOM to verify logic */}
+        {/* Particles Effect System */}
+        <ParticleSystem />
+
+        {/* Poison Shots - Rendered in DOM for compatibility */}
         {poisonShots.map((shot) => (
           <div
-            key={`debug-shot-${shot.id}`}
+            key={`shot-${shot.id}`}
+            className='poison-shot' // Use class if possible, but inline is fine for dynamic pos
             style={{
               position: 'absolute',
-              left: isMobile 
-                ? `calc(${shot.position.x} * (100% / ${GAME_CONFIG.gridSize}))` 
+              left: isMobile
+                ? `calc(${shot.position.x} * (100% / ${GAME_CONFIG.gridSize}))`
                 : `${shot.position.x * cellSize}px`,
-              top: isMobile 
-                ? `calc(${shot.position.y} * (100% / ${GAME_CONFIG.gridSize}))` 
+              top: isMobile
+                ? `calc(${shot.position.y} * (100% / ${GAME_CONFIG.gridSize}))`
                 : `${shot.position.y * cellSize}px`,
-              width: isMobile 
-                ? `calc(100% / ${GAME_CONFIG.gridSize} * 0.6)` 
+              width: isMobile
+                ? `calc(100% / ${GAME_CONFIG.gridSize} * 0.6)`
                 : `${cellSize * 0.6}px`,
-              height: isMobile 
-                ? `calc(100% / ${GAME_CONFIG.gridSize} * 0.6)` 
+              height: isMobile
+                ? `calc(100% / ${GAME_CONFIG.gridSize} * 0.6)`
                 : `${cellSize * 0.6}px`,
-              backgroundColor: '#10b981', // Same color as intended
+              backgroundColor: '#10b981',
               borderRadius: '50%',
-              zIndex: 100, // Ensure visibility
+              zIndex: 100,
               pointerEvents: 'none',
-              transform: 'translate(30%, 30%)', // Center in cell
-              boxShadow: '0 0 5px #10b981', // Glow
+              transform: 'translate(30%, 30%)',
+              boxShadow: '0 0 5px #10b981',
+              willChange: 'left, top', // Optimization hint
             }}
           />
         ))}

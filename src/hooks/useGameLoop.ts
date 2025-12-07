@@ -116,7 +116,6 @@ export function useGameLoop() {
   }, []);
 
   const firePoison = useCallback(() => {
-    console.log('[UseGameLoop] firePoison triggered');
     // Send explicit fire command for immediate response
     workerRef.current?.postMessage({ type: 'FIRE_POISON' });
     // Also enable continuous firing state

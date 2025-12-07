@@ -181,7 +181,6 @@ self.onmessage = (e: MessageEvent) => {
       break;
 
     case 'FIRE_POISON':
-      console.log('[GameWorker] FIRE_POISON received');
       if (gameState && gameState.status === GameStatus.PLAYING) {
         // Add a poison shot to pending list
         const headPosition = gameState.snake[0];

@@ -9,19 +9,16 @@ import {
   PoisonShot,
 } from '@/types/game';
 import { GAME_CONFIG } from '@/constants/game';
-// import { SnakeSegment } from './SnakeSegment'; // Removed in favor of SnakeRenderer
+import { WeatherCanvas } from './WeatherCanvas';
 import { SnakeRenderer } from './SnakeRenderer';
 import { Food } from './Food';
 import { ObstacleComponent } from './Obstacle';
 import { ParticleSystem } from './ParticleSystem';
 import { Portal as PortalComponent } from './Portal';
 import { BossSnake as BossSnakeComponent } from './BossSnake';
-import { StormEffect } from './StormEffect';
-import { WeatherEffect } from './WeatherEffect';
 import { useEffect, useRef, useState, useMemo, memo } from 'react';
 import styles from './GameBoard.module.css';
 import { Chef } from '@/types/phases';
-import { getCurrentPhase } from '@/utils/phases';
 import { GameBackground } from './GameBackground';
 
 interface GameBoardProps {
@@ -176,16 +173,6 @@ export const GameBoard = memo(function GameBoard({
     return pairs;
   }, [portals]);
 
-  // Get current phase for weather effects
-  const currentPhase = useMemo(() => {
-    const phase = getCurrentPhase(level);
-    return phase?.id ?? 0;
-  }, [level]);
-
-  // Detect mobile for conditional rendering of heavy effects
-  // Disable weather effects on mobile for better performance
-  const shouldShowWeatherEffects = !isMobile;
-
   return (
     <div
       ref={boardRef}
@@ -204,11 +191,8 @@ export const GameBoard = memo(function GameBoard({
 
       {/* Game Elements Layer */}
       <div className={styles.gameLayer} style={gridStyle}>
-        {/* Weather Effects for all phases - Disabled on mobile for performance */}
-        {shouldShowWeatherEffects && <WeatherEffect level={level} />}
-
-        {/* Storm Effect for Phase 9 (Vortex Challenge) - Disabled on mobile for performance */}
-        {shouldShowWeatherEffects && currentPhase === 9 && <StormEffect level={level} />}
+        {/* Weather Effects (Worker Based) */}
+        <WeatherCanvas level={level} isMobile={isMobile} />
 
         {/* Obstacles */}
         {GAME_CONFIG.enableObstacles &&

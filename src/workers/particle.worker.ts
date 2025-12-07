@@ -131,7 +131,7 @@ function render() {
   // We draw them first or last depending on desired z-order.
   // Drawing them here (before particles) puts them "under" explosions
   if (externalEntities.length > 0) {
-     // console.log('[ParticleWorker] Rendering entities:', externalEntities.length); // Uncomment sparingly
+    // console.log('[ParticleWorker] Rendering entities:', externalEntities.length); // Uncomment sparingly
   }
   for (const entity of externalEntities) {
     ctx.globalAlpha = 1;

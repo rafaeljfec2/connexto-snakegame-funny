@@ -1,7 +1,6 @@
 import { useCallback, useRef, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Direction } from '@/types/game';
-import { CONTROL_CONFIG } from '@/constants/game';
 import styles from './MobileGamepad.module.css';
 
 interface MobileGamepadProps {
@@ -33,7 +32,8 @@ export function MobileGamepad({
   const JOYSTICK_RADIUS = 60; // Radius of joystick area
   const KNOB_RADIUS = 25; // Radius of the knob
   const DEAD_ZONE = 0.2; // Dead zone in percentage (20% of radius)
-  const SPEED_BOOST_DELAY = CONTROL_CONFIG.speedBoostActivationDelay;
+  // Mobile gets faster speed boost activation (100ms vs 200ms)
+  const SPEED_BOOST_DELAY = 100; // Faster activation for better mobile responsiveness
 
   const getTouchPosition = useCallback((touch: Touch) => {
     if (!joystickRef.current) return null;
@@ -95,9 +95,11 @@ export function MobileGamepad({
       const direction = calculateDirection(x, y);
       const now = Date.now();
 
-      // Update direction if changed (with small cooldown to prevent rapid changes)
+      // Update direction if changed (reduced cooldown for mobile responsiveness)
+      // Mobile needs faster response time, so we use a shorter cooldown
+      const directionChangeCooldown = 20; // Reduced from 50ms to 20ms for better mobile responsiveness
       if (direction && direction !== currentDirectionRef.current) {
-        if (now - lastDirectionTimeRef.current > 50) {
+        if (now - lastDirectionTimeRef.current > directionChangeCooldown) {
           currentDirectionRef.current = direction;
           lastDirectionTimeRef.current = now;
           onDirectionChange(direction);

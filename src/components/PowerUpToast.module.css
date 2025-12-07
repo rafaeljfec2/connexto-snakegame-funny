@@ -68,6 +68,16 @@
   }
 }
 
+/* Progress Bar Animation */
+@keyframes progressShrink {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
 .toastIcon {
   font-size: 2rem;
   line-height: 1;
@@ -111,9 +121,13 @@
 
 .toastProgressFill {
   height: 100%;
+  width: 100%; /* Fill container, transform handles width */
   background: linear-gradient(90deg, #3b82f6 0%, #8b5cf6 100%);
   border-radius: 2px;
-  transition: width 0.1s linear;
+  transform-origin: left; /* Shrink from right */
+  animation-name: progressShrink;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
   box-shadow: 0 0 8px rgba(59, 130, 246, 0.6);
 }
 

@@ -20,32 +20,29 @@ export function PowerUpToast({
   onComplete,
 }: PowerUpToastProps) {
   const [isVisible, setIsVisible] = useState(true);
-  const [remaining, setRemaining] = useState(0);
+  const [secondsLeft, setSecondsLeft] = useState(Math.ceil(duration / 1000));
 
   useEffect(() => {
-    // Calculate remaining time based on startTime and duration
-    const calculateRemaining = () => {
-      const now = Date.now();
-      const elapsed = now - startTime;
-      const remainingTime = Math.max(0, duration - elapsed);
-      return remainingTime;
-    };
+    // Initial calculation
+    const now = Date.now();
+    const elapsed = now - startTime;
+    const remaining = Math.max(0, duration - elapsed);
+    setSecondsLeft(Math.ceil(remaining / 1000));
 
-    // Initialize remaining time
-    setRemaining(calculateRemaining());
-
-    // Update remaining time every 100ms
+    // Update text every 1 second (much lighter than 100ms)
     const interval = setInterval(() => {
-      const remainingTime = calculateRemaining();
-      setRemaining(remainingTime);
+      const currentNow = Date.now();
+      const currentElapsed = currentNow - startTime;
+      const currentRemaining = Math.max(0, duration - currentElapsed);
 
-      // When time expires, hide and remove toast
-      if (remainingTime <= 0) {
+      if (currentRemaining <= 0) {
         setIsVisible(false);
         clearInterval(interval);
-        setTimeout(onComplete, 300); // Wait for fade-out animation
+        setTimeout(onComplete, 300); // Fade out
+      } else {
+        setSecondsLeft(Math.ceil(currentRemaining / 1000));
       }
-    }, 100);
+    }, 1000);
 
     return () => {
       clearInterval(interval);
@@ -54,6 +51,10 @@ export function PowerUpToast({
 
   const isNegative =
     type === FoodType.POISON || type === FoodType.REVERSE_CONTROLS || type === FoodType.SLOW_DOWN;
+
+  // Calculate initial animation delay if toast started late (e.g. re-render)
+  const initialElapsed = Math.max(0, Date.now() - startTime);
+  const animationDelay = -initialElapsed; // Negative delay fast-forwards animation
 
   return (
     <div
@@ -68,10 +69,13 @@ export function PowerUpToast({
               <div className={styles.toastProgressBar}>
                 <div
                   className={styles.toastProgressFill}
-                  style={{ width: `${(remaining / duration) * 100}%` }}
+                  style={{
+                    animationDuration: `${duration}ms`,
+                    animationDelay: `${animationDelay}ms`,
+                  }}
                 />
               </div>
-              <span className={styles.toastSeconds}>{Math.ceil(remaining / 1000)}s</span>
+              <span className={styles.toastSeconds}>{secondsLeft}s</span>
             </div>
           )}
         </div>

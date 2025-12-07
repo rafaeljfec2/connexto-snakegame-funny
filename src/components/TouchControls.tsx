@@ -24,8 +24,15 @@ export const TouchControls = memo(function TouchControls({
   const pressedButtonsRef = useRef<Set<Direction>>(new Set());
   const speedBoostActiveRef = useRef(false);
   const speedBoostTimersRef = useRef<Map<Direction, ReturnType<typeof setTimeout>>>(new Map());
-  const MIN_SWIPE_DISTANCE = 10; // Reduced minimum distance for faster response
-  const MAX_SWIPE_TIME = 500; // Increased max time to allow slower swipes
+  const MIN_SWIPE_DISTANCE = 10;
+  const MAX_SWIPE_TIME = 500;
+
+  // Helper for haptic feedback
+  const triggerHaptic = () => {
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+      navigator.vibrate(15); // Crisp tick
+    }
+  };
 
   const handleTouchStart = useCallback(
     (e: React.TouchEvent) => {
@@ -38,7 +45,6 @@ export const TouchControls = memo(function TouchControls({
           y: touch.clientY,
           time: Date.now(),
         };
-        // Don't reset lastDirection to allow rapid changes
       }
     },
     [enabled],
@@ -62,7 +68,6 @@ export const TouchControls = memo(function TouchControls({
       const absDeltaX = Math.abs(deltaX);
       const absDeltaY = Math.abs(deltaY);
 
-      // More permissive swipe detection - allow smaller, slower swipes
       if (
         deltaTime > MAX_SWIPE_TIME ||
         (absDeltaX < MIN_SWIPE_DISTANCE && absDeltaY < MIN_SWIPE_DISTANCE)
@@ -73,17 +78,14 @@ export const TouchControls = memo(function TouchControls({
 
       let direction: Direction | null = null;
 
-      // Determine direction based on which axis has greater movement
       if (absDeltaX > absDeltaY) {
-        // Horizontal swipe
         direction = deltaX > 0 ? Direction.RIGHT : Direction.LEFT;
       } else {
-        // Vertical swipe
         direction = deltaY > 0 ? Direction.DOWN : Direction.UP;
       }
 
-      // Allow rapid direction changes - remove restriction
       if (direction) {
+        triggerHaptic();
         onDirectionChange(direction);
       }
 
@@ -95,21 +97,19 @@ export const TouchControls = memo(function TouchControls({
   const handleButtonTouchStart = useCallback(
     (direction: Direction) => (e: React.TouchEvent) => {
       if (!enabled) return;
-      e.preventDefault();
+      // e.preventDefault(); // Removed to prevent interfering with scrolling if user misses button, but added back in CSS via touch-action
 
-      // Always allow direction change immediately for rapid changes
+      triggerHaptic();
       onDirectionChange(direction);
 
-      // Add to pressed buttons
       if (!pressedButtonsRef.current.has(direction)) {
         pressedButtonsRef.current.add(direction);
 
-        // Start timer to activate speed boost after delay
         if (onSpeedBoost && !speedBoostActiveRef.current) {
           const timerId = setTimeout(() => {
-            // Only activate if button is still pressed
             if (pressedButtonsRef.current.has(direction)) {
               speedBoostActiveRef.current = true;
+              triggerHaptic(); // Feedback for boost
               onSpeedBoost(true);
             }
             speedBoostTimersRef.current.delete(direction);
@@ -125,25 +125,20 @@ export const TouchControls = memo(function TouchControls({
   const handleButtonTouchEnd = useCallback(
     (direction: Direction) => (e: React.TouchEvent) => {
       if (!enabled) return;
-      e.preventDefault();
+      if (e.cancelable) e.preventDefault();
 
-      // Cancel speed boost timer for this button
       const timerId = speedBoostTimersRef.current.get(direction);
       if (timerId) {
         clearTimeout(timerId);
         speedBoostTimersRef.current.delete(direction);
       }
 
-      // Remove from pressed buttons
       pressedButtonsRef.current.delete(direction);
 
-      // Deactivate speed boost if no buttons are pressed
       if (pressedButtonsRef.current.size === 0) {
-        // Cancel all remaining timers
         speedBoostTimersRef.current.forEach((timer) => clearTimeout(timer));
         speedBoostTimersRef.current.clear();
 
-        // Deactivate speed boost
         if (speedBoostActiveRef.current && onSpeedBoost) {
           speedBoostActiveRef.current = false;
           onSpeedBoost(false);
@@ -156,7 +151,8 @@ export const TouchControls = memo(function TouchControls({
   const handleButtonClick = useCallback(
     (direction: Direction) => {
       if (!enabled) return;
-      // Allow rapid clicks for quick direction changes
+      // For mouse clicks
+      triggerHaptic();
       onDirectionChange(direction);
     },
     [enabled, onDirectionChange],
@@ -165,7 +161,6 @@ export const TouchControls = memo(function TouchControls({
   // Cleanup timers when disabled
   useEffect(() => {
     if (!enabled) {
-      // Cancel all timers and reset state
       speedBoostTimersRef.current.forEach((timer) => clearTimeout(timer));
       speedBoostTimersRef.current.clear();
       pressedButtonsRef.current.clear();
@@ -215,18 +210,22 @@ export const TouchControls = memo(function TouchControls({
         <button
           className={`${styles.poisonButton} ${styles.centerSpace}`}
           onTouchStart={(e) => {
-            e.preventDefault();
+            // e.preventDefault();
+            triggerHaptic();
             onFirePoison?.();
           }}
           onTouchEnd={(e) => {
-            e.preventDefault();
+            if (e.cancelable) e.preventDefault();
             onStopFiringPoison?.();
           }}
           onTouchCancel={(e) => {
-            e.preventDefault();
+            if (e.cancelable) e.preventDefault();
             onStopFiringPoison?.();
           }}
-          onClick={() => onFirePoison?.()}
+          onClick={() => {
+             triggerHaptic();
+             onFirePoison?.();
+          }}
           aria-label={t('touchControls.firePoison')}
           type='button'
         >

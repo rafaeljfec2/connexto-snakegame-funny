@@ -20,34 +20,33 @@
 }
 
 .touchControls.disabled {
-  opacity: 0.4;
+  opacity: 0;
   pointer-events: none; /* Disable interactions when disabled */
 }
 
 .controlGrid {
   display: grid;
-  grid-template-columns: repeat(3, 70px);
-  grid-template-rows: repeat(3, 70px);
-  gap: 8px;
-  padding: 12px;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(20px);
-  border-radius: 20px;
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.5),
-    inset 0 0 40px rgba(59, 130, 246, 0.1);
+  grid-template-columns: repeat(3, 75px);
+  grid-template-rows: repeat(3, 75px);
+  gap: 4px;
+  padding: 8px;
+  /* Remove bulky background for cleaner look, keep minimal shadow */
+  /* background: rgba(0, 0, 0, 0.3); */
+  /* backdrop-filter: blur(10px); */
+  /* border-radius: 24px; */
+  /* border: 1px solid rgba(255, 255, 255, 0.1); */
 }
 
 .directionButton {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.1);
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
+  background: rgba(30, 41, 59, 0.6); /* Darker, more visible */
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 16px;
   cursor: pointer;
-  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
@@ -56,6 +55,7 @@
   margin: 0;
   position: relative;
   overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .directionButton::before {
@@ -66,36 +66,33 @@
   width: 0;
   height: 0;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.2);
   transform: translate(-50%, -50%);
   transition:
-    width 0.3s,
-    height 0.3s;
+    width 0.2s,
+    height 0.2s;
 }
 
 .directionButton:active::before,
 .directionButton.active::before {
-  width: 200%;
-  height: 200%;
+  width: 150%;
+  height: 150%;
+  transition: 0s;
 }
 
 .directionButton:active,
 .directionButton.active {
-  background: rgba(59, 130, 246, 0.4);
-  border-color: rgba(255, 255, 255, 0.4);
-  transform: scale(0.95);
-}
-
-.directionButton:hover {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(59, 130, 246, 0.6);
+  border-color: rgba(96, 165, 250, 0.5);
+  transform: scale(0.92);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 
 .buttonIcon {
-  font-size: 1.75rem;
+  font-size: 2rem;
   font-weight: 900;
-  color: rgba(255, 255, 255, 0.9);
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  color: rgba(255, 255, 255, 0.95);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
   pointer-events: none;
   line-height: 1;
 }
@@ -103,11 +100,15 @@
 .upButton {
   grid-column: 2;
   grid-row: 1;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
 }
 
 .leftButton {
   grid-column: 1;
   grid-row: 2;
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
 }
 
 .centerSpace {
@@ -121,83 +122,50 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.3) 0%, rgba(5, 150, 105, 0.4) 100%);
-  border: 2px solid rgba(16, 185, 129, 0.5);
-  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.4) 0%, rgba(5, 150, 105, 0.5) 100%);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(52, 211, 153, 0.4);
+  border-radius: 50%; /* Circular action button */
   cursor: pointer;
-  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.1s;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
   -webkit-user-select: none;
   padding: 0;
-  margin: 0;
+  margin: 4px; /* Smaller than grid cell */
   position: relative;
   overflow: hidden;
-  box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
-}
-
-.poisonButton::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 0;
-  height: 0;
-  border-radius: 50%;
-  background: rgba(16, 185, 129, 0.5);
-  transform: translate(-50%, -50%);
-  transition:
-    width 0.3s,
-    height 0.3s;
-}
-
-.poisonButton:active::before {
-  width: 200%;
-  height: 200%;
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
+  z-index: 2;
 }
 
 .poisonButton:active {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.5) 0%, rgba(5, 150, 105, 0.6) 100%);
-  border-color: rgba(16, 185, 129, 0.8);
-  transform: scale(0.95);
-  box-shadow: 0 0 20px rgba(16, 185, 129, 0.6);
-}
-
-.poisonButton:hover {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.4) 0%, rgba(5, 150, 105, 0.5) 100%);
-  border-color: rgba(16, 185, 129, 0.7);
-  box-shadow: 0 0 16px rgba(16, 185, 129, 0.5);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.6) 0%, rgba(5, 150, 105, 0.7) 100%);
+  border-color: rgba(52, 211, 153, 0.8);
+  transform: scale(0.9);
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
 }
 
 .poisonIcon {
-  font-size: 1.5rem;
+  font-size: 1.75rem;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
   pointer-events: none;
   line-height: 1;
-  animation: poisonPulse 1s ease-in-out infinite;
-}
-
-@keyframes poisonPulse {
-  0%,
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  50% {
-    transform: scale(1.1);
-    opacity: 0.8;
-  }
 }
 
 .rightButton {
   grid-column: 3;
   grid-row: 2;
+  border-top-left-radius: 8px;
+  border-bottom-left-radius: 8px;
 }
 
 .downButton {
   grid-column: 2;
   grid-row: 3;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
 }
 
 /* Show on mobile devices - Always visible */
@@ -208,39 +176,23 @@
     opacity: 1;
     bottom: 15px;
   }
-
-  /* Even when disabled, keep visible but dimmed */
-  .touchControls.disabled {
-    opacity: 0.4;
-    pointer-events: none;
-  }
 }
 
 /* Smaller buttons on very small screens */
 @media (max-width: 480px) {
   .controlGrid {
-    grid-template-columns: repeat(3, 50px);
-    grid-template-rows: repeat(3, 50px);
-    gap: 5px;
-    padding: 8px;
-    border-radius: 14px;
+    grid-template-columns: repeat(3, 65px);
+    grid-template-rows: repeat(3, 65px);
+    gap: 2px;
+    padding: 4px;
   }
 
   .buttonIcon {
-    font-size: 1.25rem;
+    font-size: 1.5rem;
   }
-
+  
   .touchControls {
-    display: block !important; /* Force display on mobile */
-    visibility: visible !important;
-    opacity: 1;
-    bottom: 8px;
-  }
-
-  /* Even when disabled, keep visible but dimmed */
-  .touchControls.disabled {
-    opacity: 0.4;
-    pointer-events: none;
+    bottom: 10px;
   }
 }
 
@@ -253,12 +205,8 @@
   .controlGrid {
     grid-template-columns: repeat(3, 60px);
     grid-template-rows: repeat(3, 60px);
-    gap: 6px;
-    padding: 8px;
-  }
-
-  .buttonIcon {
-    font-size: 1.5rem;
+    gap: 4px;
+    padding: 4px;
   }
 }
 

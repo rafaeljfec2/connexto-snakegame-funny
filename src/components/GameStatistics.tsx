@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { createPortal } from 'react-dom';
 import type { GameStatistics as GameStatisticsType } from '@/types/statistics';
 import { formatTime, formatDate } from '@/utils/statistics';
 import { FoodType } from '@/types/game';
@@ -30,7 +31,7 @@ export function GameStatistics({ statistics, onClose }: GameStatisticsProps) {
   const { t } = useTranslation();
   const totalFoods = Object.values(statistics.foodsByType).reduce((sum, count) => sum + count, 0);
 
-  return (
+  return createPortal(
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.container} onClick={(e) => e.stopPropagation()}>
         <div className={styles.header}>
@@ -132,6 +133,7 @@ export function GameStatistics({ statistics, onClose }: GameStatisticsProps) {
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

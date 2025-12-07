@@ -22,8 +22,7 @@ let lastUpdate = 0;
 let isMobile = false;
 
 // Animation State
-const growthAnims = new Map<number, number>(); // index -> progress
-let headPulseAnim = 0;
+
 let lastTongueFlick = 0;
 let nextTongueFlick = 0;
 let tongueProgress = 0;
@@ -32,8 +31,8 @@ let deathStartTime = 0;
 
 // Helper to interpolate
 // Helper to darken hex color
-const adjustColor = (color: string, amount: number) => {
-    return color; // Simplification, implementing true hex adjust is overkill here, default to input
+const adjustColor = (color: string, _amount: number) => {
+  return color; // Simplification, implementing true hex adjust is overkill here, default to input
 };
 
 const lerp = (start: number, end: number, t: number) => {
@@ -44,7 +43,7 @@ const getInterpolatedPos = (
   curr: Position,
   prev: Position | undefined,
   cellSize: number,
-  t: number
+  t: number,
 ) => {
   if (!prev) return { x: curr.x * cellSize, y: curr.y * cellSize };
 
@@ -65,7 +64,7 @@ const drawSnakeSegment = (
   isHead: boolean,
   isBoss: boolean,
   scale: number = 1,
-  angle: number = 0
+  angle: number = 0,
 ) => {
   if (!ctx) return;
 
@@ -80,14 +79,7 @@ const drawSnakeSegment = (
 
   // Gradient (relative to 0,0)
   const lightOff = -radius * 0.3;
-  const gradient = ctx.createRadialGradient(
-    lightOff,
-    lightOff,
-    radius * 0.1,
-    0,
-    0,
-    radius
-  );
+  const gradient = ctx.createRadialGradient(lightOff, lightOff, radius * 0.1, 0, 0, radius);
 
   if (isBoss) {
     gradient.addColorStop(0, activeBoss?.color || '#f87171');
@@ -118,72 +110,72 @@ const drawSnakeSegment = (
 
   // Boss Name & Icon
   if (isBoss && isHead && activeBoss) {
-      ctx.save();
-      // Rotate back to keep text upright? Or let it rotate with head?
-      // Usually names stay upright.
-      ctx.rotate(-angle); 
-      
-      ctx.fillStyle = 'white';
-      ctx.shadowColor = 'black';
-      ctx.shadowBlur = 4;
-      ctx.font = 'bold 14px sans-serif';
-      ctx.textAlign = 'center';
-      const text = `${activeBoss.icon || ''} ${activeBoss.name || ''}`.trim();
-      if (text) {
-          ctx.fillText(text, 0, -radius - 8);
-      }
-      ctx.restore();
+    ctx.save();
+    // Rotate back to keep text upright? Or let it rotate with head?
+    // Usually names stay upright.
+    ctx.rotate(-angle);
+
+    ctx.fillStyle = 'white';
+    ctx.shadowColor = 'black';
+    ctx.shadowBlur = 4;
+    ctx.font = 'bold 14px sans-serif';
+    ctx.textAlign = 'center';
+    const text = `${activeBoss.icon || ''} ${activeBoss.name || ''}`.trim();
+    if (text) {
+      ctx.fillText(text, 0, -radius - 8);
+    }
+    ctx.restore();
   }
 
   // Eyes for Head
   if (isHead && !isBoss) {
     // Tongue Animation
     if (tongueProgress > 0.1) {
-        ctx.save();
-        const tLength = radius * 1.2 * tongueProgress;
-        const tWidth = radius * 0.15;
-        
-        ctx.beginPath();
-        ctx.strokeStyle = '#ef4444'; // Red
-        ctx.lineWidth = tWidth;
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
-        
-        // Main tongue stem
-        ctx.moveTo(radius * 0.5, 0); // Start slightly inside head
-        ctx.lineTo(radius + tLength, 0);
-        
-        // Fork
-        const forkLen = radius * 0.4 * tongueProgress;
-        const forkSpread = radius * 0.3 * tongueProgress;
-        
-        ctx.moveTo(radius + tLength, 0);
-        ctx.lineTo(radius + tLength + forkLen, -forkSpread);
-        
-        ctx.moveTo(radius + tLength, 0);
-        ctx.lineTo(radius + tLength + forkLen, forkSpread);
-        
-        ctx.stroke();
-        ctx.restore();
+      ctx.save();
+      const tLength = radius * 1.2 * tongueProgress;
+      const tWidth = radius * 0.15;
+
+      ctx.beginPath();
+      ctx.strokeStyle = '#ef4444'; // Red
+      ctx.lineWidth = tWidth;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+
+      // Main tongue stem
+      ctx.moveTo(radius * 0.5, 0); // Start slightly inside head
+      ctx.lineTo(radius + tLength, 0);
+
+      // Fork
+      const forkLen = radius * 0.4 * tongueProgress;
+      const forkSpread = radius * 0.3 * tongueProgress;
+
+      ctx.moveTo(radius + tLength, 0);
+      ctx.lineTo(radius + tLength + forkLen, -forkSpread);
+
+      ctx.moveTo(radius + tLength, 0);
+      ctx.lineTo(radius + tLength + forkLen, forkSpread);
+
+      ctx.stroke();
+      ctx.restore();
     }
 
     ctx.shadowColor = 'transparent';
     const eyeRadius = radius * 0.35;
     const eyeOffset = radius * 0.4;
-    
+
     // Draw relative to 0,0 facing Right (0 radians)
     ctx.fillStyle = 'white';
     ctx.beginPath();
     ctx.arc(eyeOffset, -eyeRadius * 0.8, eyeRadius, 0, Math.PI * 2); // Top eye (Left relative to forward?) No, y is down.
-    // At 0 deg (Right), y- is Up. So -eyeRadius is Left Eye? 
+    // At 0 deg (Right), y- is Up. So -eyeRadius is Left Eye?
     // Wait, screen coords: Y is Down.
     // 0 deg is X+.
     // Top of screen is Y-.
     // So Y- is "Left" of the snake if it's facing Right? Yes.
-    
+
     ctx.arc(eyeOffset, eyeRadius * 0.8, eyeRadius, 0, Math.PI * 2); // Bottom eye
     ctx.fill();
-    
+
     ctx.fillStyle = 'black';
     const pupilRadius = eyeRadius * 0.5;
     ctx.beginPath();
@@ -198,7 +190,7 @@ const drawSnakeSegment = (
 
 const drawShot = (shot: PoisonShot, cellSize: number) => {
   if (!ctx) return;
-  
+
   const x = shot.position.x * cellSize;
   const y = shot.position.y * cellSize;
   const size = cellSize * 0.6;
@@ -206,18 +198,18 @@ const drawShot = (shot: PoisonShot, cellSize: number) => {
   const cy = y + cellSize / 2;
 
   ctx.fillStyle = '#10b981';
-  
+
   if (!isMobile) {
-      ctx.shadowColor = '#10b981';
-      ctx.shadowBlur = 10;
+    ctx.shadowColor = '#10b981';
+    ctx.shadowBlur = 10;
   }
-  
+
   ctx.beginPath();
   ctx.arc(cx, cy, size / 2, 0, Math.PI * 2);
   ctx.fill();
-  
+
   if (!isMobile) {
-      ctx.shadowBlur = 0;
+    ctx.shadowBlur = 0;
   }
 };
 
@@ -231,19 +223,19 @@ const render = () => {
 
   // Tongue Logic
   if (now > nextTongueFlick) {
-      lastTongueFlick = now;
-      nextTongueFlick = now + 500 + Math.random() * 1500;
+    lastTongueFlick = now;
+    nextTongueFlick = now + 500 + Math.random() * 1500;
   }
   const flickDur = 200;
   if (now - lastTongueFlick < flickDur) {
-      tongueProgress = Math.sin(((now - lastTongueFlick) / flickDur) * Math.PI);
+    tongueProgress = Math.sin(((now - lastTongueFlick) / flickDur) * Math.PI);
   } else {
-      tongueProgress = 0;
+    tongueProgress = 0;
   }
 
   // Clear
   ctx.clearRect(0, 0, width, height);
-  
+
   // Calculate cell size
   // Grid size is fixed (20x20 usually), canvas size varies
   // We assume canvas fills the board area
@@ -256,50 +248,52 @@ const render = () => {
     for (let i = snake.length - 1; i > 0; i--) {
       const prev = prevSnake[i] || prevSnake[prevSnake.length - 1] || snake[i];
       const pos = getInterpolatedPos(snake[i], prev, cellSize, t);
-      
+
       let scale = 1.15;
       // Tapering
       if (i >= snake.length - 2 && snake.length > 3) scale = 0.85;
-      
+
       // Death Animation
       if (deathStartTime > 0) {
-          const time = now - deathStartTime;
-          const delay = i * 50;
-          const fade = Math.max(0, 1 - (time - delay) / 200);
-          ctx.globalAlpha = fade;
+        const time = now - deathStartTime;
+        const totalDur = 2000;
+        const step = Math.min(50, totalDur / (snake.length || 1));
+        const delay = i * step;
+        const fade = Math.max(0, 1 - (time - delay) / 200);
+        ctx.globalAlpha = fade;
       }
-      
+
       drawSnakeSegment(pos.x, pos.y, cellSize, false, false, scale);
     }
     // Head
     const headPrev = prevSnake[0] || snake[0];
     const headPos = getInterpolatedPos(snake[0], headPrev, cellSize, t);
-    
+
     // Calculate Angle
     let angle = 0;
     if (snake.length > 1) {
-        const next = snake[1];
-        let dx = snake[0].x - next.x;
-        let dy = snake[0].y - next.y;
-        
-        // Wrap handling
-        if (dx > 1) dx = -1;
-        else if (dx < -1) dx = 1;
-        if (dy > 1) dy = -1;
-        else if (dy < -1) dy = 1;
-        
-        angle = Math.atan2(dy, dx);
+      const next = snake[1];
+      let dx = snake[0].x - next.x;
+      let dy = snake[0].y - next.y;
+
+      // Wrap handling
+      if (dx > 1) dx = -1;
+      else if (dx < -1) dx = 1;
+      if (dy > 1) dy = -1;
+      else if (dy < -1) dy = 1;
+
+      angle = Math.atan2(dy, dx);
     }
 
     let headScale = 1.15;
     if (isEating) headScale = 1.3; // Simple pulse
-    
+
     if (deathStartTime > 0) {
-        const time = now - deathStartTime;
-        const fade = Math.max(0, 1 - time / 200);
-        ctx.globalAlpha = fade;
+      const time = now - deathStartTime;
+      const fade = Math.max(0, 1 - time / 200);
+      ctx.globalAlpha = fade;
     }
-    
+
     drawSnakeSegment(headPos.x, headPos.y, cellSize, true, false, headScale, angle);
     ctx.restore();
   }
@@ -307,32 +301,34 @@ const render = () => {
   // Draw Boss
   if (bossSnake) {
     bossSnake.positions.forEach((seg, i) => {
-       const prev = prevBossSnake[i] || seg;
-       const pos = getInterpolatedPos(seg, prev, cellSize, t);
-       
-       let bossAngle = 0;
-       if (i === 0 && bossSnake!.positions.length > 1) {
-           const next = bossSnake!.positions[1];
-           let dx = seg.x - next.x;
-           let dy = seg.y - next.y;
-           // Wrap handling
-           if (dx > 1) dx = -1; else if (dx < -1) dx = 1;
-           if (dy > 1) dy = -1; else if (dy < -1) dy = 1;
-           bossAngle = Math.atan2(dy, dx);
-       }
-       
-       drawSnakeSegment(pos.x, pos.y, cellSize, i === 0, true, 1.2, bossAngle);
+      const prev = prevBossSnake[i] || seg;
+      const pos = getInterpolatedPos(seg, prev, cellSize, t);
+
+      let bossAngle = 0;
+      if (i === 0 && bossSnake!.positions.length > 1) {
+        const next = bossSnake!.positions[1];
+        let dx = seg.x - next.x;
+        let dy = seg.y - next.y;
+        // Wrap handling
+        if (dx > 1) dx = -1;
+        else if (dx < -1) dx = 1;
+        if (dy > 1) dy = -1;
+        else if (dy < -1) dy = 1;
+        bossAngle = Math.atan2(dy, dx);
+      }
+
+      drawSnakeSegment(pos.x, pos.y, cellSize, i === 0, true, 1.2, bossAngle);
     });
   }
 
   // Draw Shots
   // Shots move linearly. Interpolation for shots?
   // Shots update every tick.
-  shots.forEach(shot => {
-     // Shot interpolation is harder without prev state tracking for shots
-     // For now, draw at current pos (might jitter if low tick rate)
-     // Or simplistic interpolation if we assume speed
-     drawShot(shot, cellSize);
+  shots.forEach((shot) => {
+    // Shot interpolation is harder without prev state tracking for shots
+    // For now, draw at current pos (might jitter if low tick rate)
+    // Or simplistic interpolation if we assume speed
+    drawShot(shot, cellSize);
   });
 
   requestAnimationFrame(render);
@@ -348,18 +344,18 @@ self.onmessage = (e: MessageEvent) => {
       height = payload.height || 100;
       dpr = payload.dpr || 1;
       isMobile = payload.isMobile;
-      
+
       try {
         canvas.width = width * dpr;
         canvas.height = height * dpr;
         ctx = canvas.getContext('2d');
         if (ctx) {
-            ctx.scale(dpr, dpr);
+          ctx.scale(dpr, dpr);
         }
       } catch (e) {
-          console.error('Error setting up canvas', e);
+        console.error('Error setting up canvas', e);
       }
-      
+
       // Start loop
       render();
       break;
@@ -371,7 +367,7 @@ self.onmessage = (e: MessageEvent) => {
       if (ctx && ctx.canvas) {
         ctx.canvas.width = width * dpr;
         ctx.canvas.height = height * dpr;
-        ctx.setTransform(1, 0, 0, 1, 0, 0); 
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.scale(dpr, dpr);
       }
       break;
@@ -379,39 +375,38 @@ self.onmessage = (e: MessageEvent) => {
     case 'UPDATE':
       // Check if actually changed
       if (payload.snake) {
-         prevSnake = snake && snake.length > 0 ? snake : payload.snake;
-         snake = payload.snake || [];
-         
-         if (payload.bossSnake) {
-            prevBossSnake = bossSnake ? bossSnake.positions : payload.bossSnake.positions;
-            bossSnake = payload.bossSnake;
-         } else {
-            bossSnake = null;
-            prevBossSnake = [];
-         }
-         
-         if (payload.activeBoss) {
-             activeBoss = payload.activeBoss;
-         }
+        prevSnake = snake && snake.length > 0 ? snake : payload.snake;
+        snake = payload.snake || [];
 
-         shots = payload.shots || [];
-         isEating = payload.isEating;
-         speed = payload.speed || 150;
-         
-         if (payload.status) {
-             if (payload.status !== gameStatus) {
-                 if (payload.status === 'GAME_OVER' || payload.status === 'DYING') {
-                     deathStartTime = performance.now();
-                 } else {
-                     deathStartTime = 0;
-                 }
-                 gameStatus = payload.status;
-             }
-         }
-         
-         lastUpdate = performance.now();
+        if (payload.bossSnake) {
+          prevBossSnake = bossSnake ? bossSnake.positions : payload.bossSnake.positions;
+          bossSnake = payload.bossSnake;
+        } else {
+          bossSnake = null;
+          prevBossSnake = [];
+        }
+
+        if (payload.activeBoss) {
+          activeBoss = payload.activeBoss;
+        }
+
+        shots = payload.shots || [];
+        isEating = payload.isEating;
+        speed = payload.speed || 150;
+
+        if (payload.status) {
+          if (payload.status !== gameStatus) {
+            if (payload.status === 'GAME_OVER' || payload.status === 'DYING') {
+              deathStartTime = performance.now();
+            } else {
+              deathStartTime = 0;
+            }
+            gameStatus = payload.status;
+          }
+        }
+
+        lastUpdate = performance.now();
       }
       break;
   }
 };
-

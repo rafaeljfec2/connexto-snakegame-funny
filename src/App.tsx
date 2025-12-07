@@ -252,14 +252,18 @@ function App() {
 
     if (wasNotGameOver && isNowGameOver) {
       const snakeLength = gameStateRef.current.snake.length;
-      const deathAnimationDuration = snakeLength * 50 + 300;
+      const deathAnimationDuration = Math.min(2500, snakeLength * 50 + 300);
 
       const timer = setTimeout(() => {
-        const currentGameState = gameStateRef.current;
-        const finalStats = createFinalStatistics(currentGameState);
-        saveGameSession(finalStats);
-        setGameStatistics(finalStats);
-        setShowStatistics(true);
+        try {
+          const currentGameState = gameStateRef.current;
+          const finalStats = createFinalStatistics(currentGameState);
+          saveGameSession(finalStats);
+          setGameStatistics(finalStats);
+          setShowStatistics(true);
+        } catch (error) {
+          console.error('Failed to create/save statistics:', error);
+        }
       }, deathAnimationDuration);
 
       return () => clearTimeout(timer);

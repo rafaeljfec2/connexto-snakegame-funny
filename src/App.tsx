@@ -363,7 +363,7 @@ function App() {
             />
           </div>
 
-          <div className={styles.gameControls}>
+          <div className={styles.gameControls} data-status={gameState.status}>
             <GameControls
               onStart={handleStart}
               onPause={handlePause}

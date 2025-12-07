@@ -210,12 +210,13 @@ export const GameBoard = memo(function GameBoard({
               name: t(`bosses.${activeBoss.id}.name`),
             }
           : null,
+        guardianFlag,
         isEating,
         speed,
         status,
       },
     });
-  }, [snake, bossSnake, poisonShots, activeBoss, isEating, speed, t, status]);
+  }, [snake, bossSnake, poisonShots, activeBoss, guardianFlag, isEating, speed, t, status]);
 
   const gridStyle = isMobile
     ? {
@@ -303,13 +304,6 @@ export const GameBoard = memo(function GameBoard({
         />
 
         <Food key={foodKey} food={food} />
-
-        {guardianFlag && (
-          <Food
-            key={`guardian-flag-${guardianFlag.position.x}-${guardianFlag.position.y}`}
-            food={guardianFlag}
-          />
-        )}
 
         {/* Particle System (Separate Worker) */}
         <ParticleSystem />

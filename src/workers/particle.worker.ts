@@ -43,16 +43,16 @@ selfWorker.onmessage = (e: MessageEvent) => {
       dpr = payload.dpr || 1;
       width = payload.width;
       height = payload.height;
-      
+
       // Set physical size
       canvas.width = width * dpr;
       canvas.height = height * dpr;
-      
+
       ctx = canvas.getContext('2d');
       if (ctx) {
-          ctx.scale(dpr, dpr);
+        ctx.scale(dpr, dpr);
       }
-      
+
       lastTime = performance.now();
       loop();
       break;
@@ -61,7 +61,7 @@ selfWorker.onmessage = (e: MessageEvent) => {
       width = payload.width;
       height = payload.height;
       dpr = payload.dpr || dpr;
-      
+
       if (ctx && ctx.canvas) {
         ctx.canvas.width = width * dpr;
         ctx.canvas.height = height * dpr;

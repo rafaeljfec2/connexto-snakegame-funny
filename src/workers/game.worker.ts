@@ -229,7 +229,7 @@ self.onmessage = (e: MessageEvent) => {
 
 function handleResumeAfterDeath() {
   if (!gameState) return;
-  
+
   // Reset snake position but keep level/score/items
   gameState = {
     ...gameState,
@@ -240,7 +240,7 @@ function handleResumeAfterDeath() {
     // Add temporary invulnerability or safe space clearing if needed
     // For now just reset pos
   };
-  
+
   lastUpdateTime = performance.now();
   startGameLoop();
   broadcastState();
@@ -542,7 +542,7 @@ function updateGame(currentTime: number) {
     (finalSnake.length >= 4 && hasSelfCollision(finalSnake));
 
   // Stats initialization
-  let statistics = prev.statistics || initializeStatistics();
+  const statistics = prev.statistics || initializeStatistics();
 
   if (hasCollision) {
     if (isLivesEnabled() && prev.lives > 0) {

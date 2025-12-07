@@ -15,6 +15,7 @@ let prevSnake: Position[] = [];
 let bossSnake: BossSnake | null = null;
 let prevBossSnake: Position[] = []; // Track boss body
 let activeBoss: { color: string; icon?: string; name?: string } | null = null;
+let guardianFlag: { position: Position; type: string } | null = null;
 let shots: PoisonShot[] = [];
 let isEating = false;
 let speed = 150;
@@ -213,6 +214,41 @@ const drawShot = (shot: PoisonShot, cellSize: number) => {
   }
 };
 
+const drawGuardianFlag = (flag: { position: Position; type: string }, cellSize: number) => {
+  if (!ctx) return;
+
+  const cx = flag.position.x * cellSize + cellSize / 2;
+  const cy = flag.position.y * cellSize + cellSize / 2;
+  const size = cellSize * 0.8;
+
+  ctx.save();
+  ctx.translate(cx, cy);
+
+  // Draw Flag Pole
+  ctx.strokeStyle = '#cbd5e1';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(-size / 4, size / 2);
+  ctx.lineTo(-size / 4, -size / 2);
+  ctx.stroke();
+
+  // Draw Flag Fabric (Green/Red gradient)
+  ctx.fillStyle = '#10b981';
+  ctx.beginPath();
+  ctx.moveTo(-size / 4, -size / 2);
+  ctx.lineTo(size / 2, -size / 4);
+  ctx.lineTo(-size / 4, 0);
+  ctx.fill();
+
+  // Draw Heart Icon inside
+  ctx.font = `${size * 0.6}px Arial`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('❤️', 0, -size / 4);
+
+  ctx.restore();
+};
+
 const render = () => {
   if (!ctx) return;
 
@@ -321,6 +357,11 @@ const render = () => {
     });
   }
 
+  // Draw Guardian Flag
+  if (guardianFlag) {
+    drawGuardianFlag(guardianFlag, cellSize);
+  }
+
   // Draw Shots
   // Shots move linearly. Interpolation for shots?
   // Shots update every tick.
@@ -388,6 +429,10 @@ self.onmessage = (e: MessageEvent) => {
 
         if (payload.activeBoss) {
           activeBoss = payload.activeBoss;
+        }
+
+        if (payload.guardianFlag !== undefined) {
+          guardianFlag = payload.guardianFlag;
         }
 
         shots = payload.shots || [];

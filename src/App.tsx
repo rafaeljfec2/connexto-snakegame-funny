@@ -68,6 +68,7 @@ function App() {
   const [bossDefeatScore, setBossDefeatScore] = useState(0);
   const [defeatedBossPhaseNumber, setDefeatedBossPhaseNumber] = useState<number | null>(null);
   const [gameResetToken, setGameResetToken] = useState(0);
+  const [isProcessingGameOver, setIsProcessingGameOver] = useState(false);
   const previousLevelRef = useRef(gameState.level);
   const previousScoreRef = useRef(gameState.score);
   const previousAchievementsRef = useRef(gameState.achievements);
@@ -76,13 +77,22 @@ function App() {
   const previousActiveBossRef = useRef<Chef | undefined>(gameState.activeBoss);
   const gameStateRef = useRef(gameState);
 
+  // Wrapper to block inputs during game over processing
+  const handleKeyPressWrapper = useCallback(
+    (key: string) => {
+      if (isProcessingGameOver) return;
+      handleKeyPress(key);
+    },
+    [isProcessingGameOver, handleKeyPress],
+  );
+
   useKeyboard({
     onDirectionChange: setDirection,
     onSpeedBoost: setSpeedBoost,
-    onKeyPress: handleKeyPress,
+    onKeyPress: handleKeyPressWrapper,
     onFirePoison: firePoison,
     onStopFiringPoison: stopFiringPoison,
-    enabled: gameState.status === GameStatus.PLAYING,
+    enabled: gameState.status === GameStatus.PLAYING || gameState.status === GameStatus.GAME_OVER,
   });
 
   // Detect level up
@@ -251,10 +261,12 @@ function App() {
     const isNowGameOver = gameState.status === GameStatus.GAME_OVER;
 
     if (wasNotGameOver && isNowGameOver) {
+      setIsProcessingGameOver(true);
       const snakeLength = gameStateRef.current.snake.length;
       const deathAnimationDuration = Math.min(2500, snakeLength * 50 + 300);
 
       const timer = setTimeout(() => {
+        setIsProcessingGameOver(false);
         try {
           const currentGameState = gameStateRef.current;
           const finalStats = createFinalStatistics(currentGameState);
@@ -278,6 +290,7 @@ function App() {
   }, []);
 
   const handleReset = () => {
+    if (isProcessingGameOver) return;
     previousScoreRef.current = 0;
     previousLevelRef.current = 1;
     previousPhaseRef.current = undefined;

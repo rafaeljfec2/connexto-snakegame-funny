@@ -95,7 +95,7 @@ export const TouchControls = memo(function TouchControls({
   );
 
   const handleButtonTouchStart = useCallback(
-    (direction: Direction) => (e: React.TouchEvent) => {
+    (direction: Direction) => () => {
       if (!enabled) return;
       // e.preventDefault(); // Removed to prevent interfering with scrolling if user misses button, but added back in CSS via touch-action
 
@@ -209,7 +209,7 @@ export const TouchControls = memo(function TouchControls({
 
         <button
           className={`${styles.poisonButton} ${styles.centerSpace}`}
-          onTouchStart={(e) => {
+          onTouchStart={() => {
             // e.preventDefault();
             triggerHaptic();
             onFirePoison?.();

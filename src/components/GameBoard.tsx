@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import {
   Position,
   GameStatus,
@@ -11,12 +12,10 @@ import {
 import { GAME_CONFIG } from '@/constants/game';
 import { calculateGameSpeed } from '@/utils/difficulty';
 import { WeatherCanvas } from './WeatherCanvas';
-import { SnakeRenderer } from './SnakeRenderer';
 import { Food } from './Food';
 import { ObstacleComponent } from './Obstacle';
 import { ParticleSystem } from './ParticleSystem';
 import { Portal as PortalComponent } from './Portal';
-import { BossSnake as BossSnakeComponent } from './BossSnake';
 import { useEffect, useRef, useState, useMemo, memo } from 'react';
 import styles from './GameBoard.module.css';
 import { Chef } from '@/types/phases';
@@ -29,7 +28,7 @@ interface GameBoardProps {
   level: number;
   obstacles?: Obstacle[];
   portals?: Portal[];
-  particles?: Particle[]; // Kept in interface for compatibility but unused
+  particles?: Particle[];
   poisonShots?: PoisonShot[];
   activeBoss?: Chef;
   bossSnake?: BossSnake;
@@ -48,12 +47,17 @@ export const GameBoard = memo(function GameBoard({
   bossSnake,
   guardianFlag,
 }: GameBoardProps) {
+  const { t } = useTranslation();
   const boardRef = useRef<HTMLDivElement>(null);
   const [cellSize, setCellSize] = useState(GAME_CONFIG.cellSize);
   const [isMobile, setIsMobile] = useState(false);
+  const [canvasKey, setCanvasKey] = useState(0);
+
+  // Worker for rendering Snake, Boss, Shots (High Frequency Updates)
+  const renderCanvasRef = useRef<HTMLCanvasElement>(null);
+  const renderWorkerRef = useRef<Worker | null>(null);
 
   // Calculate responsive cell size based on container
-  // This ensures cellSize controls only the visual size, not the grid dimensions
   useEffect(() => {
     const updateCellSize = () => {
       const mobile = window.innerWidth <= 768;
@@ -62,59 +66,147 @@ export const GameBoard = memo(function GameBoard({
       if (boardRef.current) {
         const container = boardRef.current.parentElement;
         if (container) {
-          // Get available space (accounting for padding)
           const containerRect = container.getBoundingClientRect();
-          const padding = mobile ? 8 : 24; // Account for container padding
+          const padding = mobile ? 8 : 24;
           const availableWidth = containerRect.width - padding * 2;
           const availableHeight = containerRect.height - padding * 2;
 
-          // Calculate cell size to fit the grid (use the smaller dimension to maintain square)
           const calculatedCellSize = Math.floor(
             Math.min(availableWidth, availableHeight) / GAME_CONFIG.gridSize,
           );
 
           if (mobile) {
-            // Mobile: calculate based on available space, ensure minimum cell size (at least 8px)
             const finalCellSize = Math.max(calculatedCellSize, 8);
             setCellSize(finalCellSize);
           } else {
-            // Desktop: use configured cellSize directly (it controls both cell and grid size)
             setCellSize(GAME_CONFIG.cellSize);
           }
         }
       }
     };
 
-    // Initial check
     updateCellSize();
 
-    // Use ResizeObserver for more accurate size tracking
     let resizeObserver: ResizeObserver | null = null;
     if (boardRef.current?.parentElement) {
       resizeObserver = new ResizeObserver(() => {
-        // Debounce to avoid too many recalculations
         setTimeout(updateCellSize, 50);
+
+        // Notify worker of resize
+        if (renderCanvasRef.current && renderWorkerRef.current && boardRef.current) {
+          // Need accurate dimensions of the CANVAS/Grid, not just container
+          // The canvas fills the grid defined by CSS
+          // We can read boardRef dimensions
+          const rect = boardRef.current.getBoundingClientRect();
+          renderWorkerRef.current.postMessage({
+            type: 'RESIZE',
+            payload: {
+              width: rect.width,
+              height: rect.height,
+              dpr: window.devicePixelRatio,
+            },
+          });
+        }
       });
       resizeObserver.observe(boardRef.current.parentElement);
     }
 
-    // Also listen to window events as fallback
     window.addEventListener('resize', updateCellSize);
     window.addEventListener('orientationchange', () => {
       setTimeout(updateCellSize, 100);
     });
 
     return () => {
-      if (resizeObserver) {
-        resizeObserver.disconnect();
-      }
+      if (resizeObserver) resizeObserver.disconnect();
       window.removeEventListener('resize', updateCellSize);
       window.removeEventListener('orientationchange', updateCellSize);
     };
   }, []);
 
-  // Desktop: Use fixed cellSize pixels for grid definition (changes grid size)
-  // Mobile: Use 'fr' units to always fit container (cellSize calculated dynamically)
+  // Initialize Render Worker
+  useEffect(() => {
+    if (!renderCanvasRef.current || renderWorkerRef.current) return;
+
+    const worker = new Worker(new URL('../workers/render.worker.ts', import.meta.url), {
+      type: 'module',
+    });
+    renderWorkerRef.current = worker;
+
+    const canvas = renderCanvasRef.current;
+
+    // Check if OffscreenCanvas is supported
+    if (canvas.transferControlToOffscreen) {
+      try {
+        const offscreen = canvas.transferControlToOffscreen();
+        worker.postMessage(
+          {
+            type: 'INIT',
+            payload: {
+              canvas: offscreen,
+              width: canvas.clientWidth,
+              height: canvas.clientHeight,
+              dpr: window.devicePixelRatio,
+              isMobile: window.innerWidth <= 768,
+            },
+          },
+          [offscreen],
+        );
+      } catch (err) {
+        console.warn(
+          'Failed to transfer control to offscreen canvas, retrying with new canvas:',
+          err,
+        );
+        setCanvasKey((prev) => prev + 1);
+      }
+    } else {
+      console.warn('OffscreenCanvas not supported, falling back or failing gracefully.');
+      // Fallback implementation logic would go here if needed
+    }
+
+    return () => {
+      worker.terminate();
+      renderWorkerRef.current = null;
+    };
+  }, [canvasKey]);
+
+  // Sync State to Worker
+  const speed = useMemo(() => calculateGameSpeed(level), [level]);
+
+  // IsEating Logic (kept for local prop calculation if needed, or pass directly)
+  // Logic: detect change in food
+  const previousFoodKeyRef = useRef(`${food.position.x}-${food.position.y}-${food.type}`);
+  const [isEating, setIsEating] = useState(false);
+
+  useEffect(() => {
+    const currentFoodKey = `${food.position.x}-${food.position.y}-${food.type}`;
+    const foodChanged = currentFoodKey !== previousFoodKeyRef.current;
+    if (foodChanged && status === GameStatus.PLAYING && snake.length > 0) {
+      setIsEating(true);
+      setTimeout(() => setIsEating(false), 200);
+    }
+    previousFoodKeyRef.current = currentFoodKey;
+  }, [food.position, food.type, status, snake.length]);
+
+  useEffect(() => {
+    renderWorkerRef.current?.postMessage({
+      type: 'UPDATE',
+      payload: {
+        snake,
+        bossSnake,
+        shots: poisonShots,
+        activeBoss: activeBoss
+          ? {
+              color: activeBoss.visual.color,
+              icon: activeBoss.visual.icon,
+              name: t(`bosses.${activeBoss.id}.name`),
+            }
+          : null,
+        isEating,
+        speed,
+      },
+    });
+  }, [snake, bossSnake, poisonShots, activeBoss, isEating, speed, t]);
+
   const gridStyle = isMobile
     ? {
         gridTemplateColumns: `repeat(${GAME_CONFIG.gridSize}, 1fr)`,
@@ -130,28 +222,8 @@ export const GameBoard = memo(function GameBoard({
       };
 
   const previousLevelRef = useRef(level);
-  const previousFoodKeyRef = useRef(`${food.position.x}-${food.position.y}-${food.type}`);
   const [isLevelUp, setIsLevelUp] = useState(false);
-  const [isEating, setIsEating] = useState(false);
 
-  // Calculate current game speed for interpolation
-  const speed = useMemo(() => calculateGameSpeed(level), [level]);
-
-  // Detect food eaten (head eating animation)
-  useEffect(() => {
-    const currentFoodKey = `${food.position.x}-${food.position.y}-${food.type}`;
-    const foodChanged = currentFoodKey !== previousFoodKeyRef.current;
-
-    // Food was eaten if position changed OR type changed while playing
-    if (foodChanged && status === GameStatus.PLAYING && snake.length > 0) {
-      setIsEating(true);
-      setTimeout(() => setIsEating(false), 200); // Shorter duration for snappy feel
-    }
-
-    previousFoodKeyRef.current = currentFoodKey;
-  }, [food.position, food.type, status, snake.length]);
-
-  // Detect level up for board animation
   useEffect(() => {
     if (level > previousLevelRef.current) {
       setIsLevelUp(true);
@@ -166,7 +238,6 @@ export const GameBoard = memo(function GameBoard({
 
   const foodKey = `food-${food.position.x}-${food.position.y}-${food.type}`;
 
-  // Group portals by pairId to determine which is first/second (memoized)
   const portalPairs = useMemo(() => {
     const pairs = new Map<string, Portal[]>();
     portals.forEach((portal) => {
@@ -190,38 +261,39 @@ export const GameBoard = memo(function GameBoard({
             }
       }
     >
-      {/* Static Background Layer */}
       <GameBackground isMobile={isMobile} cellSize={cellSize} />
 
-      {/* Game Elements Layer */}
       <div className={styles.gameLayer} style={gridStyle}>
-        {/* Weather Effects (Worker Based) */}
         <WeatherCanvas level={level} isMobile={isMobile} />
 
-        {/* Obstacles */}
+        {/* DOM Elements for Static/Interactables */}
         {GAME_CONFIG.enableObstacles &&
           obstacles.map((obstacle) => <ObstacleComponent key={obstacle.id} obstacle={obstacle} />)}
 
-        {/* Portals */}
         {portals.map((portal) => {
           const pair = portalPairs.get(portal.pairId) ?? [];
           const isFirst = pair.length > 0 && pair[0]?.id === portal.id;
           return <PortalComponent key={portal.id} portal={portal} isFirst={isFirst} />;
         })}
 
-        {/* SNAKE - Rendered via Canvas for Performance */}
-        <SnakeRenderer
-          snake={snake}
-          cellSize={cellSize}
-          isMobile={isMobile}
-          gridSize={GAME_CONFIG.gridSize}
-          isEating={isEating}
-          speed={speed}
+        {/* WORKER RENDER LAYER: Snake, Boss, Shots */}
+        <canvas
+          key={canvasKey}
+          ref={renderCanvasRef}
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            pointerEvents: 'none',
+            zIndex: 20, // Ensure above obstacles/floor but below HUD/particles?
+            // Particles are zIndex 5 in CSS usually or handled via layer order.
+          }}
         />
 
         <Food key={foodKey} food={food} />
 
-        {/* Guardian Flag - special power-up for Guardian boss */}
         {guardianFlag && (
           <Food
             key={`guardian-flag-${guardianFlag.position.x}-${guardianFlag.position.y}`}
@@ -229,40 +301,8 @@ export const GameBoard = memo(function GameBoard({
           />
         )}
 
-        {activeBoss && bossSnake && <BossSnakeComponent bossSnake={bossSnake} boss={activeBoss} />}
-
-        {/* Particles Effect System */}
+        {/* Particle System (Separate Worker) */}
         <ParticleSystem />
-
-        {/* Poison Shots - Rendered in DOM for compatibility */}
-        {poisonShots.map((shot) => (
-          <div
-            key={`shot-${shot.id}`}
-            className='poison-shot' // Use class if possible, but inline is fine for dynamic pos
-            style={{
-              position: 'absolute',
-              left: isMobile
-                ? `calc(${shot.position.x} * (100% / ${GAME_CONFIG.gridSize}))`
-                : `${shot.position.x * cellSize}px`,
-              top: isMobile
-                ? `calc(${shot.position.y} * (100% / ${GAME_CONFIG.gridSize}))`
-                : `${shot.position.y * cellSize}px`,
-              width: isMobile
-                ? `calc(100% / ${GAME_CONFIG.gridSize} * 0.6)`
-                : `${cellSize * 0.6}px`,
-              height: isMobile
-                ? `calc(100% / ${GAME_CONFIG.gridSize} * 0.6)`
-                : `${cellSize * 0.6}px`,
-              backgroundColor: '#10b981',
-              borderRadius: '50%',
-              zIndex: 100,
-              pointerEvents: 'none',
-              transform: 'translate(30%, 30%)',
-              boxShadow: '0 0 5px #10b981',
-              willChange: 'left, top', // Optimization hint
-            }}
-          />
-        ))}
       </div>
     </div>
   );

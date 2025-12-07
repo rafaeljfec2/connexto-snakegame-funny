@@ -48,6 +48,18 @@
   -webkit-backface-visibility: hidden;
 }
 
+@media (max-width: 768px) {
+  .poisonCore,
+  .poisonGlow {
+    box-shadow: none; /* Remove heavy shadows on mobile */
+    background: #10b981; /* Simple color instead of gradient */
+  }
+  
+  .poisonGlow {
+    display: none; /* Remove glow entirely on mobile */
+  }
+}
+
 @keyframes poisonPulse {
   0%,
   100% {

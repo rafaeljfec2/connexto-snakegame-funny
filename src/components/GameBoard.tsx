@@ -22,6 +22,7 @@ import { useEffect, useRef, useState, useMemo, memo } from 'react';
 import styles from './GameBoard.module.css';
 import { Chef } from '@/types/phases';
 import { getCurrentPhase } from '@/utils/phases';
+import { GameBackground } from './GameBackground';
 
 interface GameBoardProps {
   snake: Position[];
@@ -229,43 +230,60 @@ export const GameBoard = memo(function GameBoard({
   const shouldShowWeatherEffects = !isMobile;
 
   return (
-    <div ref={boardRef} className={boardClassName} style={gridStyle}>
-      {/* Weather Effects for all phases - Disabled on mobile for performance */}
-      {shouldShowWeatherEffects && <WeatherEffect level={level} />}
+    <div
+      ref={boardRef}
+      className={boardClassName}
+      style={
+        isMobile
+          ? { width: '100%', height: '100%' }
+          : {
+              width: `${GAME_CONFIG.gridSize * cellSize}px`,
+              height: `${GAME_CONFIG.gridSize * cellSize}px`,
+            }
+      }
+    >
+      {/* Static Background Layer */}
+      <GameBackground isMobile={isMobile} cellSize={cellSize} />
 
-      {/* Storm Effect for Phase 9 (Vortex Challenge) - Disabled on mobile for performance */}
-      {shouldShowWeatherEffects && currentPhase === 9 && <StormEffect level={level} />}
+      {/* Game Elements Layer */}
+      <div className={styles.gameLayer} style={gridStyle}>
+        {/* Weather Effects for all phases - Disabled on mobile for performance */}
+        {shouldShowWeatherEffects && <WeatherEffect level={level} />}
 
-      {GAME_CONFIG.enableObstacles &&
-        obstacles.map((obstacle) => <ObstacleComponent key={obstacle.id} obstacle={obstacle} />)}
-      {portals.map((portal) => {
-        const pair = portalPairs.get(portal.pairId) ?? [];
-        const isFirst = pair.length > 0 && pair[0]?.id === portal.id;
-        return <PortalComponent key={portal.id} portal={portal} isFirst={isFirst} />;
-      })}
-      {snake.map((segment, index) => (
-        <SnakeSegment
-          key={`snake-${index}`}
-          position={segment}
-          isHead={index === 0}
-          isNew={newSegmentIndex === index}
-          isEating={index === 0 && isEating}
-          isDying={dyingSegments.has(index)}
-        />
-      ))}
-      <Food key={foodKey} food={food} />
-      {/* Guardian Flag - special power-up for Guardian boss */}
-      {guardianFlag && (
-        <Food
-          key={`guardian-flag-${guardianFlag.position.x}-${guardianFlag.position.y}`}
-          food={guardianFlag}
-        />
-      )}
-      {activeBoss && bossSnake && <BossSnakeComponent bossSnake={bossSnake} boss={activeBoss} />}
-      {poisonShots.map((shot) => (
-        <PoisonShotComponent key={shot.id} shot={shot} />
-      ))}
-      {GAME_CONFIG.enableParticles && <ParticleSystem particles={particles} />}
+        {/* Storm Effect for Phase 9 (Vortex Challenge) - Disabled on mobile for performance */}
+        {shouldShowWeatherEffects && currentPhase === 9 && <StormEffect level={level} />}
+
+        {GAME_CONFIG.enableObstacles &&
+          obstacles.map((obstacle) => <ObstacleComponent key={obstacle.id} obstacle={obstacle} />)}
+        {portals.map((portal) => {
+          const pair = portalPairs.get(portal.pairId) ?? [];
+          const isFirst = pair.length > 0 && pair[0]?.id === portal.id;
+          return <PortalComponent key={portal.id} portal={portal} isFirst={isFirst} />;
+        })}
+        {snake.map((segment, index) => (
+          <SnakeSegment
+            key={`snake-${index}`}
+            position={segment}
+            isHead={index === 0}
+            isNew={newSegmentIndex === index}
+            isEating={index === 0 && isEating}
+            isDying={dyingSegments.has(index)}
+          />
+        ))}
+        <Food key={foodKey} food={food} />
+        {/* Guardian Flag - special power-up for Guardian boss */}
+        {guardianFlag && (
+          <Food
+            key={`guardian-flag-${guardianFlag.position.x}-${guardianFlag.position.y}`}
+            food={guardianFlag}
+          />
+        )}
+        {activeBoss && bossSnake && <BossSnakeComponent bossSnake={bossSnake} boss={activeBoss} />}
+        {poisonShots.map((shot) => (
+          <PoisonShotComponent key={shot.id} shot={shot} />
+        ))}
+        {GAME_CONFIG.enableParticles && <ParticleSystem particles={particles} />}
+      </div>
     </div>
   );
 });

@@ -1,4 +1,20 @@
 .gameBoard {
+  position: relative;
+  /* Remove grid layout from container, it will be handled by layers */
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
+  isolation: isolate;
+}
+
+.gameBoardBackground {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
   display: grid;
   gap: 0px;
   background:
@@ -17,23 +33,28 @@
       transparent 1px,
       transparent 20px
     );
-  border: none;
-  border-radius: 0px;
-  padding: 0px;
-  margin: 0px;
   box-shadow:
     inset 0 0 40px rgba(0, 0, 0, 0.8),
     inset 0 0 80px rgba(34, 197, 94, 0.1);
-  position: relative;
-  overflow: hidden;
-  box-sizing: border-box;
-  transition: all 0.3s ease;
-  isolation: isolate;
+  pointer-events: none; /* Optimization */
+  will-change: transform; /* Optimization */
+}
+
+.gameLayer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  display: grid; /* Keep grid layout for positioning elements */
+  gap: 0px;
+  pointer-events: none;
 }
 
 /* Weather themes for different phases */
 /* Phase 1 - Starry Night */
-.gameBoard:has(.starryNight) {
+.gameBoard:has(.starryNight) .gameBoardBackground {
   background:
     linear-gradient(135deg, #0a0a15 0%, #1a1a2e 30%, #16213e 60%, #1a2332 100%),
     repeating-linear-gradient(

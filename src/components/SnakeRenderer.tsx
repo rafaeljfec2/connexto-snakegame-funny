@@ -74,18 +74,13 @@ export const SnakeRenderer = memo(function SnakeRenderer({
         return;
       }
 
-      const gap = 1;
-      const segmentSize = Math.max(0, currentCellSize - gap * 2);
+      // 3D Style Configuration
+      const gap = 0.5; // Very small gap for bead-like effect
+      const segmentRadius = (currentCellSize - gap * 2) / 2;
       
-      // Colors
-      const bodyGradientStart = '#4ade80';
-      const bodyGradientEnd = '#22c55e';
-      const headGradientStart = '#22c55e';
-      const headGradientEnd = '#16a34a';
-
-      // Update growth animations (Slower speed: 0.03 per frame)
+      // Update growth animations (Slower speed: 0.05 per frame)
       growthAnimsRef.current.forEach((progress, index) => {
-        const newProgress = Math.min(1, progress + 0.03);
+        const newProgress = Math.min(1, progress + 0.05);
         if (newProgress >= 1) {
           growthAnimsRef.current.delete(index);
         } else {
@@ -101,133 +96,137 @@ export const SnakeRenderer = memo(function SnakeRenderer({
       const drawSegment = (index: number, x: number, y: number, isHead: boolean, direction?: string) => {
         const px = x * currentCellSize;
         const py = y * currentCellSize;
+        const cx = px + currentCellSize / 2;
+        const cy = py + currentCellSize / 2;
 
         let scale = 1;
-        let brightness = 1; // 1 is normal, >1 is brighter
+
+        // Tapering tail effect
+        if (index === currentSnake.length - 1 && currentSnake.length > 3) {
+           scale = 0.7; // Tail is smaller
+        } else if (index === currentSnake.length - 2 && currentSnake.length > 3) {
+           scale = 0.85;
+        }
 
         // Apply Growth Animation (Tail)
         if (growthAnimsRef.current.has(index)) {
           const progress = growthAnimsRef.current.get(index)!;
-          // Elastic pop-in effect: overshoot slightly then settle
-          // t=0 -> scale=0.2
-          // t=1 -> scale=1
-          // const elastic = (t: number) => {
-          //   const p = 0.3;
-          //   return Math.pow(2, -10 * t) * Math.sin((t - p / 4) * (2 * Math.PI) / p) + 1;
-          // };
-          // Use easeOutBack for a nice pop without too much wobble
+          // Pop-in effect
           const easeOutBack = (t: number) => {
             const c1 = 1.70158;
             const c3 = c1 + 1;
             return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
           };
-          
-          scale = 0.2 + (0.8 * easeOutBack(progress));
-          
-          // Flash effect at start of growth
-          if (progress < 0.3) {
-             brightness = 1.5;
-          }
+          scale *= 0.2 + (0.8 * easeOutBack(progress));
         }
 
         // Apply Head Pulse (Eating)
         if (isHead && headPulseAnimRef.current > 0) {
           const p = headPulseAnimRef.current;
-          // Pulse up to 1.2x scale
-          scale = 1 + (0.2 * Math.sin(p * Math.PI)); 
-          brightness = 1 + (0.3 * p);
+          scale *= 1 + (0.15 * Math.sin(p * Math.PI)); 
         }
 
-        // Setup Context for Transform/Filters
         ctx.save();
-        
-        // Scale from center
-        const cx = px + currentCellSize / 2;
-        const cy = py + currentCellSize / 2;
-        
         ctx.translate(cx, cy);
         ctx.scale(scale, scale);
         ctx.translate(-cx, -cy);
 
-        // Brightness/Color
-        let gradStart = isHead ? headGradientStart : bodyGradientStart;
-        let gradEnd = isHead ? headGradientEnd : bodyGradientEnd;
+        // Draw 3D Sphere (Radial Gradient)
+        const lightOffsetX = -segmentRadius * 0.3;
+        const lightOffsetY = -segmentRadius * 0.3;
         
-        if (brightness > 1) {
-           ctx.filter = `brightness(${brightness * 100}%)`;
+        const gradient = ctx.createRadialGradient(
+          cx + lightOffsetX, cy + lightOffsetY, segmentRadius * 0.1, // Highlight
+          cx, cy, segmentRadius // Base
+        );
+
+        if (isHead) {
+           // Brighter head
+           gradient.addColorStop(0, '#86efac'); // Highlight (light green)
+           gradient.addColorStop(0.4, '#22c55e'); // Base
+           gradient.addColorStop(1, '#15803d'); // Shadow
+        } else {
+           // Body
+           gradient.addColorStop(0, '#4ade80');
+           gradient.addColorStop(0.4, '#16a34a');
+           gradient.addColorStop(1, '#14532d');
         }
 
-        const gradient = ctx.createLinearGradient(px, py, px + currentCellSize, py + currentCellSize);
-        gradient.addColorStop(0, gradStart);
-        gradient.addColorStop(1, gradEnd);
         ctx.fillStyle = gradient;
+        
+        // Shadow for depth
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+        ctx.shadowBlur = 4;
+        ctx.shadowOffsetX = 2;
+        ctx.shadowOffsetY = 2;
 
-        // Shadows
-        if (isHead && !currentIsMobile) {
-          ctx.shadowColor = 'rgba(34, 197, 94, 0.6)';
-          ctx.shadowBlur = 10;
-        } else if (brightness > 1.2) {
-          // Glow for growing segment
-          ctx.shadowColor = 'rgba(255, 255, 255, 0.8)';
-          ctx.shadowBlur = 10;
-        } else {
-          ctx.shadowBlur = 0;
-        }
-
-        // Draw Rect
         ctx.beginPath();
-        if (ctx.roundRect) {
-          ctx.roundRect(px + gap, py + gap, segmentSize, segmentSize, isHead ? 6 : 3);
-        } else {
-          ctx.fillRect(px + gap, py + gap, segmentSize, segmentSize);
-        }
+        ctx.arc(cx, cy, segmentRadius, 0, Math.PI * 2);
         ctx.fill();
         
-        // Reset shadow for details
+        // Reset shadow
+        ctx.shadowColor = 'transparent';
         ctx.shadowBlur = 0;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
 
         // Draw Eyes (Head only)
         if (isHead) {
-          const eyeSize = segmentSize * 0.2;
-          const eyeOffset = segmentSize * 0.25;
-          
-          ctx.fillStyle = 'white';
+          const eyeRadius = segmentRadius * 0.35; // Large eyes
+          const eyeOffset = segmentRadius * 0.4;
           
           let leftEyeX, leftEyeY, rightEyeX, rightEyeY;
           
-          if (!direction || direction === 'RIGHT') {
-            leftEyeX = cx + eyeOffset; leftEyeY = cy - eyeOffset;
-            rightEyeX = cx + eyeOffset; rightEyeY = cy + eyeOffset;
-          } else if (direction === 'LEFT') {
-            leftEyeX = cx - eyeOffset; leftEyeY = cy - eyeOffset;
-            rightEyeX = cx - eyeOffset; rightEyeY = cy + eyeOffset;
-          } else if (direction === 'UP') {
-            leftEyeX = cx - eyeOffset; leftEyeY = cy - eyeOffset;
-            rightEyeX = cx + eyeOffset; rightEyeY = cy - eyeOffset;
-          } else if (direction === 'DOWN') {
-            leftEyeX = cx - eyeOffset; leftEyeY = cy + eyeOffset;
-            rightEyeX = cx + eyeOffset; rightEyeY = cy + eyeOffset;
+          // Determine eye position based on direction
+          // Default to RIGHT if undefined
+          const currentDir = direction || 'RIGHT';
+          
+          if (currentDir === 'RIGHT') {
+            leftEyeX = cx + eyeOffset * 0.5; leftEyeY = cy - eyeOffset;
+            rightEyeX = cx + eyeOffset * 0.5; rightEyeY = cy + eyeOffset;
+          } else if (currentDir === 'LEFT') {
+            leftEyeX = cx - eyeOffset * 0.5; leftEyeY = cy - eyeOffset;
+            rightEyeX = cx - eyeOffset * 0.5; rightEyeY = cy + eyeOffset;
+          } else if (currentDir === 'UP') {
+            leftEyeX = cx - eyeOffset; leftEyeY = cy - eyeOffset * 0.5;
+            rightEyeX = cx + eyeOffset; rightEyeY = cy - eyeOffset * 0.5;
+          } else { // DOWN
+            leftEyeX = cx - eyeOffset; leftEyeY = cy + eyeOffset * 0.5;
+            rightEyeX = cx + eyeOffset; rightEyeY = cy + eyeOffset * 0.5;
           }
 
-          if (leftEyeX && leftEyeY && rightEyeX && rightEyeY) {
-              ctx.beginPath();
-              ctx.arc(leftEyeX, leftEyeY, eyeSize, 0, Math.PI * 2);
-              ctx.arc(rightEyeX, rightEyeY, eyeSize, 0, Math.PI * 2);
-              ctx.fill();
+          // Draw Sclera (White)
+          ctx.fillStyle = 'white';
+          ctx.beginPath();
+          ctx.arc(leftEyeX, leftEyeY, eyeRadius, 0, Math.PI * 2);
+          ctx.arc(rightEyeX, rightEyeY, eyeRadius, 0, Math.PI * 2);
+          ctx.fill();
 
-              ctx.fillStyle = 'black';
-              const pupilSize = eyeSize * 0.5;
-              ctx.beginPath();
-              ctx.arc(leftEyeX + (direction === 'RIGHT' ? 1 : direction === 'LEFT' ? -1 : 0), leftEyeY + (direction === 'DOWN' ? 1 : direction === 'UP' ? -1 : 0), pupilSize, 0, Math.PI * 2);
-              ctx.arc(rightEyeX + (direction === 'RIGHT' ? 1 : direction === 'LEFT' ? -1 : 0), rightEyeY + (direction === 'DOWN' ? 1 : direction === 'UP' ? -1 : 0), pupilSize, 0, Math.PI * 2);
-              ctx.fill();
-          }
+          // Draw Pupils (Black)
+          const pupilRadius = eyeRadius * 0.5;
+          // Offset pupils slightly in direction of movement
+          const pupilOffsetX = (currentDir === 'RIGHT' ? 2 : currentDir === 'LEFT' ? -2 : 0);
+          const pupilOffsetY = (currentDir === 'DOWN' ? 2 : currentDir === 'UP' ? -2 : 0);
+
+          ctx.fillStyle = 'black';
+          ctx.beginPath();
+          ctx.arc(leftEyeX + pupilOffsetX, leftEyeY + pupilOffsetY, pupilRadius, 0, Math.PI * 2);
+          ctx.arc(rightEyeX + pupilOffsetX, rightEyeY + pupilOffsetY, pupilRadius, 0, Math.PI * 2);
+          ctx.fill();
+          
+          // Draw Shine (White dot in pupil)
+          const shineRadius = pupilRadius * 0.3;
+          ctx.fillStyle = 'white';
+          ctx.beginPath();
+          ctx.arc(leftEyeX + pupilOffsetX - shineRadius, leftEyeY + pupilOffsetY - shineRadius, shineRadius, 0, Math.PI * 2);
+          ctx.arc(rightEyeX + pupilOffsetX - shineRadius, rightEyeY + pupilOffsetY - shineRadius, shineRadius, 0, Math.PI * 2);
+          ctx.fill();
         }
 
         ctx.restore();
       };
 
-      // Draw body
+      // Draw body (reverse order so head is on top if overlapping)
       for (let i = currentSnake.length - 1; i > 0; i--) {
         drawSegment(i, currentSnake[i].x, currentSnake[i].y, false);
       }
@@ -239,17 +238,13 @@ export const SnakeRenderer = memo(function SnakeRenderer({
         const next = currentSnake[1];
         const dx = head.x - next.x;
         const dy = head.y - next.y;
-        if (dx > 1) dir = 'LEFT';
-        else if (dx < -1) dir = 'RIGHT';
-        else if (dx === 1) dir = 'RIGHT';
-        else if (dx === -1) dir = 'LEFT';
-        else if (dy > 1) dir = 'UP';
-        else if (dy < -1) dir = 'DOWN';
-        else if (dy === 1) dir = 'DOWN';
-        else if (dy === -1) dir = 'UP';
+        if (dx > 0) dir = 'RIGHT';
+        else if (dx < 0) dir = 'LEFT';
+        else if (dy > 0) dir = 'DOWN';
+        else if (dy < 0) dir = 'UP';
       }
 
-      // Draw head
+      // Draw head last
       if (currentSnake.length > 0) {
         drawSegment(0, currentSnake[0].x, currentSnake[0].y, true, dir);
       }

@@ -15,11 +15,17 @@ declare global {
   }
 }
 
-export const ParticleSystem = memo(function ParticleSystem() {
+interface ParticleSystemProps {
+  gridSize?: number;
+}
+
+export const ParticleSystem = memo(function ParticleSystem({ gridSize = GAME_CONFIG.gridSize }: ParticleSystemProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const workerRef = useRef<Worker | null>(null);
+  const containerRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
+    // Only mount if particles are enabled to save resources
     if (!GAME_CONFIG.enableParticles || !canvasRef.current) return;
 
     // Initialize Worker
@@ -29,6 +35,7 @@ export const ParticleSystem = memo(function ParticleSystem() {
 
     const canvas = canvasRef.current;
     const container = canvas.parentElement;
+    containerRef.current = container;
 
     // Support for OffscreenCanvas is required for this optimization
     if (!canvas.transferControlToOffscreen) {
@@ -66,6 +73,7 @@ export const ParticleSystem = memo(function ParticleSystem() {
 
       // Only add resize listener if initialization was successful
       window.addEventListener('resize', updateSize);
+      setTimeout(updateSize, 100);
     } catch (err) {
       // In React Strict Mode or during HMR, this effect might run twice on the same canvas
       // We ignore the error if the control has already been transferred
@@ -80,7 +88,7 @@ export const ParticleSystem = memo(function ParticleSystem() {
 
       // Convert Grid Coordinates to Pixel Coordinates
       const rect = container.getBoundingClientRect();
-      const cellSize = rect.width / GAME_CONFIG.gridSize;
+      const cellSize = rect.width / gridSize;
 
       const pixelX = x * cellSize + cellSize / 2;
       const pixelY = y * cellSize + cellSize / 2;
@@ -106,7 +114,7 @@ export const ParticleSystem = memo(function ParticleSystem() {
       window.removeEventListener('game-spawn-particles', handleSpawn);
       workerRef.current?.terminate();
     };
-  }, []);
+  }, [gridSize]);
 
   if (!GAME_CONFIG.enableParticles) return null;
 

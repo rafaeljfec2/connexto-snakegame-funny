@@ -15,7 +15,6 @@ import { ObstacleComponent } from './Obstacle';
 import { ParticleSystem } from './ParticleSystem';
 import { Portal as PortalComponent } from './Portal';
 import { BossSnake as BossSnakeComponent } from './BossSnake';
-import { PoisonShot as PoisonShotComponent } from './PoisonShot';
 import { StormEffect } from './StormEffect';
 import { WeatherEffect } from './WeatherEffect';
 import { useEffect, useRef, useState, useMemo, memo } from 'react';
@@ -278,10 +277,39 @@ export const GameBoard = memo(function GameBoard({
           />
         )}
         {activeBoss && bossSnake && <BossSnakeComponent bossSnake={bossSnake} boss={activeBoss} />}
+
+        {/* Particles Effect System */}
+        <ParticleSystem />
+
+        {/* Poison Shots - Rendered in DOM for compatibility */}
         {poisonShots.map((shot) => (
-          <PoisonShotComponent key={shot.id} shot={shot} />
+          <div
+            key={`shot-${shot.id}`}
+            className='poison-shot' // Use class if possible, but inline is fine for dynamic pos
+            style={{
+              position: 'absolute',
+              left: isMobile
+                ? `calc(${shot.position.x} * (100% / ${GAME_CONFIG.gridSize}))`
+                : `${shot.position.x * cellSize}px`,
+              top: isMobile
+                ? `calc(${shot.position.y} * (100% / ${GAME_CONFIG.gridSize}))`
+                : `${shot.position.y * cellSize}px`,
+              width: isMobile
+                ? `calc(100% / ${GAME_CONFIG.gridSize} * 0.6)`
+                : `${cellSize * 0.6}px`,
+              height: isMobile
+                ? `calc(100% / ${GAME_CONFIG.gridSize} * 0.6)`
+                : `${cellSize * 0.6}px`,
+              backgroundColor: '#10b981',
+              borderRadius: '50%',
+              zIndex: 100,
+              pointerEvents: 'none',
+              transform: 'translate(30%, 30%)',
+              boxShadow: '0 0 5px #10b981',
+              willChange: 'left, top', // Optimization hint
+            }}
+          />
         ))}
-        {GAME_CONFIG.enableParticles && <ParticleSystem />}
       </div>
     </div>
   );

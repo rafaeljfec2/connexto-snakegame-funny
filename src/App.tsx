@@ -12,7 +12,8 @@ import { AchievementNotification } from './components/AchievementNotification';
 import { DynamicBackground } from './components/DynamicBackground';
 import { GameStatistics as GameStatisticsComponent } from './components/GameStatistics';
 import { DeathTransition } from './components/DeathTransition';
-import { MobileGamepad } from './components/MobileGamepad';
+import { TouchControls } from './components/TouchControls';
+// import { MobileGamepad } from './components/MobileGamepad';
 import { PhaseTransition } from './components/PhaseTransition';
 import { BossDefeatTransition } from './components/BossDefeatTransition';
 import { PhaseIntroScreen } from './components/PhaseIntroScreen';
@@ -458,14 +459,23 @@ function App() {
         />
       )}
 
-      {/* Mobile Gamepad with Joystick and Fire Button */}
-      <MobileGamepad
+      {/* Touch Controls for Mobile */}
+      <TouchControls
         onDirectionChange={setDirection}
         onSpeedBoost={setSpeedBoost}
         onFirePoison={firePoison}
         onStopFiringPoison={stopFiringPoison}
         enabled={gameState.status === GameStatus.PLAYING}
       />
+
+      {/* Mobile Gamepad - Disabled
+      <MobileGamepad
+        onDirectionChange={setDirection}
+        onSpeedBoost={setSpeedBoost}
+        onFirePoison={firePoison}
+        onStopFiringPoison={stopFiringPoison}
+        enabled={gameState.status === GameStatus.PLAYING}
+      /> */}
 
       {/* Game Statistics Modal */}
       {showStatistics && gameStatistics && (

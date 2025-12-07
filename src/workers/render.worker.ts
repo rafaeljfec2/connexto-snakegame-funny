@@ -349,6 +349,66 @@ const drawPortal = (portal: Portal, cellSize: number, now: number) => {
   ctx.restore();
 };
 
+const drawShot = (shot: PoisonShot, cellSize: number) => {
+  if (!ctx) return;
+
+  const x = shot.position.x * cellSize;
+  const y = shot.position.y * cellSize;
+  const size = cellSize * 0.6;
+  const cx = x + cellSize / 2;
+  const cy = y + cellSize / 2;
+
+  ctx.fillStyle = '#10b981';
+
+  if (!isMobile) {
+    ctx.shadowColor = '#10b981';
+    ctx.shadowBlur = 10;
+  }
+
+  ctx.beginPath();
+  ctx.arc(cx, cy, size / 2, 0, Math.PI * 2);
+  ctx.fill();
+
+  if (!isMobile) {
+    ctx.shadowBlur = 0;
+  }
+};
+
+const drawGuardianFlag = (flag: { position: Position; type: string }, cellSize: number) => {
+  if (!ctx) return;
+
+  const cx = flag.position.x * cellSize + cellSize / 2;
+  const cy = flag.position.y * cellSize + cellSize / 2;
+  const size = cellSize * 0.8;
+
+  ctx.save();
+  ctx.translate(cx, cy);
+
+  // Draw Flag Pole
+  ctx.strokeStyle = '#cbd5e1';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(-size / 4, size / 2);
+  ctx.lineTo(-size / 4, -size / 2);
+  ctx.stroke();
+
+  // Draw Flag Fabric (Green/Red gradient)
+  ctx.fillStyle = '#10b981';
+  ctx.beginPath();
+  ctx.moveTo(-size / 4, -size / 2);
+  ctx.lineTo(size / 2, -size / 4);
+  ctx.lineTo(-size / 4, 0);
+  ctx.fill();
+
+  // Draw Heart Icon inside
+  ctx.font = `${size * 0.6}px Arial`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('❤️', 0, -size / 4);
+
+  ctx.restore();
+};
+
 const render = () => {
   if (!ctx) return;
 

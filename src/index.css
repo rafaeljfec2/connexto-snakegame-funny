@@ -45,6 +45,13 @@ body {
   user-select: none;
 }
 
+/* Performance Utility Classes */
+.gpu-accelerated {
+  transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
 #root {
   width: 100%;
   height: 100%;

@@ -2,49 +2,80 @@
   background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
   border-radius: 3px;
   position: relative;
-  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  /* transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1); - REMOVIDO: Transição de 'all' é pesada no mobile */
   width: 100%;
   height: 100%;
   box-sizing: border-box;
   overflow: hidden;
-  animation: segmentAppear 0.2s ease-out;
+  /* animation: segmentAppear 0.2s ease-out; - REMOVIDO: Animação de entrada a cada movimento é excessiva */
   border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow:
-    0 2px 8px rgba(34, 197, 94, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  /* Otimização agressiva de performance */
+  contain: strict;
+  content-visibility: auto;
+}
+
+@media (min-width: 769px) {
+  .segment {
+    transition: transform 0.1s linear; /* Apenas transform no desktop se necessário */
+    box-shadow:
+      0 2px 8px rgba(34, 197, 94, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  }
 }
 
 .segment.head {
   background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
   border-radius: 4px;
   border: 2px solid rgba(255, 255, 255, 0.3);
-  box-shadow:
-    0 0 16px rgba(34, 197, 94, 0.8),
-    0 0 32px rgba(34, 197, 94, 0.6),
-    inset 0 2px 0 rgba(255, 255, 255, 0.4);
   z-index: 2;
-  animation: headPulse 1.5s ease-in-out infinite;
   position: relative;
+  /* Otimizações */
+  contain: layout style;
 }
 
-.segment.head::before {
-  content: '';
-  position: absolute;
-  inset: -2px;
-  border-radius: 4px;
-  background: linear-gradient(135deg, rgba(34, 197, 94, 0.6), rgba(59, 130, 246, 0.6));
-  z-index: -1;
-  filter: blur(4px);
-  animation: headGlow 2s ease-in-out infinite;
-  /* GPU acceleration */
-  transform: translateZ(0);
-  will-change: opacity;
+@media (min-width: 769px) {
+  .segment.head {
+    box-shadow:
+      0 0 16px rgba(34, 197, 94, 0.8),
+      0 0 32px rgba(34, 197, 94, 0.6),
+      inset 0 2px 0 rgba(255, 255, 255, 0.4);
+    animation: headPulse 1.5s ease-in-out infinite;
+  }
 }
 
+/* Mobile optimizations: Remove animations and heavy effects */
 @media (max-width: 768px) {
+  .segment {
+    background: #22c55e; /* Cor sólida em vez de gradiente */
+    border: none; /* Remover borda para menos pintura */
+    box-shadow: none !important;
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .segment.head {
+    background: #16a34a;
+    border: 1px solid #fff;
+  }
+  
   .segment.head::before {
-    filter: none; /* Remove blur on mobile */
-    opacity: 0.5;
+    display: none; /* Remove glow element completely */
+  }
+}
+
+@media (min-width: 769px) {
+  .segment.head::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: 4px;
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.6), rgba(59, 130, 246, 0.6));
+    z-index: -1;
+    filter: blur(4px);
+    animation: headGlow 2s ease-in-out infinite;
+    /* GPU acceleration */
+    transform: translateZ(0);
+    will-change: opacity;
   }
 }
 

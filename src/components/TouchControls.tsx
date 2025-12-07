@@ -1,4 +1,4 @@
-import { useCallback, useRef, useEffect } from 'react';
+import { useCallback, useRef, useEffect, memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Direction } from '@/types/game';
 import { CONTROL_CONFIG } from '@/constants/game';
@@ -12,7 +12,7 @@ interface TouchControlsProps {
   enabled?: boolean;
 }
 
-export function TouchControls({
+export const TouchControls = memo(function TouchControls({
   onDirectionChange,
   onSpeedBoost,
   onFirePoison,
@@ -258,4 +258,4 @@ export function TouchControls({
       </div>
     </div>
   );
-}
+});

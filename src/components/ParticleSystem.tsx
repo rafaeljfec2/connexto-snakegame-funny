@@ -1,13 +1,13 @@
 import { Particle } from '@/types/game';
 import { GAME_CONFIG } from '@/constants/game';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, memo } from 'react';
 import styles from './ParticleSystem.module.css';
 
 interface ParticleSystemProps {
   particles: Particle[];
 }
 
-export function ParticleSystem({ particles }: ParticleSystemProps) {
+export const ParticleSystem = memo(function ParticleSystem({ particles }: ParticleSystemProps) {
   const [cellSize, setCellSize] = useState(GAME_CONFIG.cellSize);
 
   // Calculate actual cell size from container (same logic as GameBoard)
@@ -44,17 +44,18 @@ export function ParticleSystem({ particles }: ParticleSystemProps) {
           <div
             key={particle.id}
             className={styles.particle}
-            style={
-              {
-                left: `${pixelX}px`,
-                top: `${pixelY}px`,
-                backgroundColor: particle.color,
-                animationDuration: `${animationDuration}s`,
-              } as React.CSSProperties
-            }
+            style={{
+              left: `${pixelX}px`,
+              top: `${pixelY}px`,
+              backgroundColor: particle.color,
+              animationDuration: `${animationDuration}s`,
+              // Inline optimizations
+              willChange: 'transform, opacity',
+              transform: 'translate3d(-50%, -50%, 0)',
+            }}
           />
         );
       })}
     </>
   );
-}
+});

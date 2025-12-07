@@ -13,12 +13,24 @@ interface Particle {
   size: number;
 }
 
+// External entities (like poison shots) to be rendered
+interface ExternalEntity {
+  x: number;
+  y: number;
+  color: string;
+  size: number;
+  type: 'rect' | 'circle';
+  glow?: boolean;
+}
+
 let particles: Particle[] = [];
+let externalEntities: ExternalEntity[] = [];
 let ctx: OffscreenCanvasRenderingContext2D | null = null;
 let width = 0;
 let height = 0;
 let lastTime = 0;
 let animationFrameId: number;
+let dpr = 1;
 
 const selfWorker = self as unknown as Worker;
 
@@ -28,9 +40,19 @@ selfWorker.onmessage = (e: MessageEvent) => {
   switch (type) {
     case 'INIT':
       const canvas = payload.canvas as OffscreenCanvas;
+      dpr = payload.dpr || 1;
       width = payload.width;
       height = payload.height;
+      
+      // Set physical size
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      
       ctx = canvas.getContext('2d');
+      if (ctx) {
+          ctx.scale(dpr, dpr);
+      }
+      
       lastTime = performance.now();
       loop();
       break;
@@ -38,15 +60,25 @@ selfWorker.onmessage = (e: MessageEvent) => {
     case 'RESIZE':
       width = payload.width;
       height = payload.height;
+      dpr = payload.dpr || dpr;
+      
       if (ctx && ctx.canvas) {
-        ctx.canvas.width = width;
-        ctx.canvas.height = height;
+        ctx.canvas.width = width * dpr;
+        ctx.canvas.height = height * dpr;
+        ctx.scale(dpr, dpr);
       }
       break;
 
     case 'SPAWN':
       // Payload: { x, y, color, count, size, speed }
       spawnParticles(payload);
+      break;
+
+    case 'UPDATE_ENTITIES':
+      // Payload: { entities: ExternalEntity[] }
+      if (payload.entities) {
+        externalEntities = payload.entities;
+      }
       break;
   }
 };
@@ -104,10 +136,41 @@ function update(dt: number) {
 function render() {
   if (!ctx) return;
 
-  // Clear canvas
+  // Clear canvas (using logical dimensions because context is scaled)
+  // But usually clearRect needs to cover everything.
+  // Since we scaled, 0,0 to width,height covers the logical area which maps to physical.
   ctx.clearRect(0, 0, width, height);
 
-  // Draw particles
+  // 1. Draw External Entities
+  for (const entity of externalEntities) {
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = entity.color;
+
+    if (entity.glow) {
+      ctx.shadowBlur = 10;
+      ctx.shadowColor = entity.color;
+    } else {
+      ctx.shadowBlur = 0;
+    }
+
+    ctx.beginPath();
+    if (entity.type === 'circle') {
+      ctx.arc(entity.x, entity.y, entity.size / 2, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      ctx.fillRect(
+        entity.x - entity.size / 2,
+        entity.y - entity.size / 2,
+        entity.size,
+        entity.size,
+      );
+    }
+  }
+
+  // Reset shadow
+  ctx.shadowBlur = 0;
+
+  // 2. Draw particles
   for (const p of particles) {
     const opacity = Math.max(0, p.life / p.maxLife);
 
@@ -115,7 +178,6 @@ function render() {
     ctx.fillStyle = p.color;
 
     ctx.beginPath();
-    // Draw squares instead of circles for raw performance
     ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
   }
 }

@@ -4,9 +4,10 @@ import styles from './StormEffect.module.css';
 
 interface StormEffectProps {
   level: number;
+  isMobile?: boolean;
 }
 
-export function StormEffect({ level }: StormEffectProps) {
+export function StormEffect({ level, isMobile = false }: StormEffectProps) {
   const phase = getCurrentPhase(level);
   const isVortexPhase = phase?.id === 9;
 
@@ -26,8 +27,9 @@ export function StormEffect({ level }: StormEffectProps) {
       return;
     }
 
+    const dropCount = isMobile ? 15 : 50;
     const drops: Array<{ id: number; left: number; delay: number; duration: number }> = [];
-    for (let i = 0; i < 50; i++) {
+    for (let i = 0; i < dropCount; i++) {
       drops.push({
         id: i,
         left: Math.random() * 100,
@@ -38,6 +40,7 @@ export function StormEffect({ level }: StormEffectProps) {
     setRainDrops(drops);
 
     // Initialize clouds
+    const cloudCount = isMobile ? 3 : 8;
     const cloudArray: Array<{
       id: number;
       left: number;
@@ -46,7 +49,7 @@ export function StormEffect({ level }: StormEffectProps) {
       speed: number;
       opacity: number;
     }> = [];
-    for (let i = 0; i < 8; i++) {
+    for (let i = 0; i < cloudCount; i++) {
       cloudArray.push({
         id: i,
         left: Math.random() * 120 - 20, // Start slightly off-screen
@@ -57,7 +60,7 @@ export function StormEffect({ level }: StormEffectProps) {
       });
     }
     setClouds(cloudArray);
-  }, [isVortexPhase]);
+  }, [isVortexPhase, isMobile]);
 
   // Lightning effect - random flashes
   useEffect(() => {
@@ -82,6 +85,8 @@ export function StormEffect({ level }: StormEffectProps) {
   if (!isVortexPhase) {
     return null;
   }
+
+  const windCount = isMobile ? 8 : 20;
 
   return (
     <div className={styles.stormContainer}>
@@ -126,7 +131,7 @@ export function StormEffect({ level }: StormEffectProps) {
 
       {/* Wind particles */}
       <div className={styles.windContainer}>
-        {[...Array(20)].map((_, i) => (
+        {[...Array(windCount)].map((_, i) => (
           <div
             key={i}
             className={styles.windParticle}

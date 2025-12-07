@@ -1,6 +1,5 @@
 import { Obstacle, Position, Direction, Particle } from '@/types/game';
 import { getNextHeadPosition } from './gameLogic';
-import { spawnParticles } from './particles';
 
 /**
  * Check if a poison shot collides with an obstacle
@@ -46,7 +45,7 @@ export function wouldCollideWithObstacle(
 
 /**
  * Handle generic obstacle destruction
- * Now uses spawnParticles event internally
+ * Pure function: just updates state, effects should be handled by caller
  */
 export function destroyObstacles(
   obstacles: Obstacle[],
@@ -57,9 +56,6 @@ export function destroyObstacles(
 
   obstaclesToDestroy.forEach((obstacle) => {
     remainingObstacles = removeObstacle(remainingObstacles, obstacle.id);
-
-    // Spawn particles via worker event
-    spawnParticles(obstacle.position, '#9ca3af', 6, 500);
   });
 
   return {

@@ -4,69 +4,74 @@ import styles from './WeatherEffect.module.css';
 
 interface WeatherEffectProps {
   level: number;
+  isMobile?: boolean;
 }
 
-export function WeatherEffect({ level }: WeatherEffectProps) {
+export function WeatherEffect({ level, isMobile = false }: WeatherEffectProps) {
   const phase = getCurrentPhase(level);
   const phaseId = phase?.id ?? 0;
 
   // Fase 1 - Clima Limpo/Estrelado
   if (phaseId === 1) {
-    return <StarryNightEffect />;
+    return <StarryNightEffect isMobile={isMobile} />;
   }
 
   // Fase 2 - Névoa Azul Mística
   if (phaseId === 2) {
-    return <MysticFogEffect />;
+    return <MysticFogEffect isMobile={isMobile} />;
   }
 
   // Fase 3 - Deserto com Areia
   if (phaseId === 3) {
-    return <DesertStormEffect />;
+    return <DesertStormEffect isMobile={isMobile} />;
   }
 
   // Fase 4 - Clima Cósmico/Espacial
   if (phaseId === 4) {
-    return <CosmicSpaceEffect />;
+    return <CosmicSpaceEffect isMobile={isMobile} />;
   }
 
   // Fase 5 - Fogo e Velocidade
   if (phaseId === 5) {
-    return <FireSpeedEffect />;
+    return <FireSpeedEffect isMobile={isMobile} />;
   }
 
   // Fase 6 - Psicodélico/Caótico
   if (phaseId === 6) {
-    return <ChaosPsychedelicEffect />;
+    return <ChaosPsychedelicEffect isMobile={isMobile} />;
   }
 
   // Fase 7 - Neblina e Geometria
   if (phaseId === 7) {
-    return <MistGeometricEffect />;
+    return <MistGeometricEffect isMobile={isMobile} />;
   }
 
   // Fase 8 - Apocalíptico/Lava
   if (phaseId === 8) {
-    return <ApocalypticLavaEffect />;
+    return <ApocalypticLavaEffect isMobile={isMobile} />;
   }
 
-  // Fase 9 - Tempestade (já implementado como StormEffect)
+  // Fase 9 - Tempestade (já implementado como StormEffect no GameBoard, mas se fosse aqui...)
   // Fase 10 - Celestial/Divino
   if (phaseId === 10) {
-    return <CelestialDivineEffect />;
+    return <CelestialDivineEffect isMobile={isMobile} />;
   }
 
   return null;
 }
 
+interface EffectProps {
+  isMobile: boolean;
+}
+
 // Fase 1 - Clima Limpo/Estrelado
-function StarryNightEffect() {
+function StarryNightEffect({ isMobile }: EffectProps) {
   const [stars, setStars] = useState<
     Array<{ id: number; x: number; y: number; size: number; opacity: number; twinkleDelay: number }>
   >([]);
 
   useEffect(() => {
-    const starCount = 60;
+    const starCount = isMobile ? 20 : 60;
     const newStars: Array<{
       id: number;
       x: number;
@@ -87,7 +92,7 @@ function StarryNightEffect() {
       });
     }
     setStars(newStars);
-  }, []);
+  }, [isMobile]);
 
   return (
     <div className={styles.weatherContainer}>
@@ -112,7 +117,7 @@ function StarryNightEffect() {
 }
 
 // Fase 2 - Névoa Azul Mística
-function MysticFogEffect() {
+function MysticFogEffect({ isMobile }: EffectProps) {
   const [fogParticles, setFogParticles] = useState<
     Array<{ id: number; x: number; y: number; size: number; speed: number }>
   >([]);
@@ -122,7 +127,7 @@ function MysticFogEffect() {
 
   useEffect(() => {
     // Fog particles
-    const fogCount = 30;
+    const fogCount = isMobile ? 8 : 30;
     const fog: Array<{ id: number; x: number; y: number; size: number; speed: number }> = [];
     for (let i = 0; i < fogCount; i++) {
       fog.push({
@@ -136,7 +141,7 @@ function MysticFogEffect() {
     setFogParticles(fog);
 
     // Protective lights
-    const lightCount = 6;
+    const lightCount = isMobile ? 3 : 6;
     const lights: Array<{ id: number; x: number; y: number }> = [];
     for (let i = 0; i < lightCount; i++) {
       lights.push({
@@ -146,7 +151,7 @@ function MysticFogEffect() {
       });
     }
     setProtectiveLights(lights);
-  }, []);
+  }, [isMobile]);
 
   return (
     <div className={styles.weatherContainer}>
@@ -184,13 +189,13 @@ function MysticFogEffect() {
 }
 
 // Fase 3 - Deserto com Areia
-function DesertStormEffect() {
+function DesertStormEffect({ isMobile }: EffectProps) {
   const [sandParticles, setSandParticles] = useState<
     Array<{ id: number; x: number; y: number; delay: number; duration: number }>
   >([]);
 
   useEffect(() => {
-    const sandCount = 40;
+    const sandCount = isMobile ? 15 : 40;
     const sand: Array<{ id: number; x: number; y: number; delay: number; duration: number }> = [];
     for (let i = 0; i < sandCount; i++) {
       sand.push({
@@ -202,7 +207,7 @@ function DesertStormEffect() {
       });
     }
     setSandParticles(sand);
-  }, []);
+  }, [isMobile]);
 
   return (
     <div className={styles.weatherContainer}>
@@ -226,13 +231,13 @@ function DesertStormEffect() {
 }
 
 // Fase 4 - Clima Cósmico/Espacial
-function CosmicSpaceEffect() {
+function CosmicSpaceEffect({ isMobile }: EffectProps) {
   const [cosmicParticles, setCosmicParticles] = useState<
     Array<{ id: number; x: number; y: number; size: number; delay: number }>
   >([]);
 
   useEffect(() => {
-    const particleCount = 50;
+    const particleCount = isMobile ? 20 : 50;
     const particles: Array<{ id: number; x: number; y: number; size: number; delay: number }> = [];
     for (let i = 0; i < particleCount; i++) {
       particles.push({
@@ -244,7 +249,7 @@ function CosmicSpaceEffect() {
       });
     }
     setCosmicParticles(particles);
-  }, []);
+  }, [isMobile]);
 
   return (
     <div className={styles.weatherContainer}>
@@ -270,7 +275,7 @@ function CosmicSpaceEffect() {
 }
 
 // Fase 5 - Fogo e Velocidade
-function FireSpeedEffect() {
+function FireSpeedEffect({ isMobile }: EffectProps) {
   const [fireParticles, setFireParticles] = useState<
     Array<{ id: number; x: number; y: number; delay: number; duration: number }>
   >([]);
@@ -280,7 +285,7 @@ function FireSpeedEffect() {
 
   useEffect(() => {
     // Fire particles
-    const fireCount = 30;
+    const fireCount = isMobile ? 10 : 30;
     const fire: Array<{ id: number; x: number; y: number; delay: number; duration: number }> = [];
     for (let i = 0; i < fireCount; i++) {
       fire.push({
@@ -294,7 +299,7 @@ function FireSpeedEffect() {
     setFireParticles(fire);
 
     // Speed trails
-    const trailCount = 15;
+    const trailCount = isMobile ? 5 : 15;
     const trails: Array<{ id: number; x: number; y: number; delay: number }> = [];
     for (let i = 0; i < trailCount; i++) {
       trails.push({
@@ -305,7 +310,7 @@ function FireSpeedEffect() {
       });
     }
     setSpeedTrails(trails);
-  }, []);
+  }, [isMobile]);
 
   return (
     <div className={styles.weatherContainer}>
@@ -340,13 +345,13 @@ function FireSpeedEffect() {
 }
 
 // Fase 6 - Psicodélico/Caótico
-function ChaosPsychedelicEffect() {
+function ChaosPsychedelicEffect({ isMobile }: EffectProps) {
   const [chaosParticles, setChaosParticles] = useState<
     Array<{ id: number; x: number; y: number; color: string; delay: number }>
   >([]);
 
   useEffect(() => {
-    const particleCount = 40;
+    const particleCount = isMobile ? 15 : 40;
     const colors = ['#ff0080', '#00ff80', '#8000ff', '#ff8000', '#0080ff', '#80ff00'];
     const particles: Array<{ id: number; x: number; y: number; color: string; delay: number }> = [];
     for (let i = 0; i < particleCount; i++) {
@@ -359,7 +364,7 @@ function ChaosPsychedelicEffect() {
       });
     }
     setChaosParticles(particles);
-  }, []);
+  }, [isMobile]);
 
   return (
     <div className={styles.weatherContainer}>
@@ -383,13 +388,13 @@ function ChaosPsychedelicEffect() {
 }
 
 // Fase 7 - Neblina e Geometria
-function MistGeometricEffect() {
+function MistGeometricEffect({ isMobile }: EffectProps) {
   const [geometricShapes, setGeometricShapes] = useState<
     Array<{ id: number; x: number; y: number; size: number; rotation: number }>
   >([]);
 
   useEffect(() => {
-    const shapeCount = 12;
+    const shapeCount = isMobile ? 4 : 12;
     const shapes: Array<{ id: number; x: number; y: number; size: number; rotation: number }> = [];
     for (let i = 0; i < shapeCount; i++) {
       shapes.push({
@@ -401,7 +406,7 @@ function MistGeometricEffect() {
       });
     }
     setGeometricShapes(shapes);
-  }, []);
+  }, [isMobile]);
 
   return (
     <div className={styles.weatherContainer}>
@@ -428,7 +433,7 @@ function MistGeometricEffect() {
 }
 
 // Fase 8 - Apocalíptico/Lava
-function ApocalypticLavaEffect() {
+function ApocalypticLavaEffect({ isMobile }: EffectProps) {
   const [ashParticles, setAshParticles] = useState<
     Array<{ id: number; x: number; y: number; delay: number; duration: number }>
   >([]);
@@ -436,7 +441,7 @@ function ApocalypticLavaEffect() {
 
   useEffect(() => {
     // Ash particles
-    const ashCount = 35;
+    const ashCount = isMobile ? 12 : 35;
     const ash: Array<{ id: number; x: number; y: number; delay: number; duration: number }> = [];
     for (let i = 0; i < ashCount; i++) {
       ash.push({
@@ -450,7 +455,7 @@ function ApocalypticLavaEffect() {
     setAshParticles(ash);
 
     // Lava glow spots
-    const lavaCount = 8;
+    const lavaCount = isMobile ? 3 : 8;
     const lava: Array<{ id: number; x: number; y: number }> = [];
     for (let i = 0; i < lavaCount; i++) {
       lava.push({
@@ -460,7 +465,7 @@ function ApocalypticLavaEffect() {
       });
     }
     setLavaGlow(lava);
-  }, []);
+  }, [isMobile]);
 
   return (
     <div className={styles.weatherContainer}>
@@ -495,13 +500,13 @@ function ApocalypticLavaEffect() {
 }
 
 // Fase 10 - Celestial/Divino
-function CelestialDivineEffect() {
+function CelestialDivineEffect({ isMobile }: EffectProps) {
   const [divineParticles, setDivineParticles] = useState<
     Array<{ id: number; x: number; y: number; size: number; delay: number }>
   >([]);
 
   useEffect(() => {
-    const particleCount = 45;
+    const particleCount = isMobile ? 15 : 45;
     const particles: Array<{ id: number; x: number; y: number; size: number; delay: number }> = [];
     for (let i = 0; i < particleCount; i++) {
       particles.push({
@@ -513,7 +518,7 @@ function CelestialDivineEffect() {
       });
     }
     setDivineParticles(particles);
-  }, []);
+  }, [isMobile]);
 
   return (
     <div className={styles.weatherContainer}>

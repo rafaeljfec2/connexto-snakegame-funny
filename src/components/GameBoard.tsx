@@ -9,19 +9,16 @@ import {
   PoisonShot,
 } from '@/types/game';
 import { GAME_CONFIG } from '@/constants/game';
-import { SnakeSegment } from './SnakeSegment';
+import { WeatherCanvas } from './WeatherCanvas';
+import { SnakeRenderer } from './SnakeRenderer';
 import { Food } from './Food';
 import { ObstacleComponent } from './Obstacle';
 import { ParticleSystem } from './ParticleSystem';
 import { Portal as PortalComponent } from './Portal';
 import { BossSnake as BossSnakeComponent } from './BossSnake';
-import { PoisonShot as PoisonShotComponent } from './PoisonShot';
-import { StormEffect } from './StormEffect';
-import { WeatherEffect } from './WeatherEffect';
 import { useEffect, useRef, useState, useMemo, memo } from 'react';
 import styles from './GameBoard.module.css';
 import { Chef } from '@/types/phases';
-import { getCurrentPhase } from '@/utils/phases';
 import { GameBackground } from './GameBackground';
 
 interface GameBoardProps {
@@ -131,22 +128,10 @@ export const GameBoard = memo(function GameBoard({
         height: `${GAME_CONFIG.gridSize * cellSize}px`,
       };
 
-  const previousSnakeLengthRef = useRef(snake.length);
   const previousLevelRef = useRef(level);
   const previousFoodKeyRef = useRef(`${food.position.x}-${food.position.y}-${food.type}`);
   const [isLevelUp, setIsLevelUp] = useState(false);
-  const [newSegmentIndex, setNewSegmentIndex] = useState<number | null>(null);
   const [isEating, setIsEating] = useState(false);
-  const [dyingSegments, setDyingSegments] = useState<Set<number>>(new Set());
-
-  // Detect snake growth
-  useEffect(() => {
-    if (snake.length > previousSnakeLengthRef.current) {
-      setNewSegmentIndex(snake.length - 1);
-      setTimeout(() => setNewSegmentIndex(null), 300);
-    }
-    previousSnakeLengthRef.current = snake.length;
-  }, [snake.length]);
 
   // Detect food eaten (head eating animation)
   useEffect(() => {
@@ -156,41 +141,11 @@ export const GameBoard = memo(function GameBoard({
     // Food was eaten if position changed OR type changed while playing
     if (foodChanged && status === GameStatus.PLAYING && snake.length > 0) {
       setIsEating(true);
-      setTimeout(() => setIsEating(false), 400);
+      setTimeout(() => setIsEating(false), 200); // Shorter duration for snappy feel
     }
 
     previousFoodKeyRef.current = currentFoodKey;
   }, [food.position, food.type, status, snake.length]);
-
-  // Animate snake death - segments explode in sequence
-  useEffect(() => {
-    if (status === GameStatus.GAME_OVER && snake.length > 0) {
-      const segmentsToDie = new Set<number>();
-      const timeouts: ReturnType<typeof setTimeout>[] = [];
-
-      // Start explosion animation from tail to head
-      snake.forEach((_, index) => {
-        const timeout = setTimeout(() => {
-          segmentsToDie.add(index);
-          setDyingSegments(new Set(segmentsToDie));
-        }, index * 50); // 50ms delay between each segment
-        timeouts.push(timeout);
-      });
-
-      // Reset after animation completes
-      const totalDuration = snake.length * 50 + 300;
-      const resetTimeout = setTimeout(() => {
-        setDyingSegments(new Set());
-      }, totalDuration);
-      timeouts.push(resetTimeout);
-
-      return () => {
-        timeouts.forEach(clearTimeout);
-      };
-    } else {
-      setDyingSegments(new Set());
-    }
-  }, [status, snake.length, snake]);
 
   // Detect level up for board animation
   useEffect(() => {
@@ -218,16 +173,6 @@ export const GameBoard = memo(function GameBoard({
     return pairs;
   }, [portals]);
 
-  // Get current phase for weather effects
-  const currentPhase = useMemo(() => {
-    const phase = getCurrentPhase(level);
-    return phase?.id ?? 0;
-  }, [level]);
-
-  // Detect mobile for conditional rendering of heavy effects
-  // Disable weather effects on mobile for better performance
-  const shouldShowWeatherEffects = !isMobile;
-
   return (
     <div
       ref={boardRef}
@@ -246,30 +191,31 @@ export const GameBoard = memo(function GameBoard({
 
       {/* Game Elements Layer */}
       <div className={styles.gameLayer} style={gridStyle}>
-        {/* Weather Effects for all phases - Disabled on mobile for performance */}
-        {shouldShowWeatherEffects && <WeatherEffect level={level} />}
+        {/* Weather Effects (Worker Based) */}
+        <WeatherCanvas level={level} isMobile={isMobile} />
 
-        {/* Storm Effect for Phase 9 (Vortex Challenge) - Disabled on mobile for performance */}
-        {shouldShowWeatherEffects && currentPhase === 9 && <StormEffect level={level} />}
-
+        {/* Obstacles */}
         {GAME_CONFIG.enableObstacles &&
           obstacles.map((obstacle) => <ObstacleComponent key={obstacle.id} obstacle={obstacle} />)}
+
+        {/* Portals */}
         {portals.map((portal) => {
           const pair = portalPairs.get(portal.pairId) ?? [];
           const isFirst = pair.length > 0 && pair[0]?.id === portal.id;
           return <PortalComponent key={portal.id} portal={portal} isFirst={isFirst} />;
         })}
-        {snake.map((segment, index) => (
-          <SnakeSegment
-            key={`snake-${index}`}
-            position={segment}
-            isHead={index === 0}
-            isNew={newSegmentIndex === index}
-            isEating={index === 0 && isEating}
-            isDying={dyingSegments.has(index)}
-          />
-        ))}
+
+        {/* SNAKE - Rendered via Canvas for Performance */}
+        <SnakeRenderer
+          snake={snake}
+          cellSize={cellSize}
+          isMobile={isMobile}
+          gridSize={GAME_CONFIG.gridSize}
+          isEating={isEating}
+        />
+
         <Food key={foodKey} food={food} />
+
         {/* Guardian Flag - special power-up for Guardian boss */}
         {guardianFlag && (
           <Food
@@ -277,11 +223,41 @@ export const GameBoard = memo(function GameBoard({
             food={guardianFlag}
           />
         )}
+
         {activeBoss && bossSnake && <BossSnakeComponent bossSnake={bossSnake} boss={activeBoss} />}
+
+        {/* Particles Effect System */}
+        <ParticleSystem />
+
+        {/* Poison Shots - Rendered in DOM for compatibility */}
         {poisonShots.map((shot) => (
-          <PoisonShotComponent key={shot.id} shot={shot} />
+          <div
+            key={`shot-${shot.id}`}
+            className='poison-shot' // Use class if possible, but inline is fine for dynamic pos
+            style={{
+              position: 'absolute',
+              left: isMobile
+                ? `calc(${shot.position.x} * (100% / ${GAME_CONFIG.gridSize}))`
+                : `${shot.position.x * cellSize}px`,
+              top: isMobile
+                ? `calc(${shot.position.y} * (100% / ${GAME_CONFIG.gridSize}))`
+                : `${shot.position.y * cellSize}px`,
+              width: isMobile
+                ? `calc(100% / ${GAME_CONFIG.gridSize} * 0.6)`
+                : `${cellSize * 0.6}px`,
+              height: isMobile
+                ? `calc(100% / ${GAME_CONFIG.gridSize} * 0.6)`
+                : `${cellSize * 0.6}px`,
+              backgroundColor: '#10b981',
+              borderRadius: '50%',
+              zIndex: 100,
+              pointerEvents: 'none',
+              transform: 'translate(30%, 30%)',
+              boxShadow: '0 0 5px #10b981',
+              willChange: 'left, top', // Optimization hint
+            }}
+          />
         ))}
-        {GAME_CONFIG.enableParticles && <ParticleSystem />}
       </div>
     </div>
   );

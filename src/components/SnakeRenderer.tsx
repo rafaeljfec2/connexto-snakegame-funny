@@ -28,6 +28,7 @@ export const SnakeRenderer = memo(function SnakeRenderer({
   const cellSizeRef = useRef(cellSize);
   const isMobileRef = useRef(isMobile);
   const isEatingRef = useRef(isEating);
+  const speedRef = useRef(speed); // Ref for speed to avoid re-running effect
   const prevLengthRef = useRef(snake.length);
 
   // Track growth animations: map of index -> progress (0 to 1)
@@ -72,7 +73,8 @@ export const SnakeRenderer = memo(function SnakeRenderer({
     cellSizeRef.current = cellSize;
     isMobileRef.current = isMobile;
     isEatingRef.current = isEating;
-  }, [snake, cellSize, isMobile, isEating]);
+    speedRef.current = speed; // Update speed ref
+  }, [snake, cellSize, isMobile, isEating, speed]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -87,6 +89,8 @@ export const SnakeRenderer = memo(function SnakeRenderer({
       const currentSnake = snakeRef.current;
       const prevSnake = prevSnakeRef.current;
       const currentCellSize = cellSizeRef.current;
+      const currentIsMobile = isMobileRef.current;
+      const currentSpeed = speedRef.current;
       const width = canvas.width;
       const height = canvas.height;
 
@@ -94,9 +98,7 @@ export const SnakeRenderer = memo(function SnakeRenderer({
       const now = performance.now();
       const elapsed = now - lastUpdateRef.current;
       // Clamp t to [0, 1]
-      // Using speed from props which matches game tick rate
-      // Add small buffer to speed to ensure smoothness (e.g. 1.0)
-      const t = Math.min(Math.max(elapsed / speed, 0), 1);
+      const t = Math.min(Math.max(elapsed / currentSpeed, 0), 1);
 
       ctx.clearRect(0, 0, width, height);
 
@@ -106,7 +108,6 @@ export const SnakeRenderer = memo(function SnakeRenderer({
       }
 
       // 3D Style Configuration
-
       const segmentRadius = currentCellSize / 2;
 
       // Update growth animations (Slower speed: 0.05 per frame)
@@ -130,10 +131,6 @@ export const SnakeRenderer = memo(function SnakeRenderer({
         if (index >= prevSnake.length && prevSnake.length > 0) {
           // New tail segment spawns from the old tail
           const oldTail = prevSnake[prevSnake.length - 1];
-          // Interpolate from old tail to current pos (which is same as old tail visually usually?)
-          // Actually, new tail takes position of what was previously empty?
-          // Standard snake: new tail stays in place of old tail for 1 tick?
-          // Simplified: spawn from old tail
           return lerpPosition(oldTail, currPos, t);
         }
 
@@ -224,21 +221,25 @@ export const SnakeRenderer = memo(function SnakeRenderer({
 
         ctx.fillStyle = gradient;
 
-        // Shadow for depth
-        ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
-        ctx.shadowBlur = 4;
-        ctx.shadowOffsetX = 2;
-        ctx.shadowOffsetY = 2;
+        // Shadow for depth - Disable on mobile for performance
+        if (!currentIsMobile) {
+          ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+          ctx.shadowBlur = 4;
+          ctx.shadowOffsetX = 2;
+          ctx.shadowOffsetY = 2;
+        }
 
         ctx.beginPath();
         ctx.arc(cx, cy, segmentRadius, 0, Math.PI * 2);
         ctx.fill();
 
         // Reset shadow
-        ctx.shadowColor = 'transparent';
-        ctx.shadowBlur = 0;
-        ctx.shadowOffsetX = 0;
-        ctx.shadowOffsetY = 0;
+        if (!currentIsMobile) {
+          ctx.shadowColor = 'transparent';
+          ctx.shadowBlur = 0;
+          ctx.shadowOffsetX = 0;
+          ctx.shadowOffsetY = 0;
+        }
 
         // Draw Eyes (Head only)
         if (isHead) {
@@ -350,7 +351,7 @@ export const SnakeRenderer = memo(function SnakeRenderer({
     return () => {
       cancelAnimationFrame(animationFrameId);
     };
-  }, [speed]); // Re-bind if speed changes (though refs handle updates mostly)
+  }, []); // Empty deps! speed is handled via speedRef
 
   return (
     <canvas

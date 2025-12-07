@@ -2,6 +2,7 @@
   display: none; /* Hidden by default, shown on mobile */
   position: fixed;
   bottom: 10px;
+  bottom: max(10px, env(safe-area-inset-bottom)); /* Safe area for iPhone home bar */
   left: 50%;
   transform: translateX(-50%);
   z-index: 500; /* Above game elements but below modals (1000+) */

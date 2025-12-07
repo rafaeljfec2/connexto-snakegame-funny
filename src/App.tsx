@@ -355,11 +355,13 @@ function App() {
               guardianFlag={gameState.guardianFlag}
             />
           </div>
-          <StatusBar
-            length={gameState.snake.length}
-            lives={gameState.lives}
-            level={gameState.level}
-          />
+          <div className={styles.statusBarContainer}>
+            <StatusBar
+              length={gameState.snake.length}
+              lives={gameState.lives}
+              level={gameState.level}
+            />
+          </div>
 
           <div className={styles.gameControls}>
             <GameControls

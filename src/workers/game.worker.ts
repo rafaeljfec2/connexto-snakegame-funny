@@ -220,8 +220,31 @@ self.onmessage = (e: MessageEvent) => {
     case 'SPAWN_BOSS':
       handleSpawnBoss(payload.bossId);
       break;
+
+    case 'RESUME_AFTER_DEATH':
+      handleResumeAfterDeath();
+      break;
   }
 };
+
+function handleResumeAfterDeath() {
+  if (!gameState) return;
+  
+  // Reset snake position but keep level/score/items
+  gameState = {
+    ...gameState,
+    snake: [...INITIAL_SNAKE_POSITION],
+    direction: INITIAL_DIRECTION,
+    nextDirection: INITIAL_DIRECTION,
+    status: GameStatus.PLAYING,
+    // Add temporary invulnerability or safe space clearing if needed
+    // For now just reset pos
+  };
+  
+  lastUpdateTime = performance.now();
+  startGameLoop();
+  broadcastState();
+}
 
 function handleSpawnBoss(bossId: string | null) {
   if (!gameState) return;
@@ -526,6 +549,7 @@ function updateGame(currentTime: number) {
       gameState = {
         ...prev,
         status: GameStatus.DYING,
+        lives: prev.lives - 1, // Decrement life here
         statistics,
       };
       // Main thread should handle the dying animation timer

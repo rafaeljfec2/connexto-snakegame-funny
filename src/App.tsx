@@ -50,6 +50,7 @@ function App() {
     nextPhase,
     setPhaseComplete,
     setGameStatus,
+    resumeAfterDeath,
   } = useGameLoop();
 
   const [showLevelUp, setShowLevelUp] = useState(false);
@@ -400,7 +401,11 @@ function App() {
       />
 
       {/* Death Transition Animation */}
-      <DeathTransition status={gameState.status} lives={gameState.lives} />
+      <DeathTransition 
+        status={gameState.status} 
+        lives={gameState.lives} 
+        onComplete={resumeAfterDeath}
+      />
 
       {/* Phase Transition Animation - Sonic Style */}
       {showPhaseTransition && phaseTransitionNumber && (

@@ -153,6 +153,10 @@ export function useGameLoop() {
     workerRef.current?.postMessage({ type: 'SET_STATUS', payload: { status } });
   }, []);
 
+  const resumeAfterDeath = useCallback(() => {
+    workerRef.current?.postMessage({ type: 'RESUME_AFTER_DEATH' });
+  }, []);
+
   // Keyboard controls
   const handleKeyPress = useCallback(
     (key: string) => {
@@ -197,6 +201,7 @@ export function useGameLoop() {
     nextPhase,
     setPhaseComplete,
     setGameStatus,
+    resumeAfterDeath,
     updateGameState: (_updater: any) => console.warn('updateGameState is deprecated'),
   };
 }

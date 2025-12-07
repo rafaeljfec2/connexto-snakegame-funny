@@ -33,6 +33,7 @@ interface GameBoardProps {
   activeBoss?: Chef;
   bossSnake?: BossSnake;
   guardianFlag?: FoodType | null;
+  resetToken?: number;
 }
 
 export const GameBoard = memo(function GameBoard({
@@ -46,12 +47,20 @@ export const GameBoard = memo(function GameBoard({
   activeBoss,
   bossSnake,
   guardianFlag,
+  resetToken = 0,
 }: GameBoardProps) {
   const { t } = useTranslation();
   const boardRef = useRef<HTMLDivElement>(null);
   const [cellSize, setCellSize] = useState(GAME_CONFIG.cellSize);
   const [isMobile, setIsMobile] = useState(false);
   const [canvasKey, setCanvasKey] = useState(0);
+
+  // Reset worker when resetToken changes
+  useEffect(() => {
+    if (resetToken > 0) {
+      setCanvasKey((prev) => prev + 1);
+    }
+  }, [resetToken]);
 
   // Worker for rendering Snake, Boss, Shots (High Frequency Updates)
   const renderCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -203,9 +212,10 @@ export const GameBoard = memo(function GameBoard({
           : null,
         isEating,
         speed,
+        status,
       },
     });
-  }, [snake, bossSnake, poisonShots, activeBoss, isEating, speed, t]);
+  }, [snake, bossSnake, poisonShots, activeBoss, isEating, speed, t, status]);
 
   const gridStyle = isMobile
     ? {

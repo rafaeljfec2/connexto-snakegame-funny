@@ -27,6 +27,8 @@ let headPulseAnim = 0;
 let lastTongueFlick = 0;
 let nextTongueFlick = 0;
 let tongueProgress = 0;
+let gameStatus = 'IDLE';
+let deathStartTime = 0;
 
 // Helper to interpolate
 // Helper to darken hex color
@@ -249,6 +251,7 @@ const render = () => {
 
   // Draw Snake
   if (snake && snake.length > 0) {
+    ctx.save();
     // Body
     for (let i = snake.length - 1; i > 0; i--) {
       const prev = prevSnake[i] || prevSnake[prevSnake.length - 1] || snake[i];
@@ -257,6 +260,14 @@ const render = () => {
       let scale = 1.15;
       // Tapering
       if (i >= snake.length - 2 && snake.length > 3) scale = 0.85;
+      
+      // Death Animation
+      if (deathStartTime > 0) {
+          const time = now - deathStartTime;
+          const delay = i * 50;
+          const fade = Math.max(0, 1 - (time - delay) / 200);
+          ctx.globalAlpha = fade;
+      }
       
       drawSnakeSegment(pos.x, pos.y, cellSize, false, false, scale);
     }
@@ -282,7 +293,15 @@ const render = () => {
 
     let headScale = 1.15;
     if (isEating) headScale = 1.3; // Simple pulse
+    
+    if (deathStartTime > 0) {
+        const time = now - deathStartTime;
+        const fade = Math.max(0, 1 - time / 200);
+        ctx.globalAlpha = fade;
+    }
+    
     drawSnakeSegment(headPos.x, headPos.y, cellSize, true, false, headScale, angle);
+    ctx.restore();
   }
 
   // Draw Boss
@@ -378,6 +397,18 @@ self.onmessage = (e: MessageEvent) => {
          shots = payload.shots || [];
          isEating = payload.isEating;
          speed = payload.speed || 150;
+         
+         if (payload.status) {
+             if (payload.status !== gameStatus) {
+                 if (payload.status === 'GAME_OVER' || payload.status === 'DYING') {
+                     deathStartTime = performance.now();
+                 } else {
+                     deathStartTime = 0;
+                 }
+                 gameStatus = payload.status;
+             }
+         }
+         
          lastUpdate = performance.now();
       }
       break;

@@ -67,6 +67,7 @@ function App() {
   const [defeatedBoss, setDefeatedBoss] = useState<Chef | null>(null);
   const [bossDefeatScore, setBossDefeatScore] = useState(0);
   const [defeatedBossPhaseNumber, setDefeatedBossPhaseNumber] = useState<number | null>(null);
+  const [gameResetToken, setGameResetToken] = useState(0);
   const previousLevelRef = useRef(gameState.level);
   const previousScoreRef = useRef(gameState.score);
   const previousAchievementsRef = useRef(gameState.achievements);
@@ -286,6 +287,7 @@ function App() {
     setDefeatedBoss(null);
     setBossDefeatScore(0);
     setDefeatedBossPhaseNumber(null);
+    setGameResetToken((prev) => prev + 1);
     resetGame();
   };
 
@@ -353,6 +355,7 @@ function App() {
               activeBoss={gameState.activeBoss}
               bossSnake={gameState.bossSnake}
               guardianFlag={gameState.guardianFlag}
+              resetToken={gameResetToken}
             />
           </div>
           <div className={styles.statusBarContainer}>
@@ -403,9 +406,9 @@ function App() {
       />
 
       {/* Death Transition Animation */}
-      <DeathTransition 
-        status={gameState.status} 
-        lives={gameState.lives} 
+      <DeathTransition
+        status={gameState.status}
+        lives={gameState.lives}
         onComplete={resumeAfterDeath}
       />
 

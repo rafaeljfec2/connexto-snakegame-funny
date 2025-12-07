@@ -77,10 +77,19 @@ export const DIFFICULTY_CONFIG = {
   initialLevel: 1,
 } as const;
 
+/**
+ * Check if device is mobile
+ */
+export function isMobileDevice(): boolean {
+  if (typeof window === 'undefined') return false;
+  return window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+}
+
 // Performance optimization limits
 export const PERFORMANCE_CONFIG = {
   // Maximum number of particles allowed at once (performance optimization)
-  maxParticles: 100,
+  // Mobile: 30 for better performance, Desktop: 100
+  getMaxParticles: () => (isMobileDevice() ? 30 : 100),
   // Maximum number of portals allowed at once (performance optimization)
   maxPortals: 6, // 3 pairs
 } as const;

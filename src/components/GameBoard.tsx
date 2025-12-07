@@ -224,13 +224,17 @@ export const GameBoard = memo(function GameBoard({
     return phase?.id ?? 0;
   }, [level]);
 
+  // Detect mobile for conditional rendering of heavy effects
+  // Disable weather effects on mobile for better performance
+  const shouldShowWeatherEffects = !isMobile;
+
   return (
     <div ref={boardRef} className={boardClassName} style={gridStyle}>
-      {/* Weather Effects for all phases */}
-      <WeatherEffect level={level} />
+      {/* Weather Effects for all phases - Disabled on mobile for performance */}
+      {shouldShowWeatherEffects && <WeatherEffect level={level} />}
 
-      {/* Storm Effect for Phase 9 (Vortex Challenge) - Keep for backward compatibility */}
-      {currentPhase === 9 && <StormEffect level={level} />}
+      {/* Storm Effect for Phase 9 (Vortex Challenge) - Disabled on mobile for performance */}
+      {shouldShowWeatherEffects && currentPhase === 9 && <StormEffect level={level} />}
 
       {GAME_CONFIG.enableObstacles &&
         obstacles.map((obstacle) => <ObstacleComponent key={obstacle.id} obstacle={obstacle} />)}

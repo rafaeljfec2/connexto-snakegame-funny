@@ -602,8 +602,10 @@ export function useGameLoop() {
   // This allows game logic to run independently of render cycles
   const internalGameStateRef = useRef<GameState>(gameState);
   const renderUpdateFrameCounterRef = useRef<number>(0);
-  const RENDER_UPDATE_INTERVAL = 1; // Update React state every frame (60fps render, 60fps logic)
-  // Set to 1 to maintain smooth visual updates while still benefiting from batching
+  // Mobile: Reduce render frequency to 30fps (every 2 frames) for better performance
+  // Desktop: Maintain 60fps (every frame) for smooth visuals
+  const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
+  const RENDER_UPDATE_INTERVAL = isMobile ? 2 : 1; // Mobile: 30fps, Desktop: 60fps
   const renderUpdateScheduledRef = useRef<boolean>(false);
 
   // Keep gameStateRef updated with latest state
@@ -677,7 +679,7 @@ export function useGameLoop() {
       // Initialize particles early for portal teleportation
       // Update particles and apply performance limits
       let newParticles = GAME_CONFIG.enableParticles
-        ? updateParticles(prev.particles, PERFORMANCE_CONFIG.maxParticles)
+        ? updateParticles(prev.particles, PERFORMANCE_CONFIG.getMaxParticles())
         : prev.particles;
 
       // Handle portal teleportation BEFORE collision checks

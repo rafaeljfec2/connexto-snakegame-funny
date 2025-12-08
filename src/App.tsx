@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useGameLoop } from '@/hooks/useGameLoop';
 import { useKeyboard } from '@/hooks/useKeyboard';
+import { logger, LogContext } from '@/utils/logger';
 import { GameBoard } from './components/GameBoard';
 import { GameInfo } from './components/GameInfo';
 import { GameControls } from './components/GameControls';
@@ -77,6 +78,13 @@ function App() {
   const previousActiveBossRef = useRef<Chef | undefined>(gameState.activeBoss);
   const gameStateRef = useRef(gameState);
 
+  useEffect(() => {
+    logger.info({ context: LogContext.GAME_STATE }, 'App mounted');
+    return () => {
+      logger.info({ context: LogContext.GAME_STATE }, 'App unmounted');
+    };
+  }, []);
+
   // Wrapper to block inputs during game over processing
   const handleKeyPressWrapper = useCallback(
     (key: string) => {
@@ -99,6 +107,7 @@ function App() {
   useEffect(() => {
     if (gameState.status === GameStatus.PLAYING && gameState.level > previousLevelRef.current) {
       setShowLevelUp(true);
+      logger.info({ context: LogContext.GAME_STATE, level: gameState.level }, 'Level up detected');
     }
     previousLevelRef.current = gameState.level;
   }, [gameState.level, gameState.status]);
@@ -113,6 +122,7 @@ function App() {
       const newPhaseNumber = getPhaseNumber(gameState.level);
       setPhaseTransitionNumber(newPhaseNumber);
       setShowPhaseTransition(true);
+      logger.info({ context: LogContext.PHASE, phase: newPhaseNumber }, 'Phase transition started');
     }
     previousPhaseRef.current = gameState.currentPhase;
   }, [gameState.level, gameState.status, gameState.currentPhase]);
@@ -136,6 +146,10 @@ function App() {
       setBossDefeatScore(scoreIncrease);
       setDefeatedBossPhaseNumber(phaseNumber);
       setShowBossDefeatTransition(true);
+      logger.info(
+        { context: LogContext.BOSS, boss: previousActiveBossRef.current.id },
+        'Boss defeat transition started',
+      );
     }
     previousActiveBossRef.current = gameState.activeBoss;
     previousScoreRef.current = gameState.score;

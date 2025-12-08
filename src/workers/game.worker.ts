@@ -61,6 +61,7 @@ import { checkAchievements } from '@/utils/achievements';
 import { OBSTACLE_CONFIG } from '@/constants/obstacles';
 import { POWER_UP_CONFIG } from '@/constants/powerUps';
 import { createPhaseStartSnapshot } from '@/utils/phaseStatistics';
+import { logger, LogContext } from '@/utils/logger';
 
 // Worker state
 let gameState: GameState | null = null;
@@ -78,6 +79,7 @@ let nextDirectionBuffer: Direction | null = null;
 // Initialize Game State
 function initGame() {
   const initialStatistics = initializeStatistics();
+  logger.info({ context: LogContext.GAME_STATE }, 'Initializing game state');
 
   gameState = {
     snake: [...INITIAL_SNAKE_POSITION],
@@ -122,6 +124,7 @@ self.onmessage = (e: MessageEvent) => {
         gameState.highScore = payload.highScore;
       }
       broadcastState();
+      logger.info({ context: LogContext.GAME_STATE }, 'Game worker initialized');
       break;
 
     case 'START_GAME':
@@ -137,6 +140,7 @@ self.onmessage = (e: MessageEvent) => {
         lastUpdateTime = performance.now();
         startGameLoop();
         broadcastState();
+        logger.info({ context: LogContext.GAME_STATE, status: gameState.status }, 'Game started');
       }
       break;
 
@@ -151,6 +155,10 @@ self.onmessage = (e: MessageEvent) => {
           stopGameLoop();
         }
         broadcastState();
+        logger.info(
+          { context: LogContext.GAME_STATE, status: gameState.status },
+          'Game pause toggled',
+        );
       }
       break;
 
@@ -204,6 +212,7 @@ self.onmessage = (e: MessageEvent) => {
         gameState.highScore = payload.highScore;
       }
       broadcastState();
+      logger.info({ context: LogContext.GAME_STATE }, 'Game reset');
       break;
 
     case 'SELECT_PHASE':
@@ -220,10 +229,15 @@ self.onmessage = (e: MessageEvent) => {
 
     case 'SPAWN_BOSS':
       handleSpawnBoss(payload.bossId);
+      logger.info(
+        { context: LogContext.BOSS, bossId: payload.bossId },
+        'Spawn boss command received',
+      );
       break;
 
     case 'RESUME_AFTER_DEATH':
       handleResumeAfterDeath();
+      logger.info({ context: LogContext.GAME_STATE }, 'Resume after death command received');
       break;
   }
 };
@@ -357,6 +371,10 @@ function handleSelectPhase(phaseId: number) {
 
   stopGameLoop();
   broadcastState();
+  logger.info(
+    { context: LogContext.PHASE, phaseId, level: phaseStartLevel },
+    'Phase selected manually',
+  );
 }
 
 function handleNextPhase(phaseNumber: number) {
@@ -403,9 +421,11 @@ function handleNextPhase(phaseNumber: number) {
       isFiringPoison: false,
     };
     stopGameLoop();
+    logger.info({ context: LogContext.PHASE, phaseNumber }, 'Proceeding to next phase');
   } else {
     gameState.status = GameStatus.GAME_OVER;
     stopGameLoop();
+    logger.info({ context: LogContext.GAME_STATE }, 'Game completed (all phases finished)');
   }
   broadcastState();
 }
@@ -449,6 +469,7 @@ function handleSetPhaseComplete(defeatedBossPhaseNumber?: number) {
   gameState.phaseStartSnapshot = snapshot;
   stopGameLoop();
   broadcastState();
+  logger.info({ context: LogContext.PHASE, phaseNumber: currentPhaseNumber }, 'Phase completed');
 }
 
 function broadcastState() {
@@ -593,6 +614,10 @@ function updateGame(currentTime: number) {
       };
       // Main thread should handle the dying animation timer
       self.postMessage({ type: 'GAME_OVER_OR_DYING', payload: { status: GameStatus.DYING } });
+      logger.info(
+        { context: LogContext.COLLISION, livesRemaining: prev.lives - 1 },
+        'Collision detected (Life Lost)',
+      );
       return;
     } else {
       gameState = {
@@ -606,6 +631,10 @@ function updateGame(currentTime: number) {
         type: 'GAME_OVER_OR_DYING',
         payload: { status: GameStatus.GAME_OVER, score: prev.score },
       });
+      logger.info(
+        { context: LogContext.COLLISION, score: prev.score },
+        'Collision detected (Game Over)',
+      );
       return;
     }
   }
@@ -991,6 +1020,10 @@ function updateGame(currentTime: number) {
             lives: newLives - 1,
           };
           self.postMessage({ type: 'GAME_OVER_OR_DYING', payload: { status: GameStatus.DYING } });
+          logger.info(
+            { context: LogContext.BOSS, livesRemaining: newLives - 1 },
+            'Boss collision (Life Lost)',
+          );
           return;
         } else {
           gameState = {
@@ -1004,6 +1037,7 @@ function updateGame(currentTime: number) {
             type: 'GAME_OVER_OR_DYING',
             payload: { status: GameStatus.GAME_OVER, score: newScore },
           });
+          logger.info({ context: LogContext.BOSS, score: newScore }, 'Boss collision (Game Over)');
           return;
         }
       }

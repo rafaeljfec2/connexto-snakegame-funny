@@ -286,12 +286,7 @@ function App() {
     previousStatusRef.current = gameState.status;
   }, [gameState.status]);
 
-  const handleCloseStatistics = useCallback(() => {
-    setShowStatistics(false);
-    setGameStatistics(null);
-  }, []);
-
-  const handleReset = () => {
+  const handleReset = useCallback(() => {
     if (isProcessingGameOver) return;
     previousScoreRef.current = 0;
     previousLevelRef.current = 1;
@@ -308,7 +303,13 @@ function App() {
     setDefeatedBossPhaseNumber(null);
     setGameResetToken((prev) => prev + 1);
     resetGame();
-  };
+  }, [isProcessingGameOver, resetGame]);
+
+  const handleCloseStatistics = useCallback(() => {
+    setShowStatistics(false);
+    setGameStatistics(null);
+    handleReset();
+  }, [handleReset]);
 
   const handleLevelUpAnimationEnd = useCallback(() => {
     setShowLevelUp(false);

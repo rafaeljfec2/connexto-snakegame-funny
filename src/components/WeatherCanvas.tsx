@@ -10,7 +10,7 @@ interface WeatherCanvasProps {
 export const WeatherCanvas = memo(function WeatherCanvas({ level, isMobile }: WeatherCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const workerRef = useRef<Worker | null>(null);
-  
+
   const phase = getCurrentPhase(level);
   const phaseId = phase?.id ?? 1;
 
@@ -42,46 +42,46 @@ export const WeatherCanvas = memo(function WeatherCanvas({ level, isMobile }: We
     try {
       const offscreen = canvas.transferControlToOffscreen();
       const dpr = window.devicePixelRatio || 1;
-      
+
       const rect = container.getBoundingClientRect();
       const width = rect.width || 300;
       const height = rect.height || 300;
-      
+
       workerRef.current.postMessage(
         {
           type: 'INIT',
-          payload: { 
-            canvas: offscreen, 
-            width, 
+          payload: {
+            canvas: offscreen,
+            width,
             height,
             phaseId,
             isMobile,
-            dpr 
+            dpr,
           },
         },
-        [offscreen]
+        [offscreen],
       );
     } catch (err) {
       console.error('Weather worker init error:', err);
     }
 
     const handleResize = () => {
-        if (!container) return;
-        const rect = container.getBoundingClientRect();
-        const dpr = window.devicePixelRatio || 1;
-        
-        workerRef.current?.postMessage({
-            type: 'RESIZE',
-            payload: { 
-                width: rect.width, 
-                height: rect.height,
-                dpr
-            },
-        });
+      if (!container) return;
+      const rect = container.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+
+      workerRef.current?.postMessage({
+        type: 'RESIZE',
+        payload: {
+          width: rect.width,
+          height: rect.height,
+          dpr,
+        },
+      });
     };
 
     const resizeObserver = new ResizeObserver(() => {
-        handleResize();
+      handleResize();
     });
     resizeObserver.observe(container);
 
@@ -113,7 +113,7 @@ export const WeatherCanvas = memo(function WeatherCanvas({ level, isMobile }: We
         width: '100%',
         height: '100%',
         pointerEvents: 'none',
-        zIndex: 5
+        zIndex: 5,
       }}
     />
   );

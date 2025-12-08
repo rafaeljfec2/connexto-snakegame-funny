@@ -654,7 +654,9 @@ function createTetrisBarriers(
   const minDistanceFromSnake = 6; // Minimum distance for barriers
 
   // Select a random Tetris pattern (simple patterns only for barriers)
-  const simplePatterns = OBSTACLE_PATTERNS.filter((p: { levelThreshold: number }) => p.levelThreshold <= 5);
+  const simplePatterns = OBSTACLE_PATTERNS.filter(
+    (p: { levelThreshold: number }) => p.levelThreshold <= 5,
+  );
   if (simplePatterns.length === 0) {
     return [];
   }

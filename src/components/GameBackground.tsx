@@ -7,7 +7,10 @@ interface GameBackgroundProps {
   cellSize: number;
 }
 
-export const GameBackground = memo(function GameBackground({ isMobile, cellSize }: GameBackgroundProps) {
+export const GameBackground = memo(function GameBackground({
+  isMobile,
+  cellSize,
+}: GameBackgroundProps) {
   // Grid style calculation
   const gridStyle = isMobile
     ? {
@@ -29,4 +32,3 @@ export const GameBackground = memo(function GameBackground({ isMobile, cellSize 
     </div>
   );
 });
-

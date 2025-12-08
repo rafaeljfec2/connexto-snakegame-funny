@@ -143,3 +143,15 @@ export interface GameConfig {
   enableAchievements: boolean;
   enableLengthMultiplier?: boolean;
 }
+
+export interface GameUpdateContext {
+  currentTime: number;
+  prevGameState: GameState;
+  finalSnake: Position[];
+  activeObstacles: Obstacle[];
+  activePortals: Portal[];
+  activeBoss: import('./phases').Chef | undefined;
+  lastObstacleSpawnTime: number;
+  ateFood: boolean;
+  forcedFoodType: FoodType | null;
+}

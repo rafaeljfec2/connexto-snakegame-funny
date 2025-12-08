@@ -8,6 +8,7 @@ let ctx: OffscreenCanvasRenderingContext2D | null = null;
 let width = 0;
 let height = 0;
 let dpr = 1;
+let gamePort: MessagePort | null = null;
 
 // Game State
 let snake: Position[] = [];
@@ -544,6 +545,59 @@ const render = () => {
   requestAnimationFrame(render);
 };
 
+const handleUpdate = (payload: any) => {
+  // Check if actually changed
+  if (payload.snake) {
+    prevSnake = snake && snake.length > 0 ? snake : payload.snake;
+    snake = payload.snake || [];
+
+    if (payload.bossSnake) {
+      prevBossSnake = bossSnake ? bossSnake.positions : payload.bossSnake.positions;
+      bossSnake = payload.bossSnake;
+    } else {
+      bossSnake = null;
+      prevBossSnake = [];
+    }
+
+    if (payload.activeBoss) {
+      activeBoss = payload.activeBoss;
+    }
+
+    if (payload.food) {
+      food = payload.food;
+    }
+
+    if (payload.obstacles) {
+      obstacles = payload.obstacles;
+    }
+
+    if (payload.portals) {
+      portals = payload.portals;
+    }
+
+    if (payload.guardianFlag !== undefined) {
+      guardianFlag = payload.guardianFlag;
+    }
+
+    shots = payload.shots || [];
+    isEating = payload.isEating;
+    speed = payload.speed || 150;
+
+    if (payload.status) {
+      if (payload.status !== gameStatus) {
+        if (payload.status === 'GAME_OVER' || payload.status === 'DYING') {
+          deathStartTime = performance.now();
+        } else {
+          deathStartTime = 0;
+        }
+        gameStatus = payload.status;
+      }
+    }
+
+    lastUpdate = performance.now();
+  }
+};
+
 self.onmessage = (e: MessageEvent) => {
   const { type, payload } = e.data;
 
@@ -583,55 +637,17 @@ self.onmessage = (e: MessageEvent) => {
       break;
 
     case 'UPDATE':
-      // Check if actually changed
-      if (payload.snake) {
-        prevSnake = snake && snake.length > 0 ? snake : payload.snake;
-        snake = payload.snake || [];
+      handleUpdate(payload);
+      break;
 
-        if (payload.bossSnake) {
-          prevBossSnake = bossSnake ? bossSnake.positions : payload.bossSnake.positions;
-          bossSnake = payload.bossSnake;
-        } else {
-          bossSnake = null;
-          prevBossSnake = [];
-        }
-
-        if (payload.activeBoss) {
-          activeBoss = payload.activeBoss;
-        }
-
-        if (payload.food) {
-          food = payload.food;
-        }
-
-        if (payload.obstacles) {
-          obstacles = payload.obstacles;
-        }
-
-        if (payload.portals) {
-          portals = payload.portals;
-        }
-
-        if (payload.guardianFlag !== undefined) {
-          guardianFlag = payload.guardianFlag;
-        }
-
-        shots = payload.shots || [];
-        isEating = payload.isEating;
-        speed = payload.speed || 150;
-
-        if (payload.status) {
-          if (payload.status !== gameStatus) {
-            if (payload.status === 'GAME_OVER' || payload.status === 'DYING') {
-              deathStartTime = performance.now();
-            } else {
-              deathStartTime = 0;
-            }
-            gameStatus = payload.status;
+    case 'CONNECT_GAME_WORKER':
+      gamePort = payload.port;
+      if (gamePort) {
+        gamePort.onmessage = (evt) => {
+          if (evt.data.type === 'UPDATE') {
+            handleUpdate(evt.data.payload);
           }
-        }
-
-        lastUpdate = performance.now();
+        };
       }
       break;
   }

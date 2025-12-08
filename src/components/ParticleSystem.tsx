@@ -19,7 +19,9 @@ interface ParticleSystemProps {
   gridSize?: number;
 }
 
-export const ParticleSystem = memo(function ParticleSystem({ gridSize = GAME_CONFIG.gridSize }: ParticleSystemProps) {
+export const ParticleSystem = memo(function ParticleSystem({
+  gridSize = GAME_CONFIG.gridSize,
+}: ParticleSystemProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const workerRef = useRef<Worker | null>(null);
 
@@ -54,7 +56,7 @@ export const ParticleSystem = memo(function ParticleSystem({ gridSize = GAME_CON
       if (!container) return;
       const rect = container.getBoundingClientRect();
       const dpr = window.devicePixelRatio || 1;
-      
+
       workerRef.current?.postMessage({
         type: 'RESIZE',
         payload: { width: rect.width, height: rect.height, dpr },
@@ -85,7 +87,7 @@ export const ParticleSystem = memo(function ParticleSystem({ gridSize = GAME_CON
 
       const { x, y, color, count, size, lifetime } = e.detail;
       const rect = container.getBoundingClientRect();
-      
+
       // Safety check for rect dimensions
       if (rect.width === 0 || rect.height === 0) return;
 

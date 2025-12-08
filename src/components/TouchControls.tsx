@@ -223,8 +223,8 @@ export const TouchControls = memo(function TouchControls({
             onStopFiringPoison?.();
           }}
           onClick={() => {
-             triggerHaptic();
-             onFirePoison?.();
+            triggerHaptic();
+            onFirePoison?.();
           }}
           aria-label={t('touchControls.firePoison')}
           type='button'

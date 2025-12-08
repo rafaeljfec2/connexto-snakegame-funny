@@ -41,12 +41,14 @@ export function useGameLoop() {
 
   // Worker reference
   const workerRef = useRef<Worker | null>(null);
+  const [workerInstance, setWorkerInstance] = useState<Worker | null>(null);
 
   useEffect(() => {
     // Initialize Worker
     workerRef.current = new Worker(new URL('../workers/game.worker.ts', import.meta.url), {
       type: 'module',
     });
+    setWorkerInstance(workerRef.current);
 
     const worker = workerRef.current;
 
@@ -203,5 +205,6 @@ export function useGameLoop() {
     setGameStatus,
     resumeAfterDeath,
     updateGameState: (_updater: any) => console.warn('updateGameState is deprecated'),
+    gameWorker: workerInstance,
   };
 }

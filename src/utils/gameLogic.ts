@@ -91,10 +91,12 @@ export function wouldCauseCollision(
   for (let i = skipSegments; i < snake.length; i++) {
     // After movement, body segment at index i will be at snake[i-1]
     const futureSegmentPosition = snake[i - 1];
-    
-    if (futureSegmentPosition && 
-        futureSegmentPosition.x === nextHeadPosition.x && 
-        futureSegmentPosition.y === nextHeadPosition.y) {
+
+    if (
+      futureSegmentPosition &&
+      futureSegmentPosition.x === nextHeadPosition.x &&
+      futureSegmentPosition.y === nextHeadPosition.y
+    ) {
       return true; // Collision detected
     }
   }

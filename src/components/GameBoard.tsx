@@ -31,6 +31,7 @@ interface GameBoardProps {
   bossSnake?: BossSnake;
   guardianFlag?: FoodType | null;
   resetToken?: number;
+  gameWorker?: Worker | null;
 }
 
 export const GameBoard = memo(function GameBoard({
@@ -45,6 +46,7 @@ export const GameBoard = memo(function GameBoard({
   bossSnake,
   guardianFlag,
   resetToken = 0,
+  gameWorker,
 }: GameBoardProps) {
   const { t } = useTranslation();
   const boardRef = useRef<HTMLDivElement>(null);
@@ -157,6 +159,15 @@ export const GameBoard = memo(function GameBoard({
           },
           [offscreen],
         );
+
+        // Connect to Game Worker if available for direct rendering
+        if (gameWorker) {
+          const channel = new MessageChannel();
+          worker.postMessage({ type: 'CONNECT_GAME_WORKER', port: channel.port1 }, [channel.port1]);
+          gameWorker.postMessage({ type: 'CONNECT_RENDER_WORKER', port: channel.port2 }, [
+            channel.port2,
+          ]);
+        }
       } catch (err) {
         console.warn(
           'Failed to transfer control to offscreen canvas, retrying with new canvas:',
@@ -173,9 +184,9 @@ export const GameBoard = memo(function GameBoard({
       worker.terminate();
       renderWorkerRef.current = null;
     };
-  }, [canvasKey]);
+  }, [canvasKey, gameWorker]);
 
-  // Sync State to Worker
+  // Sync State to Worker (Fallback / Metadata updates)
   const speed = useMemo(() => calculateGameSpeed(level), [level]);
 
   // IsEating Logic (kept for local prop calculation if needed, or pass directly)
@@ -194,6 +205,8 @@ export const GameBoard = memo(function GameBoard({
   }, [food.position, food.type, status, snake.length]);
 
   useEffect(() => {
+    // We still send updates from main thread as a fallback or for things not in game state directly (like "isEating" derived UI state)
+    // But render worker should prioritize direct updates if available
     renderWorkerRef.current?.postMessage({
       type: 'UPDATE',
       payload: {

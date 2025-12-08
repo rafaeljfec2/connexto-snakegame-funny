@@ -52,6 +52,7 @@ function App() {
     setPhaseComplete,
     setGameStatus,
     resumeAfterDeath,
+    gameWorker,
   } = useGameLoop();
 
   const [showLevelUp, setShowLevelUp] = useState(false);
@@ -390,6 +391,7 @@ function App() {
               bossSnake={gameState.bossSnake}
               guardianFlag={gameState.guardianFlag}
               resetToken={gameResetToken}
+              gameWorker={gameWorker}
             />
           </div>
           <div className={styles.statusBarContainer}>

@@ -149,6 +149,18 @@ const createParticle = (id: number, reset: boolean = false): Particle => {
         type: 'chaos',
       };
 
+    case 7: // Geometric/Mist (Maze Master)
+      return {
+        x,
+        y,
+        vx: (Math.random() - 0.5) * 0.3,
+        vy: (Math.random() - 0.5) * 0.3,
+        size: Math.random() * 40 + 10,
+        color: '#6366f1', // Indigo
+        opacity: Math.random() * 0.1 + 0.05,
+        type: 'fog',
+      };
+
     case 8: // Ash/Lava
       return {
         x,

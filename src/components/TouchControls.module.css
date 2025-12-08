@@ -20,7 +20,7 @@
 }
 
 .touchControls.disabled {
-  opacity: 0;
+  opacity: 1; /* Keep fully visible even when disabled */
   pointer-events: none; /* Disable interactions when disabled */
 }
 
@@ -190,7 +190,7 @@
   .buttonIcon {
     font-size: 1.5rem;
   }
-  
+
   .touchControls {
     bottom: 10px;
   }

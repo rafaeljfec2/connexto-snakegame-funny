@@ -231,19 +231,24 @@ self.onmessage = (e: MessageEvent) => {
 function handleResumeAfterDeath() {
   if (!gameState) return;
 
-  // Reset snake position but keep level/score/items
-  gameState = {
-    ...gameState,
-    snake: [...INITIAL_SNAKE_POSITION],
-    direction: INITIAL_DIRECTION,
-    nextDirection: INITIAL_DIRECTION,
-    status: GameStatus.PLAYING,
-    // Add temporary invulnerability or safe space clearing if needed
-    // For now just reset pos
-  };
+  if (gameState.lives > 0) {
+    // Reset snake position but keep level/score/items
+    gameState = {
+      ...gameState,
+      snake: [...INITIAL_SNAKE_POSITION],
+      direction: INITIAL_DIRECTION,
+      nextDirection: INITIAL_DIRECTION,
+      status: GameStatus.PLAYING,
+      // Add temporary invulnerability or safe space clearing if needed
+      // For now just reset pos
+    };
 
-  lastUpdateTime = performance.now();
-  startGameLoop();
+    lastUpdateTime = performance.now();
+    startGameLoop();
+  } else {
+    gameState.status = GameStatus.GAME_OVER;
+    stopGameLoop();
+  }
   broadcastState();
 }
 
@@ -579,7 +584,7 @@ function updateGame(currentTime: number) {
   const statistics = prev.statistics || initializeStatistics();
 
   if (hasCollision) {
-    if (isLivesEnabled() && prev.lives > 0) {
+    if (isLivesEnabled() && prev.lives > 1) {
       gameState = {
         ...prev,
         status: GameStatus.DYING,
@@ -978,8 +983,13 @@ function updateGame(currentTime: number) {
         }
       } else {
         // Dying
-        if (isLivesEnabled() && newLives > 0) {
-          gameState = { ...prev, snake: finalSnake, status: GameStatus.DYING, lives: newLives };
+        if (isLivesEnabled() && newLives > 1) {
+          gameState = {
+            ...prev,
+            snake: finalSnake,
+            status: GameStatus.DYING,
+            lives: newLives - 1,
+          };
           self.postMessage({ type: 'GAME_OVER_OR_DYING', payload: { status: GameStatus.DYING } });
           return;
         } else {

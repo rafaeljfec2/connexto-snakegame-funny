@@ -263,7 +263,9 @@ function App() {
     if (wasNotGameOver && isNowGameOver) {
       setIsProcessingGameOver(true);
       const snakeLength = gameStateRef.current.snake.length;
-      const deathAnimationDuration = Math.min(2500, snakeLength * 50 + 300);
+      const cameFromDying = previousStatusRef.current === GameStatus.DYING;
+      // If came from DYING, animation already played, so reduce delay
+      const deathAnimationDuration = cameFromDying ? 500 : Math.min(2500, snakeLength * 50 + 300);
 
       const timer = setTimeout(() => {
         setIsProcessingGameOver(false);

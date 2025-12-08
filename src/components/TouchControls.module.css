@@ -197,16 +197,43 @@
 }
 
 /* Landscape orientation adjustments */
-@media (max-width: 768px) and (orientation: landscape) {
+@media (orientation: landscape) and (max-height: 900px),
+  (orientation: landscape) and (max-width: 1366px) {
   .touchControls {
-    bottom: 10px;
+    position: fixed;
+    top: 50%;
+    left: 20px; /* Force left position */
+    bottom: auto;
+    right: auto;
+    transform: translateY(-50%); /* Center vertically */
+    opacity: 0.7;
+    z-index: 200; /* High z-index to be on top of game if needed */
+    display: block !important;
   }
 
   .controlGrid {
-    grid-template-columns: repeat(3, 60px);
-    grid-template-rows: repeat(3, 60px);
-    gap: 4px;
-    padding: 4px;
+    grid-template-columns: repeat(3, 55px);
+    grid-template-rows: repeat(3, 55px);
+    gap: 6px;
+    padding: 8px;
+    background: rgba(15, 23, 42, 0.4); /* Slight background for visibility */
+    border-radius: 50%;
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .buttonIcon {
+    font-size: 1.4rem;
+  }
+
+  .poisonIcon {
+    font-size: 1.2rem;
+  }
+
+  .directionButton,
+  .poisonButton {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    background: rgba(30, 41, 59, 0.7);
   }
 }
 

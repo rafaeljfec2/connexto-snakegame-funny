@@ -68,14 +68,19 @@ export const GameBoard = memo(function GameBoard({
   // Calculate responsive cell size based on container
   useEffect(() => {
     const updateCellSize = () => {
-      const mobile = window.innerWidth <= 768;
-      setIsMobile(mobile);
+      // Consider "mobile/responsive" if screen is narrow OR if it's landscape with limited height
+      // This ensures the game scales down on landscape tablets/phones instead of using fixed desktop size
+      const isNarrow = window.innerWidth <= 1024;
+      const isLandscapeShort = window.innerHeight <= 800 && window.innerWidth > window.innerHeight;
+      const responsiveMode = isNarrow || isLandscapeShort;
+      
+      setIsMobile(responsiveMode);
 
       if (boardRef.current) {
         const container = boardRef.current.parentElement;
         if (container) {
           const containerRect = container.getBoundingClientRect();
-          const padding = mobile ? 8 : 24;
+          const padding = responsiveMode ? 4 : 24; // Less padding in responsive mode
           const availableWidth = containerRect.width - padding * 2;
           const availableHeight = containerRect.height - padding * 2;
 
@@ -83,10 +88,12 @@ export const GameBoard = memo(function GameBoard({
             Math.min(availableWidth, availableHeight) / GAME_CONFIG.gridSize,
           );
 
-          if (mobile) {
+          if (responsiveMode) {
+            // In responsive mode, use calculated size but ensure min 8px
             const finalCellSize = Math.max(calculatedCellSize, 8);
             setCellSize(finalCellSize);
           } else {
+            // Desktop mode - fixed size
             setCellSize(GAME_CONFIG.cellSize);
           }
         }

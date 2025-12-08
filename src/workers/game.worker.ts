@@ -721,7 +721,7 @@ function updateGame(currentTime: number) {
     prev,
     currentTime,
     lastPoisonFireTime,
-    gameState.isFiringPoison,
+    prev.isFiringPoison ?? false,
     foodResult.finalSnake[0],
     currentDirection,
   );
@@ -742,16 +742,18 @@ function updateGame(currentTime: number) {
 
   // 9. Game State Updates
   const stateUpdates = handleGameStateUpdates(
-    prev,
+    {
+      prevGameState: prev,
+      activeObstacles: poisonResult.newObstacles,
+      activePortals: currentBossState.newPortals,
+      activeBoss: currentBossState.activeBoss,
+      lastObstacleSpawnTime,
+      ateFood,
+      forcedFoodType,
+      currentTime,
+      finalSnake: foodResult.finalSnake,
+    },
     currentBossState.newScore,
-    foodResult.finalSnake,
-    poisonResult.newObstacles,
-    currentBossState.newPortals,
-    currentBossState.activeBoss,
-    currentTime,
-    lastObstacleSpawnTime,
-    ateFood,
-    forcedFoodType,
   );
 
   lastObstacleSpawnTime = stateUpdates.updatedSpawnTime;

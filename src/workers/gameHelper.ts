@@ -6,8 +6,9 @@ import {
   Position,
   Obstacle,
   Portal,
-  BossState,
+  BossSnake,
   GameUpdateContext,
+  Food,
 } from '@/types/game';
 import { Chef } from '@/types/phases';
 import {
@@ -30,6 +31,7 @@ import {
   getBossHitPart,
   weakenBossSnake,
   canDefeatBoss,
+  initializeBossSnake
 } from '@/utils/bossSnake';
 import { processBossAbilities, getFlagOffsetFromBossHead } from '@/utils/bossAbilities';
 import {
@@ -40,7 +42,7 @@ import {
 } from '@/utils/poison';
 import { calculateLevel, calculateGameSpeed } from '@/utils/difficulty';
 import { getCurrentPhase, shouldSpawnBoss, getBossForLevel, getPhaseByBoss } from '@/utils/phases';
-import { generateBossInitialResources, initializeBossSnake } from '@/utils/bossResources';
+import { generateBossInitialResources } from '@/utils/bossResources';
 import { generateGuardianFlagPosition } from '@/utils/bossAbilities';
 import { OBSTACLE_CONFIG } from '@/constants/obstacles';
 import { generateObstacles } from '@/utils/obstacles';
@@ -50,14 +52,9 @@ import { POWER_UP_CONFIG } from '@/constants/powerUps';
 // --- Types ---
 export interface BossLogicResult {
   activeBoss?: Chef;
-  bossSnake?: BossState;
-  guardianFlag?: {
-    position: Position;
-    type: FoodType;
-    spawnTime: number;
-    duration?: number;
-  } | null;
-  guardianFlagSide?: number;
+  bossSnake?: BossSnake;
+  guardianFlag?: Food | null;
+  guardianFlagSide?: -1 | 1;
   newObstacles: Obstacle[];
   newPortals: Portal[];
   baseGameSpeed: number;
@@ -74,7 +71,7 @@ export interface PoisonLogicResult {
   newObstacles: Obstacle[];
   particlesToSpawn: Array<{ position: Position; color: string; count: number }>;
   bossUpdate?: {
-    bossSnake: BossState;
+    bossSnake: BossSnake;
     activeBoss?: Chef;
     newScore: number;
     bossAbilityCooldowns: Map<string, number>;
@@ -102,7 +99,7 @@ export interface GameStateUpdateResult {
   newObstacles: Obstacle[];
   newFood: any;
   activeBoss: Chef | undefined;
-  bossSnake: BossState | undefined;
+  bossSnake: BossSnake | undefined;
   newGuardianFlag: any | null;
   updatedSpawnTime: number;
 }
@@ -142,21 +139,26 @@ export function resolveDirection(
  */
 export function handleBossLogic(
   activeBoss: Chef | undefined,
-  bossSnake: BossState | undefined,
+  bossSnake: BossSnake | undefined,
   prevGameState: GameState,
   finalSnake: Position[],
   obstacles: Obstacle[],
   portals: Portal[],
   bossAbilityCooldowns: Map<string, number>,
   guardianFlag: any | null,
-  guardianFlagSide: number | undefined,
+  guardianFlagSide: -1 | 1 | undefined,
   foodPosition: Position,
 ): BossLogicResult {
   const result: BossLogicResult = {
     activeBoss,
     bossSnake,
-    guardianFlag,
-    guardianFlagSide,
+    guardianFlag: guardianFlag ? {
+      position: guardianFlag.position,
+      type: guardianFlag.type,
+      spawnTime: guardianFlag.spawnTime ?? Date.now(),
+      duration: guardianFlag.duration
+    } : null,
+    guardianFlagSide: (guardianFlagSide === 1 || guardianFlagSide === -1) ? guardianFlagSide : undefined,
     newObstacles: [...obstacles],
     newPortals: [...portals],
     baseGameSpeed: prevGameState.gameSpeed,
@@ -211,7 +213,7 @@ export function handleBossLogic(
       y: Math.max(0, Math.min(bossHead.y + flagOffset.y, GAME_CONFIG.gridSize - 1)),
     };
     const isOnBody = result.bossSnake.positions.some(
-      (p) => p.x === newFlagPos.x && p.y === newFlagPos.y,
+      (p: Position) => p.x === newFlagPos.x && p.y === newFlagPos.y,
     );
     if (!isOnBody) {
       result.guardianFlag = { ...result.guardianFlag, position: newFlagPos };
@@ -476,7 +478,7 @@ export function handleFoodInteraction(
   prevGameState: GameState,
   finalSnake: Position[],
   statistics: any,
-  gridSize: number,
+  _gridSize: number,
   enableCombos: boolean,
   enableParticles: boolean,
 ): FoodInteractionResult {
@@ -575,48 +577,7 @@ export function handleFoodInteraction(
   };
 }
 
-/**
- * Consolidates updates to game state variables like level, obstacles, food, and phases.
- * Uses the GameUpdateContext to reduce argument count.
- */
-export function handleGameStateUpdates(context: GameUpdateContext): GameStateUpdateResult {
-  const {
-    prevGameState,
-    activeObstacles,
-    activePortals,
-    activeBoss,
-    lastObstacleSpawnTime,
-    ateFood,
-    forcedFoodType,
-    currentTime,
-    finalSnake,
-  } = context;
-
-  const newLevel = prevGameState.level;
-  const prevLevel = prevGameState.level;
-  const newScore = context.prevGameState.score; // Note: using score from prevGameState which implies it should be passed in context if modified?
-  // Wait, score is modified by food/boss logic before this.
-  // The previous code passed "newScore" explicitly.
-  // We should ensure context has the LATEST score or pass it.
-
-  // FIX: The context should carry the *updated* score, not the prev one if it changed.
-  // But GameUpdateContext defines prevGameState.
-  // I will add `newScore` to GameUpdateContext or as an argument.
-  // Ideally, context represents the state *at the start* of the function?
-  // No, handleGameStateUpdates is called *after* scoring.
-  // Let's rely on an explicit argument for newScore or updated context.
-  // For now, I'll adhere to the pattern but I need to handle the fact that newScore comes from outside.
-  // Let's assume the caller updates prevGameState copy or passes newScore separately.
-  // To cleanly refactor, I'll add newScore to the function args or context.
-  // For this specific function, I'll keep explicit args where they represent *changes* from the flow.
-
-  // Actually, looking at the previous implementation, `newScore` was passed.
-  // I'll revert to passing `newScore` as a separate arg to be clear, or add it to a derived context.
-  return handleGameStateUpdatesWithScore(context, newScore); // Placeholder logic
-}
-
-// Helper to actually implement it, handling the `newScore` issue
-export function handleGameStateUpdatesWithScore(
+export function handleGameStateUpdates(
   context: GameUpdateContext,
   newScore: number,
 ): GameStateUpdateResult {
@@ -717,7 +678,7 @@ export function handleGameStateUpdatesWithScore(
 
   // Boss Spawning Logic
   let newActiveBoss = activeBoss;
-  let bossSnake: BossState | undefined = prevGameState.bossSnake;
+  let bossSnake: BossSnake | undefined = prevGameState.bossSnake;
   let newGuardianFlag = prevGameState.guardianFlag;
 
   if (shouldSpawnBoss(newLevel)) {

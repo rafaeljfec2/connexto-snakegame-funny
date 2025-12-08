@@ -50,7 +50,16 @@
 
 .headerStats {
   justify-self: center;
-  max-width: 700px;
+  width: 100%;
+  max-width: 900px; /* Increased to fit both */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.headerStatusBar {
+  flex-shrink: 0;
 }
 
 .headerActions {
@@ -874,12 +883,58 @@
 
   /* Compact Stats in Header */
   .headerStats {
-    transform: scale(0.9);
+    transform: scale(0.85); /* Slightly smaller to fit everything */
     transform-origin: center;
     margin: 0;
     flex: 1;
     display: flex;
     justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    width: auto;
+  }
+
+  /* Ensure status bar is visible in header and styled correctly for landscape */
+  .headerStatusBar {
+    display: block;
+  }
+
+  /* Override StatusBar styles for header placement in landscape */
+  .headerStatusBar :global(.statusBar) {
+    margin: 0 !important;
+    padding: 0.25rem 0.75rem !important;
+    min-height: 30px !important;
+    border-radius: 8px !important;
+    background: transparent !important; /* Integrate with header */
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  .headerStatusBar :global(.statusLabel) {
+    display: none !important; /* Hide labels to save space */
+  }
+
+  .headerStatusBar :global(.statusValue) {
+    font-size: 0.85rem !important;
+  }
+
+  .headerStatusBar :global(.statusIcon) {
+    font-size: 1rem !important;
+  }
+
+  /* Adjust GameInfo to match */
+  .headerStats > :first-child {
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+  }
+
+  .headerStats > :first-child :global(.scores) {
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
   }
 
   /* Compact Actions */

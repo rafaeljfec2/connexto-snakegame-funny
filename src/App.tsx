@@ -349,6 +349,13 @@ function App() {
               highScore={gameState.highScore}
               level={gameState.level}
             />
+            <div className={styles.headerStatusBar}>
+              <StatusBar
+                length={gameState.snake.length}
+                lives={gameState.lives}
+                level={gameState.level}
+              />
+            </div>
           </div>
           <div className={styles.headerActions}>
             <LanguageSelector />
@@ -392,13 +399,6 @@ function App() {
               guardianFlag={gameState.guardianFlag}
               resetToken={gameResetToken}
               gameWorker={gameWorker}
-            />
-          </div>
-          <div className={styles.statusBarContainer}>
-            <StatusBar
-              length={gameState.snake.length}
-              lives={gameState.lives}
-              level={gameState.level}
             />
           </div>
 

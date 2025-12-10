@@ -856,134 +856,172 @@
   .app {
     height: 100vh;
     height: 100dvh;
-    overflow: hidden; /* Prevent scrolling */
+    overflow: hidden;
   }
 
-  /* Compact Header */
+  /* Sleek Header - Minimal */
   .header {
-    padding: 0 0.5rem;
-    height: 40px; /* Fixed small height */
-    min-height: 40px;
+    padding: 0;
+    height: 32px;
+    min-height: 32px;
+    max-height: 32px;
     z-index: 50;
     display: flex;
     align-items: center;
-    justify-content: center; /* Center content */
+    justify-content: center;
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.95) 0%, rgba(15, 23, 42, 0.8) 100%);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   }
 
   .headerContent {
-    gap: 0.5rem;
+    gap: 1.5rem;
     display: flex;
-    justify-content: center; /* Center stats */
+    justify-content: center;
     width: 100%;
     align-items: center;
     height: 100%;
-    max-width: 800px; /* Limit width */
+    padding: 0 1rem;
   }
 
-  /* Hide Title */
-  .title {
-    display: none;
+  /* Hide Title & Language Selector */
+  .title,
+  .headerActions {
+    display: none !important;
   }
 
-  /* Compact Stats in Header - Uniform Width Distribution */
+  /* Stats Container - Single Row */
   .headerStats {
     transform: none;
     margin: 0;
-    flex: 1;
-    display: grid;
-    grid-template-columns: 1fr 1fr; /* Two equal columns */
+    display: flex;
+    flex-direction: row;
     align-items: center;
-    gap: 0.5rem; /* Reduced gap */
-    width: 100%;
+    justify-content: center;
+    gap: 0;
     height: 100%;
   }
 
-  /* Target GameInfo inside headerStats */
-  .headerStats > :first-child {
+  /* All stat containers transparent */
+  .headerStats > *,
+  .headerStatusBar {
     background: transparent !important;
     box-shadow: none !important;
     border: none !important;
     padding: 0 !important;
-    width: 100%;
-    height: 100%;
+    height: auto;
     display: flex;
     align-items: center;
-    justify-content: center;
   }
 
-  /* Target StatusBar inside headerStats */
-  .headerStatusBar {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 100%;
-  }
-
-  /* Inner styles to ensure content centering and uniformity */
-  .headerStats > :first-child :global(.scores),
+  /* All inner containers - flat inline style */
+  .headerStats :global(.scores),
+  .headerStats :global(.gameInfo),
   .headerStatusBar :global(.statusBar) {
     margin: 0 !important;
-    width: 100% !important;
-    height: 28px !important; /* Reduced height to fit comfortably */
-    min-height: 28px !important;
-    max-height: 28px !important;
+    height: auto !important;
+    min-height: auto !important;
+    max-height: none !important;
+    width: auto !important;
     display: flex !important;
     flex-direction: row !important;
-    justify-content: space-around !important;
+    justify-content: center !important;
     align-items: center !important;
-    padding: 0 0.25rem !important; /* Minimal padding */
-    border-radius: 6px !important;
-    background: rgba(15, 23, 42, 0.5) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    border: none !important;
     box-shadow: none !important;
-    gap: 0.25rem !important;
+    gap: 0.75rem !important;
+    backdrop-filter: none !important;
   }
 
-  /* Uniform text sizing - Smaller for header fit */
-  .headerStatusBar :global(.statusLabel),
-  .headerStats > :first-child :global(.label) {
-    font-size: 0.55rem !important;
-    color: rgba(255, 255, 255, 0.5) !important;
-    display: inline-block !important;
-    margin-right: 2px !important;
-    white-space: nowrap !important;
-    letter-spacing: 0 !important;
-  }
-
-  /* Hide long phase name text, keep icon or number */
-  .headerStatusBar :global(.phaseName) {
+  /* Hide ::before shine effects */
+  .headerStats :global(.scores)::before,
+  .headerStatusBar :global(.statusBar)::before {
     display: none !important;
   }
 
-  .headerStatusBar :global(.statusValue),
-  .headerStats > :first-child :global(.value) {
-    font-size: 0.8rem !important;
+  /* Labels - Small muted text */
+  .headerStats :global(.label),
+  .headerStatusBar :global(.statusLabel) {
+    font-size: 0.55rem !important;
+    color: rgba(255, 255, 255, 0.5) !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.3px !important;
+    display: block !important;
+    margin: 0 !important;
+    line-height: 1 !important;
+    font-weight: 500 !important;
+  }
+
+  /* Hide phase name text */
+  .headerStatusBar :global(.phaseName) {
+    max-width: 70px !important;
+    font-size: 0.65rem !important;
+  }
+
+  /* Values - Bold numbers */
+  .headerStats :global(.value),
+  .headerStatusBar :global(.statusValue) {
+    font-size: 0.9rem !important;
     font-weight: 700 !important;
     line-height: 1 !important;
+    color: #fff !important;
+    background: none !important;
+    -webkit-background-clip: unset !important;
+    -webkit-text-fill-color: #fff !important;
+    background-clip: unset !important;
+    filter: none !important;
+    min-width: auto !important;
   }
 
-  /* Make icons smaller */
+  /* Icons - Compact */
   .headerStatusBar :global(.statusIcon) {
     font-size: 0.8rem !important;
-    margin-right: 2px !important;
+    margin-right: 4px !important;
+    filter: none !important;
   }
 
-  /* Items layout */
-  .headerStatusBar :global(.statusItem),
-  .headerStats > :first-child :global(.scoreItem) {
+  /* Items - Column layout (label on top, value below) */
+  .headerStats :global(.scoreItem),
+  .headerStatusBar :global(.statusItem) {
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    flex-direction: row !important;
-    gap: 2px !important;
-    padding: 0 2px !important;
+    flex-direction: column !important;
+    gap: 0 !important;
+    padding: 0 0.5rem !important;
+    min-width: auto !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
   }
 
-  /* Compact Actions */
-  .headerActions {
-    transform: scale(0.9);
-    transform-origin: right center;
+  /* Last item no border */
+  .headerStats :global(.scoreItem):last-child,
+  .headerStatusBar :global(.statusItem):last-child {
+    border-right: none !important;
+  }
+
+  /* Hide separator */
+  .headerStatusBar :global(.separator) {
+    display: none !important;
+  }
+
+  /* StatusBar content wrapper */
+  .headerStatusBar :global(.statusContent) {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 0 !important;
+  }
+
+  /* Lives display - horizontal */
+  .headerStatusBar :global(.livesDisplay) {
+    margin-top: 0 !important;
+  }
+
+  .headerStatusBar :global(.lifeDot) {
+    width: 6px !important;
+    height: 6px !important;
   }
 
   /* Maximize Game Area */
@@ -992,9 +1030,9 @@
     gap: 0;
     grid-template-columns: 1fr;
     grid-template-rows: 1fr;
-    /* Height is viewport minus header */
-    height: calc(100vh - 40px);
-    height: calc(100dvh - 40px);
+    /* Height is viewport minus header (32px) */
+    height: calc(100vh - 32px);
+    height: calc(100dvh - 32px);
     overflow: hidden;
     display: flex;
     align-items: center;

@@ -248,6 +248,9 @@
   -webkit-mask:
     linear-gradient(#fff 0 0) content-box,
     linear-gradient(#fff 0 0);
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
   opacity: 0.8;
@@ -494,7 +497,6 @@
   .headerContent {
     grid-template-columns: 1fr;
     gap: 1rem;
-    justify-items: center;
   }
 
   .title {
@@ -503,7 +505,7 @@
 
   .headerStats {
     max-width: 100%;
-    width: 100%;
+    width: 50%;
     justify-self: center;
   }
 
@@ -859,21 +861,23 @@
 
   /* Compact Header */
   .header {
-    padding: 0 1rem;
+    padding: 0 0.5rem;
     height: 40px; /* Fixed small height */
     min-height: 40px;
     z-index: 50;
     display: flex;
     align-items: center;
+    justify-content: center; /* Center content */
   }
 
   .headerContent {
-    gap: 1rem;
+    gap: 0.5rem;
     display: flex;
-    justify-content: space-between;
+    justify-content: center; /* Center stats */
     width: 100%;
     align-items: center;
     height: 100%;
+    max-width: 800px; /* Limit width */
   }
 
   /* Hide Title */
@@ -881,60 +885,99 @@
     display: none;
   }
 
-  /* Compact Stats in Header */
+  /* Compact Stats in Header - Uniform Width Distribution */
   .headerStats {
-    transform: scale(0.85); /* Slightly smaller to fit everything */
-    transform-origin: center;
+    transform: none;
     margin: 0;
     flex: 1;
-    display: flex;
-    justify-content: center;
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Two equal columns */
     align-items: center;
-    gap: 1rem;
-    width: auto;
+    gap: 0.5rem; /* Reduced gap */
+    width: 100%;
+    height: 100%;
   }
 
-  /* Ensure status bar is visible in header and styled correctly for landscape */
-  .headerStatusBar {
-    display: block;
-  }
-
-  /* Override StatusBar styles for header placement in landscape */
-  .headerStatusBar :global(.statusBar) {
-    margin: 0 !important;
-    padding: 0.25rem 0.75rem !important;
-    min-height: 30px !important;
-    border-radius: 8px !important;
-    background: transparent !important; /* Integrate with header */
-    box-shadow: none !important;
-    border: none !important;
-  }
-
-  .headerStatusBar :global(.statusLabel) {
-    display: none !important; /* Hide labels to save space */
-  }
-
-  .headerStatusBar :global(.statusValue) {
-    font-size: 0.85rem !important;
-  }
-
-  .headerStatusBar :global(.statusIcon) {
-    font-size: 1rem !important;
-  }
-
-  /* Adjust GameInfo to match */
+  /* Target GameInfo inside headerStats */
   .headerStats > :first-child {
     background: transparent !important;
     box-shadow: none !important;
     border: none !important;
     padding: 0 !important;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
-  .headerStats > :first-child :global(.scores) {
-    background: transparent !important;
+  /* Target StatusBar inside headerStats */
+  .headerStatusBar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Inner styles to ensure content centering and uniformity */
+  .headerStats > :first-child :global(.scores),
+  .headerStatusBar :global(.statusBar) {
+    margin: 0 !important;
+    width: 100% !important;
+    height: 28px !important; /* Reduced height to fit comfortably */
+    min-height: 28px !important;
+    max-height: 28px !important;
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: space-around !important;
+    align-items: center !important;
+    padding: 0 0.25rem !important; /* Minimal padding */
+    border-radius: 6px !important;
+    background: rgba(15, 23, 42, 0.5) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
     box-shadow: none !important;
-    border: none !important;
-    padding: 0 !important;
+    gap: 0.25rem !important;
+  }
+
+  /* Uniform text sizing - Smaller for header fit */
+  .headerStatusBar :global(.statusLabel),
+  .headerStats > :first-child :global(.label) {
+    font-size: 0.55rem !important;
+    color: rgba(255, 255, 255, 0.5) !important;
+    display: inline-block !important;
+    margin-right: 2px !important;
+    white-space: nowrap !important;
+    letter-spacing: 0 !important;
+  }
+
+  /* Hide long phase name text, keep icon or number */
+  .headerStatusBar :global(.phaseName) {
+    display: none !important;
+  }
+
+  .headerStatusBar :global(.statusValue),
+  .headerStats > :first-child :global(.value) {
+    font-size: 0.8rem !important;
+    font-weight: 700 !important;
+    line-height: 1 !important;
+  }
+
+  /* Make icons smaller */
+  .headerStatusBar :global(.statusIcon) {
+    font-size: 0.8rem !important;
+    margin-right: 2px !important;
+  }
+
+  /* Items layout */
+  .headerStatusBar :global(.statusItem),
+  .headerStats > :first-child :global(.scoreItem) {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-direction: row !important;
+    gap: 2px !important;
+    padding: 0 2px !important;
   }
 
   /* Compact Actions */

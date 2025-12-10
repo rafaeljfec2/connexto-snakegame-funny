@@ -47,12 +47,14 @@ let pendingPoisonShots: import('@/types/game').PoisonShot[] = [];
 let renderPort: MessagePort | null = null;
 
 // Input buffer to handle rapid inputs between ticks
-let nextDirectionBuffer: Direction | null = null;
+let directionQueue: Direction[] = [];
 
 // Initialize Game State
 function initGame() {
   const initialStatistics = initializeStatistics();
   logger.info({ context: LogContext.GAME_STATE }, 'Initializing game state');
+
+  directionQueue = []; // Clear queue on init
 
   gameState = {
     snake: [...INITIAL_SNAKE_POSITION],
@@ -150,9 +152,16 @@ self.onmessage = (e: MessageEvent) => {
 
     case 'SET_DIRECTION':
       if (gameState && gameState.status === GameStatus.PLAYING) {
-        // Buffer the direction change for the next tick
-        // This prevents multiple direction changes in a single tick causing collisions
-        nextDirectionBuffer = payload.direction;
+        const newDir = payload.direction;
+        const lastDir =
+          directionQueue.length > 0
+            ? directionQueue[directionQueue.length - 1]
+            : gameState.direction;
+
+        // Prevent spamming the same direction and limit queue size
+        if (newDir !== lastDir && directionQueue.length < 3) {
+          directionQueue.push(newDir);
+        }
       }
       break;
 
@@ -530,14 +539,18 @@ function updateGame(currentTime: number) {
 
   // 1. Resolve Direction
   const activePowerUps = getActivePowerUps(prev.activePowerUps);
+  
+  // Process input queue - take next pending direction
+  const nextInput = directionQueue.length > 0 ? directionQueue.shift() ?? null : null;
+
   const currentDirection = resolveDirection(
     prev.direction,
-    nextDirectionBuffer,
+    nextInput,
     activePowerUps,
     prev.snake,
     GAME_CONFIG.gridSize,
   );
-  nextDirectionBuffer = null;
+  // nextDirectionBuffer handling removed as queue is used
 
   // 2. Move Snake
   const newSnake = moveSnake(prev.snake, currentDirection, GAME_CONFIG.gridSize, false);

@@ -402,6 +402,15 @@ function App() {
             />
           </div>
 
+          {/* StatusBar below game on mobile */}
+          <div className={styles.mobileStatusBar}>
+            <StatusBar
+              length={gameState.snake.length}
+              lives={gameState.lives}
+              level={gameState.level}
+            />
+          </div>
+
           <div className={styles.gameControls} data-status={gameState.status}>
             <GameControls
               onStart={handleStart}

@@ -29,8 +29,8 @@
   display: grid;
   grid-template-columns: repeat(3, 75px);
   grid-template-rows: repeat(3, 75px);
-  gap: 4px;
-  padding: 8px;
+  gap: 6px;
+  padding: 10px;
   /* Remove bulky background for cleaner look, keep minimal shadow */
   /* background: rgba(0, 0, 0, 0.3); */
   /* backdrop-filter: blur(10px); */
@@ -175,7 +175,8 @@
     display: block !important; /* Force display on mobile */
     visibility: visible !important;
     opacity: 1;
-    bottom: 15px;
+    bottom: 20px; /* Fallback - increased spacing */
+    bottom: calc(20px + env(safe-area-inset-bottom, 0px));
   }
 }
 
@@ -184,8 +185,8 @@
   .controlGrid {
     grid-template-columns: repeat(3, 65px);
     grid-template-rows: repeat(3, 65px);
-    gap: 2px;
-    padding: 4px;
+    gap: 4px;
+    padding: 8px;
   }
 
   .buttonIcon {
@@ -193,8 +194,8 @@
   }
 
   .touchControls {
-    bottom: 10px; /* Fallback */
-    bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+    bottom: 15px; /* Fallback - increased spacing */
+    bottom: calc(15px + env(safe-area-inset-bottom, 0px));
   }
 }
 

@@ -2,8 +2,11 @@
   display: none; /* Hidden by default, shown on mobile */
   position: fixed;
   bottom: 0;
+  bottom: env(safe-area-inset-bottom, 0px);
   left: 0;
+  left: env(safe-area-inset-left, 0px);
   right: 0;
+  right: env(safe-area-inset-right, 0px);
   z-index: 500; /* Above game elements but below modals (1000+) */
   pointer-events: auto;
   touch-action: none;
@@ -12,6 +15,9 @@
   -moz-user-select: none;
   -ms-user-select: none;
   transition: opacity 0.3s ease;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
 }
 
 .gamepad.disabled {
@@ -186,7 +192,10 @@
     display: flex !important;
     visibility: visible !important;
     opacity: 1;
-    padding: 0.75rem;
+    padding: 0.75rem; /* Fallback */
+    padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+    padding-left: calc(0.75rem + env(safe-area-inset-left, 0px));
+    padding-right: calc(0.75rem + env(safe-area-inset-right, 0px));
     gap: 0.75rem;
     justify-content: space-between;
     align-items: flex-end;
@@ -224,7 +233,10 @@
 
 @media (max-width: 480px) {
   .gamepad {
-    padding: 0.5rem;
+    padding: 0.5rem; /* Fallback */
+    padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
+    padding-left: calc(0.5rem + env(safe-area-inset-left, 0px));
+    padding-right: calc(0.5rem + env(safe-area-inset-right, 0px));
     gap: 0.5rem;
   }
 
@@ -256,7 +268,10 @@
 /* Landscape orientation adjustments */
 @media (max-width: 768px) and (orientation: landscape) {
   .gamepad {
-    padding: 0.5rem;
+    padding: 0.5rem; /* Fallback */
+    padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
+    padding-left: calc(0.5rem + env(safe-area-inset-left, 0px));
+    padding-right: calc(0.5rem + env(safe-area-inset-right, 0px));
     gap: 0.5rem;
   }
 

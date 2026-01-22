@@ -1,9 +1,13 @@
 .overlay {
   position: fixed;
   top: 0;
+  top: env(safe-area-inset-top, 0px);
   left: 0;
+  left: env(safe-area-inset-left, 0px);
   right: 0;
+  right: env(safe-area-inset-right, 0px);
   bottom: 0;
+  bottom: env(safe-area-inset-bottom, 0px);
   background: rgba(0, 0, 0, 0.8);
   backdrop-filter: blur(8px);
   display: flex;
@@ -11,6 +15,7 @@
   justify-content: center;
   z-index: 10000;
   animation: fadeIn 0.3s ease-out;
+  padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
 }
 
 @keyframes fadeIn {

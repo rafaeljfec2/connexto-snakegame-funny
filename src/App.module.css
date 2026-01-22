@@ -7,6 +7,9 @@
   position: relative;
   overflow: hidden;
   box-sizing: border-box;
+  /* Safe area padding for iOS and Android */
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
 }
 
 /* Header HUD */
@@ -15,6 +18,7 @@
   z-index: 10;
   flex-shrink: 0;
   padding: 0.2rem 0.75rem;
+  padding-top: max(0.2rem, env(safe-area-inset-top, 0px));
   min-height: 20px;
   background: rgba(15, 23, 42, 0.85);
   backdrop-filter: blur(30px) saturate(180%);
@@ -596,6 +600,7 @@
     grid-template-columns: 1fr;
     grid-template-rows: 1fr;
     padding-bottom: 260px; /* Space for touch controls */
+    padding-bottom: calc(260px + env(safe-area-inset-bottom, 0px)); /* Space for touch controls + safe area */
     min-height: 0;
     overflow: hidden;
     position: relative;
@@ -632,8 +637,8 @@
     z-index: 1;
     margin: 0 auto; /* Center horizontally */
     aspect-ratio: 1;
-    max-width: min(calc(100vw - 1rem), calc(100vh - 320px));
-    max-height: min(calc(100vw - 1rem), calc(100vh - 320px));
+    max-width: min(calc(100vw - 1rem - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)), calc(100vh - 320px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)));
+    max-height: min(calc(100vw - 1rem - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)), calc(100vh - 320px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)));
     overflow: hidden;
     display: flex;
     align-items: center;
@@ -668,8 +673,8 @@
   /* Position Pause button at top-right during gameplay for better ergonomics */
   .gameControls[data-status='PLAYING'] {
     position: absolute;
-    top: 0.5rem;
-    right: 0.5rem;
+    top: calc(0.5rem + env(safe-area-inset-top, 0px));
+    right: calc(0.5rem + env(safe-area-inset-right, 0px));
     margin: 0;
     z-index: 20;
     transform: scale(0.85);
@@ -745,8 +750,8 @@
     margin: 0.5rem auto 0 auto; /* Spacing above StatusBar */
     order: 2; /* Force after game container - appears at bottom */
     flex-shrink: 0;
-    width: min(95%, calc(100vw - 1rem));
-    max-width: min(95%, calc(100vw - 1rem));
+    width: min(95%, calc(100vw - 1rem - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)));
+    max-width: min(95%, calc(100vw - 1rem - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)));
     box-sizing: border-box;
     position: relative; /* Ensure normal flow */
     justify-content: center;
@@ -776,12 +781,15 @@
   .header {
     padding: 0.12rem 0.3rem;
     min-height: 20px;
-    padding-top: max(0.12rem, env(safe-area-inset-top));
+    padding-top: max(0.12rem, env(safe-area-inset-top, 0px));
+    padding-left: max(0.3rem, env(safe-area-inset-left, 0px));
+    padding-right: max(0.3rem, env(safe-area-inset-right, 0px));
   }
 
   .main {
     padding: 0;
     padding-bottom: 180px; /* Compact space for smaller touch controls */
+    padding-bottom: calc(180px + env(safe-area-inset-bottom, 0px)); /* Compact space + safe area */
   }
 
   /* Game Area - Even more compact on small screens, Centered */
@@ -798,8 +806,8 @@
     border-radius: 10px;
     flex: 0 0 auto; /* Maintain size */
     /* Allow more height, subtracting header (~40px) + footer area (~200px) */
-    max-width: min(calc(100vw - 0.5rem), calc(100dvh - 240px));
-    max-height: min(calc(100vw - 0.5rem), calc(100dvh - 240px));
+    max-width: min(calc(100vw - 0.5rem - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)), calc(100dvh - 240px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)));
+    max-height: min(calc(100vw - 0.5rem - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)), calc(100dvh - 240px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)));
     margin: 0 auto;
   }
 
@@ -809,8 +817,8 @@
 
   /* StatusBar - More compact */
   .statusBarContainer {
-    width: min(98%, calc(100vw - 0.5rem));
-    max-width: min(98%, calc(100vw - 0.5rem));
+    width: min(98%, calc(100vw - 0.5rem - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)));
+    max-width: min(98%, calc(100vw - 0.5rem - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)));
     margin: 0.25rem auto 0 auto;
     box-sizing: border-box;
     order: 2;
@@ -936,6 +944,7 @@
   /* Sleek Header - Minimal */
   .header {
     padding: 4px 0;
+    padding-top: max(4px, env(safe-area-inset-top, 0px));
     height: 44px;
     min-height: 44px;
     max-height: 44px;
@@ -1190,8 +1199,8 @@
   /* In-game Pause button - Top Right */
   .gameControls[data-status='PLAYING'] {
     position: absolute !important;
-    top: 10px !important;
-    right: 10px !important;
+    top: calc(10px + env(safe-area-inset-top, 0px)) !important;
+    right: calc(10px + env(safe-area-inset-right, 0px)) !important;
     left: auto !important;
     transform: none !important;
     z-index: 1000 !important;

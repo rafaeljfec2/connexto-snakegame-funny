@@ -11,6 +11,12 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  /* Safe Area Variables for iOS and Android */
+  --safe-area-top: env(safe-area-inset-top, 0px);
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-left: env(safe-area-inset-left, 0px);
+  --safe-area-right: env(safe-area-inset-right, 0px);
 }
 
 * {
@@ -34,6 +40,7 @@ body {
   place-items: center;
   min-width: 320px;
   height: 100vh;
+  height: 100dvh; /* Dynamic viewport height for mobile */
   background-color: #0f172a;
   overflow: hidden;
   /* Prevent pull-to-refresh on mobile */
@@ -43,6 +50,9 @@ body {
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   user-select: none;
+  /* Safe area padding */
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
 }
 
 /* Performance Utility Classes */
@@ -58,6 +68,9 @@ body {
   margin: 0 auto;
   text-align: center;
   overflow: hidden;
+  /* Ensure root respects safe areas */
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 @media (prefers-color-scheme: light) {

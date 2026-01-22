@@ -1,7 +1,9 @@
 .themeToggle {
   position: fixed;
   top: 20px;
+  top: calc(20px + env(safe-area-inset-top, 0px));
   right: 20px;
+  right: calc(20px + env(safe-area-inset-right, 0px));
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
   border: 2px solid rgba(255, 255, 255, 0.2);
@@ -41,7 +43,9 @@
 @media (max-width: 768px) {
   .themeToggle {
     top: 10px;
+    top: calc(10px + env(safe-area-inset-top, 0px));
     right: 10px;
+    right: calc(10px + env(safe-area-inset-right, 0px));
     padding: 0.5rem 0.75rem;
     font-size: 0.875rem;
   }

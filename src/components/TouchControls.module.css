@@ -1,9 +1,10 @@
 .touchControls {
   display: none; /* Hidden by default, shown on mobile */
   position: fixed;
-  bottom: 10px;
-  bottom: max(10px, env(safe-area-inset-bottom)); /* Safe area for iPhone home bar */
+  bottom: 10px; /* Fallback */
+  bottom: calc(10px + env(safe-area-inset-bottom, 0px)); /* Safe area for iPhone home bar */
   left: 50%;
+  left: calc(50% + env(safe-area-inset-left, 0px) / 2 - env(safe-area-inset-right, 0px) / 2); /* Center with safe area consideration */
   transform: translateX(-50%);
   z-index: 500; /* Above game elements but below modals (1000+) */
   pointer-events: auto;
@@ -13,7 +14,7 @@
   -moz-user-select: none;
   -ms-user-select: none;
   width: auto;
-  max-width: 95vw;
+  max-width: calc(95vw - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px));
   transition:
     opacity 0.3s ease,
     transform 0.3s ease;
@@ -192,7 +193,8 @@
   }
 
   .touchControls {
-    bottom: 10px;
+    bottom: 10px; /* Fallback */
+    bottom: calc(10px + env(safe-area-inset-bottom, 0px));
   }
 }
 
@@ -202,7 +204,9 @@
   .touchControls {
     position: fixed;
     top: 50%;
-    left: 20px; /* Force left position */
+    top: calc(50% + env(safe-area-inset-top, 0px) / 2 - env(safe-area-inset-bottom, 0px) / 2);
+    left: 20px; /* Fallback */
+    left: calc(20px + env(safe-area-inset-left, 0px));
     bottom: auto;
     right: auto;
     transform: translateY(-50%); /* Center vertically */

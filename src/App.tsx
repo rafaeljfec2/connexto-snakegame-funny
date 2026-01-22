@@ -400,6 +400,14 @@ function App() {
               resetToken={gameResetToken}
               gameWorker={gameWorker}
             />
+            <div className={styles.gameControls} data-status={gameState.status}>
+              <GameControls
+                onStart={handleStart}
+                onPause={handlePause}
+                onReset={handleReset}
+                status={gameState.status}
+              />
+            </div>
           </div>
 
           {/* StatusBar below game on mobile */}
@@ -408,15 +416,6 @@ function App() {
               length={gameState.snake.length}
               lives={gameState.lives}
               level={gameState.level}
-            />
-          </div>
-
-          <div className={styles.gameControls} data-status={gameState.status}>
-            <GameControls
-              onStart={handleStart}
-              onPause={handlePause}
-              onReset={handleReset}
-              status={gameState.status}
             />
           </div>
 

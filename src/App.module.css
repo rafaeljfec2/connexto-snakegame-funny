@@ -279,6 +279,18 @@
   height: fit-content;
 }
 
+/* Game Controls inside game container */
+.gameContainer > .gameControls {
+  position: absolute;
+  top: 0.75rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  margin: 0;
+  width: auto;
+  max-width: none;
+}
+
 .gameContainer::before {
   content: '';
   position: absolute;
@@ -710,56 +722,24 @@
     display: none;
   }
 
-  /* Game Controls - Repositioned below StatusBar when not playing */
-  .gameControls {
-    order: 3; /* After StatusBar */
-    margin: 1rem auto 0 auto; /* Spacing above, centered */
-    flex-shrink: 0;
-    z-index: 10;
-    display: flex !important;
-    position: relative; /* Normal flow, not absolute */
-    width: 90%;
-    max-width: 300px;
-    justify-content: center;
-  }
-
-  /* Position Pause button at top-right during gameplay for better ergonomics */
-  .gameControls[data-status='PLAYING'] {
+  /* Game Controls inside game container - centered horizontally */
+  .gameContainer > .gameControls {
     position: absolute;
-    top: calc(60px + 0.5rem + env(safe-area-inset-top, 0px)); /* Below header */
-    right: calc(0.5rem + env(safe-area-inset-right, 0px));
-    margin: 0;
+    top: 0.5rem;
+    left: 50%;
     z-index: 20;
-    transform: scale(0.85);
+    margin: 0;
     width: auto;
     max-width: none;
+    transform: translateX(-50%);
   }
 
-  /* When not playing: Position below StatusBar with styled background */
-  .gameControls:not([data-status='PLAYING']) {
-    position: relative; /* Normal flow */
-    top: auto;
-    left: auto;
-    transform: none;
-    z-index: 10;
-    width: 90%;
-    max-width: 300px;
-    background: rgba(15, 23, 42, 0.95);
-    backdrop-filter: blur(10px);
-    padding: 1.5rem;
-    border-radius: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    align-items: stretch;
+  .gameContainer > .gameControls[data-status='PLAYING'] {
+    transform: translateX(-50%) scale(0.9);
   }
 
-  .gameControls:not([data-status='PLAYING']) button {
-    width: 100%;
-    padding: 1rem;
-    font-size: 1.1rem;
+  .gameContainer > .gameControls:not([data-status='PLAYING']) {
+    transform: translateX(-50%);
   }
 
   /* Show Status Message and Controls on mobile */
@@ -788,12 +768,12 @@
     position: relative !important;
   }
 
-  /* Mobile StatusBar - Show below game container */
+  /* Mobile StatusBar - Show below game controls */
   .mobileStatusBar {
     display: flex;
     justify-content: center;
     width: 100%;
-    order: 2; /* After gameContainer */
+    order: 2; /* After gameControls */
     margin: 0.75rem 0 0 0;
     padding: 0 0.5rem;
     box-sizing: border-box;
@@ -925,60 +905,24 @@
     width: 100%;
   }
 
-  /* Game Controls - Repositioned below StatusBar when not playing */
-  .gameControls {
-    order: 3; /* After StatusBar */
-    margin: 0.75rem auto 0 auto; /* Spacing above, centered */
-    flex-shrink: 0;
-    z-index: 10;
-    display: flex !important;
-    position: relative; /* Normal flow, not absolute */
-    width: 88%;
-    max-width: 280px;
-    justify-content: center;
-    transition: all 0.3s ease;
-  }
-
-  /* When not playing: Position below StatusBar with styled background */
-  .gameControls:not([data-status='PLAYING']) {
-    position: relative; /* Normal flow */
-    top: auto;
-    left: auto;
-    transform: none;
-    z-index: 10;
-    width: 88%;
-    max-width: 280px;
-    background: rgba(15, 23, 42, 0.95);
-    backdrop-filter: blur(10px);
-    padding: 1.25rem;
-    border-radius: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
-    display: flex;
-    flex-direction: column;
-    gap: 0.875rem;
-    align-items: stretch;
-  }
-
-  /* Force buttons inside to fill width in menu mode */
-  .gameControls:not([data-status='PLAYING']) button {
-    width: 100%;
-    margin: 0;
-    padding: 0.875rem;
-    font-size: 1rem;
-    justify-content: center;
-  }
-
-  /* PLAY MODE: Position Pause button at top-right */
-  .gameControls[data-status='PLAYING'] {
+  /* Game Controls inside game container - centered horizontally */
+  .gameContainer > .gameControls {
     position: absolute;
-    top: calc(50px + 0.5rem + env(safe-area-inset-top, 0px)); /* Below header on small screens */
-    right: calc(0.5rem + env(safe-area-inset-right, 0px));
-    margin: 0;
+    top: 0.4rem;
+    left: 50%;
     z-index: 20;
-    transform: scale(0.85);
+    margin: 0;
     width: auto;
     max-width: none;
+    transform: translateX(-50%);
+  }
+
+  .gameContainer > .gameControls[data-status='PLAYING'] {
+    transform: translateX(-50%) scale(0.85);
+  }
+
+  .gameContainer > .gameControls:not([data-status='PLAYING']) {
+    transform: translateX(-50%);
   }
 
   /* GameContainer at the top on small screens */
@@ -986,13 +930,13 @@
     order: 1 !important;
   }
 
-  /* Mobile StatusBar - Show below game container */
+  /* Mobile StatusBar - Show below game controls */
   .mobileStatusBar {
     display: flex;
     justify-content: center;
     width: 100%;
-    order: 2; /* After gameContainer */
-    margin: 0.5rem 0 0 0;
+    order: 2; /* After gameControls */
+    margin: 0.75rem 0 0 0;
     padding: 0 0.4rem;
     box-sizing: border-box;
   }

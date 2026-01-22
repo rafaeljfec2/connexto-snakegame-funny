@@ -282,13 +282,15 @@
 /* Game Controls inside game container */
 .gameContainer > .gameControls {
   position: absolute;
-  top: 0.75rem;
-  left: 50%;
-  transform: translateX(-50%);
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
   z-index: 20;
   margin: 0;
   width: auto;
   max-width: none;
+  right: auto !important;
+  bottom: auto !important;
 }
 
 .gameContainer::before {
@@ -700,17 +702,24 @@
       calc(100vw - 1rem - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)),
       calc(100vh - 478px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))
     );
-    overflow: hidden;
+    overflow: visible; /* Allow button to be visible */
     display: flex;
     align-items: center;
     justify-content: center;
   }
 
-  .gameContainer > * {
+  .gameContainer > *:not(.gameControls) {
     width: 100%;
     height: 100%;
     max-width: 100%;
     max-height: 100%;
+  }
+  
+  .gameContainer > .gameControls {
+    width: auto !important;
+    height: auto !important;
+    max-width: none !important;
+    max-height: none !important;
   }
 
   .gameContainer::before {
@@ -722,24 +731,26 @@
     display: none;
   }
 
-  /* Game Controls inside game container - centered horizontally */
+  /* Game Controls inside game container - centered both horizontally and vertically */
   .gameContainer > .gameControls {
-    position: absolute;
-    top: 0.5rem;
-    left: 50%;
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    right: auto !important;
+    bottom: auto !important;
     z-index: 20;
     margin: 0;
     width: auto;
     max-width: none;
-    transform: translateX(-50%);
+    transform: translate(-50%, -50%) !important;
   }
 
   .gameContainer > .gameControls[data-status='PLAYING'] {
-    transform: translateX(-50%) scale(0.9);
+    transform: translate(-50%, -50%) scale(0.9) !important;
   }
 
   .gameContainer > .gameControls:not([data-status='PLAYING']) {
-    transform: translateX(-50%);
+    transform: translate(-50%, -50%) !important;
   }
 
   /* Show Status Message and Controls on mobile */
@@ -905,24 +916,26 @@
     width: 100%;
   }
 
-  /* Game Controls inside game container - centered horizontally */
+  /* Game Controls inside game container - centered both horizontally and vertically */
   .gameContainer > .gameControls {
-    position: absolute;
-    top: 0.4rem;
-    left: 50%;
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    right: auto !important;
+    bottom: auto !important;
     z-index: 20;
     margin: 0;
     width: auto;
     max-width: none;
-    transform: translateX(-50%);
+    transform: translate(-50%, -50%) !important;
   }
 
   .gameContainer > .gameControls[data-status='PLAYING'] {
-    transform: translateX(-50%) scale(0.85);
+    transform: translate(-50%, -50%) scale(0.85) !important;
   }
 
   .gameContainer > .gameControls:not([data-status='PLAYING']) {
-    transform: translateX(-50%);
+    transform: translate(-50%, -50%) !important;
   }
 
   /* GameContainer at the top on small screens */

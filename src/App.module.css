@@ -293,6 +293,11 @@
   bottom: auto !important;
 }
 
+/* Hide button when game is playing */
+.gameContainer > .gameControls[data-status='PLAYING'] {
+  display: none !important;
+}
+
 .gameContainer::before {
   content: '';
   position: absolute;
@@ -714,13 +719,6 @@
     max-width: 100%;
     max-height: 100%;
   }
-  
-  .gameContainer > .gameControls {
-    width: auto !important;
-    height: auto !important;
-    max-width: none !important;
-    max-height: none !important;
-  }
 
   .gameContainer::before {
     border-radius: 16px;
@@ -740,13 +738,16 @@
     bottom: auto !important;
     z-index: 20;
     margin: 0;
-    width: auto;
-    max-width: none;
+    width: auto !important;
+    height: auto !important;
+    max-width: none !important;
+    max-height: none !important;
     transform: translate(-50%, -50%) !important;
   }
 
+  /* Hide button when game is playing */
   .gameContainer > .gameControls[data-status='PLAYING'] {
-    transform: translate(-50%, -50%) scale(0.9) !important;
+    display: none !important;
   }
 
   .gameContainer > .gameControls:not([data-status='PLAYING']) {
@@ -931,7 +932,7 @@
   }
 
   .gameContainer > .gameControls[data-status='PLAYING'] {
-    transform: translate(-50%, -50%) scale(0.85) !important;
+    display: none !important;
   }
 
   .gameContainer > .gameControls:not([data-status='PLAYING']) {

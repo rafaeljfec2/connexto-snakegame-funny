@@ -24,18 +24,33 @@ export function createPerformanceState(): PerformanceState {
 }
 
 /**
- * Update performance state with frame time
+ * Update performance state with frame time - optimized version
  */
 export function updatePerformanceState(
   state: PerformanceState,
   frameTime: number,
 ): PerformanceState {
-  const frameTimeHistory = [...state.frameTimeHistory, frameTime];
-  if (frameTimeHistory.length > FRAME_TIME_HISTORY_SIZE) {
-    frameTimeHistory.shift();
+  // Use circular buffer approach - much faster than shift() and reduce()
+  const history = state.frameTimeHistory;
+  const count = history.length;
+
+  if (count < FRAME_TIME_HISTORY_SIZE) {
+    // Add new entry
+    history.push(frameTime);
+  } else {
+    // Replace oldest entry (circular buffer) - remove first, add to end
+    history.shift();
+    history.push(frameTime);
   }
 
-  const avgFrameTime = frameTimeHistory.reduce((a, b) => a + b, 0) / frameTimeHistory.length;
+  // Calculate average efficiently with simple loop (faster than reduce)
+  let sum = 0;
+  const currentCount = history.length;
+  for (let i = 0; i < currentCount; i++) {
+    sum += history[i] ?? 0;
+  }
+
+  const avgFrameTime = currentCount > 0 ? sum / currentCount : frameTime;
   const skipOptionalEffects = avgFrameTime > MAX_FRAME_TIME;
   const framesSkipped =
     skipOptionalEffects && frameTime > TARGET_FRAME_TIME * 1.5
@@ -43,7 +58,7 @@ export function updatePerformanceState(
       : state.framesSkipped;
 
   return {
-    frameTimeHistory,
+    frameTimeHistory: history,
     skipOptionalEffects,
     framesSkipped,
   };

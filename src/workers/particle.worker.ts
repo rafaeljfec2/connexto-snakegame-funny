@@ -124,8 +124,16 @@ function loop() {
 }
 
 function update(dt: number) {
-  // Filter out dead particles
-  particles = particles.filter((p) => p.life > 0);
+  // Filter out dead particles - optimized loop (faster than filter)
+  const aliveParticles: typeof particles = [];
+  const particlesLength = particles.length;
+  for (let i = 0; i < particlesLength; i++) {
+    const particle = particles[i];
+    if (particle && particle.life > 0) {
+      aliveParticles.push(particle);
+    }
+  }
+  particles = aliveParticles;
 
   // Update positions
   for (const p of particles) {

@@ -229,10 +229,13 @@ function startGameLoop() {
       }
     }
 
-    // Track frame time for adaptive performance
+    // Track frame time for adaptive performance - optimized direct assignment
     const frameTime = performance.now() - frameStart;
     const updatedPerformance = updatePerformanceState(performanceState, frameTime);
-    Object.assign(performanceState, updatedPerformance);
+    // Direct property assignment is faster than Object.assign
+    performanceState.frameTimeHistory = updatedPerformance.frameTimeHistory;
+    performanceState.skipOptionalEffects = updatedPerformance.skipOptionalEffects;
+    performanceState.framesSkipped = updatedPerformance.framesSkipped;
     skipOptionalEffects = performanceState.skipOptionalEffects;
     framesSkipped = performanceState.framesSkipped;
 

@@ -590,7 +590,17 @@ export function handlePoisonShotsUpdate(context: PoisonShotsUpdateContext): Pois
     });
 
     if (shotsToRemove.length > 0) {
-      result.newPoisonShots = result.newPoisonShots.filter((s) => !shotsToRemove.includes(s.id));
+      // Optimized filter using Set for O(1) lookup instead of O(n) includes
+      const shotsToRemoveSet = new Set(shotsToRemove);
+      const filteredShots: typeof result.newPoisonShots = [];
+      const shotsLength = result.newPoisonShots.length;
+      for (let i = 0; i < shotsLength; i++) {
+        const shot = result.newPoisonShots[i];
+        if (shot && !shotsToRemoveSet.has(shot.id)) {
+          filteredShots.push(shot);
+        }
+      }
+      result.newPoisonShots = filteredShots;
     }
 
     if (bossDefeated) {

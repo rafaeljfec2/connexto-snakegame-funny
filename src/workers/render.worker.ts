@@ -55,11 +55,19 @@ const render = () => {
     isMobile: state.isMobile,
   };
 
-  // Draw Obstacles
-  state.obstacles.forEach((obs) => drawObstacle(renderContext, obs, cellSize));
+  // Draw Obstacles - optimized loop
+  const obstacles = state.obstacles;
+  const obstaclesLength = obstacles.length;
+  for (let i = 0; i < obstaclesLength; i++) {
+    drawObstacle(renderContext, obstacles[i]!, cellSize);
+  }
 
-  // Draw Portals
-  state.portals.forEach((p) => drawPortal(renderContext, p, cellSize, now));
+  // Draw Portals - optimized loop
+  const portals = state.portals;
+  const portalsLength = portals.length;
+  for (let i = 0; i < portalsLength; i++) {
+    drawPortal(renderContext, portals[i]!, cellSize, now);
+  }
 
   // Draw Food
   if (state.food) {
@@ -82,10 +90,12 @@ const render = () => {
     drawGuardianFlag(renderContext, state.guardianFlag, cellSize);
   }
 
-  // Draw Shots
-  state.shots.forEach((shot) => {
-    drawShot(renderContext, shot, cellSize);
-  });
+  // Draw Shots - optimized loop
+  const shots = state.shots;
+  const shotsLength = shots.length;
+  for (let i = 0; i < shotsLength; i++) {
+    drawShot(renderContext, shots[i]!, cellSize);
+  }
 
   requestAnimationFrame(render);
 };

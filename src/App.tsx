@@ -10,7 +10,6 @@ import { GameStatus } from '@/types/game';
 import { getPhaseNumber } from '@/utils/phases';
 import { PhaseType } from '@/types/phases';
 import { GameHeader } from './components/GameHeader';
-import { GameSidebar } from './components/GameSidebar';
 import { GameArea } from './components/GameArea';
 import { GameOverlays } from './components/GameOverlays';
 import { TouchControls } from './components/TouchControls';
@@ -18,9 +17,14 @@ import { GameStatistics as GameStatisticsComponent } from './components/GameStat
 import { BossDebugPanel } from './components/BossDebugPanel';
 import { PhaseDebugPanel } from './components/PhaseDebugPanel';
 import { DynamicBackground } from './components/DynamicBackground';
+import { ActivePowerUps } from './components/ActivePowerUps';
+import { ComboDisplay } from './components/ComboDisplay';
+import { PhaseDisplay } from './components/PhaseDisplay';
+import { useTranslation } from 'react-i18next';
 import styles from './App.module.css';
 
 function App() {
+  const { t } = useTranslation();
   const {
     gameState,
     resetGame,
@@ -205,12 +209,15 @@ function App() {
       />
 
       <main className={styles.main}>
-        <GameSidebar
-          activePowerUps={gameState.activePowerUps}
-          combo={gameState.combo}
-          level={gameState.level}
-          currentPhase={gameState.currentPhase}
-        />
+        {/* Left Panel */}
+        <aside className={styles.leftPanel}>
+          <div className={styles.panelContent}>
+            <div className={styles.panelSection}>
+              <h3 className={styles.panelTitle}>{t('panels.powerUps')}</h3>
+              <ActivePowerUps powerUps={gameState.activePowerUps} />
+            </div>
+          </div>
+        </aside>
 
         <GameArea
           gameState={gameState}
@@ -220,6 +227,19 @@ function App() {
           onPause={handlePause}
           onReset={handleReset}
         />
+
+        {/* Right Panel */}
+        <aside className={styles.rightPanel}>
+          <div className={styles.panelContent}>
+            <div className={styles.panelSection}>
+              <PhaseDisplay level={gameState.level} currentPhase={gameState.currentPhase} />
+            </div>
+            <div className={styles.panelSection}>
+              <h3 className={styles.panelTitle}>{t('panels.combo')}</h3>
+              <ComboDisplay combo={gameState.combo} />
+            </div>
+          </div>
+        </aside>
       </main>
 
       <GameOverlays

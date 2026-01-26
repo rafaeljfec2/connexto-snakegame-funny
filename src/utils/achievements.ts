@@ -45,6 +45,29 @@ export function unlockAchievement(
   });
 }
 
+/**
+ * Check and unlock a single achievement if condition is met
+ */
+function checkAndUnlockAchievement(
+  achievements: Achievement[],
+  achievementId: string,
+  condition: boolean,
+): { achievements: Achievement[]; unlocked: boolean } {
+  if (!condition) {
+    return { achievements, unlocked: false };
+  }
+
+  const achievement = achievements.find((a) => a.id === achievementId);
+  if (achievement && !achievement.unlocked) {
+    return {
+      achievements: unlockAchievement(achievements, achievementId),
+      unlocked: true,
+    };
+  }
+
+  return { achievements, unlocked: false };
+}
+
 export function checkAchievements(
   achievements: Achievement[],
   gameState: {
@@ -58,62 +81,23 @@ export function checkAchievements(
   const newlyUnlocked: string[] = [];
   let updatedAchievements = [...achievements];
 
-  // Check each achievement condition
-  if (gameState.score >= 100) {
-    const achievement = updatedAchievements.find((a) => a.id === 'score_100');
-    if (achievement && !achievement.unlocked) {
-      updatedAchievements = unlockAchievement(updatedAchievements, 'score_100');
-      newlyUnlocked.push('score_100');
-    }
-  }
+  const checks = [
+    { id: 'score_100', condition: gameState.score >= 100 },
+    { id: 'score_500', condition: gameState.score >= 500 },
+    { id: 'level_5', condition: gameState.level >= 5 },
+    { id: 'level_10', condition: gameState.level >= 10 },
+    { id: 'combo_5', condition: gameState.comboMultiplier >= 5 },
+    { id: 'snake_length_20', condition: gameState.snakeLength >= 20 },
+    { id: 'eat_powerup', condition: gameState.atePowerUp },
+  ];
 
-  if (gameState.score >= 500) {
-    const achievement = updatedAchievements.find((a) => a.id === 'score_500');
-    if (achievement && !achievement.unlocked) {
-      updatedAchievements = unlockAchievement(updatedAchievements, 'score_500');
-      newlyUnlocked.push('score_500');
+  checks.forEach((check) => {
+    const result = checkAndUnlockAchievement(updatedAchievements, check.id, check.condition);
+    updatedAchievements = result.achievements;
+    if (result.unlocked) {
+      newlyUnlocked.push(check.id);
     }
-  }
-
-  if (gameState.level >= 5) {
-    const achievement = updatedAchievements.find((a) => a.id === 'level_5');
-    if (achievement && !achievement.unlocked) {
-      updatedAchievements = unlockAchievement(updatedAchievements, 'level_5');
-      newlyUnlocked.push('level_5');
-    }
-  }
-
-  if (gameState.level >= 10) {
-    const achievement = updatedAchievements.find((a) => a.id === 'level_10');
-    if (achievement && !achievement.unlocked) {
-      updatedAchievements = unlockAchievement(updatedAchievements, 'level_10');
-      newlyUnlocked.push('level_10');
-    }
-  }
-
-  if (gameState.comboMultiplier >= 5) {
-    const achievement = updatedAchievements.find((a) => a.id === 'combo_5');
-    if (achievement && !achievement.unlocked) {
-      updatedAchievements = unlockAchievement(updatedAchievements, 'combo_5');
-      newlyUnlocked.push('combo_5');
-    }
-  }
-
-  if (gameState.snakeLength >= 20) {
-    const achievement = updatedAchievements.find((a) => a.id === 'snake_length_20');
-    if (achievement && !achievement.unlocked) {
-      updatedAchievements = unlockAchievement(updatedAchievements, 'snake_length_20');
-      newlyUnlocked.push('snake_length_20');
-    }
-  }
-
-  if (gameState.atePowerUp) {
-    const achievement = updatedAchievements.find((a) => a.id === 'eat_powerup');
-    if (achievement && !achievement.unlocked) {
-      updatedAchievements = unlockAchievement(updatedAchievements, 'eat_powerup');
-      newlyUnlocked.push('eat_powerup');
-    }
-  }
+  });
 
   return { achievements: updatedAchievements, newlyUnlocked };
 }

@@ -1,7 +1,7 @@
 import { ActivePowerUp, ComboState, FoodType } from '@/types/game';
 import { useTranslation } from 'react-i18next';
 import { getActivePowerUps } from '@/utils/powerUps';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { COMBO_CONFIG } from '@/constants/game';
 import { PowerUpToast } from './PowerUpToast';
 import styles from './MobileFloatingInfo.module.css';
@@ -37,22 +37,25 @@ export function MobileFloatingInfo({
   const toastContainerRef = useRef<HTMLDivElement>(null);
 
   // Get power-up info
-  const getPowerUpInfo = (type: FoodType) => {
-    const powerUpInfoMap: Record<FoodType, { name: string; icon: string }> = {
-      [FoodType.NORMAL]: { name: t('powerUps.normal'), icon: '🍎' },
-      [FoodType.SPEED_BOOST]: { name: t('powerUps.speedBoost'), icon: '⚡' },
-      [FoodType.BONUS_POINTS]: { name: t('powerUps.bonusPoints'), icon: '💰' },
-      [FoodType.EXTRA_GROWTH]: { name: t('powerUps.extraGrowth'), icon: '📈' },
-      [FoodType.PHASE_THROUGH]: { name: t('powerUps.phaseThrough'), icon: '👻' },
-      [FoodType.JOKER]: { name: t('powerUps.joker'), icon: '🎴' },
-      [FoodType.EXTRA_LIFE]: { name: t('powerUps.extraLife'), icon: '❤️' },
-      [FoodType.PORTAL]: { name: t('powerUps.portal'), icon: '🌀' },
-      [FoodType.POISON]: { name: t('powerUps.poison'), icon: '☠️' },
-      [FoodType.REVERSE_CONTROLS]: { name: t('powerUps.reverseControls'), icon: '🔄' },
-      [FoodType.SLOW_DOWN]: { name: t('powerUps.slowDown'), icon: '🐌' },
-    };
-    return powerUpInfoMap[type] ?? { name: t('powerUps.normal'), icon: '✨' };
-  };
+  const getPowerUpInfo = useCallback(
+    (type: FoodType) => {
+      const powerUpInfoMap: Record<FoodType, { name: string; icon: string }> = {
+        [FoodType.NORMAL]: { name: t('powerUps.normal'), icon: '🍎' },
+        [FoodType.SPEED_BOOST]: { name: t('powerUps.speedBoost'), icon: '⚡' },
+        [FoodType.BONUS_POINTS]: { name: t('powerUps.bonusPoints'), icon: '💰' },
+        [FoodType.EXTRA_GROWTH]: { name: t('powerUps.extraGrowth'), icon: '📈' },
+        [FoodType.PHASE_THROUGH]: { name: t('powerUps.phaseThrough'), icon: '👻' },
+        [FoodType.JOKER]: { name: t('powerUps.joker'), icon: '🎴' },
+        [FoodType.EXTRA_LIFE]: { name: t('powerUps.extraLife'), icon: '❤️' },
+        [FoodType.PORTAL]: { name: t('powerUps.portal'), icon: '🌀' },
+        [FoodType.POISON]: { name: t('powerUps.poison'), icon: '☠️' },
+        [FoodType.REVERSE_CONTROLS]: { name: t('powerUps.reverseControls'), icon: '🔄' },
+        [FoodType.SLOW_DOWN]: { name: t('powerUps.slowDown'), icon: '🐌' },
+      };
+      return powerUpInfoMap[type] ?? { name: t('powerUps.normal'), icon: '✨' };
+    },
+    [t],
+  );
 
   // Detect new power-ups and show toasts
   useEffect(() => {
@@ -98,7 +101,7 @@ export function MobileFloatingInfo({
     setToasts((prev) => prev.filter((toast) => activePowerUpIds.has(toast.id)));
 
     previousPowerUpsRef.current = currentPowerUps;
-  }, [activePowerUps]);
+  }, [activePowerUps, getPowerUpInfo]);
 
   // Calculate header height dynamically
   useEffect(() => {

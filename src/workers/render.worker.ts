@@ -575,6 +575,7 @@ function bufferToPositions(buffer: ArrayBuffer, length: number): Position[] {
   return positions;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const handleUpdate = (payload: any) => {
   // Check if actually changed
   if (payload.snake !== undefined) {
@@ -655,7 +656,7 @@ self.onmessage = (e: MessageEvent) => {
   const { type, payload } = e.data;
 
   switch (type) {
-    case 'INIT':
+    case 'INIT': {
       const canvas = payload.canvas as OffscreenCanvas;
       width = payload.width || 100;
       height = payload.height || 100;
@@ -676,6 +677,7 @@ self.onmessage = (e: MessageEvent) => {
       // Start loop
       render();
       break;
+    }
 
     case 'RESIZE':
       width = payload.width;

@@ -48,7 +48,7 @@ export function PhaseTransition({ phaseNumber, level, onComplete }: PhaseTransit
     }, 16); // ~60fps
 
     return () => clearInterval(interval);
-  }, [phaseNumber, onComplete, showText, level, phase?.name, logger]);
+  }, [phaseNumber, onComplete, showText, level, phase?.name]);
 
   if (!phase) {
     return null;

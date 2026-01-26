@@ -9,8 +9,10 @@ import {
   BossSnake,
   GameUpdateContext,
   Food,
+  ActivePowerUp,
 } from '@/types/game';
-import { Chef } from '@/types/phases';
+import { Chef, PhaseLevelType } from '@/types/phases';
+import type { GameStatisticsTracking } from '@/types/statistics';
 import {
   generateRandomFood,
   isValidDirectionChange,
@@ -84,8 +86,8 @@ export interface FoodInteractionResult {
   newCombo: { count: number; multiplier: number; lastFoodTime: number };
   newLives: number;
   finalSnake: Position[];
-  newActivePowerUps: any[];
-  statistics: any;
+  newActivePowerUps: ActivePowerUp[];
+  statistics: GameStatisticsTracking;
   atePowerUp: boolean;
   particlesToSpawn: Array<{ position: Position; color: string; count: number }>;
   newPortals: Portal[]; // Portals from food
@@ -95,12 +97,12 @@ export interface GameStateUpdateResult {
   newLevel: number;
   baseGameSpeed: number;
   currentPhase?: number;
-  phaseLevelType?: any;
+  phaseLevelType?: PhaseLevelType;
   newObstacles: Obstacle[];
-  newFood: any;
+  newFood: Food;
   activeBoss: Chef | undefined;
   bossSnake: BossSnake | undefined;
-  newGuardianFlag: any | null;
+  newGuardianFlag: Food | null;
   updatedSpawnTime: number;
 }
 
@@ -112,7 +114,7 @@ export interface GameStateUpdateResult {
 export function resolveDirection(
   currentDirection: Direction,
   nextDirectionBuffer: Direction | null,
-  activePowerUps: any[],
+  activePowerUps: ActivePowerUp[],
   snake: Position[],
   gridSize: number,
 ): Direction {
@@ -145,7 +147,7 @@ export function handleBossLogic(
   obstacles: Obstacle[],
   portals: Portal[],
   bossAbilityCooldowns: Map<string, number>,
-  guardianFlag: any | null,
+  guardianFlag: Food | null,
   guardianFlagSide: -1 | 1 | undefined,
   foodPosition: Position,
 ): BossLogicResult {
@@ -480,7 +482,7 @@ export function handleFoodInteraction(
   ateFood: boolean,
   prevGameState: GameState,
   finalSnake: Position[],
-  statistics: any,
+  statistics: GameStatisticsTracking,
   _gridSize: number,
   enableCombos: boolean,
   enableParticles: boolean,
@@ -682,7 +684,7 @@ export function handleGameStateUpdates(
   // Boss Spawning Logic
   let newActiveBoss = activeBoss;
   let bossSnake: BossSnake | undefined = prevGameState.bossSnake;
-  let newGuardianFlag = prevGameState.guardianFlag;
+  let newGuardianFlag: Food | null = prevGameState.guardianFlag ?? null;
 
   if (shouldSpawnBoss(newLevel)) {
     const levelBoss = getBossForLevel(newLevel);
@@ -741,7 +743,7 @@ export function handleGameStateUpdates(
     newFood,
     activeBoss: newActiveBoss,
     bossSnake,
-    newGuardianFlag,
+    newGuardianFlag: newGuardianFlag ?? null,
     updatedSpawnTime,
   };
 }

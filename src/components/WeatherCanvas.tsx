@@ -92,15 +92,17 @@ export const WeatherCanvas = memo(function WeatherCanvas({ level, isMobile }: We
         container.removeChild(canvas);
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Run once on mount (re-creates canvas/worker on remount)
 
   // Update phase
   useEffect(() => {
-    workerRef.current?.postMessage({
+    if (!workerRef.current) return;
+    workerRef.current.postMessage({
       type: 'UPDATE_PHASE',
-      payload: { phaseId },
+      payload: { phaseId, isMobile },
     });
-  }, [phaseId]);
+  }, [phaseId, isMobile]);
 
   return (
     <div

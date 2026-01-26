@@ -67,7 +67,8 @@ let pendingPoisonShots: import('@/types/game').PoisonShot[] = [];
 let renderPort: MessagePort | null = null;
 
 // Frame skipping adaptive performance
-let frameTimeHistory: number[] = [];
+// eslint-disable-next-line prefer-const
+let frameTimeHistory: number[] = []; // Modified via push/shift, not reassigned
 const FRAME_TIME_HISTORY_SIZE = 10;
 const TARGET_FRAME_TIME = 16.67; // 60fps
 const MAX_FRAME_TIME = TARGET_FRAME_TIME * 2; // Allow up to 2x target
@@ -941,7 +942,7 @@ function updateGame(currentTime: number) {
     prev.obstacles,
     prev.portals,
     bossAbilityCooldowns,
-    prev.guardianFlag,
+    prev.guardianFlag ?? null,
     prev.guardianFlagSide,
     prev.food.position,
   );

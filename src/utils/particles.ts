@@ -39,6 +39,7 @@ export function createParticles(
   return [];
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function updateParticles(_particles: any[], _max: number) {
   // No-op: particles are updated in the worker
   return [];

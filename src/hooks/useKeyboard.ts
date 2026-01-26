@@ -162,21 +162,27 @@ export function useKeyboard({
     window.addEventListener('keydown', handleKeyDown, { capture: true });
     window.addEventListener('keyup', handleKeyUp, { capture: true });
 
+    // Copy refs to variables for cleanup function (before return)
+    const speedBoostTimers = speedBoostTimersRef.current;
+    const pressedKeys = pressedKeysRef.current;
+    const onSpeedBoostCallback = onSpeedBoost;
+    const onStopFiringPoisonCallback = onStopFiringPoison;
+
     return () => {
       window.removeEventListener('keydown', handleKeyDown, { capture: true });
       window.removeEventListener('keyup', handleKeyUp, { capture: true });
       // Reset on cleanup - cancel all timers and deactivate speed boost
-      speedBoostTimersRef.current.forEach((timer) => clearTimeout(timer));
-      speedBoostTimersRef.current.clear();
-      pressedKeysRef.current.clear();
-      if (speedBoostActiveRef.current && onSpeedBoost) {
+      speedBoostTimers.forEach((timer) => clearTimeout(timer));
+      speedBoostTimers.clear();
+      pressedKeys.clear();
+      if (speedBoostActiveRef.current && onSpeedBoostCallback) {
         speedBoostActiveRef.current = false;
-        onSpeedBoost(false);
+        onSpeedBoostCallback(false);
       }
       // Stop firing on cleanup
-      if (poisonFireActiveRef.current && onStopFiringPoison) {
+      if (poisonFireActiveRef.current && onStopFiringPoisonCallback) {
         poisonFireActiveRef.current = false;
-        onStopFiringPoison();
+        onStopFiringPoisonCallback();
       }
     };
   }, [enabled, handleKeyDown, handleKeyUp, onSpeedBoost, onStopFiringPoison]);

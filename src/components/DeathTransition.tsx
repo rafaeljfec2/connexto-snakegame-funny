@@ -47,7 +47,7 @@ export function DeathTransition({ status, lives, onComplete }: DeathTransitionPr
       setCountdown(3);
       setProgress(0);
     }
-  }, [status, lives, logger, onComplete]);
+  }, [status, lives, onComplete]);
 
   if (status !== GameStatus.DYING || lives <= 0) {
     return null;

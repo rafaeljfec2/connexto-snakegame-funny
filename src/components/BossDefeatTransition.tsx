@@ -64,7 +64,7 @@ export function BossDefeatTransition({ boss, score, onComplete }: BossDefeatTran
     return () => {
       clearInterval(interval);
     };
-  }, [boss.id, boss.name, score, logger]);
+  }, [boss.id, boss.name, score]);
 
   // Calculate zoom and fade based on progress
   // 0-30%: Boss explodes and zooms (0-2.1s)

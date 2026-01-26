@@ -136,7 +136,8 @@ const createParticle = (id: number, reset: boolean = false): Particle => {
         type: 'ember',
       };
 
-    case 6: // Chaos
+    case 6: {
+      // Chaos
       const colors = ['#ff0080', '#00ff80', '#8000ff', '#ff8000', '#0080ff'];
       return {
         x,
@@ -148,6 +149,7 @@ const createParticle = (id: number, reset: boolean = false): Particle => {
         opacity: Math.random() * 0.6 + 0.3,
         type: 'chaos',
       };
+    }
 
     case 7: // Geometric/Mist (Maze Master)
       return {
@@ -291,7 +293,7 @@ self.onmessage = (e: MessageEvent) => {
   const { type, payload } = e.data;
 
   switch (type) {
-    case 'INIT':
+    case 'INIT': {
       const canvas = payload.canvas as OffscreenCanvas;
       dpr = payload.dpr || 1;
       width = payload.width * dpr;
@@ -310,6 +312,7 @@ self.onmessage = (e: MessageEvent) => {
       initWeather(phaseId, isMobile);
       loop();
       break;
+    }
 
     case 'RESIZE':
       if (ctx && ctx.canvas) {

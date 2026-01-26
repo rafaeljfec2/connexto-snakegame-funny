@@ -15,11 +15,14 @@ export enum PhaseLevelType {
   ULTIMATE_CHALLENGE = 'ULTIMATE_CHALLENGE',
 }
 
+import { GameState } from './game';
+
 export interface BossAbility {
   id: string;
   name: string;
   description: string;
-  effect: (gameState: any) => any; // Will be properly typed when integrated
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  effect: (gameState: GameState) => any; // Will be properly typed when integrated
   cooldown?: number;
 }
 

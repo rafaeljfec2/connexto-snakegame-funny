@@ -1,6 +1,4 @@
 /// <reference lib="webworker" />
-
-/* eslint-disable no-restricted-globals */
 interface Particle {
   id: string;
   x: number;
@@ -29,7 +27,7 @@ let ctx: OffscreenCanvasRenderingContext2D | null = null;
 let width = 0;
 let height = 0;
 let lastTime = 0;
-let animationFrameId: number;
+let _animationFrameId: number;
 let dpr = 1;
 
 const selfWorker = self as unknown as Worker;
@@ -38,7 +36,7 @@ selfWorker.onmessage = (e: MessageEvent) => {
   const { type, payload } = e.data;
 
   switch (type) {
-    case 'INIT':
+    case 'INIT': {
       const canvas = payload.canvas as OffscreenCanvas;
       dpr = payload.dpr || 1;
       width = payload.width;
@@ -56,6 +54,7 @@ selfWorker.onmessage = (e: MessageEvent) => {
       lastTime = performance.now();
       loop();
       break;
+    }
 
     case 'RESIZE':
       width = payload.width;
@@ -83,6 +82,7 @@ selfWorker.onmessage = (e: MessageEvent) => {
   }
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function spawnParticles(data: any) {
   const { x, y, color, count = 10, size = 4, speed = 1, lifetime = 1000 } = data;
 
@@ -118,7 +118,7 @@ function loop() {
   update(dt);
   render();
 
-  animationFrameId = requestAnimationFrame(loop);
+  _animationFrameId = requestAnimationFrame(loop);
 }
 
 function update(dt: number) {

@@ -1,4 +1,4 @@
-import { GameState, GameStatus } from '@/types/game';
+import { GameState, GameStatus, PoisonShot, Obstacle, Portal, Food } from '@/types/game';
 import {
   computeDelta,
   shallowCopyState,
@@ -6,6 +6,131 @@ import {
   positionsToTypedArray,
 } from './gameDelta';
 import { updateDeltaSize } from '@/utils/performanceMetrics';
+
+/**
+ * Compare poison shots arrays efficiently
+ */
+function poisonShotsEqual(a: PoisonShot[] | undefined, b: PoisonShot[] | undefined): boolean {
+  if (a === b) return true;
+  if (!a || !b) return a === b;
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    const shotA = a[i];
+    const shotB = b[i];
+    if (
+      shotA.id !== shotB.id ||
+      shotA.position.x !== shotB.position.x ||
+      shotA.position.y !== shotB.position.y ||
+      shotA.direction !== shotB.direction
+    ) {
+      return false;
+    }
+  }
+  return true;
+}
+
+/**
+ * Compare obstacles arrays efficiently
+ */
+function obstaclesEqual(a: Obstacle[] | undefined, b: Obstacle[] | undefined): boolean {
+  if (a === b) return true;
+  if (!a || !b) return a === b;
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    const obsA = a[i];
+    const obsB = b[i];
+    if (
+      obsA.id !== obsB.id ||
+      obsA.position.x !== obsB.position.x ||
+      obsA.position.y !== obsB.position.y ||
+      obsA.type !== obsB.type
+    ) {
+      return false;
+    }
+  }
+  return true;
+}
+
+/**
+ * Compare portals arrays efficiently
+ */
+function portalsEqual(a: Portal[] | undefined, b: Portal[] | undefined): boolean {
+  if (a === b) return true;
+  if (!a || !b) return a === b;
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    const portalA = a[i];
+    const portalB = b[i];
+    if (
+      portalA.id !== portalB.id ||
+      portalA.position.x !== portalB.position.x ||
+      portalA.position.y !== portalB.position.y ||
+      portalA.pairId !== portalB.pairId
+    ) {
+      return false;
+    }
+  }
+  return true;
+}
+
+/**
+ * Compare food objects efficiently
+ */
+function foodEqual(a: Food | null | undefined, b: Food | null | undefined): boolean {
+  if (a === b) return true;
+  if (!a || !b) return a === b;
+  return a.position.x === b.position.x && a.position.y === b.position.y && a.type === b.type;
+}
+
+/**
+ * Compare boss snake efficiently
+ */
+function bossSnakeEqual(
+  a: import('@/types/game').BossSnake | undefined,
+  b: import('@/types/game').BossSnake | undefined,
+): boolean {
+  if (a === b) return true;
+  if (!a || !b) return a === b;
+  if (a.direction !== b.direction) return false;
+  return positionArraysEqual(a.positions, b.positions);
+}
+
+/**
+ * Compare active boss efficiently
+ */
+function activeBossEqual(
+  a: { color: string; icon?: string; name?: string } | null | undefined,
+  b: { color: string; icon?: string; name?: string } | null | undefined,
+): boolean {
+  if (a === b) return true;
+  if (!a || !b) return a === b;
+  return a.color === b.color && a.icon === b.icon && a.name === b.name;
+}
+
+/**
+ * Estimate delta size without full JSON.stringify (much faster)
+ */
+function estimateDeltaSize(delta: Partial<GameState>): number {
+  let size = 2; // {}
+  const keys = Object.keys(delta);
+  for (const key of keys) {
+    const value = delta[key as keyof GameState];
+    size += key.length + 2; // "key":
+    if (value === null || value === undefined) {
+      size += 4; // null
+    } else if (typeof value === 'string') {
+      size += value.length + 2; // "value"
+    } else if (typeof value === 'number' || typeof value === 'boolean') {
+      size += String(value).length;
+    } else if (Array.isArray(value)) {
+      size += value.length * 20; // Approximate per item
+    } else if (typeof value === 'object') {
+      size += Object.keys(value).length * 30; // Approximate per property
+    }
+    size += 1; // comma
+  }
+  return size;
+}
 
 export interface RenderState {
   snake: import('@/types/game').Position[];
@@ -40,8 +165,8 @@ export function broadcastState(
 
   let newPreviousState = previousState;
   if (hasChanges || !previousState) {
-    // Estimate delta size for metrics
-    const deltaSize = JSON.stringify(delta).length;
+    // Estimate delta size for metrics - approximate without full JSON.stringify
+    const deltaSize = estimateDeltaSize(delta);
     updateDeltaSize(deltaSize);
 
     // Send delta to Main Thread
@@ -79,21 +204,17 @@ export function broadcastState(
       status: gameState.status,
     };
 
-    // Check if render state changed
+    // Check if render state changed - optimized comparisons without JSON.stringify
     const renderChanged =
       !previousRenderState ||
       !positionArraysEqual(previousRenderState.snake, currentRenderState.snake) ||
-      JSON.stringify(previousRenderState.bossSnake) !==
-        JSON.stringify(currentRenderState.bossSnake) ||
-      JSON.stringify(previousRenderState.shots) !== JSON.stringify(currentRenderState.shots) ||
-      JSON.stringify(previousRenderState.food) !== JSON.stringify(currentRenderState.food) ||
-      JSON.stringify(previousRenderState.obstacles) !==
-        JSON.stringify(currentRenderState.obstacles) ||
-      JSON.stringify(previousRenderState.portals) !== JSON.stringify(currentRenderState.portals) ||
-      JSON.stringify(previousRenderState.activeBoss) !==
-        JSON.stringify(currentRenderState.activeBoss) ||
-      JSON.stringify(previousRenderState.guardianFlag) !==
-        JSON.stringify(currentRenderState.guardianFlag) ||
+      !bossSnakeEqual(previousRenderState.bossSnake, currentRenderState.bossSnake) ||
+      !poisonShotsEqual(previousRenderState.shots, currentRenderState.shots) ||
+      !foodEqual(previousRenderState.food, currentRenderState.food) ||
+      !obstaclesEqual(previousRenderState.obstacles, currentRenderState.obstacles) ||
+      !portalsEqual(previousRenderState.portals, currentRenderState.portals) ||
+      !activeBossEqual(previousRenderState.activeBoss, currentRenderState.activeBoss) ||
+      !foodEqual(previousRenderState.guardianFlag, currentRenderState.guardianFlag) ||
       previousRenderState.speed !== currentRenderState.speed ||
       previousRenderState.status !== currentRenderState.status;
 

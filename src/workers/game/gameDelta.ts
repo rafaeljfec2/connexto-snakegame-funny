@@ -70,13 +70,62 @@ function hasComboChanged(
 }
 
 /**
- * Check if array/object has changed using JSON comparison
+ * Compare arrays efficiently without JSON.stringify
+ */
+function arraysEqual<T>(a: T[] | undefined, b: T[] | undefined): boolean {
+  if (a === b) return true;
+  if (!a || !b) return a === b;
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) return false;
+  }
+  return true;
+}
+
+/**
+ * Compare objects shallowly (first level only)
+ */
+function shallowEqual<T extends Record<string, unknown>>(
+  a: T | undefined,
+  b: T | undefined,
+): boolean {
+  if (a === b) return true;
+  if (!a || !b) return false;
+  const keysA = Object.keys(a);
+  const keysB = Object.keys(b);
+  if (keysA.length !== keysB.length) return false;
+  for (const key of keysA) {
+    if (a[key] !== b[key]) return false;
+  }
+  return true;
+}
+
+/**
+ * Check if array/object has changed - optimized comparison
  */
 function hasComplexValueChanged<T>(prev: T | undefined, current: T | undefined): boolean {
   if (prev === current) {
     return false;
   }
+  if (!prev || !current) {
+    return true;
+  }
 
+  // For arrays, use efficient comparison
+  if (Array.isArray(prev) && Array.isArray(current)) {
+    return !arraysEqual(prev, current);
+  }
+
+  // For objects, try shallow comparison first (much faster)
+  if (typeof prev === 'object' && typeof current === 'object') {
+    if (!shallowEqual(prev as Record<string, unknown>, current as Record<string, unknown>)) {
+      return true;
+    }
+    // If shallow equal, they're likely the same (fallback to JSON only if needed)
+    return false;
+  }
+
+  // Fallback to JSON only for deeply nested structures (should be rare)
   return JSON.stringify(prev) !== JSON.stringify(current);
 }
 

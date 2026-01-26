@@ -30,7 +30,7 @@ let lastTime = 0;
 let _animationFrameId: number;
 let dpr = 1;
 
-const selfWorker = self as unknown as Worker;
+const selfWorker = globalThis as unknown as Worker;
 
 selfWorker.onmessage = (e: MessageEvent) => {
   const { type, payload } = e.data;
@@ -56,17 +56,19 @@ selfWorker.onmessage = (e: MessageEvent) => {
       break;
     }
 
-    case 'RESIZE':
+    case 'RESIZE': {
       width = payload.width;
       height = payload.height;
       dpr = payload.dpr || dpr;
 
-      if (ctx && ctx.canvas) {
-        ctx.canvas.width = width * dpr;
-        ctx.canvas.height = height * dpr;
-        ctx.scale(dpr, dpr);
+      const canvas = ctx?.canvas;
+      if (canvas) {
+        canvas.width = width * dpr;
+        canvas.height = height * dpr;
+        ctx?.scale(dpr, dpr);
       }
       break;
+    }
 
     case 'SPAWN':
       // Payload: { x, y, color, count, size, speed }
@@ -91,7 +93,7 @@ function spawnParticles(data: any) {
     const velocity = Math.random() * speed;
 
     particles.push({
-      id: Math.random().toString(36).substr(2, 9),
+      id: Math.random().toString(36).substring(2, 11),
       x,
       y,
       vx: Math.cos(angle) * velocity,
@@ -105,7 +107,7 @@ function spawnParticles(data: any) {
 
   // Limit particles for performance in the worker too
   if (particles.length > 200) {
-    particles = particles.slice(particles.length - 200);
+    particles = particles.slice(-200);
   }
 }
 

@@ -54,11 +54,21 @@ export function useGameLoop() {
 
     // Handle messages from worker
     worker.onmessage = (e: MessageEvent) => {
-      const { type, payload } = e.data;
+      const { type, payload, isFullUpdate } = e.data;
 
       switch (type) {
         case 'GAME_STATE_UPDATE':
+          // Legacy support - full state update
           setGameState(payload);
+          break;
+
+        case 'GAME_STATE_DELTA':
+          // Delta compression - apply only changes
+          // Both full update and delta use the same merge logic
+          setGameState((prev) => ({
+            ...prev,
+            ...payload,
+          }));
           break;
 
         case 'SPAWN_PARTICLES':

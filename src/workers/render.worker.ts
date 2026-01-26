@@ -25,6 +25,7 @@ let isEating = false;
 let speed = 150;
 let lastUpdate = 0;
 let isMobile = false;
+let isRenderDirty = false;
 
 // Animation State
 
@@ -411,7 +412,18 @@ const drawGuardianFlag = (flag: { position: Position; type: string }, cellSize: 
 };
 
 const render = () => {
-  if (!ctx) return;
+  if (!ctx) {
+    requestAnimationFrame(render);
+    return;
+  }
+
+  // Skip render if nothing changed
+  if (!isRenderDirty) {
+    requestAnimationFrame(render);
+    return;
+  }
+
+  isRenderDirty = false;
 
   // Time & Interpolation
   const now = performance.now();
@@ -545,15 +557,46 @@ const render = () => {
   requestAnimationFrame(render);
 };
 
+// Helper to convert ArrayBuffer to Position[]
+function bufferToPositions(buffer: ArrayBuffer, length: number): Position[] {
+  const array = new Float32Array(buffer);
+  const positions: Position[] = [];
+  for (let i = 0; i < length; i++) {
+    positions.push({ x: array[i * 2], y: array[i * 2 + 1] });
+  }
+  return positions;
+}
+
 const handleUpdate = (payload: any) => {
   // Check if actually changed
-  if (payload.snake) {
-    prevSnake = snake && snake.length > 0 ? snake : payload.snake;
-    snake = payload.snake || [];
+  if (payload.snake !== undefined) {
+    // Handle TypedArray transfer (new format) or regular array (legacy)
+    if (payload.snake instanceof ArrayBuffer) {
+      const newSnake = bufferToPositions(payload.snake, payload.snakeLength ?? 0);
+      prevSnake = snake && snake.length > 0 ? snake : newSnake;
+      snake = newSnake;
+    } else {
+      // Legacy format - regular array
+      prevSnake = snake && snake.length > 0 ? snake : payload.snake;
+      snake = payload.snake || [];
+    }
 
     if (payload.bossSnake) {
-      prevBossSnake = bossSnake ? bossSnake.positions : payload.bossSnake.positions;
-      bossSnake = payload.bossSnake;
+      if (payload.bossSnake instanceof ArrayBuffer) {
+        const bossPositions = bufferToPositions(
+          payload.bossSnake,
+          payload.bossSnakeLength ?? 0,
+        );
+        prevBossSnake = bossSnake ? bossSnake.positions : bossPositions;
+        bossSnake = {
+          positions: bossPositions,
+          direction: bossSnake?.direction ?? 'RIGHT',
+        };
+      } else {
+        // Legacy format
+        prevBossSnake = bossSnake ? bossSnake.positions : payload.bossSnake.positions;
+        bossSnake = payload.bossSnake;
+      }
     } else {
       bossSnake = null;
       prevBossSnake = [];
@@ -579,8 +622,10 @@ const handleUpdate = (payload: any) => {
       guardianFlag = payload.guardianFlag;
     }
 
+    // Handle shots - keep as regular array for now (less frequent updates)
     shots = payload.shots || [];
-    isEating = payload.isEating;
+
+    isEating = payload.isEating ?? false;
     speed = payload.speed || 150;
 
     if (payload.status) {
@@ -595,6 +640,7 @@ const handleUpdate = (payload: any) => {
     }
 
     lastUpdate = performance.now();
+    isRenderDirty = true; // Mark as dirty to trigger render
   }
 };
 

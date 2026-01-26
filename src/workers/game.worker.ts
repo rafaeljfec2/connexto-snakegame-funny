@@ -1,13 +1,28 @@
 /// <reference lib="webworker" />
 
-import { GameStatus, GameState, Direction, FoodType } from '@/types/game';
+import {
+  GameStatus,
+  GameState,
+  Direction,
+  FoodType,
+  Position,
+  Food,
+  Obstacle,
+  Portal,
+  BossSnake,
+} from '@/types/game';
 import {
   moveSnake,
   hasSelfCollision,
   hasFoodCollision,
   generateRandomFood,
 } from '@/utils/gameLogic';
-import { GAME_CONFIG, INITIAL_SNAKE_POSITION, INITIAL_DIRECTION } from '@/constants/game';
+import {
+  GAME_CONFIG,
+  INITIAL_SNAKE_POSITION,
+  INITIAL_DIRECTION,
+  PERFORMANCE_CONFIG,
+} from '@/constants/game';
 import { CHEFS } from '@/constants/phases';
 import { calculateGameSpeed } from '@/utils/difficulty';
 import { getActivePowerUps, getEffectiveGameSpeed, hasPhaseThrough } from '@/utils/powerUps';
@@ -15,7 +30,6 @@ import { hasObstacleCollision, getActiveObstacles } from '@/utils/obstacles';
 import { isLivesEnabled, addLife } from '@/utils/lives';
 import { initializeStatistics } from '@/utils/statistics';
 import { getPortalAtPosition, getPortalPair, getActivePortals } from '@/utils/portals';
-import { PERFORMANCE_CONFIG } from '@/constants/game';
 import { PORTAL_CONFIG } from '@/constants/portals';
 import { getCurrentPhase } from '@/utils/phases';
 import { handleBossDefeat } from '@/utils/bosses';
@@ -26,6 +40,12 @@ import { createPoisonShot } from '@/utils/poison';
 import { checkAchievements } from '@/utils/achievements';
 import { createPhaseStartSnapshot } from '@/utils/phaseStatistics';
 import { logger, LogContext } from '@/utils/logger';
+import {
+  updateFrameTime,
+  updateDeltaSize,
+  updateFramesSkipped,
+  logMetrics,
+} from '@/utils/performanceMetrics';
 import {
   resolveDirection,
   handleBossLogic,
@@ -46,8 +66,196 @@ let bossAbilityCooldowns = new Map<string, number>();
 let pendingPoisonShots: import('@/types/game').PoisonShot[] = [];
 let renderPort: MessagePort | null = null;
 
+// Frame skipping adaptive performance
+let frameTimeHistory: number[] = [];
+const FRAME_TIME_HISTORY_SIZE = 10;
+const TARGET_FRAME_TIME = 16.67; // 60fps
+const MAX_FRAME_TIME = TARGET_FRAME_TIME * 2; // Allow up to 2x target
+let skipOptionalEffects = false;
+let framesSkipped = 0;
+
 // Input buffer to handle rapid inputs between ticks
 let directionQueue: Direction[] = [];
+
+// Delta compression state
+let previousState: Partial<GameState> | null = null;
+let previousRenderState: {
+  snake: Position[];
+  bossSnake?: BossSnake;
+  shots: import('@/types/game').PoisonShot[];
+  food: Food | null;
+  obstacles: Obstacle[];
+  portals: Portal[];
+  activeBoss: { color: string; icon?: string; name?: string } | null;
+  guardianFlag: Food | null;
+  speed: number;
+  status: GameStatus;
+} | null = null;
+
+// Dirty flags for optimization
+let isStateDirty = false;
+let isRenderDirty = false;
+
+// Helper to check if arrays are equal (shallow comparison)
+function arraysEqual<T>(a: T[], b: T[]): boolean {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) return false;
+  }
+  return true;
+}
+
+// Helper to check if positions are equal
+function positionsEqual(a: Position | undefined, b: Position | undefined): boolean {
+  if (!a || !b) return a === b;
+  return a.x === b.x && a.y === b.y;
+}
+
+// Helper to check if arrays of positions are equal
+function positionArraysEqual(a: Position[], b: Position[]): boolean {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    if (!positionsEqual(a[i], b[i])) return false;
+  }
+  return true;
+}
+
+// Convert Position[] to Float32Array for efficient transfer
+function positionsToTypedArray(positions: Position[]): Float32Array {
+  const array = new Float32Array(positions.length * 2);
+  for (let i = 0; i < positions.length; i++) {
+    array[i * 2] = positions[i].x;
+    array[i * 2 + 1] = positions[i].y;
+  }
+  return array;
+}
+
+// Convert Float32Array back to Position[]
+function typedArrayToPositions(array: Float32Array): Position[] {
+  const positions: Position[] = [];
+  for (let i = 0; i < array.length; i += 2) {
+    positions.push({ x: array[i], y: array[i + 1] });
+  }
+  return positions;
+}
+
+// Compute delta between previous and current state
+function computeDelta(prev: Partial<GameState> | null, current: GameState): Partial<GameState> {
+  if (!prev) return current; // First update, send everything
+
+  const delta: Partial<GameState> = {};
+
+  // Only include changed properties
+  if (prev.snake !== current.snake && !positionArraysEqual(prev.snake ?? [], current.snake)) {
+    delta.snake = current.snake;
+  }
+  if (prev.food !== current.food) {
+    if (
+      !prev.food ||
+      !current.food ||
+      prev.food.position.x !== current.food.position.x ||
+      prev.food.position.y !== current.food.position.y ||
+      prev.food.type !== current.food.type
+    ) {
+      delta.food = current.food;
+    }
+  }
+  if (prev.direction !== current.direction) delta.direction = current.direction;
+  if (prev.nextDirection !== current.nextDirection) delta.nextDirection = current.nextDirection;
+  if (prev.status !== current.status) delta.status = current.status;
+  if (prev.score !== current.score) delta.score = current.score;
+  if (prev.highScore !== current.highScore) delta.highScore = current.highScore;
+  if (prev.level !== current.level) delta.level = current.level;
+  if (prev.gameSpeed !== current.gameSpeed) delta.gameSpeed = current.gameSpeed;
+  if (prev.lives !== current.lives) delta.lives = current.lives;
+  if (prev.isSpeedBoosted !== current.isSpeedBoosted) delta.isSpeedBoosted = current.isSpeedBoosted;
+  if (prev.isFiringPoison !== current.isFiringPoison) delta.isFiringPoison = current.isFiringPoison;
+
+  // Arrays - check if changed
+  if (
+    prev.obstacles !== current.obstacles &&
+    JSON.stringify(prev.obstacles) !== JSON.stringify(current.obstacles)
+  ) {
+    delta.obstacles = current.obstacles;
+  }
+  if (
+    prev.portals !== current.portals &&
+    JSON.stringify(prev.portals) !== JSON.stringify(current.portals)
+  ) {
+    delta.portals = current.portals;
+  }
+  if (
+    prev.poisonShots !== current.poisonShots &&
+    JSON.stringify(prev.poisonShots) !== JSON.stringify(current.poisonShots)
+  ) {
+    delta.poisonShots = current.poisonShots;
+  }
+  if (
+    prev.activePowerUps !== current.activePowerUps &&
+    JSON.stringify(prev.activePowerUps) !== JSON.stringify(current.activePowerUps)
+  ) {
+    delta.activePowerUps = current.activePowerUps;
+  }
+  if (
+    prev.combo !== current.combo &&
+    (prev.combo?.count !== current.combo.count ||
+      prev.combo?.multiplier !== current.combo.multiplier)
+  ) {
+    delta.combo = current.combo;
+  }
+  if (prev.currentPhase !== current.currentPhase) delta.currentPhase = current.currentPhase;
+  if (prev.phaseLevelType !== current.phaseLevelType) delta.phaseLevelType = current.phaseLevelType;
+  if (prev.activeBoss?.id !== current.activeBoss?.id) delta.activeBoss = current.activeBoss;
+  if (
+    prev.bossSnake !== current.bossSnake &&
+    JSON.stringify(prev.bossSnake) !== JSON.stringify(current.bossSnake)
+  ) {
+    delta.bossSnake = current.bossSnake;
+  }
+  if (
+    prev.guardianFlag !== current.guardianFlag &&
+    JSON.stringify(prev.guardianFlag) !== JSON.stringify(current.guardianFlag)
+  ) {
+    delta.guardianFlag = current.guardianFlag;
+  }
+  if (
+    prev.achievements !== current.achievements &&
+    JSON.stringify(prev.achievements) !== JSON.stringify(current.achievements)
+  ) {
+    delta.achievements = current.achievements;
+  }
+
+  return delta;
+}
+
+// Shallow copy helper for state tracking
+function shallowCopyState(state: GameState): Partial<GameState> {
+  return {
+    snake: state.snake,
+    food: state.food,
+    direction: state.direction,
+    nextDirection: state.nextDirection,
+    status: state.status,
+    score: state.score,
+    highScore: state.highScore,
+    level: state.level,
+    gameSpeed: state.gameSpeed,
+    lives: state.lives,
+    obstacles: state.obstacles,
+    portals: state.portals,
+    poisonShots: state.poisonShots,
+    activePowerUps: state.activePowerUps,
+    combo: state.combo,
+    currentPhase: state.currentPhase,
+    phaseLevelType: state.phaseLevelType,
+    activeBoss: state.activeBoss,
+    bossSnake: state.bossSnake,
+    guardianFlag: state.guardianFlag,
+    isSpeedBoosted: state.isSpeedBoosted,
+    isFiringPoison: state.isFiringPoison,
+    achievements: state.achievements,
+  };
+}
 
 // Initialize Game State
 function initGame() {
@@ -55,6 +263,10 @@ function initGame() {
   logger.info({ context: LogContext.GAME_STATE }, 'Initializing game state');
 
   directionQueue = []; // Clear queue on init
+  previousState = null; // Reset delta compression state
+  previousRenderState = null; // Reset render state
+  isStateDirty = true; // Force full update on init
+  isRenderDirty = true; // Force render update on init
 
   gameState = {
     snake: [...INITIAL_SNAKE_POSITION],
@@ -464,36 +676,101 @@ function handleSetPhaseComplete(defeatedBossPhaseNumber?: number) {
 function broadcastState() {
   if (!gameState) return;
 
-  // Send to Main Thread (UI Updates)
-  self.postMessage({
-    type: 'GAME_STATE_UPDATE',
-    payload: gameState,
-  });
+  // Compute delta for Main Thread (UI Updates)
+  const delta = computeDelta(previousState, gameState);
+  const hasChanges = Object.keys(delta).length > 0;
 
-  // Send to Render Worker (High Frequency)
-  if (renderPort) {
-    renderPort.postMessage({
-      type: 'UPDATE',
-      payload: {
-        snake: gameState.snake,
-        bossSnake: gameState.bossSnake,
-        shots: gameState.poisonShots,
-        food: gameState.food,
-        obstacles: gameState.obstacles,
-        portals: gameState.portals,
-        activeBoss: gameState.activeBoss
-          ? {
-              color: gameState.activeBoss.visual.color,
-              icon: gameState.activeBoss.visual.icon,
-              name: gameState.activeBoss.name,
-            }
-          : null,
-        guardianFlag: gameState.guardianFlag,
-        isEating: false, // Animation handled locally or ignored for now
-        speed: gameState.gameSpeed, // effective speed might be better?
-        status: gameState.status,
-      },
+  if (hasChanges || !previousState) {
+    // Estimate delta size for metrics
+    const deltaSize = JSON.stringify(delta).length;
+    updateDeltaSize(deltaSize);
+
+    // Send delta to Main Thread
+    self.postMessage({
+      type: 'GAME_STATE_DELTA',
+      payload: delta,
+      isFullUpdate: !previousState, // First update sends everything
     });
+
+    // Update previous state
+    previousState = shallowCopyState(gameState);
+    isStateDirty = false;
+  }
+
+  // Send to Render Worker (High Frequency) - only if visual state changed
+  if (renderPort) {
+    const currentRenderState = {
+      snake: gameState.snake,
+      bossSnake: gameState.bossSnake,
+      shots: gameState.poisonShots,
+      food: gameState.food,
+      obstacles: gameState.obstacles,
+      portals: gameState.portals,
+      activeBoss: gameState.activeBoss
+        ? {
+            color: gameState.activeBoss.visual.color,
+            icon: gameState.activeBoss.visual.icon,
+            name: gameState.activeBoss.name,
+          }
+        : null,
+      guardianFlag: gameState.guardianFlag,
+      speed: gameState.gameSpeed,
+      status: gameState.status,
+    };
+
+    // Check if render state changed
+    const renderChanged =
+      !previousRenderState ||
+      !positionArraysEqual(previousRenderState.snake, currentRenderState.snake) ||
+      JSON.stringify(previousRenderState.bossSnake) !==
+        JSON.stringify(currentRenderState.bossSnake) ||
+      JSON.stringify(previousRenderState.shots) !== JSON.stringify(currentRenderState.shots) ||
+      JSON.stringify(previousRenderState.food) !== JSON.stringify(currentRenderState.food) ||
+      JSON.stringify(previousRenderState.obstacles) !==
+        JSON.stringify(currentRenderState.obstacles) ||
+      JSON.stringify(previousRenderState.portals) !== JSON.stringify(currentRenderState.portals) ||
+      JSON.stringify(previousRenderState.activeBoss) !==
+        JSON.stringify(currentRenderState.activeBoss) ||
+      JSON.stringify(previousRenderState.guardianFlag) !==
+        JSON.stringify(currentRenderState.guardianFlag) ||
+      previousRenderState.speed !== currentRenderState.speed ||
+      previousRenderState.status !== currentRenderState.status;
+
+    if (renderChanged || isRenderDirty) {
+      // Convert positions to TypedArrays for efficient transfer
+      const snakeArray = positionsToTypedArray(currentRenderState.snake);
+      const bossSnakeArray = currentRenderState.bossSnake
+        ? positionsToTypedArray(currentRenderState.bossSnake.positions)
+        : null;
+
+      // Use transferable objects for zero-copy transfer
+      const transferList: ArrayBuffer[] = [snakeArray.buffer];
+      if (bossSnakeArray) transferList.push(bossSnakeArray.buffer);
+
+      renderPort.postMessage(
+        {
+          type: 'UPDATE',
+          payload: {
+            snake: snakeArray.buffer,
+            snakeLength: currentRenderState.snake.length,
+            bossSnake: bossSnakeArray ? bossSnakeArray.buffer : null,
+            bossSnakeLength: currentRenderState.bossSnake?.positions.length ?? 0,
+            shots: currentRenderState.shots, // Keep as regular array (less frequent)
+            food: currentRenderState.food,
+            obstacles: currentRenderState.obstacles,
+            portals: currentRenderState.portals,
+            activeBoss: currentRenderState.activeBoss,
+            guardianFlag: currentRenderState.guardianFlag,
+            isEating: false,
+            speed: currentRenderState.speed,
+            status: currentRenderState.status,
+          },
+        },
+        transferList,
+      );
+      previousRenderState = currentRenderState;
+      isRenderDirty = false;
+    }
   }
 }
 
@@ -501,7 +778,9 @@ function startGameLoop() {
   if (gameLoopId) return;
 
   function loop() {
-    const now = performance.now();
+    const frameStart = performance.now();
+    const now = frameStart;
+    
     if (gameState && gameState.status === GameStatus.PLAYING) {
       const activePowerUps = getActivePowerUps(gameState.activePowerUps);
       let effectiveSpeed = getEffectiveGameSpeed(gameState.gameSpeed, activePowerUps);
@@ -515,9 +794,37 @@ function startGameLoop() {
       if (timeSinceLastUpdate >= effectiveSpeed) {
         updateGame(now);
         lastUpdateTime = now;
+        // broadcastState checks dirty flags internally
         broadcastState();
       }
     }
+
+    // Track frame time for adaptive performance
+    const frameTime = performance.now() - frameStart;
+    frameTimeHistory.push(frameTime);
+    if (frameTimeHistory.length > FRAME_TIME_HISTORY_SIZE) {
+      frameTimeHistory.shift();
+    }
+
+    // Calculate average frame time
+    const avgFrameTime =
+      frameTimeHistory.reduce((a, b) => a + b, 0) / frameTimeHistory.length;
+
+    // Enable frame skipping if average frame time is too high
+    skipOptionalEffects = avgFrameTime > MAX_FRAME_TIME;
+    if (skipOptionalEffects && frameTime > TARGET_FRAME_TIME * 1.5) {
+      framesSkipped++;
+    }
+
+    // Update performance metrics
+    updateFrameTime(frameTime);
+    updateFramesSkipped(framesSkipped);
+
+    // Log metrics every 60 frames (1 second at 60fps)
+    if (framesSkipped % 60 === 0) {
+      logMetrics();
+    }
+
     gameLoopId = requestAnimationFrame(loop);
   }
 
@@ -641,10 +948,12 @@ function updateGame(currentTime: number) {
     GAME_CONFIG.enableParticles,
   );
 
-  // Handle particles from food
-  foodResult.particlesToSpawn.forEach((p) => {
-    self.postMessage({ type: 'SPAWN_PARTICLES', payload: p });
-  });
+  // Handle particles from food (skip if performance is low)
+  if (!skipOptionalEffects || framesSkipped % 2 === 0) {
+    foodResult.particlesToSpawn.forEach((p) => {
+      self.postMessage({ type: 'SPAWN_PARTICLES', payload: p });
+    });
+  }
 
   // 6. Boss Logic
   const bossLogicResult = handleBossLogic(
@@ -813,4 +1122,8 @@ function updateGame(currentTime: number) {
     activeBoss: stateUpdates.activeBoss,
     bossSnake: stateUpdates.bossSnake,
   };
+
+  // Mark state as dirty for broadcast
+  isStateDirty = true;
+  isRenderDirty = true;
 }

@@ -43,8 +43,9 @@ npm install
    - **F3** ou **Ctrl+F**: Abrir painel de debug de fases
 
 3. **Controles Mobile:**
-   - **Joystick Analógico** (esquerda): Controle preciso de direção
-   - **Botão FIRE** (direita): Dispara veneno para destruir obstáculos e bosses
+   - **D-pad Direcional**: Setas para cima, baixo, esquerda e direita
+   - **Botão Central (♥)**: Dispara veneno para destruir obstáculos e bosses
+   - **Botão START**: Centralizado no grid do jogo, desaparece durante gameplay
    - **Feedback Tátil**: Vibração ao interagir
    - Controles sempre visíveis e otimizados para touch
 
@@ -137,10 +138,13 @@ Cada fase possui um boss único com habilidades especiais:
 
 - **Design Moderno** - Interface dark mode com gradientes e efeitos visuais
 - **Totalmente Responsiva** - Otimizado para desktop, tablet e mobile
-- **Controles Touch Avançados** - Joystick analógico e botão de fogo para mobile
+- **Layout Mobile-First** - Interface redesenhada com foco em dispositivos móveis
+- **Controles Touch Avançados** - D-pad direcional e botão de fogo para mobile
+- **Safe Areas** - Suporte a notches e barras de navegação (iOS/Android)
 - **Animações Suaves** - Transições e animações em todos os elementos
 - **Layout Game-Like** - Interface estilo jogo com HUD integrado
 - **Efeitos Visuais Dinâmicos** - Backgrounds e efeitos que mudam por fase
+- **Botão START Contextual** - Visível apenas quando necessário, centralizado no grid
 
 ### 🔧 Funcionalidades Técnicas
 
@@ -153,6 +157,10 @@ Cada fase possui um boss único com habilidades especiais:
   - Otimizações para 60 FPS estáveis.
   - Remoção de sombras pesadas em mobile.
   - Batching de atualizações de estado.
+- **Safe Areas (iOS/Android)**:
+  - Suporte completo a `env(safe-area-inset-*)` para notches e barras de navegação.
+  - `viewport-fit=cover` para tela cheia em dispositivos modernos.
+  - Padding dinâmico que respeita as áreas seguras do dispositivo.
 - Sistema de salvamento automático (high score e conquistas)
 - Sistema de logging estruturado com Pino para debugging
 - Grid responsivo que se adapta ao tamanho da tela
@@ -207,8 +215,43 @@ O jogo é totalmente responsivo e otimizado para dispositivos móveis:
 
 - **Performance 60 FPS**: Graças à arquitetura de Workers e OffscreenCanvas.
 - **Grid Adaptativo**: Ajusta-se perfeitamente a qualquer tamanho de tela.
-- **Controles Touch Nativos**: Joystick e botões otimizados.
+- **Controles Touch Nativos**: D-pad direcional com botão central de ação.
 - **Prevenção de Gestos**: Bloqueio de zoom e pull-to-refresh acidentais.
+- **Safe Areas (iOS/Android)**: Suporte completo a notches, barras de navegação e gestos do sistema.
+- **Layout Mobile-First**: Interface redesenhada especificamente para dispositivos móveis.
+
+### 📐 Layout Mobile Otimizado
+
+O layout mobile foi completamente reformulado para melhor experiência:
+
+```
+┌─────────────────────────────────┐
+│  LEVEL: 1 │ SCORE: 0 │ HIGH: 665│  ← Header (GameInfo)
+├─────────────────────────────────┤
+│                                 │
+│    ┌───────────────────────┐    │
+│    │                       │    │
+│    │      GAME GRID        │    │
+│    │                       │    │
+│    │       [START]         │    │  ← Botão centralizado no grid
+│    │                       │    │
+│    │                       │    │
+│    └───────────────────────┘    │
+│                                 │
+│  🐍 LENGTH: 3 │ ❤️ │ ⭐ Phase 1  │  ← StatusBar
+│                                 │
+│           [↑]                   │
+│       [←] [♥] [→]               │  ← D-pad Controls
+│           [↓]                   │
+└─────────────────────────────────┘
+```
+
+**Características do Layout:**
+- **Header Compacto**: Exibe apenas informações essenciais (Level, Score, High Score)
+- **Grid Centralizado**: Área de jogo maximizada e centralizada
+- **Botão START no Grid**: Posicionado no centro do grid para fácil acesso
+- **StatusBar Abaixo do Grid**: Informações de status (Length, Lives, Phase) abaixo da área de jogo
+- **D-pad na Base**: Controles direcionais posicionados para ergonomia
 
 ## 🐛 Debug Mode
 
@@ -235,6 +278,30 @@ Consulte os documentos em `docs/` para mais detalhes:
 - `LOGGING_SYSTEM.md`
 - `PERFORMANCE_OPTIMIZATION_PLAN.md`
 - `SISTEMA_COMBATE_BOSS.md`
+
+## 📈 Evolução Recente
+
+### v2.0 - Layout Mobile Redesenhado
+- **Safe Areas**: Implementação completa de suporte a safe areas para iOS e Android
+- **Layout Reformulado**: Nova hierarquia visual mobile-first
+  - Header compacto com informações essenciais (Level, Score, High Score)
+  - StatusBar reposicionado abaixo do grid do jogo
+  - Botão START centralizado no centro do grid
+  - D-pad posicionado na base para melhor ergonomia
+- **Botão START Inteligente**: Desaparece automaticamente durante o jogo
+- **Overflow Controlado**: Conteúdo do header e StatusBar não trunca mais
+- **Espaçamento Otimizado**: Gaps e paddings ajustados para diferentes tamanhos de tela
+
+### v1.5 - Arquitetura Multi-Thread
+- Web Workers para lógica do jogo, renderização, clima e partículas
+- OffscreenCanvas para renderização gráfica fora da thread principal
+- Performance estável de 60 FPS em dispositivos móveis
+
+### v1.0 - Lançamento Inicial
+- Sistema de 10 fases com bosses únicos
+- Power-ups e mecânicas especiais
+- Internacionalização (PT-BR e EN-US)
+- Efeitos climáticos dinâmicos por fase
 
 ## 📝 Licença
 

@@ -18,18 +18,31 @@ let metrics: PerformanceMetrics = {
   framesSkipped: 0,
 };
 
-let frameTimeHistory: number[] = [];
+// Circular buffer for frame time history - optimized implementation
 const METRICS_HISTORY_SIZE = 60; // 1 second at 60fps
+const frameTimeHistory: number[] = new Array(METRICS_HISTORY_SIZE).fill(0);
+let frameTimeHistoryIndex = 0;
+let frameTimeHistoryCount = 0;
+let frameTimeSum = 0;
 
 export function updateFrameTime(frameTime: number): void {
-  frameTimeHistory.push(frameTime);
-  if (frameTimeHistory.length > METRICS_HISTORY_SIZE) {
-    frameTimeHistory.shift();
+  // Circular buffer: replace oldest entry
+  const oldValue = frameTimeHistory[frameTimeHistoryIndex] ?? 0;
+  frameTimeHistory[frameTimeHistoryIndex] = frameTime;
+  frameTimeHistoryIndex = (frameTimeHistoryIndex + 1) % METRICS_HISTORY_SIZE;
+
+  // Update sum incrementally (O(1) instead of O(n) reduce)
+  if (frameTimeHistoryCount < METRICS_HISTORY_SIZE) {
+    frameTimeSum += frameTime;
+    frameTimeHistoryCount++;
+  } else {
+    frameTimeSum = frameTimeSum - oldValue + frameTime;
   }
 
   metrics.frameTime = frameTime;
-  metrics.avgFrameTime = frameTimeHistory.reduce((a, b) => a + b, 0) / frameTimeHistory.length;
-  metrics.fps = 1000 / metrics.avgFrameTime;
+  metrics.avgFrameTime =
+    frameTimeHistoryCount > 0 ? frameTimeSum / frameTimeHistoryCount : frameTime;
+  metrics.fps = metrics.avgFrameTime > 0 ? 1000 / metrics.avgFrameTime : 0;
 }
 
 export function updateDeltaSize(size: number): void {
@@ -52,7 +65,12 @@ export function getMetrics(): PerformanceMetrics {
 }
 
 export function resetMetrics(): void {
-  frameTimeHistory = [];
+  // Reset circular buffer
+  frameTimeHistory.fill(0);
+  frameTimeHistoryIndex = 0;
+  frameTimeHistoryCount = 0;
+  frameTimeSum = 0;
+
   metrics = {
     frameTime: 0,
     avgFrameTime: 0,

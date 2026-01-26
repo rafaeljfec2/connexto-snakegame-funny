@@ -50,32 +50,69 @@ export function generateObstacles(
     }));
 
     // Check if positions are valid (not on snake, not on existing obstacles)
-    const isValid = newObstaclePositions.every((pos) => {
+    // Optimized with early returns and Set for O(1) lookups
+    const obstaclePositionsSet = new Set<string>();
+    const obstaclesLength = obstacles.length;
+    for (let i = 0; i < obstaclesLength; i++) {
+      const obs = obstacles[i];
+      if (obs) {
+        obstaclePositionsSet.add(`${obs.position.x},${obs.position.y}`);
+      }
+    }
+
+    const snakePositionsSet = new Set<string>();
+    const snakeLength = snake.length;
+    for (let i = 0; i < snakeLength; i++) {
+      const segment = snake[i];
+      if (segment) {
+        snakePositionsSet.add(`${segment.x},${segment.y}`);
+      }
+    }
+
+    let isValid = true;
+    const positionsLength = newObstaclePositions.length;
+    for (let i = 0; i < positionsLength; i++) {
+      const pos = newObstaclePositions[i];
+      if (!pos) {
+        isValid = false;
+        break;
+      }
+
+      // Check bounds
       if (pos.x < 0 || pos.x >= gridSize || pos.y < 0 || pos.y >= gridSize) {
-        return false;
+        isValid = false;
+        break;
       }
 
-      // Check minimum distance from ANY snake segment (not just head)
-      const minDistanceFromSnake = snake.reduce((minDist, segment) => {
-        const distance = Math.abs(pos.x - segment.x) + Math.abs(pos.y - segment.y);
-        return Math.min(minDist, distance);
-      }, Infinity);
+      // Check minimum distance from ANY snake segment (not just head) - optimized loop
+      let minDistanceFromSnake = Infinity;
+      for (let j = 0; j < snakeLength; j++) {
+        const segment = snake[j];
+        if (segment) {
+          const distance = Math.abs(pos.x - segment.x) + Math.abs(pos.y - segment.y);
+          if (distance < minDistanceFromSnake) {
+            minDistanceFromSnake = distance;
+          }
+        }
+      }
       if (minDistanceFromSnake < OBSTACLE_CONFIG.minDistanceFromSnake) {
-        return false;
+        isValid = false;
+        break;
       }
 
-      // Check if overlaps with existing obstacles
-      const overlaps = obstacles.some(
-        (obs) => obs.position.x === pos.x && obs.position.y === pos.y,
-      );
-      if (overlaps) {
-        return false;
+      // Check if overlaps with existing obstacles - O(1) lookup
+      const posKey = `${pos.x},${pos.y}`;
+      if (obstaclePositionsSet.has(posKey)) {
+        isValid = false;
+        break;
       }
 
-      // Check if overlaps with snake
-      const onSnake = snake.some((segment) => segment.x === pos.x && segment.y === pos.y);
-      return !onSnake;
-    });
+      // Check if overlaps with snake - O(1) lookup
+      if (snakePositionsSet.has(posKey)) {
+        isValid = false;
+        break;
+      }
+    }
 
     if (isValid) {
       // Add obstacles for this pattern
@@ -101,16 +138,63 @@ export function generateObstacles(
   return obstacles;
 }
 
-export function hasObstacleCollision(head: Position, obstacles: Obstacle[]): boolean {
-  return obstacles.some(
-    (obstacle) => obstacle.position.x === head.x && obstacle.position.y === head.y,
-  );
+/**
+ * Create a Set of obstacle positions for O(1) lookup
+ * Key format: "x,y"
+ */
+export function createObstacleSet(obstacles: Obstacle[]): Set<string> {
+  const obstacleSet = new Set<string>();
+  const obstaclesLength = obstacles.length;
+  for (let i = 0; i < obstaclesLength; i++) {
+    const obstacle = obstacles[i];
+    if (obstacle) {
+      obstacleSet.add(`${obstacle.position.x},${obstacle.position.y}`);
+    }
+  }
+  return obstacleSet;
 }
 
 /**
- * Filter out expired temporary obstacles
+ * Check if head position collides with obstacles
+ * Optimized to accept Set for O(1) lookup when available
+ */
+export function hasObstacleCollision(head: Position, obstacles: Obstacle[] | Set<string>): boolean {
+  // If Set is provided, use O(1) lookup
+  if (obstacles instanceof Set) {
+    return obstacles.has(`${head.x},${head.y}`);
+  }
+
+  // Fallback to array search (O(n)) for backward compatibility
+  const obstaclesLength = obstacles.length;
+  for (let i = 0; i < obstaclesLength; i++) {
+    const obstacle = obstacles[i];
+    if (obstacle && obstacle.position.x === head.x && obstacle.position.y === head.y) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Filter out expired temporary obstacles - optimized with early return
  */
 export function getActiveObstacles(obstacles: Obstacle[]): Obstacle[] {
+  // Early return if no obstacles
+  if (obstacles.length === 0) {
+    return obstacles;
+  }
+
+  // Check if there are any temporary obstacles before filtering
+  const hasTemporaryObstacles = obstacles.some(
+    (obstacle) => obstacle.type === 'temporary' && obstacle.expiresAt !== undefined,
+  );
+
+  // If no temporary obstacles, return original array (no filtering needed)
+  if (!hasTemporaryObstacles) {
+    return obstacles;
+  }
+
+  // Only filter if there are temporary obstacles
   const now = Date.now();
   return obstacles.filter((obstacle) => {
     if (obstacle.type === 'temporary' && obstacle.expiresAt) {

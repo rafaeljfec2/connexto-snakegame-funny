@@ -3,7 +3,7 @@ import { GAME_CONFIG, PERFORMANCE_CONFIG } from '@/constants/game';
 import { PORTAL_CONFIG } from '@/constants/portals';
 import { moveSnake, hasSelfCollision, hasFoodCollision } from '@/utils/gameLogic';
 import { getActivePowerUps, hasPhaseThrough } from '@/utils/powerUps';
-import { hasObstacleCollision, getActiveObstacles } from '@/utils/obstacles';
+import { hasObstacleCollision, getActiveObstacles, createObstacleSet } from '@/utils/obstacles';
 import { isLivesEnabled, addLife } from '@/utils/lives';
 import { initializeStatistics } from '@/utils/statistics';
 import { getPortalAtPosition, getPortalPair, getActivePortals } from '@/utils/portals';
@@ -29,6 +29,8 @@ export interface UpdateContext {
   lastPoisonFireTime: number;
   skipOptionalEffects: boolean;
   framesSkipped: number;
+  activePowerUps?: import('@/types/game').ActivePowerUp[];
+  currentTime?: number;
 }
 
 export interface UpdateResult {
@@ -83,7 +85,7 @@ function handleCollision(
   headPosition: Position | undefined,
   snake: Position[],
   gameState: GameState,
-  activeObstacles: import('@/types/game').Obstacle[],
+  activeObstacles: import('@/types/game').Obstacle[] | Set<string>,
   canPhaseThrough: boolean,
 ): GameState | null {
   if (!headPosition) return null;
@@ -315,11 +317,13 @@ function handleAchievements(
 /**
  * Core game update logic
  */
-export function updateGameLogic(context: UpdateContext, currentTime: number): UpdateResult {
+export function updateGameLogic(context: UpdateContext, performanceTime: number): UpdateResult {
   const prev = context.gameState;
 
-  // 1. Resolve Direction
-  const activePowerUps = getActivePowerUps(prev.activePowerUps);
+  // 1. Resolve Direction - use cached activePowerUps if available, otherwise calculate
+  const activePowerUps = context.activePowerUps ?? getActivePowerUps(prev.activePowerUps);
+  // Use cached currentTime (Date.now()) if available, otherwise use performanceTime
+  const currentTime = context.currentTime ?? performanceTime;
   const nextInput =
     context.directionQueue.length > 0 ? (context.directionQueue.shift() ?? null) : null;
   const currentDirection = resolveDirection(
@@ -339,16 +343,20 @@ export function updateGameLogic(context: UpdateContext, currentTime: number): Up
   const finalSnake = portalResult.finalSnake;
   const headPosition = portalResult.headPosition;
 
-  // 4. Check Collisions
+  // 4. Check Collisions - use cached obstacle Set for O(1) lookup
   const activeObstacles =
     prev.obstacles.length > 0 ? getActiveObstacles(prev.obstacles) : prev.obstacles;
   const canPhaseThrough = hasPhaseThrough(activePowerUps);
+
+  // Create obstacle Set for O(1) collision detection (only if obstacles exist)
+  const obstacleSet =
+    activeObstacles.length > 0 ? createObstacleSet(activeObstacles) : new Set<string>();
 
   const collisionState = handleCollision(
     headPosition,
     finalSnake,
     prev,
-    activeObstacles,
+    obstacleSet,
     canPhaseThrough,
   );
   if (collisionState) {
@@ -517,7 +525,18 @@ export function updateGameLogic(context: UpdateContext, currentTime: number): Up
     gameSpeed: stateUpdates.baseGameSpeed,
     activePowerUps: foodResult.newActivePowerUps,
     obstacles: stateUpdates.newObstacles,
-    portals: [...poisonUpdate.newBossState.newPortals, ...foodResult.newPortals],
+    portals: (() => {
+      const bossPortals = poisonUpdate.newBossState.newPortals;
+      const foodPortals = foodResult.newPortals;
+      // Optimize: avoid spreading if one array is empty
+      if (bossPortals.length === 0) return foodPortals;
+      if (foodPortals.length === 0) return bossPortals;
+      // Only create new array if both have items
+      const combined: typeof bossPortals = [];
+      combined.push(...bossPortals);
+      combined.push(...foodPortals);
+      return combined;
+    })(),
     combo: foodResult.newCombo,
     guardianFlag: stateUpdates.newGuardianFlag ?? poisonUpdate.newBossState.guardianFlag,
     guardianFlagSide: poisonUpdate.newBossState.guardianFlagSide,

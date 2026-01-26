@@ -211,7 +211,11 @@ function startGameLoop() {
   function loop() {
     const frameStart = performance.now();
     const now = frameStart;
+    // Cache Date.now() once per frame
+    const currentTime = Date.now();
+
     if (gameState && gameState.status === GameStatus.PLAYING) {
+      // Cache activePowerUps calculation - used in both speed calculation and updateGame
       const activePowerUps = getActivePowerUps(gameState.activePowerUps);
       let effectiveSpeed = getEffectiveGameSpeed(gameState.gameSpeed, activePowerUps);
 
@@ -222,7 +226,8 @@ function startGameLoop() {
       const timeSinceLastUpdate = now - lastUpdateTime;
 
       if (timeSinceLastUpdate >= effectiveSpeed) {
-        updateGame(now);
+        // Pass cached activePowerUps and currentTime to avoid recalculation
+        updateGame(now, currentTime, activePowerUps);
         lastUpdateTime = now;
         // broadcastState checks dirty flags internally
         broadcastState();
@@ -264,7 +269,11 @@ function stopGameLoop() {
 import { updateGameLogic, type UpdateContext } from './game/gameUpdate';
 
 // Core Game Update Logic
-function updateGame(currentTime: number) {
+function updateGame(
+  performanceTime: number,
+  currentTime: number,
+  activePowerUps: ReturnType<typeof getActivePowerUps>,
+) {
   if (!gameState) return;
 
   const updateContext: UpdateContext = {
@@ -277,9 +286,11 @@ function updateGame(currentTime: number) {
     lastPoisonFireTime,
     skipOptionalEffects,
     framesSkipped,
+    activePowerUps,
+    currentTime,
   };
 
-  const result = updateGameLogic(updateContext, currentTime);
+  const result = updateGameLogic(updateContext, performanceTime);
 
   gameState = result.newGameState;
   bossAbilityCooldowns = result.newBossAbilityCooldowns;

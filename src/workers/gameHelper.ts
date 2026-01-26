@@ -9,6 +9,7 @@ import {
   BossSnake,
   Food,
   ActivePowerUp,
+  PoisonShot,
 } from '@/types/game';
 import { Chef } from '@/types/phases';
 import type { GameStatisticsTracking } from '@/types/statistics';
@@ -259,37 +260,65 @@ function updateGuardianFlagPosition(result: BossLogicResult, bossSnake: BossSnak
 }
 
 /**
+ * Merge new obstacles into existing list avoiding duplicates
+ */
+function mergeObstacles(existing: Obstacle[], newObs: Obstacle[]): void {
+  if (newObs.length === 0) return;
+
+  const existingMap = new Map<string, boolean>();
+  const len = existing.length;
+  for (let i = 0; i < len; i++) {
+    const o = existing[i];
+    if (o) existingMap.set(`${o.position.x},${o.position.y}`, true);
+  }
+
+  const newLen = newObs.length;
+  for (let i = 0; i < newLen; i++) {
+    const o = newObs[i];
+    if (!o) continue;
+    const key = `${o.position.x},${o.position.y}`;
+    if (!existingMap.has(key)) {
+      existing.push(o);
+      existingMap.set(key, true);
+    }
+  }
+}
+
+/**
+ * Apply simple ability effects (portals, speed, lives, food type)
+ */
+function applySimpleEffects(
+  effectResult: ReturnType<typeof processBossAbilities>['result'],
+  result: BossLogicResult,
+): void {
+  if (effectResult.portals) {
+    result.newPortals = [...result.newPortals, ...effectResult.portals];
+  }
+  if (effectResult.gameSpeed !== undefined) {
+    result.baseGameSpeed = effectResult.gameSpeed;
+  }
+  if (effectResult.lives !== undefined) {
+    result.newLives = effectResult.lives;
+  }
+  if (effectResult.forceFoodType && effectResult.foodType) {
+    result.forcedFoodType = effectResult.foodType;
+  }
+}
+
+/**
  * Apply ability effects to result
  */
 function applyAbilityEffects(
   abilityResult: ReturnType<typeof processBossAbilities>,
   result: BossLogicResult,
 ): void {
-  if (abilityResult.result.obstacles && abilityResult.result.obstacles.length > 0) {
-    const existingMap = new Map<string, Obstacle>();
-    result.newObstacles.forEach((o) => existingMap.set(`${o.position.x},${o.position.y}`, o));
+  const effectResult = abilityResult.result;
 
-    abilityResult.result.obstacles.forEach((o) => {
-      const key = `${o.position.x},${o.position.y}`;
-      if (!existingMap.has(key)) {
-        result.newObstacles.push(o);
-        existingMap.set(key, o);
-      }
-    });
+  if (effectResult.obstacles && effectResult.obstacles.length > 0) {
+    mergeObstacles(result.newObstacles, effectResult.obstacles);
   }
 
-  if (abilityResult.result.portals) {
-    result.newPortals = [...result.newPortals, ...abilityResult.result.portals];
-  }
-  if (abilityResult.result.gameSpeed !== undefined) {
-    result.baseGameSpeed = abilityResult.result.gameSpeed;
-  }
-  if (abilityResult.result.lives !== undefined) {
-    result.newLives = abilityResult.result.lives;
-  }
-  if (abilityResult.result.forceFoodType && abilityResult.result.foodType) {
-    result.forcedFoodType = abilityResult.result.foodType;
-  }
+  applySimpleEffects(effectResult, result);
 }
 
 /**
@@ -472,6 +501,175 @@ export function handleBossCollisionCheck(
   return { collisionResult: result };
 }
 
+// --- Poison Shots Helper Functions ---
+
+function processAutoFire(
+  pendingShots: PoisonShot[],
+  isFiringPoison: boolean,
+  currentTime: number,
+  lastPoisonFireTime: number,
+  snakeHead: Position | undefined,
+  direction: Direction,
+): PoisonShot[] {
+  const newPending = [...pendingShots];
+  if (!isFiringPoison) return newPending;
+  const fireInterval = POISON_CONFIG.fireInterval ?? 200;
+  if (currentTime - lastPoisonFireTime >= fireInterval && snakeHead) {
+    newPending.push(createPoisonShot(snakeHead, direction));
+  }
+  return newPending;
+}
+
+function processObstacleDestruction(
+  obstacles: Obstacle[],
+  hitObstacles: Obstacle[],
+  particlesToSpawn: Array<{ position: Position; color: string; count: number }>,
+): Obstacle[] {
+  if (!POISON_CONFIG.canDestroyObstacles || hitObstacles.length === 0) return obstacles;
+  const destroyRes = destroyObstacles(obstacles, hitObstacles, []);
+  const len = hitObstacles.length;
+  for (let i = 0; i < len; i++) {
+    const obs = hitObstacles[i];
+    if (obs) particlesToSpawn.push({ position: obs.position, color: '#9ca3af', count: 6 });
+  }
+  return destroyRes.remainingObstacles;
+}
+
+// --- Boss Collision Helper Types and Functions ---
+
+interface BossCollisionState {
+  bossSnake: BossSnake;
+  score: number;
+  defeated: boolean;
+}
+
+interface BossCollisionContext {
+  activeBoss: Chef;
+  prevGameState: GameState;
+  particles: Array<{ position: Position; color: string; count: number }>;
+}
+
+function addDefeatParticles(ctx: BossCollisionContext, bossSnake: BossSnake): void {
+  const headPos = bossSnake.positions[0];
+  if (headPos) {
+    ctx.particles.push({ position: headPos, color: ctx.activeBoss.visual.color, count: 30 });
+  }
+}
+
+function processBossDefeat(
+  ctx: BossCollisionContext,
+  state: BossCollisionState,
+): BossCollisionState {
+  const reward = handleBossDefeat(ctx.activeBoss, ctx.prevGameState);
+  addDefeatParticles(ctx, state.bossSnake);
+  return { ...state, score: state.score + reward.scoreIncrease, defeated: true };
+}
+
+function processBossWeaken(
+  ctx: BossCollisionContext,
+  state: BossCollisionState,
+  hitPosition: Position,
+  particleCount: number,
+): BossCollisionState {
+  const weaken = weakenBossSnake(state.bossSnake, 1);
+  ctx.particles.push({
+    position: hitPosition,
+    color: ctx.activeBoss.visual.color,
+    count: particleCount,
+  });
+  return {
+    bossSnake: weaken.newBossSnake,
+    score: state.score + weaken.pointsEarned,
+    defeated: false,
+  };
+}
+
+function handleHeadCollision(
+  ctx: BossCollisionContext,
+  state: BossCollisionState,
+  shotPosition: Position,
+): BossCollisionState {
+  if (canDefeatBoss(state.bossSnake)) {
+    return processBossDefeat(ctx, state);
+  }
+  return processBossWeaken(ctx, state, shotPosition, 10);
+}
+
+function handleBodyCollision(
+  ctx: BossCollisionContext,
+  state: BossCollisionState,
+  shotPosition: Position,
+): BossCollisionState {
+  const weakened = processBossWeaken(ctx, state, shotPosition, 8);
+  if (weakened.bossSnake.positions.length <= 1) {
+    return processBossDefeat(ctx, weakened);
+  }
+  return weakened;
+}
+
+function processBossCollisions(
+  shots: PoisonShot[],
+  initialState: BossCollisionState,
+  ctx: BossCollisionContext,
+): { state: BossCollisionState; shotsToRemove: string[] } {
+  const shotsToRemove: string[] = [];
+  let state = initialState;
+
+  const len = shots.length;
+  for (let i = 0; i < len; i++) {
+    if (state.defeated) break;
+
+    const shot = shots[i];
+    if (!shot) continue;
+
+    if (hasBossHeadCollision(shot, state.bossSnake)) {
+      shotsToRemove.push(shot.id);
+      state = handleHeadCollision(ctx, state, shot.position);
+    } else if (hasBossBodyCollision(shot, state.bossSnake)) {
+      shotsToRemove.push(shot.id);
+      state = handleBodyCollision(ctx, state, shot.position);
+    }
+  }
+
+  return { state, shotsToRemove };
+}
+
+function filterShotsByIds(shots: PoisonShot[], idsToRemove: string[]): PoisonShot[] {
+  if (idsToRemove.length === 0) return shots;
+
+  const removeSet = new Set(idsToRemove);
+  const filtered: PoisonShot[] = [];
+  const len = shots.length;
+  for (let i = 0; i < len; i++) {
+    const shot = shots[i];
+    if (shot && !removeSet.has(shot.id)) filtered.push(shot);
+  }
+  return filtered;
+}
+
+function createBossUpdate(
+  state: BossCollisionState,
+  activeBoss: Chef,
+  bossLogicResult: BossLogicResult,
+): PoisonLogicResult['bossUpdate'] {
+  if (state.defeated) {
+    return {
+      bossSnake: state.bossSnake,
+      activeBoss: undefined,
+      newScore: state.score,
+      bossAbilityCooldowns: new Map(),
+      forcedFoodType: null,
+    };
+  }
+  return {
+    bossSnake: state.bossSnake,
+    activeBoss,
+    newScore: state.score,
+    bossAbilityCooldowns: bossLogicResult.bossAbilityCooldowns,
+    forcedFoodType: bossLogicResult.forcedFoodType,
+  };
+}
+
 /**
  * Updates poison shots and handles their interactions with obstacles and boss.
  */
@@ -489,6 +687,7 @@ export function handlePoisonShotsUpdate(context: PoisonShotsUpdateContext): Pois
     snakeHead,
     direction,
   } = context;
+
   const result: PoisonLogicResult = {
     newPoisonShots: [],
     pendingPoisonShots: [],
@@ -497,130 +696,55 @@ export function handlePoisonShotsUpdate(context: PoisonShotsUpdateContext): Pois
     bossUpdate: undefined,
   };
 
-  // Auto Fire
-  const newPending = [...pendingShots];
-  if (isFiringPoison) {
-    const fireInterval = POISON_CONFIG.fireInterval ?? 200;
-    if (currentTime - lastPoisonFireTime >= fireInterval && snakeHead) {
-      newPending.push(createPoisonShot(snakeHead, direction));
-    }
-  }
+  const newPending = processAutoFire(
+    pendingShots,
+    isFiringPoison,
+    currentTime,
+    lastPoisonFireTime,
+    snakeHead,
+    direction,
+  );
+  const poisonUpdate = updatePoisonShots(
+    [...prevPoisonShots, ...newPending],
+    gridSize,
+    result.newObstacles,
+  );
 
-  const currentShots = [...prevPoisonShots, ...newPending];
-
-  const poisonUpdate = updatePoisonShots(currentShots, gridSize, result.newObstacles);
   result.newPoisonShots = poisonUpdate.shots;
-
-  // Limit shots
   const maxShots = POISON_CONFIG.maxShotsSimultaneous ?? 50;
   if (result.newPoisonShots.length > maxShots) {
     result.newPoisonShots = result.newPoisonShots.slice(-maxShots);
   }
 
-  // Obstacle Destruction
-  if (POISON_CONFIG.canDestroyObstacles && poisonUpdate.hitObstacles.length > 0) {
-    const destroyRes = destroyObstacles(result.newObstacles, poisonUpdate.hitObstacles, []);
-    result.newObstacles = destroyRes.remainingObstacles;
-    poisonUpdate.hitObstacles.forEach((obs) => {
-      result.particlesToSpawn.push({ position: obs.position, color: '#9ca3af', count: 6 });
-    });
+  result.newObstacles = processObstacleDestruction(
+    result.newObstacles,
+    poisonUpdate.hitObstacles,
+    result.particlesToSpawn,
+  );
+
+  if (!POISON_CONFIG.canDefeatBoss || !bossLogicResult.bossSnake || !bossLogicResult.activeBoss) {
+    return result;
   }
 
-  // Boss Collision
-  if (POISON_CONFIG.canDefeatBoss && bossLogicResult.bossSnake && bossLogicResult.activeBoss) {
-    const shotsToRemove: string[] = [];
-    let currentBossSnake = bossLogicResult.bossSnake;
-    let currentScore = bossLogicResult.newScore;
-    const activeBoss = bossLogicResult.activeBoss;
-    let bossDefeated = false;
+  const collisionCtx: BossCollisionContext = {
+    activeBoss: bossLogicResult.activeBoss,
+    prevGameState,
+    particles: result.particlesToSpawn,
+  };
 
-    result.newPoisonShots.forEach((shot) => {
-      if (bossDefeated || !currentBossSnake) return;
+  const initialState: BossCollisionState = {
+    bossSnake: bossLogicResult.bossSnake,
+    score: bossLogicResult.newScore,
+    defeated: false,
+  };
 
-      if (hasBossHeadCollision(shot, currentBossSnake)) {
-        shotsToRemove.push(shot.id);
-        if (canDefeatBoss(currentBossSnake)) {
-          // Defeat
-          const reward = handleBossDefeat(activeBoss, prevGameState);
-          currentScore += reward.scoreIncrease;
-          if (currentBossSnake.positions[0]) {
-            result.particlesToSpawn.push({
-              position: currentBossSnake.positions[0],
-              color: activeBoss.visual.color,
-              count: 30,
-            });
-          }
-          bossDefeated = true;
-        } else {
-          // Weaken
-          const weaken = weakenBossSnake(currentBossSnake, 1);
-          currentBossSnake = weaken.newBossSnake;
-          currentScore += weaken.pointsEarned;
-          result.particlesToSpawn.push({
-            position: shot.position,
-            color: activeBoss.visual.color,
-            count: 10,
-          });
-        }
-      } else if (hasBossBodyCollision(shot, currentBossSnake)) {
-        shotsToRemove.push(shot.id);
-        const weaken = weakenBossSnake(currentBossSnake, 1);
-        currentBossSnake = weaken.newBossSnake;
-        currentScore += weaken.pointsEarned;
-        result.particlesToSpawn.push({
-          position: shot.position,
-          color: activeBoss.visual.color,
-          count: 8,
-        });
-
-        if (currentBossSnake.positions.length <= 1) {
-          // Defeated
-          const reward = handleBossDefeat(activeBoss, prevGameState);
-          currentScore += reward.scoreIncrease;
-          if (currentBossSnake.positions[0]) {
-            result.particlesToSpawn.push({
-              position: currentBossSnake.positions[0],
-              color: activeBoss.visual.color,
-              count: 30,
-            });
-          }
-          bossDefeated = true;
-        }
-      }
-    });
-
-    if (shotsToRemove.length > 0) {
-      // Optimized filter using Set for O(1) lookup instead of O(n) includes
-      const shotsToRemoveSet = new Set(shotsToRemove);
-      const filteredShots: typeof result.newPoisonShots = [];
-      const shotsLength = result.newPoisonShots.length;
-      for (let i = 0; i < shotsLength; i++) {
-        const shot = result.newPoisonShots[i];
-        if (shot && !shotsToRemoveSet.has(shot.id)) {
-          filteredShots.push(shot);
-        }
-      }
-      result.newPoisonShots = filteredShots;
-    }
-
-    if (bossDefeated) {
-      result.bossUpdate = {
-        bossSnake: currentBossSnake,
-        activeBoss: undefined,
-        newScore: currentScore,
-        bossAbilityCooldowns: new Map(),
-        forcedFoodType: null,
-      };
-    } else {
-      result.bossUpdate = {
-        bossSnake: currentBossSnake,
-        activeBoss: activeBoss,
-        newScore: currentScore,
-        bossAbilityCooldowns: bossLogicResult.bossAbilityCooldowns,
-        forcedFoodType: bossLogicResult.forcedFoodType,
-      };
-    }
-  }
+  const { state, shotsToRemove } = processBossCollisions(
+    result.newPoisonShots,
+    initialState,
+    collisionCtx,
+  );
+  result.newPoisonShots = filterShotsByIds(result.newPoisonShots, shotsToRemove);
+  result.bossUpdate = createBossUpdate(state, bossLogicResult.activeBoss, bossLogicResult);
 
   return result;
 }

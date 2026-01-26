@@ -169,22 +169,34 @@ function generateRandomPosition(
   gridSize: number,
   obstacles: Obstacle[] = [],
 ): Position {
+  // Create Sets for O(1) lookup instead of O(n) some() - major performance improvement
+  const snakeSet = new Set<string>();
+  const snakeLength = snake.length;
+  for (let i = 0; i < snakeLength; i++) {
+    const segment = snake[i];
+    if (segment) {
+      snakeSet.add(`${segment.x},${segment.y}`);
+    }
+  }
+
+  const obstacleSet = new Set<string>();
+  const obstaclesLength = obstacles.length;
+  for (let i = 0; i < obstaclesLength; i++) {
+    const obstacle = obstacles[i];
+    if (obstacle) {
+      obstacleSet.add(`${obstacle.position.x},${obstacle.position.y}`);
+    }
+  }
+
   const availablePositions: Position[] = [];
 
   // Generate all valid positions that are not occupied by snake or obstacles
+  // Using O(1) Set lookup instead of O(n) array search
   for (let x = 0; x < gridSize; x++) {
     for (let y = 0; y < gridSize; y++) {
-      const position: Position = { x, y };
-      const isOccupiedBySnake = snake.some(
-        (segment) => segment.x === position.x && segment.y === position.y,
-      );
-
-      const isOccupiedByObstacle = obstacles.some(
-        (obstacle) => obstacle.position.x === position.x && obstacle.position.y === position.y,
-      );
-
-      if (!isOccupiedBySnake && !isOccupiedByObstacle) {
-        availablePositions.push(position);
+      const key = `${x},${y}`;
+      if (!snakeSet.has(key) && !obstacleSet.has(key)) {
+        availablePositions.push({ x, y });
       }
     }
   }
@@ -296,12 +308,26 @@ export function moveSnake(
 ): Position[] {
   const head = snake[0];
   const newHead = getNextHeadPosition(head, direction, gridSize);
+  const snakeLength = snake.length;
 
+  // Optimized: Pre-allocate array and use for loop instead of spread operator
+  // This maintains immutability (new array) while being much faster
   if (grow) {
-    return [newHead, ...snake];
+    const newSnake: Position[] = new Array(snakeLength + 1);
+    newSnake[0] = newHead;
+    for (let i = 0; i < snakeLength; i++) {
+      newSnake[i + 1] = snake[i]!;
+    }
+    return newSnake;
   }
 
-  const newSnake = [newHead, ...snake.slice(0, -1)];
+  // Pre-allocate array with exact size (no reallocation during loop)
+  const newSnake: Position[] = new Array(snakeLength);
+  newSnake[0] = newHead;
+  // Copy all but last element (snake.length - 1 elements)
+  for (let i = 0; i < snakeLength - 1; i++) {
+    newSnake[i + 1] = snake[i]!;
+  }
   return newSnake;
 }
 

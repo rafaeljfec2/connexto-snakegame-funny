@@ -94,13 +94,20 @@ export function drawBossSnake(
 ): void {
   if (!state.bossSnake) return;
 
-  state.bossSnake.positions.forEach((seg, i) => {
-    const prev = state.prevBossSnake[i] || seg;
+  // Optimized loop - for is faster than forEach
+  const positions = state.bossSnake.positions;
+  const positionsLength = positions.length;
+  for (let i = 0; i < positionsLength; i++) {
+    const seg = positions[i];
+    if (!seg) continue;
+
+    const prev = state.prevBossSnake[i] ?? seg;
     const pos = getInterpolatedPos(seg, prev, cellSize, t);
 
     let bossAngle = 0;
-    if (i === 0 && state.bossSnake!.positions.length > 1) {
-      bossAngle = calculateSnakeAngle(seg, state.bossSnake!.positions[1]);
+    const secondPos = positions[1];
+    if (i === 0 && positionsLength > 1 && secondPos) {
+      bossAngle = calculateSnakeAngle(seg, secondPos);
     }
 
     drawSnakeSegment(renderContext, {
@@ -114,5 +121,5 @@ export function drawBossSnake(
       scale: 1.2,
       angle: bossAngle,
     });
-  });
+  }
 }

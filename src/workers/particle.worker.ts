@@ -1,4 +1,9 @@
 /// <reference lib="webworker" />
+
+// Module isolation marker
+const _moduleMarker = Symbol('particle-worker');
+export { _moduleMarker as __particleWorkerModule };
+
 interface Particle {
   id: string;
   x: number;
@@ -27,7 +32,6 @@ let ctx: OffscreenCanvasRenderingContext2D | null = null;
 let width = 0;
 let height = 0;
 let lastTime = 0;
-let _animationFrameId: number;
 let dpr = 1;
 
 const selfWorker = globalThis as unknown as Worker;
@@ -120,7 +124,7 @@ function loop() {
   update(dt);
   render();
 
-  _animationFrameId = requestAnimationFrame(loop);
+  requestAnimationFrame(loop);
 }
 
 function update(dt: number) {
@@ -135,8 +139,11 @@ function update(dt: number) {
   }
   particles = aliveParticles;
 
-  // Update positions
-  for (const p of particles) {
+  // Update positions - optimized loop
+  const aliveCount = particles.length;
+  for (let i = 0; i < aliveCount; i++) {
+    const p = particles[i];
+    if (!p) continue;
     p.x += p.vx * (dt / 16); // Normalize to ~60fps
     p.y += p.vy * (dt / 16);
     p.life -= dt;
@@ -151,8 +158,12 @@ function render() {
   // Since we scaled, 0,0 to width,height covers the logical area which maps to physical.
   ctx.clearRect(0, 0, width, height);
 
-  // 1. Draw External Entities
-  for (const entity of externalEntities) {
+  // 1. Draw External Entities - optimized loop
+  const entitiesLength = externalEntities.length;
+  for (let i = 0; i < entitiesLength; i++) {
+    const entity = externalEntities[i];
+    if (!entity) continue;
+
     ctx.globalAlpha = 1;
     ctx.fillStyle = entity.color;
 
@@ -180,8 +191,12 @@ function render() {
   // Reset shadow
   ctx.shadowBlur = 0;
 
-  // 2. Draw particles
-  for (const p of particles) {
+  // 2. Draw particles - optimized loop
+  const particlesLen = particles.length;
+  for (let i = 0; i < particlesLen; i++) {
+    const p = particles[i];
+    if (!p) continue;
+
     const opacity = Math.max(0, p.life / p.maxLife);
 
     ctx.globalAlpha = opacity;

@@ -87,7 +87,8 @@ function initPortalPool(): void {
       position: { x: 0, y: 0 },
       id: `portal-${i}`,
       pairId: '',
-      color: '#d8b4fe',
+      spawnTime: Date.now(),
+      duration: 0,
     });
   }
 }
@@ -96,19 +97,22 @@ export function acquirePortal(
   position: Position,
   id: string,
   pairId: string,
-  color: string = '#d8b4fe',
+  spawnTime: number = Date.now(),
+  duration: number = 0,
 ): Portal {
   const portal = portalPool.pop() ?? {
     position: { x: 0, y: 0 },
     id: 'temp',
     pairId: '',
-    color: '#d8b4fe',
+    spawnTime: Date.now(),
+    duration: 0,
   };
   portal.position.x = position.x;
   portal.position.y = position.y;
   portal.id = id;
   portal.pairId = pairId;
-  portal.color = color;
+  portal.spawnTime = spawnTime;
+  portal.duration = duration;
   return portal;
 }
 
@@ -118,6 +122,8 @@ export function releasePortal(portal: Portal): void {
     portal.position.y = 0;
     portal.id = '';
     portal.pairId = '';
+    portal.spawnTime = Date.now();
+    portal.duration = 0;
     portalPool.push(portal);
   }
 }

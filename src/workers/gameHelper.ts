@@ -31,7 +31,7 @@ import {
   getBossHitPart,
   weakenBossSnake,
   canDefeatBoss,
-  initializeBossSnake
+  initializeBossSnake,
 } from '@/utils/bossSnake';
 import { processBossAbilities, getFlagOffsetFromBossHead } from '@/utils/bossAbilities';
 import {
@@ -152,13 +152,16 @@ export function handleBossLogic(
   const result: BossLogicResult = {
     activeBoss,
     bossSnake,
-    guardianFlag: guardianFlag ? {
-      position: guardianFlag.position,
-      type: guardianFlag.type,
-      spawnTime: guardianFlag.spawnTime ?? Date.now(),
-      duration: guardianFlag.duration
-    } : null,
-    guardianFlagSide: (guardianFlagSide === 1 || guardianFlagSide === -1) ? guardianFlagSide : undefined,
+    guardianFlag: guardianFlag
+      ? {
+          position: guardianFlag.position,
+          type: guardianFlag.type,
+          spawnTime: guardianFlag.spawnTime ?? Date.now(),
+          duration: guardianFlag.duration,
+        }
+      : null,
+    guardianFlagSide:
+      guardianFlagSide === 1 || guardianFlagSide === -1 ? guardianFlagSide : undefined,
     newObstacles: [...obstacles],
     newPortals: [...portals],
     baseGameSpeed: prevGameState.gameSpeed,

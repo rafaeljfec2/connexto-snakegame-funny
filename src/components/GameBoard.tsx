@@ -73,7 +73,7 @@ export const GameBoard = memo(function GameBoard({
       const isNarrow = window.innerWidth <= 1024;
       const isLandscapeShort = window.innerHeight <= 800 && window.innerWidth > window.innerHeight;
       const responsiveMode = isNarrow || isLandscapeShort;
-      
+
       setIsMobile(responsiveMode);
 
       if (boardRef.current) {

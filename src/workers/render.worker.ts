@@ -1,6 +1,14 @@
 /// <reference lib="webworker" />
 
-import { Position, PoisonShot, BossSnake, Food as FoodType, Obstacle, Portal } from '@/types/game';
+import {
+  Position,
+  PoisonShot,
+  BossSnake,
+  Food as FoodType,
+  Obstacle,
+  Portal,
+  Direction,
+} from '@/types/game';
 import { GAME_CONFIG } from '@/constants/game';
 
 // State
@@ -583,14 +591,13 @@ const handleUpdate = (payload: any) => {
 
     if (payload.bossSnake) {
       if (payload.bossSnake instanceof ArrayBuffer) {
-        const bossPositions = bufferToPositions(
-          payload.bossSnake,
-          payload.bossSnakeLength ?? 0,
-        );
+        const bossPositions = bufferToPositions(payload.bossSnake, payload.bossSnakeLength ?? 0);
         prevBossSnake = bossSnake ? bossSnake.positions : bossPositions;
         bossSnake = {
           positions: bossPositions,
-          direction: bossSnake?.direction ?? 'RIGHT',
+          direction: bossSnake?.direction ?? Direction.RIGHT,
+          nextDirection: bossSnake?.nextDirection ?? Direction.RIGHT,
+          initialLength: bossSnake?.initialLength ?? bossPositions.length,
         };
       } else {
         // Legacy format

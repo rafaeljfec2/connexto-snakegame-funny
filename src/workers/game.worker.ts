@@ -93,17 +93,7 @@ let previousRenderState: {
 } | null = null;
 
 // Dirty flags for optimization
-let isStateDirty = false;
 let isRenderDirty = false;
-
-// Helper to check if arrays are equal (shallow comparison)
-function arraysEqual<T>(a: T[], b: T[]): boolean {
-  if (a.length !== b.length) return false;
-  for (let i = 0; i < a.length; i++) {
-    if (a[i] !== b[i]) return false;
-  }
-  return true;
-}
 
 // Helper to check if positions are equal
 function positionsEqual(a: Position | undefined, b: Position | undefined): boolean {
@@ -128,15 +118,6 @@ function positionsToTypedArray(positions: Position[]): Float32Array {
     array[i * 2 + 1] = positions[i].y;
   }
   return array;
-}
-
-// Convert Float32Array back to Position[]
-function typedArrayToPositions(array: Float32Array): Position[] {
-  const positions: Position[] = [];
-  for (let i = 0; i < array.length; i += 2) {
-    positions.push({ x: array[i], y: array[i + 1] });
-  }
-  return positions;
 }
 
 // Compute delta between previous and current state
@@ -265,7 +246,6 @@ function initGame() {
   directionQueue = []; // Clear queue on init
   previousState = null; // Reset delta compression state
   previousRenderState = null; // Reset render state
-  isStateDirty = true; // Force full update on init
   isRenderDirty = true; // Force render update on init
 
   gameState = {
@@ -694,7 +674,6 @@ function broadcastState() {
 
     // Update previous state
     previousState = shallowCopyState(gameState);
-    isStateDirty = false;
   }
 
   // Send to Render Worker (High Frequency) - only if visual state changed
@@ -713,7 +692,7 @@ function broadcastState() {
             name: gameState.activeBoss.name,
           }
         : null,
-      guardianFlag: gameState.guardianFlag,
+      guardianFlag: gameState.guardianFlag ?? null,
       speed: gameState.gameSpeed,
       status: gameState.status,
     };
@@ -744,7 +723,7 @@ function broadcastState() {
         : null;
 
       // Use transferable objects for zero-copy transfer
-      const transferList: ArrayBuffer[] = [snakeArray.buffer];
+      const transferList: ArrayBufferLike[] = [snakeArray.buffer];
       if (bossSnakeArray) transferList.push(bossSnakeArray.buffer);
 
       renderPort.postMessage(
@@ -760,7 +739,7 @@ function broadcastState() {
             obstacles: currentRenderState.obstacles,
             portals: currentRenderState.portals,
             activeBoss: currentRenderState.activeBoss,
-            guardianFlag: currentRenderState.guardianFlag,
+            guardianFlag: currentRenderState.guardianFlag ?? null,
             isEating: false,
             speed: currentRenderState.speed,
             status: currentRenderState.status,
@@ -780,7 +759,6 @@ function startGameLoop() {
   function loop() {
     const frameStart = performance.now();
     const now = frameStart;
-    
     if (gameState && gameState.status === GameStatus.PLAYING) {
       const activePowerUps = getActivePowerUps(gameState.activePowerUps);
       let effectiveSpeed = getEffectiveGameSpeed(gameState.gameSpeed, activePowerUps);
@@ -807,8 +785,7 @@ function startGameLoop() {
     }
 
     // Calculate average frame time
-    const avgFrameTime =
-      frameTimeHistory.reduce((a, b) => a + b, 0) / frameTimeHistory.length;
+    const avgFrameTime = frameTimeHistory.reduce((a, b) => a + b, 0) / frameTimeHistory.length;
 
     // Enable frame skipping if average frame time is too high
     skipOptionalEffects = avgFrameTime > MAX_FRAME_TIME;
@@ -846,9 +823,9 @@ function updateGame(currentTime: number) {
 
   // 1. Resolve Direction
   const activePowerUps = getActivePowerUps(prev.activePowerUps);
-  
+
   // Process input queue - take next pending direction
-  const nextInput = directionQueue.length > 0 ? directionQueue.shift() ?? null : null;
+  const nextInput = directionQueue.length > 0 ? (directionQueue.shift() ?? null) : null;
 
   const currentDirection = resolveDirection(
     prev.direction,
@@ -1123,7 +1100,6 @@ function updateGame(currentTime: number) {
     bossSnake: stateUpdates.bossSnake,
   };
 
-  // Mark state as dirty for broadcast
-  isStateDirty = true;
+  // Mark render as dirty for broadcast
   isRenderDirty = true;
 }

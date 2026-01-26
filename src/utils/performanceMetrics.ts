@@ -28,8 +28,7 @@ export function updateFrameTime(frameTime: number): void {
   }
 
   metrics.frameTime = frameTime;
-  metrics.avgFrameTime =
-    frameTimeHistory.reduce((a, b) => a + b, 0) / frameTimeHistory.length;
+  metrics.avgFrameTime = frameTimeHistory.reduce((a, b) => a + b, 0) / frameTimeHistory.length;
   metrics.fps = 1000 / metrics.avgFrameTime;
 }
 
@@ -44,6 +43,7 @@ export function updateFramesSkipped(count: number): void {
 export function getMetrics(): PerformanceMetrics {
   // Try to get memory usage if available
   if (typeof performance !== 'undefined' && 'memory' in performance) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const perfMemory = (performance as any).memory;
     metrics.memoryUsage = perfMemory.usedJSHeapSize / 1024 / 1024; // MB
   }
@@ -64,7 +64,8 @@ export function resetMetrics(): void {
 
 // Log metrics to console in dev mode
 export function logMetrics(): void {
-  if (process.env.NODE_ENV === 'development') {
+  // Use import.meta.env for Vite instead of process.env
+  if (import.meta.env.DEV) {
     const m = getMetrics();
     console.log(
       `[Performance] FPS: ${m.fps.toFixed(1)}, Avg Frame: ${m.avgFrameTime.toFixed(2)}ms, Delta: ${m.deltaSize}B, Skipped: ${m.framesSkipped}`,

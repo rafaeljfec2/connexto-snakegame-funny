@@ -54,7 +54,7 @@ export function useGameLoop() {
 
     // Handle messages from worker
     worker.onmessage = (e: MessageEvent) => {
-      const { type, payload, isFullUpdate } = e.data;
+      const { type, payload } = e.data;
 
       switch (type) {
         case 'GAME_STATE_UPDATE':
@@ -214,7 +214,8 @@ export function useGameLoop() {
     setPhaseComplete,
     setGameStatus,
     resumeAfterDeath,
-    updateGameState: (_updater: any) => console.warn('updateGameState is deprecated'),
+    updateGameState: (_updater: (prev: GameState) => GameState) =>
+      console.warn('updateGameState is deprecated'),
     gameWorker: workerInstance,
   };
 }

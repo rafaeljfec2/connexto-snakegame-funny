@@ -72,14 +72,16 @@ Este documento descreve o status atual de todas as funcionalidades implementadas
 ### Interface e UX
 
 - [x] Interface moderna dark mode
-- [x] Layout totalmente responsivo
+- [x] Layout totalmente responsivo (mobile-first)
 - [x] Controles desktop (teclado)
-- [x] Controles mobile avançados (joystick analógico + botão de fogo)
+- [x] Controles mobile avançados (D-pad direcional + botão de fogo)
 - [x] Sistema de pausa
 - [x] Transições suaves entre telas
 - [x] Animações de morte
 - [x] Animações de level up
 - [x] HUD integrado (phase e combo display)
+- [x] Botão START contextual (visível apenas quando necessário)
+- [x] Safe Areas para dispositivos com notch
 
 ### Internacionalização (i18n)
 
@@ -122,12 +124,16 @@ Este documento descreve o status atual de todas as funcionalidades implementadas
 
 - [x] Layout responsivo
 - [x] Grid adaptativo
-- [x] Controles touch otimizados
-- [x] Joystick analógico
-- [x] Botão de fogo dedicado
+- [x] Controles touch otimizados (D-pad direcional)
+- [x] Botão de fogo dedicado (botão central do D-pad)
 - [x] Prevenção de pull-to-refresh
 - [x] Otimizações de touch action
 - [x] Posicionamento otimizado de elementos (status bar, toasts, etc.)
+- [x] **Safe Areas (iOS/Android)** - Suporte completo a notches e barras de navegação
+- [x] **Layout Mobile-First** - Interface redesenhada especificamente para mobile
+- [x] **Botão START no Grid** - Centralizado no centro do grid, invisível durante gameplay
+- [x] **StatusBar Reposicionado** - Abaixo do grid do jogo para melhor hierarquia visual
+- [x] **Header Compacto** - Apenas informações essenciais (Level, Score, High Score)
 
 ### Segurança
 
@@ -149,11 +155,15 @@ Este documento descreve o status atual de todas as funcionalidades implementadas
 
 ### UX Mobile
 
-- Joystick analógico para movimento preciso
-- Botão de fogo sempre visível
-- Layout otimizado para telas pequenas
-- Status bar no rodapé da área de combate
+- D-pad direcional para controle preciso
+- Botão de fogo central sempre visível
+- Layout mobile-first otimizado para telas pequenas
+- Status bar reposicionado abaixo do grid do jogo
 - Toasts posicionados corretamente abaixo do header
+- **Safe Areas**: Suporte completo a env(safe-area-inset-*) para iOS e Android
+- **Botão START inteligente**: Centralizado no grid, desaparece durante gameplay
+- **Header compacto**: Apenas GameInfo (Level, Score, High Score) no mobile
+- **Overflow controlado**: Dados do header e StatusBar não truncam mais
 
 ### Visual
 
@@ -214,6 +224,24 @@ Este documento descreve o status atual de todas as funcionalidades implementadas
 - Layout otimizado para diferentes tamanhos de tela
 - Efeitos visuais por fase para imersão
 - Transições suaves entre estados do jogo
+
+## 📈 Atualizações Recentes (v2.0)
+
+### Layout Mobile Redesenhado
+- **Safe Areas**: Implementação completa de suporte a safe areas para iOS e Android usando `env(safe-area-inset-*)` e `viewport-fit=cover`
+- **Layout Reformulado**: Nova hierarquia visual mobile-first
+  - Header compacto com informações essenciais (Level, Score, High Score)
+  - StatusBar reposicionado abaixo do grid do jogo
+  - Botão START centralizado no centro do grid
+  - D-pad posicionado na base para melhor ergonomia
+- **Botão START Inteligente**: Desaparece automaticamente durante o jogo
+- **Overflow Controlado**: Conteúdo do header e StatusBar não trunca mais
+- **Espaçamento Otimizado**: Gaps e paddings ajustados para diferentes tamanhos de tela
+
+### Melhorias Técnicas
+- Remoção de regras CSS duplicadas
+- Uso de `!important` para garantir especificidade em media queries
+- Combinação de `transform: translate()` com `scale()` para posicionamento e dimensionamento
 
 ## 🐛 Issues Conhecidos
 

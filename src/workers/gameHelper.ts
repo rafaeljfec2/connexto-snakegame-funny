@@ -7,25 +7,22 @@ import {
   Obstacle,
   Portal,
   BossSnake,
-  GameUpdateContext,
   Food,
   ActivePowerUp,
 } from '@/types/game';
-import { Chef, PhaseLevelType } from '@/types/phases';
+import { Chef } from '@/types/phases';
 import type { GameStatisticsTracking } from '@/types/statistics';
 import {
-  generateRandomFood,
   isValidDirectionChange,
   getOppositeDirection,
   wouldCauseCollision,
 } from '@/utils/gameLogic';
-import { GAME_CONFIG } from '@/constants/game';
+import { GAME_CONFIG, POISON_CONFIG } from '@/constants/game';
 import { applyPowerUpEffect, createActivePowerUp, hasReverseControls } from '@/utils/powerUps';
 import { updateCombo } from '@/utils/combos';
 import { destroyObstacles } from '@/utils/obstacleDestruction';
 import { isLivesEnabled, addLife } from '@/utils/lives';
 
-import { POISON_CONFIG } from '@/constants/game';
 import { handleBossDefeat } from '@/utils/bosses';
 import {
   moveBossSnake,
@@ -33,7 +30,6 @@ import {
   getBossHitPart,
   weakenBossSnake,
   canDefeatBoss,
-  initializeBossSnake,
 } from '@/utils/bossSnake';
 import { processBossAbilities, getFlagOffsetFromBossHead } from '@/utils/bossAbilities';
 import {
@@ -42,16 +38,33 @@ import {
   hasBossHeadCollision,
   hasBossBodyCollision,
 } from '@/utils/poison';
-import { calculateLevel, calculateGameSpeed } from '@/utils/difficulty';
-import { getCurrentPhase, shouldSpawnBoss, getBossForLevel, getPhaseByBoss } from '@/utils/phases';
-import { generateBossInitialResources } from '@/utils/bossResources';
-import { generateGuardianFlagPosition } from '@/utils/bossAbilities';
-import { OBSTACLE_CONFIG } from '@/constants/obstacles';
-import { generateObstacles } from '@/utils/obstacles';
-import { hasFoodExpired } from '@/utils/foodTimer';
 import { POWER_UP_CONFIG } from '@/constants/powerUps';
 
 // --- Types ---
+export interface BossLogicContext {
+  activeBoss: Chef | undefined;
+  bossSnake: BossSnake | undefined;
+  prevGameState: GameState;
+  finalSnake: Position[];
+  obstacles: Obstacle[];
+  portals: Portal[];
+  bossAbilityCooldowns: Map<string, number>;
+  guardianFlag: Food | null;
+  guardianFlagSide: -1 | 1 | undefined;
+  foodPosition: Position;
+}
+
+interface InitializeBossResultParams {
+  activeBoss: Chef | undefined;
+  bossSnake: BossSnake | undefined;
+  prevGameState: GameState;
+  obstacles: Obstacle[];
+  portals: Portal[];
+  bossAbilityCooldowns: Map<string, number>;
+  guardianFlag: Food | null;
+  guardianFlagSide: -1 | 1 | undefined;
+}
+
 export interface BossLogicResult {
   activeBoss?: Chef;
   bossSnake?: BossSnake;
@@ -81,6 +94,20 @@ export interface PoisonLogicResult {
   };
 }
 
+export interface PoisonShotsUpdateContext {
+  prevPoisonShots: import('@/types/game').PoisonShot[];
+  pendingShots: import('@/types/game').PoisonShot[];
+  obstacles: Obstacle[];
+  gridSize: number;
+  bossLogicResult: BossLogicResult;
+  prevGameState: GameState;
+  currentTime: number;
+  lastPoisonFireTime: number;
+  isFiringPoison: boolean;
+  snakeHead: Position | undefined;
+  direction: Direction;
+}
+
 export interface FoodInteractionResult {
   newScore: number;
   newCombo: { count: number; multiplier: number; lastFoodTime: number };
@@ -91,19 +118,6 @@ export interface FoodInteractionResult {
   atePowerUp: boolean;
   particlesToSpawn: Array<{ position: Position; color: string; count: number }>;
   newPortals: Portal[]; // Portals from food
-}
-
-export interface GameStateUpdateResult {
-  newLevel: number;
-  baseGameSpeed: number;
-  currentPhase?: number;
-  phaseLevelType?: PhaseLevelType;
-  newObstacles: Obstacle[];
-  newFood: Food;
-  activeBoss: Chef | undefined;
-  bossSnake: BossSnake | undefined;
-  newGuardianFlag: Food | null;
-  updatedSpawnTime: number;
 }
 
 // --- Helper Functions ---
@@ -137,21 +151,21 @@ export function resolveDirection(
 }
 
 /**
- * Handles all boss-related logic: movement, abilities, and flag mechanics.
+ * Initialize boss logic result
  */
-export function handleBossLogic(
-  activeBoss: Chef | undefined,
-  bossSnake: BossSnake | undefined,
-  prevGameState: GameState,
-  finalSnake: Position[],
-  obstacles: Obstacle[],
-  portals: Portal[],
-  bossAbilityCooldowns: Map<string, number>,
-  guardianFlag: Food | null,
-  guardianFlagSide: -1 | 1 | undefined,
-  foodPosition: Position,
-): BossLogicResult {
-  const result: BossLogicResult = {
+function initializeBossResult(params: InitializeBossResultParams): BossLogicResult {
+  const {
+    activeBoss,
+    bossSnake,
+    prevGameState,
+    obstacles,
+    portals,
+    bossAbilityCooldowns,
+    guardianFlag,
+    guardianFlagSide,
+  } = params;
+
+  return {
     activeBoss,
     bossSnake,
     guardianFlag: guardianFlag
@@ -173,59 +187,84 @@ export function handleBossLogic(
     newScore: prevGameState.score,
     particlesToSpawn: [],
   };
+}
 
-  if (!activeBoss || !bossSnake) return result;
-
-  const currentGS: GameState = {
-    ...prevGameState,
-    snake: finalSnake,
-    obstacles: result.newObstacles,
-    portals: result.newPortals,
-    bossSnake,
-    guardianFlag,
-    guardianFlagSide,
-  };
-
-  // Process Abilities
+/**
+ * Process boss abilities and update result
+ */
+function processBossAbilitiesLogic(
+  activeBoss: Chef,
+  currentGS: GameState,
+  result: BossLogicResult,
+): ReturnType<typeof processBossAbilities> {
   const abilityResult = processBossAbilities(activeBoss, currentGS, result.bossAbilityCooldowns);
   result.bossAbilityCooldowns = abilityResult.updatedCooldowns;
 
-  if (abilityResult.result.guardianFlag !== undefined)
+  if (abilityResult.result.guardianFlag !== undefined) {
     result.guardianFlag = abilityResult.result.guardianFlag;
-  if (abilityResult.result.guardianFlagSide !== undefined)
+  }
+  if (abilityResult.result.guardianFlagSide !== undefined) {
     result.guardianFlagSide = abilityResult.result.guardianFlagSide;
+  }
 
-  // Move Boss
+  return abilityResult;
+}
+
+/**
+ * Handle boss movement
+ */
+function handleBossMovement(
+  activeBoss: Chef,
+  bossSnake: BossSnake,
+  finalSnake: Position[],
+  obstacles: Obstacle[],
+  foodPosition: Position,
+  guardianFlagPos: Position | null,
+): BossSnake {
   const nextBossDir = calculateBossNextDirection(
     activeBoss,
     bossSnake,
     finalSnake,
-    result.newObstacles,
+    obstacles,
     foodPosition,
     GAME_CONFIG.gridSize,
-    result.guardianFlag?.position ?? null,
+    guardianFlagPos,
   );
 
-  result.bossSnake = moveBossSnake(bossSnake, nextBossDir, GAME_CONFIG.gridSize);
+  return moveBossSnake(bossSnake, nextBossDir, GAME_CONFIG.gridSize);
+}
 
-  // Flag Following
-  if (result.guardianFlag && result.bossSnake && result.bossSnake.positions.length > 0) {
-    const bossHead = result.bossSnake.positions[0];
-    const flagSide = result.guardianFlagSide ?? 1;
-    const flagOffset = getFlagOffsetFromBossHead(result.bossSnake.direction, flagSide);
-    const newFlagPos = {
-      x: Math.max(0, Math.min(bossHead.x + flagOffset.x, GAME_CONFIG.gridSize - 1)),
-      y: Math.max(0, Math.min(bossHead.y + flagOffset.y, GAME_CONFIG.gridSize - 1)),
-    };
-    const isOnBody = result.bossSnake.positions.some(
-      (p: Position) => p.x === newFlagPos.x && p.y === newFlagPos.y,
-    );
-    if (!isOnBody) {
-      result.guardianFlag = { ...result.guardianFlag, position: newFlagPos };
-    }
+/**
+ * Update guardian flag position following boss
+ */
+function updateGuardianFlagPosition(result: BossLogicResult, bossSnake: BossSnake): void {
+  if (!result.guardianFlag || bossSnake.positions.length === 0) {
+    return;
   }
 
-  // Apply Ability Effects
+  const bossHead = bossSnake.positions[0];
+  const flagSide = result.guardianFlagSide ?? 1;
+  const flagOffset = getFlagOffsetFromBossHead(bossSnake.direction, flagSide);
+  const newFlagPos = {
+    x: Math.max(0, Math.min(bossHead.x + flagOffset.x, GAME_CONFIG.gridSize - 1)),
+    y: Math.max(0, Math.min(bossHead.y + flagOffset.y, GAME_CONFIG.gridSize - 1)),
+  };
+  const isOnBody = bossSnake.positions.some(
+    (p: Position) => p.x === newFlagPos.x && p.y === newFlagPos.y,
+  );
+
+  if (!isOnBody) {
+    result.guardianFlag = { ...result.guardianFlag, position: newFlagPos };
+  }
+}
+
+/**
+ * Apply ability effects to result
+ */
+function applyAbilityEffects(
+  abilityResult: ReturnType<typeof processBossAbilities>,
+  result: BossLogicResult,
+): void {
   if (abilityResult.result.obstacles && abilityResult.result.obstacles.length > 0) {
     const existingMap = new Map<string, Obstacle>();
     result.newObstacles.forEach((o) => existingMap.set(`${o.position.x},${o.position.y}`, o));
@@ -242,14 +281,153 @@ export function handleBossLogic(
   if (abilityResult.result.portals) {
     result.newPortals = [...result.newPortals, ...abilityResult.result.portals];
   }
-  if (abilityResult.result.gameSpeed !== undefined)
+  if (abilityResult.result.gameSpeed !== undefined) {
     result.baseGameSpeed = abilityResult.result.gameSpeed;
-  if (abilityResult.result.lives !== undefined) result.newLives = abilityResult.result.lives;
+  }
+  if (abilityResult.result.lives !== undefined) {
+    result.newLives = abilityResult.result.lives;
+  }
   if (abilityResult.result.forceFoodType && abilityResult.result.foodType) {
     result.forcedFoodType = abilityResult.result.foodType;
   }
+}
+
+/**
+ * Handles all boss-related logic: movement, abilities, and flag mechanics.
+ */
+export function handleBossLogic(context: BossLogicContext): BossLogicResult {
+  const {
+    activeBoss,
+    bossSnake,
+    prevGameState,
+    finalSnake,
+    obstacles,
+    portals,
+    bossAbilityCooldowns,
+    guardianFlag,
+    guardianFlagSide,
+    foodPosition,
+  } = context;
+
+  const result = initializeBossResult({
+    activeBoss,
+    bossSnake,
+    prevGameState,
+    obstacles,
+    portals,
+    bossAbilityCooldowns,
+    guardianFlag,
+    guardianFlagSide,
+  });
+
+  if (!activeBoss || !bossSnake) {
+    return result;
+  }
+
+  const currentGS: GameState = {
+    ...prevGameState,
+    snake: finalSnake,
+    obstacles: result.newObstacles,
+    portals: result.newPortals,
+    bossSnake,
+    guardianFlag,
+    guardianFlagSide,
+  };
+
+  const abilityResult = processBossAbilitiesLogic(activeBoss, currentGS, result);
+
+  result.bossSnake = handleBossMovement(
+    activeBoss,
+    bossSnake,
+    finalSnake,
+    result.newObstacles,
+    foodPosition,
+    result.guardianFlag?.position ?? null,
+  );
+
+  if (result.bossSnake) {
+    updateGuardianFlagPosition(result, result.bossSnake);
+  }
+
+  applyAbilityEffects(abilityResult, result);
 
   return result;
+}
+
+/**
+ * Handle boss defeat victory logic
+ */
+function handleBossDefeatVictory(
+  result: BossLogicResult,
+  activeBoss: Chef,
+  prevGameState: GameState,
+  bossHeadPosition: Position | undefined,
+): void {
+  const reward = handleBossDefeat(activeBoss, prevGameState);
+  result.newScore += reward.scoreIncrease;
+
+  if (bossHeadPosition) {
+    result.particlesToSpawn.push({
+      position: bossHeadPosition,
+      color: activeBoss.visual.color,
+      count: 30,
+    });
+  }
+
+  result.activeBoss = undefined;
+  result.bossSnake = undefined;
+  result.bossAbilityCooldowns.clear();
+  result.forcedFoodType = null;
+}
+
+/**
+ * Handle boss head collision
+ */
+function handleBossHeadCollision(
+  result: BossLogicResult,
+  bossSnake: BossSnake,
+  activeBoss: Chef,
+  prevGameState: GameState,
+): { gameOverOrDying?: { status: GameStatus; score?: number; lives?: number } } | null {
+  if (canDefeatBoss(bossSnake)) {
+    handleBossDefeatVictory(result, activeBoss, prevGameState, bossSnake.positions[0]);
+    return null;
+  }
+
+  if (isLivesEnabled() && result.newLives > 1) {
+    return {
+      gameOverOrDying: { status: GameStatus.DYING, lives: result.newLives - 1 },
+    };
+  }
+
+  return {
+    gameOverOrDying: { status: GameStatus.GAME_OVER, score: result.newScore },
+  };
+}
+
+/**
+ * Handle boss body collision
+ */
+function handleBossBodyCollision(
+  result: BossLogicResult,
+  bossSnake: BossSnake,
+  headPosition: Position,
+  activeBoss: Chef,
+  prevGameState: GameState,
+): void {
+  const weaken = weakenBossSnake(bossSnake, 2);
+  result.bossSnake = weaken.newBossSnake;
+  result.newScore += weaken.pointsEarned;
+
+  result.particlesToSpawn.push({
+    position: headPosition,
+    color: activeBoss.visual.color ?? '#3b82f6',
+    count: 10,
+  });
+
+  if (result.bossSnake && result.bossSnake.positions.length <= 1) {
+    handleBossDefeatVictory(result, activeBoss, prevGameState, result.bossSnake.positions[0]);
+  }
 }
 
 /**
@@ -272,62 +450,23 @@ export function handleBossCollisionCheck(
   const hitPart = getBossHitPart(headPosition, result.bossSnake);
 
   if (hitPart === 'head') {
-    if (canDefeatBoss(result.bossSnake)) {
-      // Victory
-      const reward = handleBossDefeat(result.activeBoss, prevGameState);
-      result.newScore += reward.scoreIncrease;
-      if (result.bossSnake.positions[0]) {
-        result.particlesToSpawn.push({
-          position: result.bossSnake.positions[0],
-          color: result.activeBoss.visual.color,
-          count: 30,
-        });
-      }
-      result.activeBoss = undefined;
-      result.bossSnake = undefined;
-      result.bossAbilityCooldowns.clear();
-      result.forcedFoodType = null;
-    } else {
-      // Defeat (Player Dies)
-      if (isLivesEnabled() && result.newLives > 1) {
-        return {
-          collisionResult: result,
-          gameOverOrDying: { status: GameStatus.DYING, lives: result.newLives - 1 },
-        };
-      } else {
-        return {
-          collisionResult: result,
-          gameOverOrDying: { status: GameStatus.GAME_OVER, score: result.newScore },
-        };
-      }
+    const gameOverResult = handleBossHeadCollision(
+      result,
+      result.bossSnake,
+      result.activeBoss,
+      prevGameState,
+    );
+    if (gameOverResult) {
+      return { collisionResult: result, ...gameOverResult };
     }
   } else if (hitPart === 'body') {
-    const weaken = weakenBossSnake(result.bossSnake, 2);
-    result.bossSnake = weaken.newBossSnake;
-    result.newScore += weaken.pointsEarned;
-
-    result.particlesToSpawn.push({
-      position: headPosition,
-      color: result.activeBoss?.visual.color ?? '#3b82f6',
-      count: 10,
-    });
-
-    if (result.bossSnake.positions.length <= 1) {
-      // Victory (Body destroyed)
-      const reward = handleBossDefeat(result.activeBoss, prevGameState);
-      result.newScore += reward.scoreIncrease;
-      if (result.bossSnake.positions[0]) {
-        result.particlesToSpawn.push({
-          position: result.bossSnake.positions[0],
-          color: result.activeBoss.visual.color,
-          count: 30,
-        });
-      }
-      result.activeBoss = undefined;
-      result.bossSnake = undefined;
-      result.bossAbilityCooldowns.clear();
-      result.forcedFoodType = null;
-    }
+    handleBossBodyCollision(
+      result,
+      result.bossSnake,
+      headPosition,
+      result.activeBoss,
+      prevGameState,
+    );
   }
 
   return { collisionResult: result };
@@ -336,19 +475,20 @@ export function handleBossCollisionCheck(
 /**
  * Updates poison shots and handles their interactions with obstacles and boss.
  */
-export function handlePoisonShotsUpdate(
-  prevPoisonShots: import('@/types/game').PoisonShot[],
-  pendingShots: import('@/types/game').PoisonShot[],
-  obstacles: Obstacle[],
-  gridSize: number,
-  bossLogicResult: BossLogicResult,
-  prevGameState: GameState,
-  currentTime: number,
-  lastPoisonFireTime: number,
-  isFiringPoison: boolean,
-  snakeHead: Position | undefined,
-  direction: Direction,
-): PoisonLogicResult {
+export function handlePoisonShotsUpdate(context: PoisonShotsUpdateContext): PoisonLogicResult {
+  const {
+    prevPoisonShots,
+    pendingShots,
+    obstacles,
+    gridSize,
+    bossLogicResult,
+    prevGameState,
+    currentTime,
+    lastPoisonFireTime,
+    isFiringPoison,
+    snakeHead,
+    direction,
+  } = context;
   const result: PoisonLogicResult = {
     newPoisonShots: [],
     pendingPoisonShots: [],
@@ -401,12 +541,12 @@ export function handlePoisonShotsUpdate(
         shotsToRemove.push(shot.id);
         if (canDefeatBoss(currentBossSnake)) {
           // Defeat
-          const reward = handleBossDefeat(activeBoss!, prevGameState);
+          const reward = handleBossDefeat(activeBoss, prevGameState);
           currentScore += reward.scoreIncrease;
           if (currentBossSnake.positions[0]) {
             result.particlesToSpawn.push({
               position: currentBossSnake.positions[0],
-              color: activeBoss!.visual.color,
+              color: activeBoss.visual.color,
               count: 30,
             });
           }
@@ -418,7 +558,7 @@ export function handlePoisonShotsUpdate(
           currentScore += weaken.pointsEarned;
           result.particlesToSpawn.push({
             position: shot.position,
-            color: activeBoss!.visual.color,
+            color: activeBoss.visual.color,
             count: 10,
           });
         }
@@ -429,18 +569,18 @@ export function handlePoisonShotsUpdate(
         currentScore += weaken.pointsEarned;
         result.particlesToSpawn.push({
           position: shot.position,
-          color: activeBoss!.visual.color,
+          color: activeBoss.visual.color,
           count: 8,
         });
 
         if (currentBossSnake.positions.length <= 1) {
           // Defeated
-          const reward = handleBossDefeat(activeBoss!, prevGameState);
+          const reward = handleBossDefeat(activeBoss, prevGameState);
           currentScore += reward.scoreIncrease;
           if (currentBossSnake.positions[0]) {
             result.particlesToSpawn.push({
               position: currentBossSnake.positions[0],
-              color: activeBoss!.visual.color,
+              color: activeBoss.visual.color,
               count: 30,
             });
           }
@@ -476,6 +616,116 @@ export function handlePoisonShotsUpdate(
 }
 
 /**
+ * Update food statistics
+ */
+function updateFoodStatistics(statistics: GameStatisticsTracking, foodType: FoodType): void {
+  const currentFoodCount = statistics.foodsByType[foodType] ?? 0;
+  statistics.foodsEaten++;
+  statistics.foodsByType[foodType] = currentFoodCount + 1;
+}
+
+/**
+ * Resolve actual food type (handles JOKER)
+ */
+function resolveActualFoodType(foodType: FoodType): FoodType {
+  if (foodType !== FoodType.JOKER) {
+    return foodType;
+  }
+
+  const positiveTypes = [
+    FoodType.SPEED_BOOST,
+    FoodType.BONUS_POINTS,
+    FoodType.EXTRA_GROWTH,
+    FoodType.PHASE_THROUGH,
+  ];
+  return positiveTypes[Math.floor(Math.random() * positiveTypes.length)] ?? FoodType.BONUS_POINTS;
+}
+
+/**
+ * Apply food growth or shrink to snake
+ */
+function applySnakeGrowth(snake: Position[], growthAmount: number): Position[] {
+  if (growthAmount > 0) {
+    const currentTail = snake[snake.length - 1];
+    const newSnake = [...snake];
+    for (let i = 0; i < growthAmount; i++) {
+      newSnake.push({ ...currentTail });
+    }
+    return newSnake;
+  }
+
+  if (growthAmount < 0) {
+    const shrinkAmount = Math.abs(growthAmount);
+    return snake.slice(0, Math.max(1, snake.length - shrinkAmount));
+  }
+
+  return snake;
+}
+
+/**
+ * Process food consumption effects
+ */
+function processFoodConsumption(
+  prevGameState: GameState,
+  actualFoodType: FoodType,
+  currentSnake: Position[],
+  statistics: GameStatisticsTracking,
+  enableCombos: boolean,
+  enableParticles: boolean,
+  particlesToSpawn: Array<{ position: Position; color: string; count: number }>,
+): {
+  newScore: number;
+  newLives: number;
+  newCombo: { count: number; multiplier: number; lastFoodTime: number };
+  finalSnake: Position[];
+  atePowerUp: boolean;
+  powerUpEffect: ReturnType<typeof applyPowerUpEffect>;
+} {
+  const powerUpEffect = applyPowerUpEffect(
+    actualFoodType,
+    prevGameState.score,
+    currentSnake.length,
+  );
+
+  if (prevGameState.food.type === FoodType.JOKER) {
+    powerUpEffect.scoreIncrease += 15;
+  }
+
+  const atePowerUp = prevGameState.food.type !== FoodType.NORMAL;
+  const newScore = prevGameState.score + powerUpEffect.scoreIncrease;
+
+  let newCombo = prevGameState.combo;
+  if (enableCombos) {
+    newCombo = updateCombo(newCombo, true);
+  }
+
+  if (enableParticles && prevGameState.snake[0]) {
+    const foodColor = POWER_UP_CONFIG.colors[prevGameState.food.type]?.primary || '#ef4444';
+    particlesToSpawn.push({ position: prevGameState.snake[0], color: foodColor, count: 8 });
+  }
+
+  const finalSnake = applySnakeGrowth(currentSnake, powerUpEffect.growthAmount);
+
+  if (newCombo.multiplier > statistics.maxCombo) {
+    statistics.maxCombo = newCombo.multiplier;
+  }
+
+  let newLives = prevGameState.lives;
+  if (prevGameState.food.type === FoodType.EXTRA_LIFE) {
+    newLives = addLife(newLives);
+  }
+
+  return {
+    newScore,
+    newLives,
+    newCombo,
+    finalSnake,
+    atePowerUp,
+    powerUpEffect,
+  };
+}
+
+/**
  * Handles interactions between the snake and food (scoring, growth, effects).
  */
 export function handleFoodInteraction(
@@ -496,77 +746,45 @@ export function handleFoodInteraction(
   const particlesToSpawn: Array<{ position: Position; color: string; count: number }> = [];
   const newPortals: Portal[] = [];
 
-  if (ateFood) {
-    const currentFoodCount = statistics.foodsByType[prevGameState.food.type] ?? 0;
-    statistics.foodsEaten++;
-    statistics.foodsByType[prevGameState.food.type] = currentFoodCount + 1;
-
-    let actualFoodType = prevGameState.food.type;
-    if (prevGameState.food.type === FoodType.JOKER) {
-      const positiveTypes = [
-        FoodType.SPEED_BOOST,
-        FoodType.BONUS_POINTS,
-        FoodType.EXTRA_GROWTH,
-        FoodType.PHASE_THROUGH,
-      ];
-      actualFoodType =
-        positiveTypes[Math.floor(Math.random() * positiveTypes.length)] ?? FoodType.BONUS_POINTS;
-    }
-
-    const powerUpEffect = applyPowerUpEffect(
-      actualFoodType,
-      prevGameState.score,
-      currentSnake.length,
-    );
-
-    if (prevGameState.food.type === FoodType.JOKER) {
-      powerUpEffect.scoreIncrease += 15;
-    }
-
-    if (prevGameState.food.type !== FoodType.NORMAL) {
-      atePowerUp = true;
-    }
-
-    newScore += powerUpEffect.scoreIncrease;
-
-    if (enableCombos) {
-      newCombo = updateCombo(newCombo, true);
-    }
-
-    // Particles trigger
-    if (enableParticles) {
-      const foodColor = POWER_UP_CONFIG.colors[prevGameState.food.type]?.primary || '#ef4444';
-      if (prevGameState.snake[0]) {
-        particlesToSpawn.push({ position: prevGameState.snake[0], color: foodColor, count: 8 });
-      }
-    }
-
-    // Growth
-    if (powerUpEffect.growthAmount > 0) {
-      const currentTail = currentSnake[currentSnake.length - 1];
-      for (let i = 0; i < powerUpEffect.growthAmount; i++) {
-        currentSnake.push({ ...currentTail });
-      }
-    } else if (powerUpEffect.growthAmount < 0) {
-      const shrinkAmount = Math.abs(powerUpEffect.growthAmount);
-      currentSnake = currentSnake.slice(0, Math.max(1, currentSnake.length - shrinkAmount));
-    }
-
-    if (newCombo.multiplier > statistics.maxCombo) {
-      statistics.maxCombo = newCombo.multiplier;
-    }
-
-    if (prevGameState.food.type === FoodType.EXTRA_LIFE) {
-      newLives = addLife(newLives);
-    }
-
-    if (powerUpEffect.shouldActivatePowerUp) {
-      newActivePowerUps.push(createActivePowerUp(actualFoodType));
-    }
-  } else {
+  if (!ateFood) {
     if (enableCombos) {
       newCombo = updateCombo(newCombo, false);
     }
+    return {
+      newScore,
+      newCombo,
+      newLives,
+      finalSnake: currentSnake,
+      newActivePowerUps,
+      statistics,
+      atePowerUp,
+      particlesToSpawn,
+      newPortals,
+    };
+  }
+
+  updateFoodStatistics(statistics, prevGameState.food.type);
+
+  const actualFoodType = resolveActualFoodType(prevGameState.food.type);
+
+  const consumptionResult = processFoodConsumption(
+    prevGameState,
+    actualFoodType,
+    currentSnake,
+    statistics,
+    enableCombos,
+    enableParticles,
+    particlesToSpawn,
+  );
+
+  newScore = consumptionResult.newScore;
+  newLives = consumptionResult.newLives;
+  newCombo = consumptionResult.newCombo;
+  currentSnake = consumptionResult.finalSnake;
+  atePowerUp = consumptionResult.atePowerUp;
+
+  if (consumptionResult.powerUpEffect.shouldActivatePowerUp) {
+    newActivePowerUps.push(createActivePowerUp(actualFoodType));
   }
 
   return {
@@ -582,168 +800,5 @@ export function handleFoodInteraction(
   };
 }
 
-export function handleGameStateUpdates(
-  context: GameUpdateContext,
-  newScore: number,
-): GameStateUpdateResult {
-  const {
-    prevGameState,
-    activeObstacles,
-    activePortals,
-    activeBoss,
-    lastObstacleSpawnTime,
-    ateFood,
-    forcedFoodType,
-    currentTime,
-    finalSnake,
-  } = context;
-
-  let newLevel = prevGameState.level;
-  const prevLevel = prevGameState.level;
-
-  // Calculate Level
-  if (newScore !== prevGameState.score) {
-    const calculatedLevel = calculateLevel(newScore);
-    const shouldPreserveLevel =
-      (newScore === 0 && prevGameState.currentPhase) ||
-      (calculatedLevel < prevLevel && prevGameState.currentPhase);
-
-    if (!shouldPreserveLevel) {
-      newLevel = calculatedLevel;
-    }
-  } else if (newScore === 0 && prevGameState.currentPhase && prevLevel > 1) {
-    newLevel = prevLevel;
-  }
-
-  // Calculate Game Speed
-  let baseGameSpeed = prevGameState.gameSpeed;
-  if (newLevel !== prevLevel) {
-    baseGameSpeed = calculateGameSpeed(newLevel);
-  }
-
-  // Phase System
-  let currentPhase =
-    prevGameState.currentPhase && newScore === 0 && prevLevel === newLevel
-      ? getCurrentPhase(prevLevel)
-      : newLevel !== prevLevel
-        ? getCurrentPhase(newLevel)
-        : getCurrentPhase(newLevel);
-
-  if (activeBoss) {
-    const bossPhase = getPhaseByBoss(activeBoss);
-    if (
-      bossPhase &&
-      (!shouldSpawnBoss(newLevel) || getBossForLevel(newLevel)?.id !== activeBoss.id)
-    ) {
-      currentPhase = bossPhase;
-    }
-  }
-  const phaseConfig = currentPhase?.config;
-
-  // Obstacle Generation
-  let updatedSpawnTime = lastObstacleSpawnTime;
-  if (lastObstacleSpawnTime === 0) updatedSpawnTime = currentTime;
-  const timeSinceLastSpawn = currentTime - updatedSpawnTime;
-
-  const shouldSpawnObstacle =
-    GAME_CONFIG.enableObstacles &&
-    phaseConfig?.obstaclesEnabled !== false &&
-    (newLevel > prevLevel ||
-      (updatedSpawnTime > 0 && timeSinceLastSpawn >= OBSTACLE_CONFIG.spawnInterval));
-
-  let newObstacles = activeObstacles;
-
-  if (shouldSpawnObstacle) {
-    newObstacles = generateObstacles(
-      newLevel,
-      finalSnake,
-      newObstacles,
-      GAME_CONFIG.gridSize,
-      phaseConfig?.obstaclesEnabled,
-      phaseConfig?.obstaclesFrequency ?? OBSTACLE_CONFIG.spawnChance,
-    );
-    updatedSpawnTime = currentTime;
-  } else if (phaseConfig?.obstaclesEnabled === false) {
-    newObstacles = [];
-  }
-
-  // Food Generation
-  const foodExpired = hasFoodExpired(prevGameState.food);
-  let newFood = prevGameState.food;
-  if (ateFood || foodExpired) {
-    newFood = generateRandomFood(
-      finalSnake,
-      GAME_CONFIG.gridSize,
-      newObstacles,
-      phaseConfig?.powerUpsFrequency,
-      phaseConfig?.timedFoodFrequency,
-      forcedFoodType ?? undefined,
-    );
-  }
-
-  // Boss Spawning Logic
-  let newActiveBoss = activeBoss;
-  let bossSnake: BossSnake | undefined = prevGameState.bossSnake;
-  let newGuardianFlag: Food | null = prevGameState.guardianFlag ?? null;
-
-  if (shouldSpawnBoss(newLevel)) {
-    const levelBoss = getBossForLevel(newLevel);
-    if (levelBoss && levelBoss.id === prevGameState.activeBoss?.id) {
-      newActiveBoss = levelBoss;
-    } else if (!prevGameState.activeBoss) {
-      newActiveBoss = levelBoss;
-    }
-  }
-
-  // New Boss Initialization
-  if (
-    newActiveBoss &&
-    (!prevGameState.activeBoss || prevGameState.activeBoss.id !== newActiveBoss.id)
-  ) {
-    const bossResources = generateBossInitialResources(
-      newActiveBoss,
-      finalSnake,
-      newObstacles,
-      activePortals,
-      GAME_CONFIG.gridSize,
-    );
-    newObstacles = bossResources.obstacles;
-
-    bossSnake =
-      initializeBossSnake(newActiveBoss, finalSnake, newObstacles, GAME_CONFIG.gridSize) ??
-      undefined;
-
-    if (newActiveBoss.id === 'guardian' && !prevGameState.guardianFlag) {
-      const flagPos = generateGuardianFlagPosition(
-        finalSnake,
-        bossSnake?.positions ?? [],
-        newObstacles,
-        GAME_CONFIG.gridSize,
-      );
-      if (flagPos) {
-        newGuardianFlag = {
-          position: flagPos,
-          type: FoodType.EXTRA_LIFE,
-          spawnTime: Date.now(),
-          duration: undefined,
-        };
-      }
-    }
-  } else if (!newActiveBoss) {
-    bossSnake = undefined;
-    newGuardianFlag = null; // Clear flag if no boss
-  }
-
-  return {
-    newLevel,
-    baseGameSpeed,
-    currentPhase: currentPhase?.id,
-    phaseLevelType: currentPhase?.type,
-    newObstacles,
-    newFood,
-    activeBoss: newActiveBoss,
-    bossSnake,
-    newGuardianFlag: newGuardianFlag ?? null,
-    updatedSpawnTime,
-  };
-}
+export { handleGameStateUpdates } from './game/gameStateUpdates';
+export type { GameStateUpdateResult } from './game/gameStateUpdates';

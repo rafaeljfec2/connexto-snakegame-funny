@@ -40,6 +40,7 @@ npm install
    - Use as **setas do teclado** ou **WASD** para mover a cobra
    - Pressione **ESPAÇO** para iniciar/pausar o jogo
    - **F1** ou **Ctrl+D**: Abrir painel de debug de bosses
+   - **F2**: Testar transição de derrota de boss
    - **F3** ou **Ctrl+F**: Abrir painel de debug de fases
 
 3. **Controles Mobile:**
@@ -255,8 +256,35 @@ O layout mobile foi completamente reformulado para melhor experiência:
 
 ## 🐛 Debug Mode
 
-- **F1 / Ctrl+D**: Painel de Debug de Bosses
-- **F3 / Ctrl+F**: Painel de Debug de Fases
+O jogo possui ferramentas de debug para facilitar testes e desenvolvimento:
+
+### Atalhos de Teclado
+
+| Tecla | Alternativa | Função |
+|-------|-------------|--------|
+| **F1** | Ctrl+D | Abre o painel de debug de bosses |
+| **F2** | - | Testa a transição de derrota de boss |
+| **F3** | Ctrl+F | Abre o painel de debug de fases |
+
+### Painel de Debug de Bosses (F1)
+
+- Selecione e ative qualquer um dos 10 bosses instantaneamente
+- Visualize informações do boss: fase, tamanho inicial, habilidades
+- Remova o boss ativo para continuar o jogo normal
+- Útil para testar comportamentos e habilidades específicas de cada boss
+
+### Painel de Debug de Fases (F3)
+
+- Navegue diretamente para qualquer uma das 10 fases
+- Visualize informações da fase: clima, obstáculos, mecânicas
+- Teste efeitos climáticos e visuais de cada fase
+- Ideal para testar transições e progressão do jogo
+
+### Teste de Transição (F2)
+
+- Simula a derrota do boss atual
+- Testa a animação de transição de vitória
+- Útil para verificar a progressão entre fases
 
 ## 🔒 Segurança
 

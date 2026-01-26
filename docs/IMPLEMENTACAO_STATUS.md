@@ -21,6 +21,7 @@ Este documento descreve o status atual de todas as funcionalidades implementadas
 - [x] Sistema de flag do Guardião
 - [x] Transições animadas de derrota de boss
 - [x] Painel de debug de bosses (F1/Ctrl+D)
+- [x] Teste de transição de derrota de boss (F2)
 
 ### Sistema de Fases
 
@@ -30,6 +31,14 @@ Este documento descreve o status atual de todas as funcionalidades implementadas
 - [x] Telas de introdução de fase
 - [x] Telas de conclusão de fase
 - [x] Painel de debug de fases (F3/Ctrl+F)
+
+### Sistema de Debug
+
+- [x] Painel de debug de bosses (F1/Ctrl+D) - Ativar qualquer boss
+- [x] Painel de debug de fases (F3/Ctrl+F) - Navegar para qualquer fase
+- [x] Teste de transição de boss (F2) - Simular derrota de boss
+- [x] Informações detalhadas de bosses e fases nos painéis
+- [x] Atalhos de teclado para acesso rápido
 
 ### Efeitos Visuais e Climáticos
 

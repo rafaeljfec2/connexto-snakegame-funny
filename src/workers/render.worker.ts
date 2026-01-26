@@ -1,709 +1,178 @@
 /// <reference lib="webworker" />
 
-import {
-  Position,
-  PoisonShot,
-  BossSnake,
-  Food as FoodType,
-  Obstacle,
-  Portal,
-  Direction,
-} from '@/types/game';
 import { GAME_CONFIG } from '@/constants/game';
-
-// State
-let ctx: OffscreenCanvasRenderingContext2D | null = null;
-let width = 0;
-let height = 0;
-let dpr = 1;
-let gamePort: MessagePort | null = null;
-
-// Game State
-let snake: Position[] = [];
-let prevSnake: Position[] = [];
-let bossSnake: BossSnake | null = null;
-let prevBossSnake: Position[] = []; // Track boss body
-let activeBoss: { color: string; icon?: string; name?: string } | null = null;
-let guardianFlag: { position: Position; type: string } | null = null;
-let shots: PoisonShot[] = [];
-let food: FoodType | null = null;
-let obstacles: Obstacle[] = [];
-let portals: Portal[] = [];
-let isEating = false;
-let speed = 150;
-let lastUpdate = 0;
-let isMobile = false;
-let isRenderDirty = false;
-
-// Animation State
-
-let lastTongueFlick = 0;
-let nextTongueFlick = 0;
-let tongueProgress = 0;
-let gameStatus = 'IDLE';
-let deathStartTime = 0;
-
-// Helper to interpolate
-// Helper to darken hex color
-const adjustColor = (color: string, _amount: number) => {
-  return color; // Simplification, implementing true hex adjust is overkill here, default to input
-};
-
-const lerp = (start: number, end: number, t: number) => {
-  return start + (end - start) * t;
-};
-
-const getInterpolatedPos = (
-  curr: Position,
-  prev: Position | undefined,
-  cellSize: number,
-  t: number,
-) => {
-  if (!prev) return { x: curr.x * cellSize, y: curr.y * cellSize };
-
-  // Snap if wrapping
-  if (Math.abs(curr.x - prev.x) > 1 || Math.abs(curr.y - prev.y) > 1) {
-    return { x: curr.x * cellSize, y: curr.y * cellSize };
-  }
-
-  const x = lerp(prev.x, curr.x, t);
-  const y = lerp(prev.y, curr.y, t);
-  return { x: x * cellSize, y: y * cellSize };
-};
-
-const drawSnakeSegment = (
-  x: number,
-  y: number,
-  cellSize: number,
-  isHead: boolean,
-  isBoss: boolean,
-  scale: number = 1,
-  angle: number = 0,
-) => {
-  if (!ctx) return;
-
-  const cx = x + cellSize / 2;
-  const cy = y + cellSize / 2;
-  const radius = cellSize / 2;
-
-  ctx.save();
-  ctx.translate(cx, cy);
-  if (isHead) ctx.rotate(angle);
-  ctx.scale(scale, scale);
-
-  // Gradient (relative to 0,0)
-  const lightOff = -radius * 0.3;
-  const gradient = ctx.createRadialGradient(lightOff, lightOff, radius * 0.1, 0, 0, radius);
-
-  if (isBoss) {
-    gradient.addColorStop(0, activeBoss?.color || '#f87171');
-    gradient.addColorStop(0.4, activeBoss?.color ? adjustColor(activeBoss.color, -20) : '#dc2626');
-    gradient.addColorStop(1, activeBoss?.color ? adjustColor(activeBoss.color, -40) : '#991b1b');
-  } else if (isHead) {
-    gradient.addColorStop(0, '#86efac');
-    gradient.addColorStop(0.4, '#22c55e');
-    gradient.addColorStop(1, '#15803d');
-  } else {
-    gradient.addColorStop(0, '#4ade80');
-    gradient.addColorStop(0.4, '#16a34a');
-    gradient.addColorStop(1, '#14532d');
-  }
-
-  ctx.fillStyle = gradient;
-
-  if (!isMobile) {
-    ctx.shadowColor = 'rgba(0,0,0,0.3)';
-    ctx.shadowBlur = 4;
-    ctx.shadowOffsetX = 2;
-    ctx.shadowOffsetY = 2;
-  }
-
-  ctx.beginPath();
-  ctx.arc(0, 0, radius, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Boss Name & Icon
-  if (isBoss && isHead && activeBoss) {
-    ctx.save();
-    // Rotate back to keep text upright? Or let it rotate with head?
-    // Usually names stay upright.
-    ctx.rotate(-angle);
-
-    ctx.fillStyle = 'white';
-    ctx.shadowColor = 'black';
-    ctx.shadowBlur = 4;
-    ctx.font = 'bold 14px sans-serif';
-    ctx.textAlign = 'center';
-    const text = `${activeBoss.icon || ''} ${activeBoss.name || ''}`.trim();
-    if (text) {
-      ctx.fillText(text, 0, -radius - 8);
-    }
-    ctx.restore();
-  }
-
-  // Eyes for Head
-  if (isHead && !isBoss) {
-    // Tongue Animation
-    if (tongueProgress > 0.1) {
-      ctx.save();
-      const tLength = radius * 1.2 * tongueProgress;
-      const tWidth = radius * 0.15;
-
-      ctx.beginPath();
-      ctx.strokeStyle = '#ef4444'; // Red
-      ctx.lineWidth = tWidth;
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-
-      // Main tongue stem
-      ctx.moveTo(radius * 0.5, 0); // Start slightly inside head
-      ctx.lineTo(radius + tLength, 0);
-
-      // Fork
-      const forkLen = radius * 0.4 * tongueProgress;
-      const forkSpread = radius * 0.3 * tongueProgress;
-
-      ctx.moveTo(radius + tLength, 0);
-      ctx.lineTo(radius + tLength + forkLen, -forkSpread);
-
-      ctx.moveTo(radius + tLength, 0);
-      ctx.lineTo(radius + tLength + forkLen, forkSpread);
-
-      ctx.stroke();
-      ctx.restore();
-    }
-
-    ctx.shadowColor = 'transparent';
-    const eyeRadius = radius * 0.35;
-    const eyeOffset = radius * 0.4;
-
-    // Draw relative to 0,0 facing Right (0 radians)
-    ctx.fillStyle = 'white';
-    ctx.beginPath();
-    ctx.arc(eyeOffset, -eyeRadius * 0.8, eyeRadius, 0, Math.PI * 2); // Top eye (Left relative to forward?) No, y is down.
-    // At 0 deg (Right), y- is Up. So -eyeRadius is Left Eye?
-    // Wait, screen coords: Y is Down.
-    // 0 deg is X+.
-    // Top of screen is Y-.
-    // So Y- is "Left" of the snake if it's facing Right? Yes.
-
-    ctx.arc(eyeOffset, eyeRadius * 0.8, eyeRadius, 0, Math.PI * 2); // Bottom eye
-    ctx.fill();
-
-    ctx.fillStyle = 'black';
-    const pupilRadius = eyeRadius * 0.5;
-    ctx.beginPath();
-    // Look slightly forward
-    ctx.arc(eyeOffset + 2, -eyeRadius * 0.8, pupilRadius, 0, Math.PI * 2);
-    ctx.arc(eyeOffset + 2, eyeRadius * 0.8, pupilRadius, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  ctx.restore();
-};
-
-const drawFood = (food: FoodType, cellSize: number, now: number) => {
-  if (!ctx) return;
-  const { x, y } = food.position;
-  const cx = x * cellSize + cellSize / 2;
-  const cy = y * cellSize + cellSize / 2;
-  const r = cellSize * 0.4; // Slightly smaller than cell
-
-  ctx.save();
-  ctx.translate(cx, cy);
-
-  // Pulse
-  const pulse = 1 + Math.sin(now / 200) * 0.1;
-  ctx.scale(pulse, pulse);
-
-  let color1 = '#ef4444';
-  let color2 = '#dc2626';
-
-  switch (food.type) {
-    case 'POISON':
-      color1 = '#10b981';
-      color2 = '#059669';
-      break; // Green
-    case 'SPEED_BOOST':
-      color1 = '#3b82f6';
-      color2 = '#2563eb';
-      break; // Blue
-    case 'EXTRA_LIFE':
-      color1 = '#ec4899';
-      color2 = '#db2777';
-      break; // Pink
-    case 'BONUS_POINTS':
-      color1 = '#fbbf24';
-      color2 = '#d97706';
-      break; // Gold
-    case 'REVERSE_CONTROLS':
-      color1 = '#f59e0b';
-      color2 = '#b45309';
-      break; // Amber
-    case 'SLOW_DOWN':
-      color1 = '#6366f1';
-      color2 = '#4f46e5';
-      break; // Indigo
-    case 'PHASE_THROUGH':
-      color1 = '#8b5cf6';
-      color2 = '#7c3aed';
-      break; // Purple
-  }
-
-  const grad = ctx.createRadialGradient(-r * 0.3, -r * 0.3, r * 0.1, 0, 0, r);
-  grad.addColorStop(0, color1);
-  grad.addColorStop(1, color2);
-
-  ctx.fillStyle = grad;
-
-  if (!isMobile) {
-    ctx.shadowColor = color1;
-    ctx.shadowBlur = 10;
-  }
-
-  ctx.beginPath();
-  ctx.arc(0, 0, r, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.shadowBlur = 0;
-  ctx.restore();
-};
-
-const drawObstacle = (obs: Obstacle, cellSize: number) => {
-  if (!ctx) return;
-  const { x, y } = obs.position;
-  const px = x * cellSize;
-  const py = y * cellSize;
-  const s = cellSize;
-
-  ctx.save();
-  ctx.translate(px, py);
-
-  const isMoving = obs.type === 'moving';
-
-  // Gradient
-  const grad = ctx.createLinearGradient(0, 0, s, s);
-  if (isMoving) {
-    grad.addColorStop(0, '#fecaca'); // Red light
-    grad.addColorStop(1, '#ef4444'); // Red dark
-    ctx.strokeStyle = '#b91c1c';
-  } else {
-    grad.addColorStop(0, '#e2e8f0'); // Slate light
-    grad.addColorStop(1, '#64748b'); // Slate dark
-    ctx.strokeStyle = '#475569';
-  }
-
-  ctx.fillStyle = grad;
-  ctx.lineWidth = 2;
-
-  // Rounded Rect
-  ctx.beginPath();
-  if (ctx.roundRect) {
-    ctx.roundRect(2, 2, s - 4, s - 4, 4);
-  } else {
-    ctx.rect(2, 2, s - 4, s - 4);
-  }
-  ctx.fill();
-  ctx.stroke();
-
-  // Cross pattern
-  ctx.beginPath();
-  ctx.strokeStyle = isMoving ? 'rgba(127, 29, 29, 0.5)' : 'rgba(71, 85, 105, 0.5)';
-  ctx.lineWidth = 2;
-
-  // X shape
-  const pad = s * 0.25;
-  ctx.moveTo(pad, pad);
-  ctx.lineTo(s - pad, s - pad);
-  ctx.moveTo(s - pad, pad);
-  ctx.lineTo(pad, s - pad);
-  ctx.stroke();
-
-  ctx.restore();
-};
-
-const drawPortal = (portal: Portal, cellSize: number, now: number) => {
-  if (!ctx) return;
-  const { x, y } = portal.position;
-  const cx = x * cellSize + cellSize / 2;
-  const cy = y * cellSize + cellSize / 2;
-  const r = cellSize * 0.45;
-
-  ctx.save();
-  ctx.translate(cx, cy);
-
-  const pulse = 1 + Math.sin(now / 500) * 0.1;
-  ctx.scale(pulse, pulse);
-
-  const grad = ctx.createRadialGradient(0, 0, r * 0.2, 0, 0, r);
-  grad.addColorStop(0, '#d8b4fe'); // Purple light
-  grad.addColorStop(1, '#6b21a8'); // Purple dark
-
-  ctx.fillStyle = grad;
-  if (!isMobile) {
-    ctx.shadowColor = '#a855f7';
-    ctx.shadowBlur = 15;
-  }
-
-  ctx.beginPath();
-  ctx.arc(0, 0, r, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Swirl effect? Simple circles for now
-  ctx.beginPath();
-  ctx.strokeStyle = 'rgba(255,255,255,0.4)';
-  ctx.lineWidth = 1;
-  ctx.arc(0, 0, r * 0.6, 0, Math.PI * 2);
-  ctx.stroke();
-
-  ctx.restore();
-};
-
-const drawShot = (shot: PoisonShot, cellSize: number) => {
-  if (!ctx) return;
-
-  const x = shot.position.x * cellSize;
-  const y = shot.position.y * cellSize;
-  const size = cellSize * 0.6;
-  const cx = x + cellSize / 2;
-  const cy = y + cellSize / 2;
-
-  ctx.fillStyle = '#10b981';
-
-  if (!isMobile) {
-    ctx.shadowColor = '#10b981';
-    ctx.shadowBlur = 10;
-  }
-
-  ctx.beginPath();
-  ctx.arc(cx, cy, size / 2, 0, Math.PI * 2);
-  ctx.fill();
-
-  if (!isMobile) {
-    ctx.shadowBlur = 0;
-  }
-};
-
-const drawGuardianFlag = (flag: { position: Position; type: string }, cellSize: number) => {
-  if (!ctx) return;
-
-  const cx = flag.position.x * cellSize + cellSize / 2;
-  const cy = flag.position.y * cellSize + cellSize / 2;
-  const size = cellSize * 0.8;
-
-  ctx.save();
-  ctx.translate(cx, cy);
-
-  // Draw Flag Pole
-  ctx.strokeStyle = '#cbd5e1';
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(-size / 4, size / 2);
-  ctx.lineTo(-size / 4, -size / 2);
-  ctx.stroke();
-
-  // Draw Flag Fabric (Green/Red gradient)
-  ctx.fillStyle = '#10b981';
-  ctx.beginPath();
-  ctx.moveTo(-size / 4, -size / 2);
-  ctx.lineTo(size / 2, -size / 4);
-  ctx.lineTo(-size / 4, 0);
-  ctx.fill();
-
-  // Draw Heart Icon inside
-  ctx.font = `${size * 0.6}px Arial`;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText('❤️', 0, -size / 4);
-
-  ctx.restore();
-};
-
+import { createRenderState, handleStateUpdate, type RenderState } from './render/renderState';
+import {
+  drawFood,
+  drawObstacle,
+  drawPortal,
+  drawShot,
+  drawGuardianFlag,
+  type RenderContext,
+} from './render/renderDrawers';
+import { updateTongueAnimation } from './render/renderAnimations';
+import { drawSnakeBody, drawSnakeHead, drawBossSnake } from './render/renderHelpers';
+
+// Global render state
+const state: RenderState = createRenderState();
+
+/**
+ * Main render loop
+ */
 const render = () => {
-  if (!ctx) {
+  if (!state.ctx) {
     requestAnimationFrame(render);
     return;
   }
 
   // Skip render if nothing changed
-  if (!isRenderDirty) {
+  if (!state.isRenderDirty) {
     requestAnimationFrame(render);
     return;
   }
 
-  isRenderDirty = false;
+  state.isRenderDirty = false;
 
   // Time & Interpolation
   const now = performance.now();
-  const elapsed = now - lastUpdate;
-  const t = Math.min(Math.max(elapsed / speed, 0), 1);
+  const elapsed = now - state.lastUpdate;
+  const t = Math.min(Math.max(elapsed / state.speed, 0), 1);
 
-  // Tongue Logic
-  if (now > nextTongueFlick) {
-    lastTongueFlick = now;
-    nextTongueFlick = now + 500 + Math.random() * 1500;
-  }
-  const flickDur = 200;
-  if (now - lastTongueFlick < flickDur) {
-    tongueProgress = Math.sin(((now - lastTongueFlick) / flickDur) * Math.PI);
-  } else {
-    tongueProgress = 0;
-  }
+  // Update tongue animation
+  state.animationState.tongueProgress = updateTongueAnimation(now, state.animationState);
 
-  // Clear
-  ctx.clearRect(0, 0, width, height);
+  // Clear canvas
+  state.ctx.clearRect(0, 0, state.width, state.height);
 
   // Calculate cell size
-  // Grid size is fixed (20x20 usually), canvas size varies
-  // We assume canvas fills the board area
-  const cellSize = width / GAME_CONFIG.gridSize;
+  const cellSize = state.width / GAME_CONFIG.gridSize;
+
+  // Create render context
+  const renderContext: RenderContext = {
+    ctx: state.ctx,
+    width: state.width,
+    height: state.height,
+    isMobile: state.isMobile,
+  };
 
   // Draw Obstacles
-  obstacles.forEach((obs) => drawObstacle(obs, cellSize));
+  state.obstacles.forEach((obs) => drawObstacle(renderContext, obs, cellSize));
 
   // Draw Portals
-  portals.forEach((p) => drawPortal(p, cellSize, now));
+  state.portals.forEach((p) => drawPortal(renderContext, p, cellSize, now));
 
   // Draw Food
-  if (food) drawFood(food, cellSize, now);
+  if (state.food) {
+    drawFood(renderContext, state.food, cellSize, now);
+  }
 
   // Draw Snake
-  if (snake && snake.length > 0) {
-    ctx.save();
-    // Body
-    for (let i = snake.length - 1; i > 0; i--) {
-      const prev = prevSnake[i] || prevSnake[prevSnake.length - 1] || snake[i];
-      const pos = getInterpolatedPos(snake[i], prev, cellSize, t);
-
-      let scale = 1.15;
-      // Tapering
-      if (i >= snake.length - 2 && snake.length > 3) scale = 0.85;
-
-      // Death Animation
-      if (deathStartTime > 0) {
-        const time = now - deathStartTime;
-        const totalDur = 2000;
-        const step = Math.min(50, totalDur / (snake.length || 1));
-        const delay = i * step;
-        const fade = Math.max(0, 1 - (time - delay) / 200);
-        ctx.globalAlpha = fade;
-      }
-
-      drawSnakeSegment(pos.x, pos.y, cellSize, false, false, scale);
-    }
-    // Head
-    const headPrev = prevSnake[0] || snake[0];
-    const headPos = getInterpolatedPos(snake[0], headPrev, cellSize, t);
-
-    // Calculate Angle
-    let angle = 0;
-    if (snake.length > 1) {
-      const next = snake[1];
-      let dx = snake[0].x - next.x;
-      let dy = snake[0].y - next.y;
-
-      // Wrap handling
-      if (dx > 1) dx = -1;
-      else if (dx < -1) dx = 1;
-      if (dy > 1) dy = -1;
-      else if (dy < -1) dy = 1;
-
-      angle = Math.atan2(dy, dx);
-    }
-
-    let headScale = 1.15;
-    if (isEating) headScale = 1.3; // Simple pulse
-
-    if (deathStartTime > 0) {
-      const time = now - deathStartTime;
-      const fade = Math.max(0, 1 - time / 200);
-      ctx.globalAlpha = fade;
-    }
-
-    drawSnakeSegment(headPos.x, headPos.y, cellSize, true, false, headScale, angle);
-    ctx.restore();
+  if (state.snake && state.snake.length > 0) {
+    state.ctx.save();
+    drawSnakeBody(renderContext, state, cellSize, t, now);
+    drawSnakeHead(renderContext, state, cellSize, t, now);
+    state.ctx.restore();
   }
 
   // Draw Boss
-  if (bossSnake) {
-    bossSnake.positions.forEach((seg, i) => {
-      const prev = prevBossSnake[i] || seg;
-      const pos = getInterpolatedPos(seg, prev, cellSize, t);
-
-      let bossAngle = 0;
-      if (i === 0 && bossSnake!.positions.length > 1) {
-        const next = bossSnake!.positions[1];
-        let dx = seg.x - next.x;
-        let dy = seg.y - next.y;
-        // Wrap handling
-        if (dx > 1) dx = -1;
-        else if (dx < -1) dx = 1;
-        if (dy > 1) dy = -1;
-        else if (dy < -1) dy = 1;
-        bossAngle = Math.atan2(dy, dx);
-      }
-
-      drawSnakeSegment(pos.x, pos.y, cellSize, i === 0, true, 1.2, bossAngle);
-    });
-  }
+  drawBossSnake(renderContext, state, cellSize, t);
 
   // Draw Guardian Flag
-  if (guardianFlag) {
-    drawGuardianFlag(guardianFlag, cellSize);
+  if (state.guardianFlag) {
+    drawGuardianFlag(renderContext, state.guardianFlag, cellSize);
   }
 
   // Draw Shots
-  // Shots move linearly. Interpolation for shots?
-  // Shots update every tick.
-  shots.forEach((shot) => {
-    // Shot interpolation is harder without prev state tracking for shots
-    // For now, draw at current pos (might jitter if low tick rate)
-    // Or simplistic interpolation if we assume speed
-    drawShot(shot, cellSize);
+  state.shots.forEach((shot) => {
+    drawShot(renderContext, shot, cellSize);
   });
 
   requestAnimationFrame(render);
 };
 
-// Helper to convert ArrayBuffer to Position[]
-function bufferToPositions(buffer: ArrayBuffer, length: number): Position[] {
-  const array = new Float32Array(buffer);
-  const positions: Position[] = [];
-  for (let i = 0; i < length; i++) {
-    positions.push({ x: array[i * 2], y: array[i * 2 + 1] });
+/**
+ * Initialize canvas and start render loop
+ */
+function handleInit(payload: {
+  canvas: OffscreenCanvas;
+  width: number;
+  height: number;
+  dpr: number;
+  isMobile: boolean;
+}) {
+  const canvas = payload.canvas;
+  state.width = payload.width || 100;
+  state.height = payload.height || 100;
+  state.dpr = payload.dpr || 1;
+  state.isMobile = payload.isMobile;
+
+  try {
+    canvas.width = state.width * state.dpr;
+    canvas.height = state.height * state.dpr;
+    state.ctx = canvas.getContext('2d');
+    if (state.ctx) {
+      state.ctx.scale(state.dpr, state.dpr);
+    }
+  } catch (e) {
+    console.error('Error setting up canvas', e);
   }
-  return positions;
+
+  // Start render loop
+  render();
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const handleUpdate = (payload: any) => {
-  // Check if actually changed
-  if (payload.snake !== undefined) {
-    // Handle TypedArray transfer (new format) or regular array (legacy)
-    if (payload.snake instanceof ArrayBuffer) {
-      const newSnake = bufferToPositions(payload.snake, payload.snakeLength ?? 0);
-      prevSnake = snake && snake.length > 0 ? snake : newSnake;
-      snake = newSnake;
-    } else {
-      // Legacy format - regular array
-      prevSnake = snake && snake.length > 0 ? snake : payload.snake;
-      snake = payload.snake || [];
-    }
-
-    if (payload.bossSnake) {
-      if (payload.bossSnake instanceof ArrayBuffer) {
-        const bossPositions = bufferToPositions(payload.bossSnake, payload.bossSnakeLength ?? 0);
-        prevBossSnake = bossSnake ? bossSnake.positions : bossPositions;
-        bossSnake = {
-          positions: bossPositions,
-          direction: bossSnake?.direction ?? Direction.RIGHT,
-          nextDirection: bossSnake?.nextDirection ?? Direction.RIGHT,
-          initialLength: bossSnake?.initialLength ?? bossPositions.length,
-        };
-      } else {
-        // Legacy format
-        prevBossSnake = bossSnake ? bossSnake.positions : payload.bossSnake.positions;
-        bossSnake = payload.bossSnake;
-      }
-    } else {
-      bossSnake = null;
-      prevBossSnake = [];
-    }
-
-    if (payload.activeBoss) {
-      activeBoss = payload.activeBoss;
-    }
-
-    if (payload.food) {
-      food = payload.food;
-    }
-
-    if (payload.obstacles) {
-      obstacles = payload.obstacles;
-    }
-
-    if (payload.portals) {
-      portals = payload.portals;
-    }
-
-    if (payload.guardianFlag !== undefined) {
-      guardianFlag = payload.guardianFlag;
-    }
-
-    // Handle shots - keep as regular array for now (less frequent updates)
-    shots = payload.shots || [];
-
-    isEating = payload.isEating ?? false;
-    speed = payload.speed || 150;
-
-    if (payload.status) {
-      if (payload.status !== gameStatus) {
-        if (payload.status === 'GAME_OVER' || payload.status === 'DYING') {
-          deathStartTime = performance.now();
-        } else {
-          deathStartTime = 0;
-        }
-        gameStatus = payload.status;
-      }
-    }
-
-    lastUpdate = performance.now();
-    isRenderDirty = true; // Mark as dirty to trigger render
+/**
+ * Handle canvas resize
+ */
+function handleResize(payload: { width: number; height: number; dpr: number }) {
+  state.width = payload.width;
+  state.height = payload.height;
+  state.dpr = payload.dpr || 1;
+  if (state.ctx?.canvas) {
+    state.ctx.canvas.width = state.width * state.dpr;
+    state.ctx.canvas.height = state.height * state.dpr;
+    state.ctx.setTransform(1, 0, 0, 1, 0, 0);
+    state.ctx.scale(state.dpr, state.dpr);
   }
-};
+}
 
+/**
+ * Handle game worker connection
+ */
+function handleConnectGameWorker(payload: { port: MessagePort }) {
+  state.gamePort = payload.port;
+  if (state.gamePort) {
+    state.gamePort.onmessage = (evt) => {
+      if (evt.data.type === 'UPDATE') {
+        handleStateUpdate(state, evt.data.payload);
+      }
+    };
+  }
+}
+
+// Message handler
 globalThis.onmessage = (e: MessageEvent) => {
   const { type, payload } = e.data;
 
   switch (type) {
     case 'INIT': {
-      const canvas = payload.canvas as OffscreenCanvas;
-      width = payload.width || 100;
-      height = payload.height || 100;
-      dpr = payload.dpr || 1;
-      isMobile = payload.isMobile;
-
-      try {
-        canvas.width = width * dpr;
-        canvas.height = height * dpr;
-        ctx = canvas.getContext('2d');
-        if (ctx) {
-          ctx.scale(dpr, dpr);
-        }
-      } catch (e) {
-        console.error('Error setting up canvas', e);
-      }
-
-      // Start loop
-      render();
+      handleInit(payload);
       break;
     }
 
-    case 'RESIZE':
-      width = payload.width;
-      height = payload.height;
-      dpr = payload.dpr || 1;
-      if (ctx?.canvas) {
-        ctx.canvas.width = width * dpr;
-        ctx.canvas.height = height * dpr;
-        ctx.setTransform(1, 0, 0, 1, 0, 0);
-        ctx.scale(dpr, dpr);
-      }
+    case 'RESIZE': {
+      handleResize(payload);
       break;
+    }
 
-    case 'UPDATE':
-      handleUpdate(payload);
+    case 'UPDATE': {
+      handleStateUpdate(state, payload);
       break;
+    }
 
-    case 'CONNECT_GAME_WORKER':
-      gamePort = payload.port;
-      if (gamePort) {
-        gamePort.onmessage = (evt) => {
-          if (evt.data.type === 'UPDATE') {
-            handleUpdate(evt.data.payload);
-          }
-        };
-      }
+    case 'CONNECT_GAME_WORKER': {
+      handleConnectGameWorker(payload);
       break;
+    }
   }
 };

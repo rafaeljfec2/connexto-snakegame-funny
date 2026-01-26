@@ -652,7 +652,7 @@ const handleUpdate = (payload: any) => {
   }
 };
 
-self.onmessage = (e: MessageEvent) => {
+globalThis.onmessage = (e: MessageEvent) => {
   const { type, payload } = e.data;
 
   switch (type) {
@@ -683,7 +683,7 @@ self.onmessage = (e: MessageEvent) => {
       width = payload.width;
       height = payload.height;
       dpr = payload.dpr || 1;
-      if (ctx && ctx.canvas) {
+      if (ctx?.canvas) {
         ctx.canvas.width = width * dpr;
         ctx.canvas.height = height * dpr;
         ctx.setTransform(1, 0, 0, 1, 0, 0);

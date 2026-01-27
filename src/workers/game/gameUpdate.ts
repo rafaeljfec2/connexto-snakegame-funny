@@ -43,6 +43,21 @@ export interface UpdateResult {
 }
 
 /**
+ * Combine boss and food portals efficiently
+ */
+function combinePortals(
+  bossPortals: import('@/types/game').Portal[],
+  foodPortals: import('@/types/game').Portal[],
+): import('@/types/game').Portal[] {
+  if (bossPortals.length === 0) return foodPortals;
+  if (foodPortals.length === 0) return bossPortals;
+  const combined: typeof bossPortals = [];
+  combined.push(...bossPortals);
+  combined.push(...foodPortals);
+  return combined;
+}
+
+/**
  * Handle portal teleportation
  */
 function handlePortalTeleport(
@@ -416,58 +431,39 @@ export function updateGameLogic(context: UpdateContext, performanceTime: number)
   });
 
   let bossAbilityCooldowns = bossLogicResult.bossAbilityCooldowns;
-  let forcedFoodType = bossLogicResult.forcedFoodType
-    ? bossLogicResult.forcedFoodType
-    : context.forcedFoodType;
+  let forcedFoodType = bossLogicResult.forcedFoodType ?? context.forcedFoodType;
 
-  // Handle Flag Capture
-  if (headPosition) {
-    const flagCapture = handleGuardianFlagCapture(
-      headPosition,
-      bossLogicResult,
-      foodResult,
-      prev,
-      bossAbilityCooldowns,
-    );
-    foodResult.newScore = flagCapture.newScore;
-    foodResult.newLives = flagCapture.newLives;
-    bossAbilityCooldowns = flagCapture.bossAbilityCooldowns;
-    forcedFoodType = flagCapture.forcedFoodType;
-  }
+  // Handle Flag Capture (headPosition guaranteed to exist after early return above)
+  const flagCapture = handleGuardianFlagCapture(
+    headPosition,
+    bossLogicResult,
+    foodResult,
+    prev,
+    bossAbilityCooldowns,
+  );
+  foodResult.newScore = flagCapture.newScore;
+  foodResult.newLives = flagCapture.newLives;
+  bossAbilityCooldowns = flagCapture.bossAbilityCooldowns;
+  forcedFoodType = flagCapture.forcedFoodType;
 
   // 7. Boss Collision Check
-  if (headPosition) {
-    const bossCollisionState = handleBossCollision(headPosition, bossLogicResult, prev, foodResult);
-    if (bossCollisionState) {
-      self.postMessage({
-        type: 'GAME_OVER_OR_DYING',
-        payload: {
-          status: bossCollisionState.status,
-          score:
-            bossCollisionState.status === GameStatus.GAME_OVER
-              ? bossCollisionState.score
-              : undefined,
-        },
-      });
-      return {
-        newGameState: bossCollisionState,
-        newBossAbilityCooldowns: bossAbilityCooldowns,
-        newForcedFoodType: forcedFoodType,
-        newPendingPoisonShots: [],
-        newLastObstacleSpawnTime: context.lastObstacleSpawnTime,
-        isRenderDirty: true,
-      };
-    }
-  }
-
-  if (!headPosition) {
+  const bossCollisionState = handleBossCollision(headPosition, bossLogicResult, prev, foodResult);
+  if (bossCollisionState) {
+    self.postMessage({
+      type: 'GAME_OVER_OR_DYING',
+      payload: {
+        status: bossCollisionState.status,
+        score:
+          bossCollisionState.status === GameStatus.GAME_OVER ? bossCollisionState.score : undefined,
+      },
+    });
     return {
-      newGameState: prev,
+      newGameState: bossCollisionState,
       newBossAbilityCooldowns: bossAbilityCooldowns,
       newForcedFoodType: forcedFoodType,
       newPendingPoisonShots: [],
       newLastObstacleSpawnTime: context.lastObstacleSpawnTime,
-      isRenderDirty: false,
+      isRenderDirty: true,
     };
   }
 
@@ -525,18 +521,7 @@ export function updateGameLogic(context: UpdateContext, performanceTime: number)
     gameSpeed: stateUpdates.baseGameSpeed,
     activePowerUps: foodResult.newActivePowerUps,
     obstacles: stateUpdates.newObstacles,
-    portals: (() => {
-      const bossPortals = poisonUpdate.newBossState.newPortals;
-      const foodPortals = foodResult.newPortals;
-      // Optimize: avoid spreading if one array is empty
-      if (bossPortals.length === 0) return foodPortals;
-      if (foodPortals.length === 0) return bossPortals;
-      // Only create new array if both have items
-      const combined: typeof bossPortals = [];
-      combined.push(...bossPortals);
-      combined.push(...foodPortals);
-      return combined;
-    })(),
+    portals: combinePortals(poisonUpdate.newBossState.newPortals, foodResult.newPortals),
     combo: foodResult.newCombo,
     guardianFlag: stateUpdates.newGuardianFlag ?? poisonUpdate.newBossState.guardianFlag,
     guardianFlagSide: poisonUpdate.newBossState.guardianFlagSide,
@@ -547,7 +532,12 @@ export function updateGameLogic(context: UpdateContext, performanceTime: number)
     currentPhase: stateUpdates.currentPhase ?? prev.currentPhase,
     phaseLevelType: stateUpdates.phaseLevelType ?? prev.phaseLevelType,
     activeBoss: stateUpdates.activeBoss,
-    bossSnake: stateUpdates.bossSnake,
+    // Use stateUpdates.bossSnake only when a new boss was initialized,
+    // otherwise use the moved bossSnake from poison/boss logic
+    bossSnake:
+      stateUpdates.activeBoss?.id !== prev.activeBoss?.id
+        ? stateUpdates.bossSnake
+        : poisonUpdate.newBossState.bossSnake,
   };
 
   return {

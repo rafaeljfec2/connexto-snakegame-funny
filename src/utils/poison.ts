@@ -159,9 +159,8 @@ export function updatePoisonShots(
   // Process shots - limit to first 100 for performance (shouldn't normally have this many)
   const shotsToProcess = shots.slice(0, 100);
 
-  // Use for loop instead of forEach for better performance
-  for (let i = 0; i < shotsToProcess.length; i++) {
-    const shot = shotsToProcess[i];
+  // Use for-of loop for iteration
+  for (const shot of shotsToProcess) {
     const result = movePoisonShot(shot, gridSize, obstacles);
     if (result.hitObstacle) {
       // Shot hit an obstacle - remove it (don't add to updatedShots) and track the hit obstacle

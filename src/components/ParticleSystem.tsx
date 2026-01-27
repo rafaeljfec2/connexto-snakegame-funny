@@ -109,15 +109,15 @@ export const ParticleSystem = memo(function ParticleSystem({
       });
     };
 
-    window.addEventListener('game-spawn-particles', handleSpawn);
+    globalThis.window?.addEventListener('game-spawn-particles', handleSpawn);
 
     const resizeObserver = new ResizeObserver(() => updateSize());
     resizeObserver.observe(container);
 
     return () => {
       resizeObserver.disconnect();
-      window.removeEventListener('resize', updateSize);
-      window.removeEventListener('game-spawn-particles', handleSpawn);
+      globalThis.window?.removeEventListener('resize', updateSize);
+      globalThis.window?.removeEventListener('game-spawn-particles', handleSpawn);
       workerRef.current?.terminate();
       if (container.contains(canvas)) {
         container.removeChild(canvas);

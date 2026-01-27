@@ -1,109 +1,91 @@
 import { FoodType, ActivePowerUp } from '@/types/game';
 import { POWER_UP_CONFIG } from '@/constants/powerUps';
 
+interface PowerUpResult {
+  scoreIncrease: number;
+  growthAmount: number;
+  shouldActivatePowerUp: boolean;
+}
+
+const DEFAULT_RESULT: PowerUpResult = {
+  scoreIncrease: 5,
+  growthAmount: 1,
+  shouldActivatePowerUp: false,
+};
+
+/**
+ * Get bonus points effect
+ */
+function getBonusPointsEffect(): PowerUpResult {
+  const effect = POWER_UP_CONFIG.effects[FoodType.BONUS_POINTS];
+  return {
+    scoreIncrease: 'points' in effect ? (effect.points ?? 0) : 0,
+    growthAmount: 1,
+    shouldActivatePowerUp: false,
+  };
+}
+
+/**
+ * Get extra growth effect
+ */
+function getExtraGrowthEffect(): PowerUpResult {
+  const effect = POWER_UP_CONFIG.effects[FoodType.EXTRA_GROWTH];
+  return {
+    scoreIncrease: 10,
+    growthAmount: 'growth' in effect ? (effect.growth ?? 2) : 2,
+    shouldActivatePowerUp: false,
+  };
+}
+
+/**
+ * Get poison effect based on snake length
+ */
+function getPoisonEffect(currentSnakeLength: number): PowerUpResult {
+  const effect = POWER_UP_CONFIG.effects[FoodType.POISON];
+  const shrinkAmount = 'shrinkAmount' in effect ? (effect.shrinkAmount ?? 2) : 2;
+  const points = 'points' in effect ? (effect.points ?? -5) : -5;
+  return {
+    scoreIncrease: points,
+    growthAmount: -Math.min(shrinkAmount, currentSnakeLength - 1),
+    shouldActivatePowerUp: false,
+  };
+}
+
+/**
+ * Static power-up effects map
+ */
+const STATIC_EFFECTS: Partial<Record<FoodType, PowerUpResult>> = {
+  [FoodType.NORMAL]: { scoreIncrease: 10, growthAmount: 1, shouldActivatePowerUp: false },
+  [FoodType.SPEED_BOOST]: { scoreIncrease: 10, growthAmount: 1, shouldActivatePowerUp: true },
+  [FoodType.PHASE_THROUGH]: { scoreIncrease: 10, growthAmount: 1, shouldActivatePowerUp: true },
+  [FoodType.REVERSE_CONTROLS]: { scoreIncrease: 0, growthAmount: 0, shouldActivatePowerUp: true },
+  [FoodType.SLOW_DOWN]: { scoreIncrease: 0, growthAmount: 0, shouldActivatePowerUp: true },
+  [FoodType.JOKER]: { scoreIncrease: 15, growthAmount: 1, shouldActivatePowerUp: false },
+  [FoodType.EXTRA_LIFE]: { scoreIncrease: 20, growthAmount: 1, shouldActivatePowerUp: false },
+  [FoodType.PORTAL]: { scoreIncrease: 15, growthAmount: 1, shouldActivatePowerUp: false },
+};
+
+/**
+ * Dynamic effect handlers that need context
+ */
+const DYNAMIC_EFFECTS: Partial<Record<FoodType, (snakeLength: number) => PowerUpResult>> = {
+  [FoodType.BONUS_POINTS]: getBonusPointsEffect,
+  [FoodType.EXTRA_GROWTH]: getExtraGrowthEffect,
+  [FoodType.POISON]: getPoisonEffect,
+};
+
 export function applyPowerUpEffect(
   foodType: FoodType,
   _currentScore: number,
   currentSnakeLength: number,
-): {
-  scoreIncrease: number;
-  growthAmount: number;
-  shouldActivatePowerUp: boolean;
-} {
-  // Handle NORMAL food type first (not in effects)
-  if (foodType === FoodType.NORMAL) {
-    return {
-      scoreIncrease: 10,
-      growthAmount: 1,
-      shouldActivatePowerUp: false,
-    };
-  }
+): PowerUpResult {
+  const staticEffect = STATIC_EFFECTS[foodType];
+  if (staticEffect) return staticEffect;
 
-  if (foodType === FoodType.BONUS_POINTS) {
-    const effect = POWER_UP_CONFIG.effects[FoodType.BONUS_POINTS];
-    return {
-      scoreIncrease: 'points' in effect ? (effect.points ?? 0) : 0,
-      growthAmount: 1,
-      shouldActivatePowerUp: false,
-    };
-  }
+  const dynamicHandler = DYNAMIC_EFFECTS[foodType];
+  if (dynamicHandler) return dynamicHandler(currentSnakeLength);
 
-  if (foodType === FoodType.EXTRA_GROWTH) {
-    const effect = POWER_UP_CONFIG.effects[FoodType.EXTRA_GROWTH];
-    return {
-      scoreIncrease: 10,
-      growthAmount: 'growth' in effect ? (effect.growth ?? 2) : 2,
-      shouldActivatePowerUp: false,
-    };
-  }
-
-  if (foodType === FoodType.SPEED_BOOST) {
-    return {
-      scoreIncrease: 10,
-      growthAmount: 1,
-      shouldActivatePowerUp: true,
-    };
-  }
-
-  if (foodType === FoodType.POISON) {
-    const effect = POWER_UP_CONFIG.effects[FoodType.POISON];
-    const shrinkAmount = 'shrinkAmount' in effect ? (effect.shrinkAmount ?? 2) : 2;
-    const points = 'points' in effect ? (effect.points ?? -5) : -5;
-    return {
-      scoreIncrease: points,
-      growthAmount: -Math.min(shrinkAmount, currentSnakeLength - 1), // Don't shrink below 1 segment
-      shouldActivatePowerUp: false,
-    };
-  }
-
-  if (foodType === FoodType.PHASE_THROUGH) {
-    return {
-      scoreIncrease: 10,
-      growthAmount: 1,
-      shouldActivatePowerUp: true,
-    };
-  }
-
-  if (foodType === FoodType.REVERSE_CONTROLS || foodType === FoodType.SLOW_DOWN) {
-    return {
-      scoreIncrease: 0, // No points for negative power-ups
-      growthAmount: 0, // No growth for negative power-ups
-      shouldActivatePowerUp: true,
-    };
-  }
-
-  // Joker - randomly choose a positive power-up effect
-  if (foodType === FoodType.JOKER) {
-    // Return effect that will trigger random selection in game loop
-    return {
-      scoreIncrease: 15, // Base points for joker
-      growthAmount: 1,
-      shouldActivatePowerUp: false, // Will be handled specially
-    };
-  }
-
-  if (foodType === FoodType.EXTRA_LIFE) {
-    return {
-      scoreIncrease: 20, // Bonus points for extra life
-      growthAmount: 1,
-      shouldActivatePowerUp: false,
-    };
-  }
-
-  if (foodType === FoodType.PORTAL) {
-    return {
-      scoreIncrease: 15, // Points for portal power-up
-      growthAmount: 1,
-      shouldActivatePowerUp: false, // Portals are created directly, not as active power-up
-    };
-  }
-
-  // Normal food (fallback)
-  return {
-    scoreIncrease: 5,
-    growthAmount: 1,
-    shouldActivatePowerUp: false,
-  };
+  return DEFAULT_RESULT;
 }
 
 export function createActivePowerUp(type: FoodType): ActivePowerUp {

@@ -12,7 +12,7 @@ export function applyPhaseRules(
   const updates: Partial<GameState> = {};
 
   // Speed modifier based on phase
-  if (phaseConfig.speedModifier !== 1.0) {
+  if (phaseConfig.speedModifier !== 1) {
     updates.gameSpeed = Math.floor(gameState.gameSpeed * phaseConfig.speedModifier);
   }
 
@@ -88,7 +88,7 @@ export function getTimedFoodFrequency(level: number): number {
  */
 export function getPhaseSpeedModifier(level: number): number {
   const phase = getCurrentPhase(level);
-  return phase?.config.speedModifier ?? 1.0;
+  return phase?.config.speedModifier ?? 1;
 }
 
 /**

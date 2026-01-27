@@ -22,7 +22,7 @@ export function saveTheme(theme: Theme): void {
 
 export function getEffectiveTheme(theme: Theme): 'dark' | 'light' {
   if (theme === 'auto') {
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    return globalThis.window?.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   }
   return theme;
 }

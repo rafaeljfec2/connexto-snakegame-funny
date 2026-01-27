@@ -31,7 +31,8 @@ const createBrowserDestination = () => {
       };
 
       const levelInfo = levelLabels[levelNum] || { label: 'LOG', style: '' };
-      const prefix = `[${levelInfo.label}]${context ? ` [${context}]` : ''}`;
+      const contextSuffix = context ? ` [${context}]` : '';
+      const prefix = `[${levelInfo.label}]${contextSuffix}`;
 
       // Use appropriate console method based on level
       if (levelNum >= 60) {

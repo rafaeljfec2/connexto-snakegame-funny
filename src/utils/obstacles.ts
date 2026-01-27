@@ -2,6 +2,152 @@ import { Obstacle, Position } from '@/types/game';
 import { OBSTACLE_PATTERNS, OBSTACLE_CONFIG } from '@/constants/obstacles';
 import { GAME_CONFIG } from '@/constants/game';
 
+/**
+ * Create a Set of position keys from an array of positions
+ */
+function createPositionSetFromArray(positions: Position[]): Set<string> {
+  const posSet = new Set<string>();
+  for (const pos of positions) {
+    posSet.add(`${pos.x},${pos.y}`);
+  }
+  return posSet;
+}
+
+/**
+ * Create a Set of position keys from obstacles
+ */
+function createObstaclePositionSet(obstacles: Obstacle[]): Set<string> {
+  const posSet = new Set<string>();
+  for (const obs of obstacles) {
+    posSet.add(`${obs.position.x},${obs.position.y}`);
+  }
+  return posSet;
+}
+
+/**
+ * Check if position is within grid bounds
+ */
+function isInBounds(pos: Position, gridSize: number): boolean {
+  return pos.x >= 0 && pos.x < gridSize && pos.y >= 0 && pos.y < gridSize;
+}
+
+/**
+ * Calculate minimum Manhattan distance from position to any snake segment
+ */
+function getMinDistanceFromSnake(pos: Position, snake: Position[]): number {
+  let minDistance = Infinity;
+  for (const segment of snake) {
+    const distance = Math.abs(pos.x - segment.x) + Math.abs(pos.y - segment.y);
+    if (distance < minDistance) {
+      minDistance = distance;
+    }
+  }
+  return minDistance;
+}
+
+/**
+ * Check if a single position is valid for obstacle placement
+ */
+function isValidPosition(
+  pos: Position,
+  gridSize: number,
+  snake: Position[],
+  obstacleSet: Set<string>,
+  snakeSet: Set<string>,
+): boolean {
+  if (!isInBounds(pos, gridSize)) return false;
+  if (getMinDistanceFromSnake(pos, snake) < OBSTACLE_CONFIG.minDistanceFromSnake) return false;
+
+  const posKey = `${pos.x},${pos.y}`;
+  if (obstacleSet.has(posKey)) return false;
+  if (snakeSet.has(posKey)) return false;
+
+  return true;
+}
+
+/**
+ * Check if all positions are valid for obstacle placement
+ */
+function areAllPositionsValid(
+  positions: Position[],
+  gridSize: number,
+  snake: Position[],
+  obstacleSet: Set<string>,
+  snakeSet: Set<string>,
+): boolean {
+  for (const pos of positions) {
+    if (!isValidPosition(pos, gridSize, snake, obstacleSet, snakeSet)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+/**
+ * Create obstacles from positions
+ */
+function createObstaclesFromPositions(positions: Position[]): Obstacle[] {
+  const timestamp = Date.now();
+  return positions.map((pos, index) => ({
+    id: `obstacle-${timestamp}-${index}`,
+    position: pos,
+    type: 'static' as const,
+  }));
+}
+
+/**
+ * Apply offset to pattern positions
+ */
+function applyOffset(positions: Position[], offsetX: number, offsetY: number): Position[] {
+  return positions.map((pos) => ({ x: pos.x + offsetX, y: pos.y + offsetY }));
+}
+
+/**
+ * Try to place a pattern on the grid
+ */
+function tryPlacePattern(
+  pattern: { positions: Position[] },
+  obstacles: Obstacle[],
+  snake: Position[],
+  gridSize: number,
+  maxAttempts: number,
+): Obstacle[] | null {
+  const obstacleSet = createObstaclePositionSet(obstacles);
+  const snakeSet = createPositionSetFromArray(snake);
+
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const offsetX = Math.floor(Math.random() * (gridSize - 10));
+    const offsetY = Math.floor(Math.random() * (gridSize - 10));
+    const positions = applyOffset(pattern.positions, offsetX, offsetY);
+
+    if (areAllPositionsValid(positions, gridSize, snake, obstacleSet, snakeSet)) {
+      return createObstaclesFromPositions(positions);
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Check if obstacles should be generated based on configuration
+ */
+function shouldGenerateObstacles(level: number, obstaclesEnabled?: boolean): boolean {
+  if (obstaclesEnabled === false) return false;
+  if (!GAME_CONFIG.enableObstacles) return false;
+  if (level < 1) return false;
+  return true;
+}
+
+/**
+ * Limit obstacles array to max size
+ */
+function limitObstacles(obstacles: Obstacle[]): Obstacle[] {
+  if (obstacles.length > OBSTACLE_CONFIG.maxObstacles) {
+    return obstacles.slice(-OBSTACLE_CONFIG.maxObstacles);
+  }
+  return obstacles;
+}
+
 export function generateObstacles(
   level: number,
   snake: Position[],
@@ -10,132 +156,22 @@ export function generateObstacles(
   obstaclesEnabled?: boolean,
   obstaclesFrequency?: number,
 ): Obstacle[] {
-  // Check phase configuration first
-  if (obstaclesEnabled === false) {
-    return [];
-  }
-
-  if (!GAME_CONFIG.enableObstacles || level < 1) {
-    return [];
-  }
+  if (!shouldGenerateObstacles(level, obstaclesEnabled)) return [];
 
   const availablePatterns = OBSTACLE_PATTERNS.filter((pattern) => level >= pattern.levelThreshold);
+  if (availablePatterns.length === 0) return [];
 
-  if (availablePatterns.length === 0) {
-    return [];
-  }
-
-  const obstacles: Obstacle[] = [...existingObstacles];
-
-  // Use phase-specific frequency if provided, otherwise use default
   const spawnChance = obstaclesFrequency ?? OBSTACLE_CONFIG.spawnChance;
+  if (Math.random() > spawnChance) return [...existingObstacles];
 
-  // Check if we should spawn new obstacles
-  if (Math.random() > spawnChance) {
-    return obstacles;
-  }
-
-  // Select a random pattern
   const pattern = availablePatterns[Math.floor(Math.random() * availablePatterns.length)];
+  const newObstacles = tryPlacePattern(pattern, existingObstacles, snake, gridSize, 10);
 
-  // Try to place the pattern randomly on the grid
-  const attempts = 10;
-  for (let attempt = 0; attempt < attempts; attempt++) {
-    const offsetX = Math.floor(Math.random() * (gridSize - 10));
-    const offsetY = Math.floor(Math.random() * (gridSize - 10));
-
-    const newObstaclePositions: Position[] = pattern.positions.map((pos) => ({
-      x: pos.x + offsetX,
-      y: pos.y + offsetY,
-    }));
-
-    // Check if positions are valid (not on snake, not on existing obstacles)
-    // Optimized with early returns and Set for O(1) lookups
-    const obstaclePositionsSet = new Set<string>();
-    const obstaclesLength = obstacles.length;
-    for (let i = 0; i < obstaclesLength; i++) {
-      const obs = obstacles[i];
-      if (obs) {
-        obstaclePositionsSet.add(`${obs.position.x},${obs.position.y}`);
-      }
-    }
-
-    const snakePositionsSet = new Set<string>();
-    const snakeLength = snake.length;
-    for (let i = 0; i < snakeLength; i++) {
-      const segment = snake[i];
-      if (segment) {
-        snakePositionsSet.add(`${segment.x},${segment.y}`);
-      }
-    }
-
-    let isValid = true;
-    const positionsLength = newObstaclePositions.length;
-    for (let i = 0; i < positionsLength; i++) {
-      const pos = newObstaclePositions[i];
-      if (!pos) {
-        isValid = false;
-        break;
-      }
-
-      // Check bounds
-      if (pos.x < 0 || pos.x >= gridSize || pos.y < 0 || pos.y >= gridSize) {
-        isValid = false;
-        break;
-      }
-
-      // Check minimum distance from ANY snake segment (not just head) - optimized loop
-      let minDistanceFromSnake = Infinity;
-      for (let j = 0; j < snakeLength; j++) {
-        const segment = snake[j];
-        if (segment) {
-          const distance = Math.abs(pos.x - segment.x) + Math.abs(pos.y - segment.y);
-          if (distance < minDistanceFromSnake) {
-            minDistanceFromSnake = distance;
-          }
-        }
-      }
-      if (minDistanceFromSnake < OBSTACLE_CONFIG.minDistanceFromSnake) {
-        isValid = false;
-        break;
-      }
-
-      // Check if overlaps with existing obstacles - O(1) lookup
-      const posKey = `${pos.x},${pos.y}`;
-      if (obstaclePositionsSet.has(posKey)) {
-        isValid = false;
-        break;
-      }
-
-      // Check if overlaps with snake - O(1) lookup
-      if (snakePositionsSet.has(posKey)) {
-        isValid = false;
-        break;
-      }
-    }
-
-    if (isValid) {
-      // Add obstacles for this pattern
-      newObstaclePositions.forEach((pos, index) => {
-        obstacles.push({
-          id: `obstacle-${Date.now()}-${index}`,
-          position: pos,
-          type: 'static',
-        });
-      });
-
-      break;
-    }
+  if (newObstacles) {
+    return limitObstacles([...existingObstacles, ...newObstacles]);
   }
 
-  // Limit obstacles to prevent memory issues and maintain performance
-  // Keep only the most recent obstacles if we exceed the limit
-  if (obstacles.length > OBSTACLE_CONFIG.maxObstacles) {
-    // Keep the most recently added obstacles (slice from the end)
-    return obstacles.slice(-OBSTACLE_CONFIG.maxObstacles);
-  }
-
-  return obstacles;
+  return [...existingObstacles];
 }
 
 /**

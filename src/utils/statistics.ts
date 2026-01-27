@@ -72,7 +72,7 @@ export function createFinalStatistics(gameState: GameState): GameStatistics {
  */
 export function saveGameSession(statistics: GameStatistics): void {
   const session: GameSession = {
-    id: `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+    id: `session-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
     date: statistics.endTime ?? Date.now(),
     statistics,
   };

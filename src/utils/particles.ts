@@ -21,7 +21,7 @@ export function spawnParticles(
       size,
     },
   });
-  window.dispatchEvent(event);
+  globalThis.window?.dispatchEvent(event);
 }
 
 // Re-export for compatibility but implemented as no-op or wrapper

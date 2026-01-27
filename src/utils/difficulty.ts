@@ -5,7 +5,7 @@ import { getPhaseSpeedModifier } from './phaseMechanics';
  * Check if device is mobile
  */
 function isMobileDevice(): boolean {
-  if (typeof window === 'undefined') return false;
+  if (globalThis.window === undefined) return false;
   return (
     window.innerWidth <= 768 ||
     /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
@@ -33,7 +33,7 @@ export function calculateGameSpeed(level: number): number {
   const isMobile = isMobileDevice();
 
   // Mobile gets faster base speed (multiply by 0.7 = ~30% faster)
-  const mobileSpeedMultiplier = isMobile ? 0.7 : 1.0;
+  const mobileSpeedMultiplier = isMobile ? 0.7 : 1;
   const adjustedBaseSpeed = Math.floor(DIFFICULTY_CONFIG.baseSpeed * mobileSpeedMultiplier);
 
   // Calculate level within the current phase (1-5)

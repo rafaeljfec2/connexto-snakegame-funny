@@ -1,6 +1,5 @@
-import { Position, Direction, Obstacle } from '@/types/game';
+import { Position, Direction, Obstacle, BossSnake } from '@/types/game';
 import { Chef } from '@/types/phases';
-import { BossSnake } from '@/types/game';
 import { getNextHeadPosition, moveSnake, isValidDirectionChange } from './gameLogic';
 
 /**
@@ -457,6 +456,65 @@ export function canDefeatBoss(bossSnake: BossSnake): boolean {
 }
 
 /**
+ * Calculate midpoint position between two positions, clamped to grid
+ */
+function calculateMidpoint(pos1: Position, pos2: Position, gridSize: number): Position {
+  const midX = Math.floor((pos1.x + pos2.x) / 2);
+  const midY = Math.floor((pos1.y + pos2.y) / 2);
+  return {
+    x: Math.max(0, Math.min(midX, gridSize - 1)),
+    y: Math.max(0, Math.min(midY, gridSize - 1)),
+  };
+}
+
+/**
+ * Try to get horizontal direction towards delta
+ */
+function tryHorizontalDirection(dx: number, currentDirection: Direction): Direction | null {
+  if (dx > 0 && isValidDirectionChange(currentDirection, Direction.RIGHT)) return Direction.RIGHT;
+  if (dx < 0 && isValidDirectionChange(currentDirection, Direction.LEFT)) return Direction.LEFT;
+  return null;
+}
+
+/**
+ * Try to get vertical direction towards delta
+ */
+function tryVerticalDirection(dy: number, currentDirection: Direction): Direction | null {
+  if (dy > 0 && isValidDirectionChange(currentDirection, Direction.DOWN)) return Direction.DOWN;
+  if (dy < 0 && isValidDirectionChange(currentDirection, Direction.UP)) return Direction.UP;
+  return null;
+}
+
+/**
+ * Find the best valid direction that minimizes distance to target
+ */
+function findBestDirectionToTarget(
+  head: Position,
+  target: Position,
+  currentDirection: Direction,
+  gridSize: number,
+): Direction {
+  const directions = [Direction.UP, Direction.DOWN, Direction.LEFT, Direction.RIGHT];
+  const validDirections = directions.filter((dir) => isValidDirectionChange(currentDirection, dir));
+
+  if (validDirections.length === 0) return currentDirection;
+
+  let bestDir = validDirections[0] ?? currentDirection;
+  let bestDistance = Infinity;
+
+  for (const dir of validDirections) {
+    const nextPos = getNextHeadPosition(head, dir, gridSize);
+    const dist = Math.abs(nextPos.x - target.x) + Math.abs(nextPos.y - target.y);
+    if (dist < bestDistance) {
+      bestDistance = dist;
+      bestDir = dir;
+    }
+  }
+
+  return bestDir;
+}
+
+/**
  * Defend behavior: Position between player and flag to protect it
  */
 function calculateDefendDirection(
@@ -466,62 +524,29 @@ function calculateDefendDirection(
   currentDirection: Direction,
   gridSize: number,
 ): Direction {
-  // Calculate the midpoint between player and flag
-  const midX = Math.floor((playerHead.x + flagPosition.x) / 2);
-  const midY = Math.floor((playerHead.y + flagPosition.y) / 2);
+  const target = calculateMidpoint(playerHead, flagPosition, gridSize);
+  const distanceToTarget = Math.abs(bossHead.x - target.x) + Math.abs(bossHead.y - target.y);
 
-  // Clamp to grid bounds
-  const targetX = Math.max(0, Math.min(midX, gridSize - 1));
-  const targetY = Math.max(0, Math.min(midY, gridSize - 1));
-
-  // If boss is already close to the midpoint, patrol around the flag
-  const distanceToMid = Math.abs(bossHead.x - targetX) + Math.abs(bossHead.y - targetY);
-  if (distanceToMid <= 2) {
-    // Close enough, circle around the flag
+  // If close enough to midpoint, patrol around the flag
+  if (distanceToTarget <= 2) {
     return calculatePatrolAroundFlag(bossHead, flagPosition, currentDirection, gridSize);
   }
 
-  // Move towards the midpoint (between player and flag)
-  const dx = targetX - bossHead.x;
-  const dy = targetY - bossHead.y;
+  const dx = target.x - bossHead.x;
+  const dy = target.y - bossHead.y;
 
   // Prefer horizontal movement if horizontal distance is greater
   if (Math.abs(dx) > Math.abs(dy)) {
-    if (dx > 0 && isValidDirectionChange(currentDirection, Direction.RIGHT)) {
-      return Direction.RIGHT;
-    }
-    if (dx < 0 && isValidDirectionChange(currentDirection, Direction.LEFT)) {
-      return Direction.LEFT;
-    }
+    const horizontal = tryHorizontalDirection(dx, currentDirection);
+    if (horizontal) return horizontal;
   }
 
-  // Prefer vertical movement
-  if (dy > 0 && isValidDirectionChange(currentDirection, Direction.DOWN)) {
-    return Direction.DOWN;
-  }
-  if (dy < 0 && isValidDirectionChange(currentDirection, Direction.UP)) {
-    return Direction.UP;
-  }
+  // Try vertical movement
+  const vertical = tryVerticalDirection(dy, currentDirection);
+  if (vertical) return vertical;
 
-  // Fallback: try any valid direction towards target
-  const directions = [Direction.UP, Direction.DOWN, Direction.LEFT, Direction.RIGHT];
-  const validDirections = directions.filter((dir) => isValidDirectionChange(currentDirection, dir));
-  if (validDirections.length > 0) {
-    // Choose direction that gets closer to target
-    let bestDir = validDirections[0];
-    let bestDistance = Infinity;
-    for (const dir of validDirections) {
-      const nextPos = getNextHeadPosition(bossHead, dir, gridSize);
-      const dist = Math.abs(nextPos.x - targetX) + Math.abs(nextPos.y - targetY);
-      if (dist < bestDistance) {
-        bestDistance = dist;
-        bestDir = dir;
-      }
-    }
-    return bestDir ?? currentDirection;
-  }
-
-  return currentDirection;
+  // Fallback: find best valid direction
+  return findBestDirectionToTarget(bossHead, target, currentDirection, gridSize);
 }
 
 /**

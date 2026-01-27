@@ -14,7 +14,7 @@ export function useTheme() {
 
     // Listen for system theme changes if auto mode
     if (theme === 'auto') {
-      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      const mediaQuery = globalThis.window?.matchMedia('(prefers-color-scheme: dark)');
       const handleChange = () => {
         setEffectiveTheme(getEffectiveTheme(theme));
       };

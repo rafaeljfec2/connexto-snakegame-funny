@@ -111,7 +111,7 @@ function activeBossEqual(
  * Estimate delta size without full JSON.stringify (much faster)
  */
 function estimateDeltaSize(delta: Partial<GameState>): number {
-  let size = 2; // {}
+  let size = 2;
   const keys = Object.keys(delta);
   for (const key of keys) {
     const value = delta[key as keyof GameState];

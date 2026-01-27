@@ -3,12 +3,27 @@ import { Direction } from '@/types/game';
 import { KEYBOARD_MAP, CONTROL_CONFIG } from '@/constants/game';
 
 interface UseKeyboardProps {
-  onDirectionChange: (direction: Direction) => void;
-  onSpeedBoost?: (isBoosted: boolean) => void;
-  onKeyPress?: (key: string) => void;
-  onFirePoison?: () => void;
-  onStopFiringPoison?: () => void;
-  enabled?: boolean;
+  readonly onDirectionChange: (direction: Direction) => void;
+  readonly onSpeedBoost?: (isBoosted: boolean) => void;
+  readonly onKeyPress?: (key: string) => void;
+  readonly onFirePoison?: () => void;
+  readonly onStopFiringPoison?: () => void;
+  readonly enabled?: boolean;
+}
+
+/**
+ * Check if key is a poison fire key (X or Space)
+ */
+function isPoisonFireKey(key: string): boolean {
+  return key === 'x' || key === 'X' || key === ' ';
+}
+
+/**
+ * Prevent default event behavior
+ */
+function preventEventDefault(event: KeyboardEvent): void {
+  event.preventDefault();
+  event.stopPropagation();
 }
 
 export function useKeyboard({
@@ -24,69 +39,74 @@ export function useKeyboard({
   const poisonFireActiveRef = useRef(false);
   const speedBoostTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
+  /**
+   * Start speed boost timer for a key
+   */
+  const startSpeedBoostTimer = useCallback(
+    (key: string) => {
+      if (!onSpeedBoost || speedBoostActiveRef.current) return;
+
+      const timerId = setTimeout(() => {
+        if (pressedKeysRef.current.has(key)) {
+          speedBoostActiveRef.current = true;
+          onSpeedBoost(true);
+        }
+        speedBoostTimersRef.current.delete(key);
+      }, CONTROL_CONFIG.speedBoostActivationDelay);
+
+      speedBoostTimersRef.current.set(key, timerId);
+    },
+    [onSpeedBoost],
+  );
+
+  /**
+   * Handle direction key press
+   */
+  const handleDirectionKey = useCallback(
+    (event: KeyboardEvent, direction: Direction): void => {
+      preventEventDefault(event);
+      onDirectionChange(direction);
+
+      if (!pressedKeysRef.current.has(event.key)) {
+        pressedKeysRef.current.add(event.key);
+        startSpeedBoostTimer(event.key);
+      }
+    },
+    [onDirectionChange, startSpeedBoostTimer],
+  );
+
+  /**
+   * Handle poison fire key press
+   */
+  const handlePoisonFireKey = useCallback(
+    (event: KeyboardEvent): void => {
+      if (!onFirePoison || poisonFireActiveRef.current) return;
+
+      preventEventDefault(event);
+      poisonFireActiveRef.current = true;
+      onFirePoison();
+    },
+    [onFirePoison],
+  );
+
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
-      if (!enabled) {
-        return;
-      }
+      if (!enabled) return;
 
       const direction = KEYBOARD_MAP[event.key];
       if (direction !== undefined) {
-        event.preventDefault();
-        event.stopPropagation();
-
-        // Apply direction change immediately for rapid changes
-        onDirectionChange(direction);
-
-        // Track pressed keys
-        if (!pressedKeysRef.current.has(event.key)) {
-          pressedKeysRef.current.add(event.key);
-
-          // Start timer to activate speed boost after delay
-          if (onSpeedBoost && !speedBoostActiveRef.current) {
-            const timerId = setTimeout(() => {
-              // Only activate if key is still pressed
-              if (pressedKeysRef.current.has(event.key)) {
-                speedBoostActiveRef.current = true;
-                onSpeedBoost(true);
-              }
-              speedBoostTimersRef.current.delete(event.key);
-            }, CONTROL_CONFIG.speedBoostActivationDelay);
-
-            speedBoostTimersRef.current.set(event.key, timerId);
-          }
-        }
-
+        handleDirectionKey(event, direction);
         return;
       }
 
-      // Check for poison shot key (X or Space when playing)
-      if (event.key === 'x' || event.key === 'X') {
-        event.preventDefault();
-        event.stopPropagation();
-        if (onFirePoison && !poisonFireActiveRef.current) {
-          poisonFireActiveRef.current = true;
-          onFirePoison();
-        }
+      if (isPoisonFireKey(event.key)) {
+        handlePoisonFireKey(event);
         return;
       }
 
-      // Spacebar: fire poison when playing (pause is handled by global listener when not playing)
-      if (event.key === ' ') {
-        event.preventDefault();
-        event.stopPropagation();
-        if (onFirePoison && !poisonFireActiveRef.current) {
-          poisonFireActiveRef.current = true;
-          onFirePoison();
-        }
-        return;
-      }
-
-      if (onKeyPress !== undefined) {
-        onKeyPress(event.key);
-      }
+      onKeyPress?.(event.key);
     },
-    [enabled, onDirectionChange, onSpeedBoost, onKeyPress, onFirePoison],
+    [enabled, handleDirectionKey, handlePoisonFireKey, onKeyPress],
   );
 
   const handleKeyUp = useCallback(
@@ -125,13 +145,8 @@ export function useKeyboard({
       }
 
       // Check for poison shot key release (X or Space)
-      if (
-        (event.key === 'x' || event.key === 'X' || event.key === ' ') &&
-        onStopFiringPoison &&
-        poisonFireActiveRef.current
-      ) {
-        event.preventDefault();
-        event.stopPropagation();
+      if (isPoisonFireKey(event.key) && onStopFiringPoison && poisonFireActiveRef.current) {
+        preventEventDefault(event);
         poisonFireActiveRef.current = false;
         onStopFiringPoison();
       }
@@ -159,8 +174,8 @@ export function useKeyboard({
     }
 
     // Use capture phase for faster event handling
-    window.addEventListener('keydown', handleKeyDown, { capture: true });
-    window.addEventListener('keyup', handleKeyUp, { capture: true });
+    globalThis.window?.addEventListener('keydown', handleKeyDown, { capture: true });
+    globalThis.window?.addEventListener('keyup', handleKeyUp, { capture: true });
 
     // Copy refs to variables for cleanup function (before return)
     const speedBoostTimers = speedBoostTimersRef.current;
@@ -169,8 +184,8 @@ export function useKeyboard({
     const onStopFiringPoisonCallback = onStopFiringPoison;
 
     return () => {
-      window.removeEventListener('keydown', handleKeyDown, { capture: true });
-      window.removeEventListener('keyup', handleKeyUp, { capture: true });
+      globalThis.window?.removeEventListener('keydown', handleKeyDown, { capture: true });
+      globalThis.window?.removeEventListener('keyup', handleKeyUp, { capture: true });
       // Reset on cleanup - cancel all timers and deactivate speed boost
       speedBoostTimers.forEach((timer) => clearTimeout(timer));
       speedBoostTimers.clear();

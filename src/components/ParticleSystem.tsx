@@ -120,7 +120,7 @@ export const ParticleSystem = memo(function ParticleSystem({
       globalThis.window?.removeEventListener('game-spawn-particles', handleSpawn);
       workerRef.current?.terminate();
       if (container.contains(canvas)) {
-        container.removeChild(canvas);
+        canvas.remove();
       }
     };
   }, [gridSize]);

@@ -51,10 +51,7 @@ function combinePortals(
 ): import('@/types/game').Portal[] {
   if (bossPortals.length === 0) return foodPortals;
   if (foodPortals.length === 0) return bossPortals;
-  const combined: typeof bossPortals = [];
-  combined.push(...bossPortals);
-  combined.push(...foodPortals);
-  return combined;
+  return [...bossPortals, ...foodPortals];
 }
 
 /**
@@ -156,6 +153,7 @@ function handleGuardianFlagCapture(
   foodResult: ReturnType<typeof handleFoodInteraction>,
   prev: GameState,
   bossAbilityCooldowns: Map<string, number>,
+  currentForcedFoodType: import('@/types/game').FoodType | null,
 ): {
   newScore: number;
   newLives: number;
@@ -174,7 +172,7 @@ function handleGuardianFlagCapture(
       newLives: foodResult.newLives,
       bossLogicResult,
       bossAbilityCooldowns,
-      forcedFoodType: null,
+      forcedFoodType: currentForcedFoodType,
     };
   }
 
@@ -430,21 +428,19 @@ export function updateGameLogic(context: UpdateContext, performanceTime: number)
     foodPosition: prev.food.position,
   });
 
-  let bossAbilityCooldowns = bossLogicResult.bossAbilityCooldowns;
-  let forcedFoodType = bossLogicResult.forcedFoodType ?? context.forcedFoodType;
-
   // Handle Flag Capture (headPosition guaranteed to exist after early return above)
   const flagCapture = handleGuardianFlagCapture(
     headPosition,
     bossLogicResult,
     foodResult,
     prev,
-    bossAbilityCooldowns,
+    bossLogicResult.bossAbilityCooldowns,
+    bossLogicResult.forcedFoodType ?? context.forcedFoodType,
   );
   foodResult.newScore = flagCapture.newScore;
   foodResult.newLives = flagCapture.newLives;
-  bossAbilityCooldowns = flagCapture.bossAbilityCooldowns;
-  forcedFoodType = flagCapture.forcedFoodType;
+  const bossAbilityCooldowns = flagCapture.bossAbilityCooldowns;
+  const forcedFoodType = flagCapture.forcedFoodType;
 
   // 7. Boss Collision Check
   const bossCollisionState = handleBossCollision(headPosition, bossLogicResult, prev, foodResult);
@@ -535,9 +531,9 @@ export function updateGameLogic(context: UpdateContext, performanceTime: number)
     // Use stateUpdates.bossSnake only when a new boss was initialized,
     // otherwise use the moved bossSnake from poison/boss logic
     bossSnake:
-      stateUpdates.activeBoss?.id !== prev.activeBoss?.id
-        ? stateUpdates.bossSnake
-        : poisonUpdate.newBossState.bossSnake,
+      stateUpdates.activeBoss?.id === prev.activeBoss?.id
+        ? poisonUpdate.newBossState.bossSnake
+        : stateUpdates.bossSnake,
   };
 
   return {

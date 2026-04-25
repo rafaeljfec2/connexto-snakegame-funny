@@ -152,8 +152,32 @@ function updateGameFields(state: RenderState, payload: any): void {
   }
 
   state.shots = payload.shots || [];
-  state.isEating = payload.isEating ?? false;
+  if (payload.isEating !== undefined) {
+    state.isEating = Boolean(payload.isEating);
+  }
   state.speed = payload.speed || 150;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function handleUiHint(state: RenderState, payload: any): void {
+  if (payload?.isEating !== undefined) {
+    state.isEating = Boolean(payload.isEating);
+    state.isRenderDirty = true;
+  }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function handleUiLocale(state: RenderState, payload: any): void {
+  if (payload?.activeBoss && state.activeBoss) {
+    state.activeBoss = {
+      ...state.activeBoss,
+      name:
+        typeof payload.activeBoss.name === 'string'
+          ? payload.activeBoss.name
+          : state.activeBoss.name,
+    };
+    state.isRenderDirty = true;
+  }
 }
 
 /**

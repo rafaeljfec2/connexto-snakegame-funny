@@ -1,6 +1,6 @@
 import { GameState, FoodType, Position, Portal, ActivePowerUp } from '@/types/game';
 import type { GameStatisticsTracking } from '@/types/statistics';
-import { applyPowerUpEffect, createActivePowerUp } from '@/utils/powerUps';
+import { applyPowerUpEffect, createActivePowerUp, getActivePowerUps } from '@/utils/powerUps';
 import { updateCombo } from '@/utils/combos';
 import { addLife } from '@/utils/lives';
 import { POWER_UP_CONFIG } from '@/constants/powerUps';
@@ -147,7 +147,7 @@ export function handleFoodInteraction(
   let newLives = prevGameState.lives;
   let newCombo = prevGameState.combo;
   let currentSnake = [...finalSnake];
-  const newActivePowerUps = [...prevGameState.activePowerUps];
+  const newActivePowerUps = getActivePowerUps(prevGameState.activePowerUps);
   let atePowerUp = false;
   const particlesToSpawn: Array<{ position: Position; color: string; count: number }> = [];
   const newPortals: Portal[] = [];

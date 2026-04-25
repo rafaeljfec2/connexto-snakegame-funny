@@ -92,6 +92,18 @@ describe('perfBus', () => {
       const view = perfBus.getMetricsBySource('render');
       expect(view.longTasksLastMinute).toBe(2);
       expect(view.longTasksPerMinute).toBe(2);
+      expect(view.longTasksTotalMsLastMinute).toBe(200);
+      expect(view.longTasksTotalMsPerMinute).toBe(200);
+    });
+
+    it('ignores invalid long-task durations', () => {
+      perfBus.recordLongTask(0);
+      perfBus.recordLongTask(-10);
+      perfBus.recordLongTask(Number.NaN);
+
+      const view = perfBus.getMetricsBySource('render');
+      expect(view.longTasksLastMinute).toBe(0);
+      expect(view.longTasksTotalMsLastMinute).toBe(0);
     });
 
     it('exposes captured web vitals', () => {

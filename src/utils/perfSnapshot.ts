@@ -24,6 +24,7 @@ export function buildPerfSnapshot(context: SnapshotContext): PerfSnapshot {
     p50: metrics.p50,
     p95: metrics.p95,
     longTasksPerMinute: metrics.longTasksPerMinute,
+    longTasksTotalMsPerMinute: metrics.longTasksTotalMsPerMinute,
     heapMB: metrics.heapMB,
     phaseId: context.phaseId,
     bossId: context.bossId,

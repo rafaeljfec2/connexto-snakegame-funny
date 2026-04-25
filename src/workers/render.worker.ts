@@ -1,7 +1,13 @@
 /// <reference lib="webworker" />
 
 import { GAME_CONFIG } from '@/constants/game';
-import { createRenderState, handleStateUpdate, type RenderState } from './render/renderState';
+import {
+  createRenderState,
+  handleStateUpdate,
+  handleUiHint,
+  handleUiLocale,
+  type RenderState,
+} from './render/renderState';
 import {
   drawFood,
   drawObstacle,
@@ -187,6 +193,16 @@ globalThis.onmessage = (e: MessageEvent) => {
 
     case 'UPDATE': {
       handleStateUpdate(state, payload);
+      break;
+    }
+
+    case 'UI_HINT': {
+      handleUiHint(state, payload);
+      break;
+    }
+
+    case 'UI_LOCALE': {
+      handleUiLocale(state, payload);
       break;
     }
 

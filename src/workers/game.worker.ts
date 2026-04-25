@@ -122,6 +122,12 @@ const messageHandlers: MessageHandlers = {
   setRenderPort: (port) => {
     renderPort = port;
   },
+  forceRenderResync: () => {
+    previousRenderState = null;
+    isRenderDirty = true;
+    workerState.previousRenderState = null;
+    workerState.isRenderDirty = true;
+  },
 };
 
 // Message Handler

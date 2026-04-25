@@ -22,6 +22,8 @@ export interface PerfMetricsView {
   p95: number;
   longTasksPerMinute: number;
   longTasksLastMinute: number;
+  longTasksTotalMsLastMinute: number;
+  longTasksTotalMsPerMinute: number;
   heapMB?: number;
   sampleCount: number;
 }
@@ -40,6 +42,7 @@ export interface PerfSnapshot {
   p50: number;
   p95: number;
   longTasksPerMinute: number;
+  longTasksTotalMsPerMinute: number;
   heapMB?: number;
   phaseId: number;
   bossId?: string;

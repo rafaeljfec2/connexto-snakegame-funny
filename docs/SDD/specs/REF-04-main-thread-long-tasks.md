@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| **Status** | Draft |
+| **Status** | In Progress (Phase A) |
 | **Owner** | rafael |
 | **Created** | 2026-04-25 |
 | **Last updated** | 2026-04-25 |
@@ -132,6 +132,28 @@ export function useGameStateSlice<T>(
 
 ## 8. Implementation notes (filled when status = Done)
 
-- Final files changed: …
-- Deviations from Design section: …
-- Follow-ups: …
+### Phase A — landed 2026-04-25
+
+**Files changed**
+
+- `src/components/GameBoard.tsx` — removed the per-tick `useEffect` that posted `{ type: 'UPDATE', payload: { snake, bossSnake, shots, food, obstacles, portals, activeBoss, guardianFlag, isEating, speed, status } }` to `renderWorkerRef`. Replaced by two narrow effects: (a) an `isEating` watcher keyed on `food.position.{x,y}/food.type/status/snake.length` that sends `{ type: 'UI_HINT', payload: { isEating } }` true → false (200 ms timeout); (b) an `activeBoss?.id` watcher that sends `{ type: 'UI_LOCALE', payload: { activeBoss: { name } } }` only on boss change. Cleaned the props surface (`obstacles`, `portals`, `particles`, `poisonShots`, `bossSnake`, `guardianFlag` removed from `GameBoardProps`) and dropped now-unused imports (`useMemo`, `calculateGameSpeed`, `Particle`, `Obstacle`, `Portal`, `BossSnake`, `PoisonShot`).
+- `src/components/GameArea.tsx` — stopped forwarding the now-unused props to `<GameBoard />`. App still passes the full `gameState` to `GameArea` (to be sliced in Phase B).
+- `src/workers/render.worker.ts` + `src/workers/render/renderState.ts` — added `UI_HINT` and `UI_LOCALE` message handlers (`handleUiHint`, `handleUiLocale`). `updateGameFields` no longer resets `isEating` to `false` on every UPDATE — it leaves it untouched when the field is absent, so `UI_HINT` pings are not clobbered by the next game-worker UPDATE.
+- `src/workers/game/gameBroadcast.ts` — dropped the dead `isEating: false` field from the `renderPort.postMessage` UPDATE payload.
+- `src/workers/game/gameMessageHandlers.ts` + `src/workers/game.worker.ts` — extended `MessageHandlers` with `forceRenderResync()`. On `CONNECT_RENDER_WORKER`, the game worker now clears `previousRenderState` and forces an immediate `broadcastState()`, guaranteeing an idempotent first paint after the handshake (mitigates R1 / covers AC-4 in Phase A scope).
+- `src/types/perf.ts` — extended `PerfMetricsView` with `longTasksTotalMsLastMinute`/`longTasksTotalMsPerMinute` and `PerfSnapshot` with `longTasksTotalMsPerMinute`.
+- `src/utils/perfBus.ts` — long-task storage upgraded from `number[]` of timestamps to `{ ts, durationMs }[]`. `getMetricsBySource` now also reports total long-task duration per minute. `reset()` clears the new structure.
+- `src/components/PerfDebugPanel.tsx` — added a `longT ms/min` row with traffic-light thresholds (`> 500 ms` warn, `> 1500 ms` bad) plus matching count thresholds.
+- `src/utils/perfSnapshot.ts` — exports `longTasksTotalMsPerMinute` in the JSON snapshot.
+- Tests — extended `perfBus.test.ts` (long-task duration totals, invalid-input guard) and `perfSnapshot.test.ts` (snapshot now records `longTasksTotalMsPerMinute`). All 78 tests green; lint clean; `pnpm build` 78.27 kB game.worker / 10.58 kB render.worker / 349 kB main bundle (≈ unchanged).
+
+**Deviations from Design section**
+
+- The spec mentioned an explicit `INIT_VIEW` message; instead we reused the existing `broadcastState()` path and forced a full resync via `forceRenderResync()` on `CONNECT_RENDER_WORKER`. Same effect, zero new message types. Spec wording is kept for clarity but FR-1 is satisfied by the resync handshake.
+- Boss name translation (`t('bosses.{id}.name')`) is no longer recomputed every tick. It is sent once via `UI_LOCALE` whenever the boss id flips, which also handles language changes implicitly because the effect re-runs when `t` reference changes (i18next swaps it on language change).
+
+**Follow-ups (Phase B / Phase C)**
+
+- Phase B: introduce `src/state/gameStateStore.ts` based on `useSyncExternalStore`, convert leaves (`StatusBar`, `MobileFloatingInfo`, `ActivePowerUps`, `ComboDisplay`, `PhaseDisplay`, `LivesDisplay`, `ScoreDisplay`) to selector hooks. Required for AC-3.
+- Phase C: capture a second perf snapshot on the same iPhone profile and compare against `perf-baseline.json`. Update this section with the AC-1 verdict and (if needed) tweak thresholds.
+- Carryover from REF-02: make `scripts/fetch-freesound-cc0.mjs` merge into existing `SOURCES.json` instead of overwriting (independent of REF-04).

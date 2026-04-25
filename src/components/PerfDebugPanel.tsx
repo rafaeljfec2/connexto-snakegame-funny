@@ -18,6 +18,8 @@ const EMPTY_METRICS: PerfMetricsView = {
   p95: 0,
   longTasksPerMinute: 0,
   longTasksLastMinute: 0,
+  longTasksTotalMsLastMinute: 0,
+  longTasksTotalMsPerMinute: 0,
   sampleCount: 0,
 };
 
@@ -85,8 +87,16 @@ export const PerfDebugPanel = memo(function PerfDebugPanel({
       </div>
       <div className={styles.row}>
         <span className={styles.label}>longT/min</span>
-        <span className={`${styles.value} ${metrics.longTasksLastMinute > 0 ? styles.warn : ''}`}>
+        <span className={`${styles.value} ${classifyLongTaskCount(metrics.longTasksLastMinute)}`}>
           {metrics.longTasksLastMinute}
+        </span>
+      </div>
+      <div className={styles.row}>
+        <span className={styles.label}>longT ms/min</span>
+        <span
+          className={`${styles.value} ${classifyLongTaskMs(metrics.longTasksTotalMsLastMinute)}`}
+        >
+          {fmt(metrics.longTasksTotalMsLastMinute, 0)}
         </span>
       </div>
       {metrics.heapMB !== undefined && (
@@ -117,5 +127,19 @@ function classifyFrame(frameTimeMs: number): string {
   if (frameTimeMs === 0) return '';
   if (frameTimeMs > 33) return styles.bad ?? '';
   if (frameTimeMs > 20) return styles.warn ?? '';
+  return '';
+}
+
+function classifyLongTaskCount(count: number): string {
+  if (count === 0) return '';
+  if (count > 100) return styles.bad ?? '';
+  if (count > 30) return styles.warn ?? '';
+  return '';
+}
+
+function classifyLongTaskMs(totalMs: number): string {
+  if (totalMs === 0) return '';
+  if (totalMs > 1500) return styles.bad ?? '';
+  if (totalMs > 500) return styles.warn ?? '';
   return '';
 }

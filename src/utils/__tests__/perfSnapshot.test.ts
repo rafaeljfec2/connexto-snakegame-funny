@@ -14,11 +14,16 @@ describe('perfSnapshot', () => {
       }
       perfBus.recordWebVital({ metric: 'LCP', value: 1234, rating: 'good' });
 
+      perfBus.recordLongTask(60);
+      perfBus.recordLongTask(90);
+
       const snapshot = buildPerfSnapshot({ phaseId: 3, bossId: 'guardian' });
 
       expect(snapshot.phaseId).toBe(3);
       expect(snapshot.bossId).toBe('guardian');
       expect(snapshot.frameTime).toBeCloseTo(16);
+      expect(snapshot.longTasksPerMinute).toBe(2);
+      expect(snapshot.longTasksTotalMsPerMinute).toBe(150);
       expect(snapshot.webVitals).toHaveLength(1);
       expect(snapshot.webVitals?.[0]?.metric).toBe('LCP');
       expect(snapshot.viewport).toMatchObject({ w: expect.any(Number), h: expect.any(Number) });

@@ -1,19 +1,9 @@
 import { useTranslation } from 'react-i18next';
-import {
-  Position,
-  GameStatus,
-  Food as FoodType,
-  Obstacle,
-  Particle,
-  Portal,
-  BossSnake,
-  PoisonShot,
-} from '@/types/game';
+import { Position, GameStatus, Food as FoodType } from '@/types/game';
 import { GAME_CONFIG } from '@/constants/game';
-import { calculateGameSpeed } from '@/utils/difficulty';
 import { WeatherCanvas } from './WeatherCanvas';
 import { ParticleSystem } from './ParticleSystem';
-import { useEffect, useRef, useState, useMemo, memo } from 'react';
+import { useEffect, useRef, useState, memo } from 'react';
 import styles from './GameBoard.module.css';
 import { Chef } from '@/types/phases';
 import { GameBackground } from './GameBackground';
@@ -24,13 +14,7 @@ interface GameBoardProps {
   food: FoodType;
   status: GameStatus;
   level: number;
-  obstacles?: Obstacle[];
-  portals?: Portal[];
-  particles?: Particle[];
-  poisonShots?: PoisonShot[];
   activeBoss?: Chef;
-  bossSnake?: BossSnake;
-  guardianFlag?: FoodType | null;
   resetToken?: number;
   gameWorker?: Worker | null;
 }
@@ -40,15 +24,10 @@ export const GameBoard = memo(function GameBoard({
   food,
   status,
   level,
-  obstacles = [],
-  portals = [],
-  poisonShots = [],
   activeBoss,
-  bossSnake,
-  guardianFlag,
   resetToken = 0,
   gameWorker,
-}: GameBoardProps) {
+}: Readonly<GameBoardProps>) {
   const { t } = useTranslation();
   const boardRef = useRef<HTMLDivElement>(null);
   const [cellSize, setCellSize] = useState(GAME_CONFIG.cellSize);
@@ -172,10 +151,13 @@ export const GameBoard = memo(function GameBoard({
         // Connect to Game Worker if available for direct rendering
         if (gameWorker) {
           const channel = new MessageChannel();
-          worker.postMessage({ type: 'CONNECT_GAME_WORKER', port: channel.port1 }, [channel.port1]);
-          gameWorker.postMessage({ type: 'CONNECT_RENDER_WORKER', port: channel.port2 }, [
-            channel.port2,
+          worker.postMessage({ type: 'CONNECT_GAME_WORKER', payload: { port: channel.port1 } }, [
+            channel.port1,
           ]);
+          gameWorker.postMessage(
+            { type: 'CONNECT_RENDER_WORKER', payload: { port: channel.port2 } },
+            [channel.port2],
+          );
         }
       } catch (err) {
         console.warn(
@@ -196,63 +178,38 @@ export const GameBoard = memo(function GameBoard({
     };
   }, [canvasKey, gameWorker]);
 
-  // Sync State to Worker (Fallback / Metadata updates)
-  const speed = useMemo(() => calculateGameSpeed(level), [level]);
-
-  // IsEating Logic (kept for local prop calculation if needed, or pass directly)
-  // Logic: detect change in food
   const previousFoodKeyRef = useRef(`${food.position.x}-${food.position.y}-${food.type}`);
-  const [isEating, setIsEating] = useState(false);
 
   useEffect(() => {
     const currentFoodKey = `${food.position.x}-${food.position.y}-${food.type}`;
     const foodChanged = currentFoodKey !== previousFoodKeyRef.current;
-    if (foodChanged && status === GameStatus.PLAYING && snake.length > 0) {
-      setIsEating(true);
-      setTimeout(() => setIsEating(false), 200);
-    }
     previousFoodKeyRef.current = currentFoodKey;
-  }, [food.position, food.type, status, snake.length]);
 
+    if (!foodChanged || status !== GameStatus.PLAYING || snake.length === 0) return;
+
+    const worker = renderWorkerRef.current;
+    if (!worker) return;
+
+    worker.postMessage({ type: 'UI_HINT', payload: { isEating: true } });
+    const timeoutId = setTimeout(() => {
+      worker.postMessage({ type: 'UI_HINT', payload: { isEating: false } });
+    }, 200);
+    return () => clearTimeout(timeoutId);
+  }, [food.position.x, food.position.y, food.type, status, snake.length]);
+
+  const previousActiveBossIdRef = useRef<string | null>(null);
   useEffect(() => {
-    // We still send updates from main thread as a fallback or for things not in game state directly (like "isEating" derived UI state)
-    // But render worker should prioritize direct updates if available
-    renderWorkerRef.current?.postMessage({
-      type: 'UPDATE',
-      payload: {
-        snake,
-        bossSnake,
-        shots: poisonShots,
-        food,
-        obstacles: GAME_CONFIG.enableObstacles ? obstacles : [],
-        portals,
-        activeBoss: activeBoss
-          ? {
-              color: activeBoss.visual.color,
-              icon: activeBoss.visual.icon,
-              name: t(`bosses.${activeBoss.id}.name`),
-            }
-          : null,
-        guardianFlag,
-        isEating,
-        speed,
-        status,
-      },
+    const worker = renderWorkerRef.current;
+    if (!worker) return;
+    const nextId = activeBoss?.id ?? null;
+    if (nextId === previousActiveBossIdRef.current) return;
+    previousActiveBossIdRef.current = nextId;
+    if (!activeBoss) return;
+    worker.postMessage({
+      type: 'UI_LOCALE',
+      payload: { activeBoss: { name: t(`bosses.${activeBoss.id}.name`) } },
     });
-  }, [
-    snake,
-    bossSnake,
-    poisonShots,
-    food,
-    obstacles,
-    portals,
-    activeBoss,
-    guardianFlag,
-    isEating,
-    speed,
-    t,
-    status,
-  ]);
+  }, [activeBoss, t]);
 
   const gridStyle = isMobile
     ? {

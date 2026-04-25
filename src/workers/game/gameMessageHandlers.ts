@@ -24,6 +24,7 @@ export interface MessageHandlers {
   setLastUpdateTime: (time: number) => void;
   getRenderPort: () => MessagePort | null;
   setRenderPort: (port: MessagePort | null) => void;
+  forceRenderResync: () => void;
 }
 
 /**
@@ -165,6 +166,8 @@ export function handleConnectRenderWorkerMessage(
       { context: LogContext.GAME_STATE },
       'Connected to render worker via MessageChannel',
     );
+    handlers.forceRenderResync();
+    handlers.broadcastState();
   }
 }
 

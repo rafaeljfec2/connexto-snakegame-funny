@@ -40,13 +40,7 @@ export function GameArea({
           food={gameState.food}
           status={gameState.status}
           level={gameState.level}
-          obstacles={gameState.obstacles}
-          portals={gameState.portals}
-          particles={gameState.particles}
-          poisonShots={gameState.poisonShots}
           activeBoss={gameState.activeBoss}
-          bossSnake={gameState.bossSnake}
-          guardianFlag={gameState.guardianFlag}
           resetToken={resetToken}
           gameWorker={gameWorker}
         />

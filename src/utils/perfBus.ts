@@ -25,7 +25,7 @@ class PerfBus {
     game: createFrameTimeRing(FRAME_RING_CAPACITY),
     main: createFrameTimeRing(FRAME_RING_CAPACITY),
   };
-  private readonly longTaskTimestamps: number[] = [];
+  private readonly longTasks: { ts: number; durationMs: number }[] = [];
   private readonly webVitals: PerfWebVitalsEvent[] = [];
 
   recordFrameTime(source: PerfSampleSource, frameTimeMs: number): void {
@@ -45,7 +45,7 @@ class PerfBus {
   recordLongTask(durationMs: number): void {
     if (!Number.isFinite(durationMs) || durationMs <= 0) return;
     const now = nowMs();
-    this.longTaskTimestamps.push(now);
+    this.longTasks.push({ ts: now, durationMs });
     this.pruneLongTasks(now);
   }
 
@@ -70,9 +70,12 @@ class PerfBus {
 
   getMetricsBySource(source: PerfSampleSource): PerfMetricsView {
     const summary = summarize(this.rings[source]);
-    const longTasksLastMinute = this.pruneLongTasks(nowMs()).length;
+    const fresh = this.pruneLongTasks(nowMs());
+    const longTasksLastMinute = fresh.length;
+    const longTasksTotalMsLastMinute = fresh.reduce((acc, lt) => acc + lt.durationMs, 0);
     const heapMB = readHeapMB();
     const fps = summary.mean > 0 ? 1000 / summary.mean : 0;
+    const minuteScale = 60_000 / LONG_TASK_WINDOW_MS;
 
     return {
       fps,
@@ -81,8 +84,10 @@ class PerfBus {
       p5: summary.p5,
       p50: summary.p50,
       p95: summary.p95,
-      longTasksPerMinute: (longTasksLastMinute * 60_000) / LONG_TASK_WINDOW_MS,
+      longTasksPerMinute: longTasksLastMinute * minuteScale,
       longTasksLastMinute,
+      longTasksTotalMsLastMinute,
+      longTasksTotalMsPerMinute: longTasksTotalMsLastMinute * minuteScale,
       heapMB,
       sampleCount: summary.count,
     };
@@ -100,7 +105,7 @@ class PerfBus {
     resetFrameTimeRing(this.rings.render);
     resetFrameTimeRing(this.rings.game);
     resetFrameTimeRing(this.rings.main);
-    this.longTaskTimestamps.length = 0;
+    this.longTasks.length = 0;
     this.webVitals.length = 0;
   }
 
@@ -110,12 +115,12 @@ class PerfBus {
     return 'main';
   }
 
-  private pruneLongTasks(now: number): readonly number[] {
+  private pruneLongTasks(now: number): readonly { ts: number; durationMs: number }[] {
     const cutoff = now - LONG_TASK_WINDOW_MS;
-    while (this.longTaskTimestamps.length > 0 && (this.longTaskTimestamps[0] ?? 0) < cutoff) {
-      this.longTaskTimestamps.shift();
+    while (this.longTasks.length > 0 && (this.longTasks[0]?.ts ?? 0) < cutoff) {
+      this.longTasks.shift();
     }
-    return this.longTaskTimestamps;
+    return this.longTasks;
   }
 }
 

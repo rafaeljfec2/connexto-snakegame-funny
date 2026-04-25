@@ -1,0 +1,33 @@
+---
+description: Testing conventions (Vitest + Testing Library + Playwright smoke)
+globs: ["**/*.test.ts", "**/*.test.tsx", "src/test/**/*"]
+---
+
+# Testing conventions
+
+## Stack
+
+- **Vitest** (jsdom env) for unit and component tests.
+- **@testing-library/react** for component tests (no enzyme, no shallow render).
+- **@playwright/test** only for the smoke E2E in `scripts/harness/smoke-e2e.mjs`.
+
+## Rules
+
+- Test descriptions in **English** (`describe('GameBoard', ...)` / `it('renders score from props', ...)`).
+- AAA pattern: Arrange / Act / Assert with blank lines separating sections when it improves clarity.
+- One assertion concern per test. Multiple `expect` calls only if they assert the same behavior.
+- **Independent tests**: no shared mutable state across `it` blocks. Use factories.
+- **Deterministic**: no `Math.random` or timers without `vi.useFakeTimers` / seeded RNG.
+- **No `any`** anywhere — including test fixtures, mocks, and use-case inputs.
+- **Coverage by Acceptance Criterion**: every `REF-XX-AC-N` in the spec must be exercised by at least one test. Reference the ID in the test name when helpful: `it('REF-01-AC-1: panel renders within 300ms', ...)`.
+
+## Layout
+
+- Co-locate tests with source: `gameLogic.ts` ↔ `gameLogic.test.ts` or under `__tests__/`.
+- Shared fixtures and factories: `src/test/factories/<domain>.ts`.
+
+## What not to do
+
+- Do not mock what you do not own without a wrapper.
+- Do not test implementation details (private functions, internal state).
+- Do not snapshot full DOM trees — assert on user-visible behavior.

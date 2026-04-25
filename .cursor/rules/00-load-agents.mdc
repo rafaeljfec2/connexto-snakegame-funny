@@ -1,0 +1,12 @@
+---
+description: Load AGENTS.md as the canonical agent guide for this repository
+alwaysApply: true
+---
+
+The single source of truth for working in this repository is [AGENTS.md](mdc:AGENTS.md).
+
+Read it before answering any question or making any change. Do not duplicate its content here — propose updates to `AGENTS.md` when guidance is missing.
+
+Canonical Spec-Driven Development specs are under [`docs/SDD/specs/`](mdc:docs/SDD/specs).
+
+Before declaring any code task complete, run `bash scripts/harness/validate.sh`.

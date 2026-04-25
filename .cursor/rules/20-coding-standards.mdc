@@ -1,0 +1,45 @@
+---
+description: Coding standards for TypeScript and React in this repository
+globs: src/**/*.{ts,tsx}
+---
+
+# Coding standards (TS/React)
+
+## Hard rules (non-negotiable)
+
+- **No `any`**. ESLint `@typescript-eslint/no-explicit-any: error` is on. Use precise types or `unknown` + narrowing.
+- **Default values use `??`, never `||`**. Example: `const url = user.linkedinPersonUrn ?? '';`.
+- **React component props are `readonly`** (Sonar `typescript:S6759`). Prefer `Readonly<Props>` or `readonly` modifiers.
+- **No redundant comments**. Code explains the *what*; comments explain the *why* only when non-obvious.
+- **Test descriptions in English (USA)**. Identifiers in English.
+- **Strict file size**: refactor when crossing ~800–1000 LOC.
+
+## Naming
+
+- Components: `PascalCase` (`GameBoard.tsx`).
+- Hooks: `useCamelCase` (`useGameLoop.ts`).
+- Utilities and modules: `camelCase` (`gameLogic.ts`).
+- Constants: `UPPER_SNAKE_CASE` inside files; file names stay `camelCase`.
+- Types: `PascalCase` for interfaces/types, one domain per file in `src/types/`.
+
+## Imports and structure
+
+- Use the path alias `@/` for any import outside the current feature folder.
+- Co-locate `*.module.css` next to its `*.tsx`.
+- Web Worker code lives under `src/workers/`. Helpers consumed by a worker live under `src/workers/<worker-name>/`.
+
+## Async patterns
+
+- Use `Promise.all` only for **independent** async operations.
+- Use `Promise.allSettled` when continuing past failures matters.
+- Use `Promise.race` only when the first result is what you need.
+- Never `Promise.all` synchronous or dependent work.
+
+## Logging
+
+- Use `createLogger(LogContext.<X>)` from `@/utils/logger`. Never `console.log` in production code paths.
+- Errors: `logError(err, LogContext.<X>, metadata)`.
+
+## Mobile-first
+
+See [`40-mobile-first.mdc`](mdc:.cursor/rules/40-mobile-first.mdc).

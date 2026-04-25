@@ -1,0 +1,30 @@
+---
+description: Mobile-first UI/UX rules for components and styles
+globs: ["src/**/*.tsx", "src/**/*.module.css"]
+---
+
+# Mobile-first
+
+This game is mobile-first. Every new component is designed for a 360–414 px viewport first, then progressively enhanced for larger screens.
+
+## CSS rules
+
+- **Use `min-width` queries**, never `max-width`. Base styles are mobile; `@media (min-width: <bp>)` adds desktop.
+- Standard breakpoints: `480px`, `768px`, `1024px`, `1280px`. Reuse existing tokens where present.
+- Touch targets: minimum **44×44 px** for any interactive element.
+- Respect safe areas: `env(safe-area-inset-*)` for layout padding.
+- Respect motion preferences: wrap heavy animations in `@media (prefers-reduced-motion: no-preference)`.
+- Avoid `box-shadow` blur on mobile gameplay surfaces (documented FPS killer in this codebase).
+
+## Component rules
+
+- New components default to a single column / stacked layout.
+- Inputs and controls must be operable with thumb-only interaction.
+- Avoid hover-only affordances; provide explicit on-screen controls.
+- Dynamic backgrounds and weather effects must offer a "reduce" path on mobile (already partially implemented; keep the discipline).
+
+## Performance budget per component
+
+- No layout thrashing inside `requestAnimationFrame`.
+- Memoize lists and HUD sub-trees (`React.memo`, `useMemo`) when they re-render at gameplay frequency.
+- Prefer `transform`/`opacity` over `top/left/width/height` for animations.

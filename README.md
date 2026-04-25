@@ -298,6 +298,19 @@ The game has debug tools to facilitate testing and development:
 - **OffscreenCanvas**: Complex graphics without cost to the UI thread.
 - **Memoization**: Efficient use of React.memo and useMemo.
 
+## 🤖 Working with AI agents
+
+This repository is set up for collaborative work with AI coding tools (Cursor, Claude Code, and any agent that follows the `AGENTS.md` convention).
+
+- **Single source of truth**: [`AGENTS.md`](./AGENTS.md). Read it before any other instruction file.
+- **Workflow**: Spec-Driven Development. See [`docs/SDD/README.md`](./docs/SDD/README.md).
+- **Specs in flight**: [`docs/SDD/specs/`](./docs/SDD/specs/) — REF-01 (perf observability), REF-02 (audio), REF-03 (texture atlas).
+- **Architecture decisions**: [`docs/ADR/`](./docs/ADR/).
+- **Validation harness**: `bash scripts/harness/validate.sh` (must pass before any task is declared done). See [`docs/SDD/HARNESS.md`](./docs/SDD/HARNESS.md).
+- **PR checklist**: [`docs/HARNESS_CHECKLIST.md`](./docs/HARNESS_CHECKLIST.md).
+
+Any AI agent that follows `AGENTS.md` and the harness can contribute autonomously.
+
 ## 📚 Additional Documentation
 
 Check the documents in `docs/` for more details:
@@ -306,6 +319,10 @@ Check the documents in `docs/` for more details:
 - `LOGGING_SYSTEM.md`
 - `PERFORMANCE_OPTIMIZATION_PLAN.md`
 - `SISTEMA_COMBATE_BOSS.md`
+- `CONVENTIONS.md` — project code conventions
+- `HARNESS_CHECKLIST.md` — definition-of-done checklist for PRs
+- `SDD/` — Spec-Driven Development methodology, template, and active specs
+- `ADR/` — Architecture Decision Records
 
 ## 📈 Recent Evolution
 

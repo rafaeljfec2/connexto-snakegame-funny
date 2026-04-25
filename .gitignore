@@ -33,3 +33,11 @@ coverage
 .env.test.local
 .env.production.local
 .vite/
+
+# Harness artifacts (screenshots, perf snapshots, smoke E2E outputs)
+scripts/harness/.artifacts/
+perf-snapshot-*.json
+
+# Playwright
+playwright-report/
+test-results/

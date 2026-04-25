@@ -1,0 +1,27 @@
+---
+description: Spec-Driven Development workflow enforcement
+alwaysApply: true
+---
+
+# SDD workflow
+
+Every feature, refactor, or non-trivial bugfix in this repository must follow the Spec-Driven Development cycle defined in [`docs/SDD/README.md`](mdc:docs/SDD/README.md).
+
+## Mandatory order
+
+1. **Spec exists**: a file under `docs/SDD/specs/REF-XX-<slug>.md` with status `Approved` (or `Draft` for the very first edit, but no implementation until the user approves it).
+2. **Design**: contracts, files-to-touch list, mermaid diagrams as needed — all inside the spec.
+3. **Acceptance Criteria** with stable IDs (`REF-XX-AC-N`) — these become the test plan.
+4. **Implement**: only files listed in the Design section. New files require updating the spec first.
+5. **Tests**: every Acceptance Criterion has at least one automated test (unit, component, or smoke E2E).
+6. **Harness**: `bash scripts/harness/validate.sh` returns exit 0.
+7. **Traceability**: each commit message references at least one `REF-XX-FR-N` or `REF-XX-AC-N`.
+
+## Hard blocks
+
+- Do not write code under `src/` without an approved spec.
+- Do not introduce a new dependency in `package.json` unless the spec lists it.
+- Do not change files outside the spec's "Files to touch" list.
+- Do not mark a task complete with the harness red.
+
+When unsure whether a change deserves a spec: if the diff has > 20 LOC or touches more than one module, it deserves a spec.

@@ -45,28 +45,39 @@ agents can land code changes without owning binary assets.
 
 ## Generating the sprite
 
-Use the helper script:
+Use the helper script (requires `ffmpeg` and `ffprobe` in `PATH`):
 
 ```bash
 node scripts/build-audio-sprite.mjs --src ./raw-sfx --out ./public/audio
 ```
 
-The script accepts a directory of source clips named `<sfxId>.wav` (or `.mp3`)
-and produces `sfx.{mp3,webm}` plus `sfx.json`. It validates every file name
-against `SFX_IDS` and refuses unknown identifiers. See the script header for
-flags.
+The script accepts a directory of source clips named `<sfxId>.{wav,mp3,ogg}`,
+probes each one with `ffprobe` for exact duration, and concatenates them with
+an inter-clip silence gap (default `--gap 80` ms) to prevent codec bleed. It
+emits `sfx.mp3` (libmp3lame, 128 kbps, mono), `sfx.webm` (libopus, 96 kbps,
+mono) and a precise `sfx.json` whose offsets match the encoded streams.
 
-If you do not have `ffmpeg`/`audiosprite` installed locally, the script falls
-back to **manifest-only mode**: it scans your raw clips, validates names, and
-emits a `sfx.json` skeleton with placeholder offsets so you can stitch the
-sprite manually.
+File names that do not match a known `SfxId` cause the script to abort.
 
 ## Source recommendations
 
 - Mono, 22 050 Hz or 44 100 Hz, 16-bit.
-- ≤ 200 KB total for the encoded sprite.
+- ≤ 250 KB total for the encoded sprite.
 - Trim leading silence to keep latency under 50 ms.
 - License: pick CC0 or commercial-friendly (e.g. freesound.org with CC0 tag).
+
+### Bootstrap from Freesound CC0
+
+For a one-shot bootstrap you can run:
+
+```bash
+node scripts/fetch-freesound-cc0.mjs
+```
+
+It searches Freesound anonymously for a CC0 candidate per `SfxId`, downloads
+the high-quality MP3 preview into `./raw-sfx/`, and writes a `SOURCES.json`
+sidecar with the originating sound URL for traceability. Re-runs are
+idempotent (use `--force` to refetch).
 
 ## Local override
 

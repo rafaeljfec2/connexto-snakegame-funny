@@ -1,0 +1,60 @@
+{
+  "generatedAt": "2026-04-25T22:26:25.864Z",
+  "sources": [
+    {
+      "id": "food.timed.expire",
+      "query": "warning beep alarm",
+      "soundUrl": "https://freesound.org/people/SamsterBirdies/sounds/467882/",
+      "previewUrl": "https://cdn.freesound.org/previews/467/467882_5487341-hq.mp3",
+      "license": "Creative Commons 0",
+      "bytes": 41954,
+      "fetchedAt": "2026-04-25T22:26:05.422Z"
+    },
+    {
+      "id": "powerup.expire",
+      "query": "powerdown",
+      "soundUrl": "https://freesound.org/people/plasterbrain/sounds/464901/",
+      "previewUrl": "https://cdn.freesound.org/previews/464/464901_4284968-hq.mp3",
+      "license": "Creative Commons 0",
+      "bytes": 46647,
+      "fetchedAt": "2026-04-25T22:26:09.351Z"
+    },
+    {
+      "id": "boss.spawn",
+      "query": "monster growl short",
+      "soundUrl": "https://freesound.org/people/jackieAZ/sounds/262431/",
+      "previewUrl": "https://cdn.freesound.org/previews/262/262431_4385633-hq.mp3",
+      "license": "Creative Commons 0",
+      "bytes": 54576,
+      "fetchedAt": "2026-04-25T22:26:13.354Z"
+    },
+    {
+      "id": "boss.hit",
+      "query": "punch hit thud",
+      "soundUrl": "https://freesound.org/people/qubodup/sounds/773739/",
+      "previewUrl": "https://cdn.freesound.org/previews/773/773739_71257-hq.mp3",
+      "license": "Creative Commons 0",
+      "bytes": 5328,
+      "fetchedAt": "2026-04-25T22:26:17.676Z"
+    },
+    {
+      "id": "boss.defeat",
+      "query": "explosion 8bit",
+      "soundUrl": "https://freesound.org/people/thehorriblejoke/sounds/259962/",
+      "previewUrl": "https://cdn.freesound.org/previews/259/259962_2463454-hq.mp3",
+      "license": "Creative Commons 0",
+      "bytes": 18526,
+      "fetchedAt": "2026-04-25T22:26:21.347Z"
+    },
+    {
+      "id": "phase.intro",
+      "query": "level start 8bit",
+      "soundUrl": "https://freesound.org/people/SieuAmThanh/sounds/546813/",
+      "previewUrl": "https://cdn.freesound.org/previews/546/546813_7554526-hq.mp3",
+      "license": "Creative Commons 0",
+      "bytes": 24371,
+      "fetchedAt": "2026-04-25T22:26:25.112Z"
+    }
+  ],
+  "failures": []
+}

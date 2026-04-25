@@ -11,6 +11,7 @@ import { generateRandomFood } from '@/utils/gameLogic';
 import { hasFoodExpired } from '@/utils/foodTimer';
 import { initializeBossSnake } from '@/utils/bossSnake';
 import type { Obstacle } from '@/types/game';
+import { emitSfx } from './gameSfx';
 
 export interface GameStateUpdateResult {
   newLevel: number;
@@ -146,6 +147,10 @@ function handleFoodGeneration(
     return context.prevGameState.food;
   }
 
+  if (foodExpired && !context.ateFood) {
+    emitSfx('food.timed.expire');
+  }
+
   return generateRandomFood(
     context.finalSnake,
     GAME_CONFIG.gridSize,
@@ -266,6 +271,11 @@ export function handleGameStateUpdates(
     prevGameState.currentPhase,
     activeBoss,
   );
+
+  if (currentPhase?.id !== prevGameState.currentPhase) {
+    if (prevGameState.currentPhase !== undefined) emitSfx('phase.complete');
+    if (currentPhase?.id !== undefined) emitSfx('phase.intro');
+  }
 
   // 4. Handle Obstacle Generation
   const obstacleResult = handleObstacleGeneration(context, newLevel, prevLevel, currentPhase);

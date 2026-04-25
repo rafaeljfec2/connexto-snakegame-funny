@@ -158,8 +158,23 @@ Plus full harness: `bash scripts/harness/validate.sh` green.
 
 ### Deviations from the design
 
-- **Asset gating**: spec assumed `public/audio/sfx.{mp3,webm,json}` would exist. The agent does not own binary assets, so the engine ships in **graceful no-audio mode** when the manifest is absent: a single warn log, `play()` becomes a no-op, but every other behavior (persistence, toggle, worker pipe) still works end-to-end. Drop the three files into `public/audio/` to enable sound — no code change required.
-- **Partial SFX coverage in this iteration**: 5 of the 15 SFX IDs are wired in game logic (`food.eat`, `powerup.collect`, `damage.hit`, `damage.death`, `boss.defeat`, `boss.spawn`). The remaining ones (`food.timed.expire`, `powerup.expire`, `poison.shoot`, `poison.hit`, `boss.hit`, `phase.intro`, `phase.complete`, `ui.click`) require call-site additions in the corresponding game-logic modules; tracked as follow-up to keep this PR scoped. The `ui.toggle` and `ui.click` UI events use `useSfx().play()` directly from React.
+- ~~**Asset gating**: spec assumed `public/audio/sfx.{mp3,webm,json}` would exist.~~ **Resolved (2026-04-25)**: assets are now sourced and committed.
+  - 15 CC0 clips fetched from Freesound via `scripts/fetch-freesound-cc0.mjs` into `raw-sfx/<sfxId>.mp3` (with `raw-sfx/SOURCES.json` recording origin + license per clip).
+  - `scripts/build-audio-sprite.mjs` was rewritten on top of `ffmpeg`/`ffprobe` (no `audiosprite` dep) and produces `public/audio/sfx.mp3` (libmp3lame, 128 kbps, mono, 214 kB), `sfx.webm` (libopus, 96 kbps, mono, 195 kB) and a precise `sfx.json` (sprite total ≈ 14.1 s, 80 ms inter-clip gap to prevent codec bleed).
+  - The graceful no-audio fallback is **kept** intentionally so future asset rebuilds or CDN swaps cannot brick the game.
+- **Full SFX coverage achieved (2026-04-25, follow-up commit)**: all 15 SFX IDs are now wired:
+  - `food.eat`, `powerup.collect` → `foodInteractionHelper.handleFoodInteraction`
+  - `food.timed.expire` → `gameStateUpdates.handleFoodGeneration` (when `hasFoodExpired && !ateFood`)
+  - `powerup.expire` → `gameUpdate.updateGameLogic` (diff between `prev.activePowerUps.length` and `getActivePowerUps(...)`)
+  - `damage.hit`, `damage.death` → `gameUpdateHelpers.handleCollision` (DYING / GAME_OVER)
+  - `poison.shoot` → `poisonLogicHelper.processAutoFire` (auto-fire interval reached)
+  - `poison.hit` → `poisonLogicHelper.processObstacleDestruction` (any obstacle hit)
+  - `boss.spawn` → `gameHandlers.handleSpawnBoss` (chef found)
+  - `boss.hit` → `poisonLogicHelper.processBossWeaken`
+  - `boss.defeat` → `gameUpdateHelpers.handleGuardianFlagCapture`
+  - `phase.intro`, `phase.complete` → `gameStateUpdates.handleGameStateUpdates` (currentPhase id transition)
+  - `ui.click` → `GameControls` button handlers (Start / Pause / Resume / Reset / Play Again) via `withClick(handler)` helper
+  - `ui.toggle` → `AudioToggle.handleClick` (when unmuting)
 - **Engine factory replaces hook coupling**: spec implied `useSfx` would own the Howler instance; we extracted `sfxEngine` (singleton on the main thread) so the worker→main `SFX` router can call `sfxEngine.play(id)` without going through React. Hook is now a thin subscriber.
 
 ### Acceptance criteria status
@@ -183,7 +198,8 @@ Plus full harness: `bash scripts/harness/validate.sh` green.
 
 ### Follow-ups (not blocking)
 
-- Add the missing SFX call sites listed under "Deviations".
-- Author/source the `sfx.{mp3,webm,json}` and commit them under `public/audio/` (or document an external CDN URL via env if assets stay out of git).
+- ✅ ~~Add the missing SFX call sites listed under "Deviations".~~ — done in same wave.
+- ✅ ~~Author/source the `sfx.{mp3,webm,json}` and commit them under `public/audio/`.~~ — done via `scripts/fetch-freesound-cc0.mjs` + `scripts/build-audio-sprite.mjs` (CC0).
+- Make `fetch-freesound-cc0.mjs` merge into an existing `SOURCES.json` instead of overwriting (currently the sidecar reflects only the most recent run; full re-record requires `--force`).
 - Add a Playwright smoke that mounts the toggle, clicks it, and verifies no console error in autoplay-restricted browser context.
 

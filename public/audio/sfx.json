@@ -1,0 +1,68 @@
+{
+  "src": [
+    "/audio/sfx.webm",
+    "/audio/sfx.mp3"
+  ],
+  "sprite": {
+    "food.eat": [
+      0,
+      340
+    ],
+    "food.timed.expire": [
+      420,
+      1750
+    ],
+    "damage.hit": [
+      2250,
+      366
+    ],
+    "damage.death": [
+      2696,
+      731
+    ],
+    "powerup.collect": [
+      3507,
+      731
+    ],
+    "powerup.expire": [
+      4318,
+      1933
+    ],
+    "poison.shoot": [
+      6331,
+      392
+    ],
+    "poison.hit": [
+      6803,
+      336
+    ],
+    "boss.spawn": [
+      7219,
+      2784
+    ],
+    "boss.hit": [
+      10083,
+      192
+    ],
+    "boss.defeat": [
+      10355,
+      679
+    ],
+    "phase.intro": [
+      11114,
+      1045
+    ],
+    "phase.complete": [
+      12239,
+      1228
+    ],
+    "ui.click": [
+      13547,
+      72
+    ],
+    "ui.toggle": [
+      13699,
+      312
+    ]
+  }
+}

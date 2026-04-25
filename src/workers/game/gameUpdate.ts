@@ -17,6 +17,7 @@ import {
   handleFoodInteraction,
 } from '../gameHelper';
 import { handleGameStateUpdates } from './gameStateUpdates';
+import { emitSfx } from './gameSfx';
 
 // Re-export types
 export type { UpdateContext, UpdateResult } from './gameUpdateTypes';
@@ -45,6 +46,8 @@ export function updateGameLogic(context: UpdateContext, performanceTime: number)
 
   // 1. Resolve Direction
   const activePowerUps = context.activePowerUps ?? getActivePowerUps(prev.activePowerUps);
+  const expiredPowerUps = prev.activePowerUps.length - activePowerUps.length;
+  for (let i = 0; i < expiredPowerUps; i++) emitSfx('powerup.expire');
   const currentTime = context.currentTime ?? performanceTime;
   const nextInput =
     context.directionQueue.length > 0 ? (context.directionQueue.shift() ?? null) : null;

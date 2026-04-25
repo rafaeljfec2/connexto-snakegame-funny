@@ -19,6 +19,7 @@ import {
   hasBossBodyCollision,
 } from '@/utils/poison';
 import type { BossLogicResult } from './bossLogicHelper';
+import { emitSfx } from './gameSfx';
 
 // --- Types ---
 export interface PoisonLogicResult {
@@ -64,6 +65,7 @@ function processAutoFire(
   const fireInterval = POISON_CONFIG.fireInterval ?? 200;
   if (currentTime - lastPoisonFireTime >= fireInterval && snakeHead) {
     newPending.push(createPoisonShot(snakeHead, direction));
+    emitSfx('poison.shoot');
   }
   return newPending;
 }
@@ -80,6 +82,7 @@ function processObstacleDestruction(
     const obs = hitObstacles[i];
     if (obs) particlesToSpawn.push({ position: obs.position, color: '#9ca3af', count: 6 });
   }
+  emitSfx('poison.hit');
   return destroyRes.remainingObstacles;
 }
 
@@ -125,6 +128,7 @@ function processBossWeaken(
     color: ctx.activeBoss.visual.color,
     count: particleCount,
   });
+  emitSfx('boss.hit');
   return {
     bossSnake: weaken.newBossSnake,
     score: state.score + weaken.pointsEarned,

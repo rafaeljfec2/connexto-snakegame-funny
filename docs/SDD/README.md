@@ -70,7 +70,8 @@ A spec moves to `Approved` only after the user signs off. Implementation starts 
 
 - [REF-01 — Performance Observability Panel](specs/REF-01-perf-observability.md)
 - [REF-02 — Audio (SFX) with Howler.js](specs/REF-02-audio-howler.md)
-- [REF-03 — Texture Atlas on Canvas 2D](specs/REF-03-texture-atlas.md)
+- [REF-03 — Texture Atlas on Canvas 2D](specs/REF-03-texture-atlas.md) (Archived; superseded by REF-04)
+- [REF-04 — Main-thread long-task elimination](specs/REF-04-main-thread-long-tasks.md)
 
 ## When to write a new spec
 

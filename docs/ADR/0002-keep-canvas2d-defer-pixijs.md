@@ -64,3 +64,9 @@ In short: **measure first, optimize the cheapest lever next, only then consider 
 - [`docs/SDD/specs/REF-03-texture-atlas.md`](../SDD/specs/REF-03-texture-atlas.md)
 - [`docs/PERFORMANCE_OPTIMIZATION_PLAN.md`](../PERFORMANCE_OPTIMIZATION_PLAN.md)
 - README section "Performance" and "Recent Evolution" describing the existing worker architecture.
+
+## Update — 2026-04-25 (first baseline confirms the bet)
+
+The first real baseline (iPhone 15 Pro / iOS 18.5 Safari, captured via REF-01's `Shift+F4`, stored at `scripts/harness/.artifacts/perf-baseline.json`) shows render-worker `p5(frameTime) = 0.20 ms` — **two orders of magnitude below** the 20 ms gate that would have justified REF-03 (texture atlas) or any move toward PixiJS. The decision in this ADR is therefore **empirically validated**: the existing Canvas 2D + OffscreenCanvas + worker architecture is not the bottleneck. PixiJS migration remains correctly deferred.
+
+The same baseline reveals the actual bottleneck lives on the **main thread** (`longTasksPerMinute = 256`), redirecting investment toward a new spec REF-04 (main-thread long-task elimination) instead of the renderer.

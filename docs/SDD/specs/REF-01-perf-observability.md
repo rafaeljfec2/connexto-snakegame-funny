@@ -173,3 +173,24 @@ Plus full harness: `bash scripts/harness/validate.sh` green.
 - Capture a real baseline via `pnpm dev` → play 2 min on phase 9 → `Shift+F4` → store JSON under `docs/SDD/baselines/REF-01/<device>.json`.
 - Feed that baseline into `scripts/harness/perf-baseline.mjs` for REF-03 gating.
 - Optional: wire a tiny `perfBus.subscribe()` listener to log a structured `PERF_DROP` event whenever `p5 > 20 ms` (useful in CI smoke).
+
+## 8. First baseline (2026-04-25, iPhone 15 Pro / iOS 18.5 Safari)
+
+Captured via `Shift+F4` after ~2–3 min of active gameplay on phase 4 (score 155, length 15). Raw artifact: `scripts/harness/.artifacts/perf-baseline.json`.
+
+| Metric | Value | Verdict |
+|---|---|---|
+| frameTime avg / p50 | 0.12 ms / 0.10 ms | render worker is essentially idle |
+| p5 | **0.20 ms** | **100× below the 20 ms REF-03 gate** |
+| p1 (slowest 1%) | 0.30 ms | no spikes inside the worker pipeline |
+| longTasksPerMinute | **256** | **🚨 main thread blocked ~50 ms × 256 / 60 s ≈ 21 s/min** |
+| heapMB | 49.8 MB | healthy for mobile Safari |
+| LCP / FCP / TTFB | 1676 / 1676 / 432.5 ms | all `good` (web-vitals) |
+
+**Implications:**
+1. The off-main-thread architecture (game worker + render worker + OffscreenCanvas) is doing its job perfectly — render frame budget is essentially free.
+2. The bottleneck has shifted to the **main thread itself**: ~4.3 long tasks/sec (>50 ms each). Likely culprits: React re-renders on `setGameState`, large delta merges, particle system on the main thread, or DOM-bound HUD updates.
+3. **REF-03 (texture atlas) is no longer justified** — see ADR (forthcoming) and REF-03 archival note.
+4. New work order: **REF-04 — main-thread long-task elimination** should be authored next, replacing REF-03 in the queue.
+
+Caveat: web-vitals INP is missing because no input event was tracked between the boot and the snapshot. Future captures should include a deliberate keypress before exporting.

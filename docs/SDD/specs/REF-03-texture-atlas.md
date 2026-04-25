@@ -2,13 +2,16 @@
 
 | Field | Value |
 |---|---|
-| **Status** | Approved (conditional) |
+| **Status** | Archived |
 | **Owner** | rafael |
 | **Created** | 2026-04-25 |
 | **Last updated** | 2026-04-25 |
 | **Related ADRs** | [ADR-0002](../../ADR/0002-keep-canvas2d-defer-pixijs.md) |
 | **Supersedes** | — |
 | **Conditional gate** | Implementation begins only after REF-01 baseline shows `p5(frameTime) > 20 ms` in some real scenario. |
+| **Archived** | 2026-04-25 — gate not met (see Archival note at the end). |
+
+> ⚠️ **Archived spec**. Do not implement. The conditional gate defined above was not met by the first real-device baseline. See § 8 below for the data and reasoning. Re-open only if a future baseline contradicts this.
 
 ## 1. Specification
 
@@ -123,3 +126,31 @@ Plus full harness: `bash scripts/harness/validate.sh` green.
 - **R2** Heavy atlas hurts LCP. **Mitigation**: cap < 256 KB gzip; preload via `<link rel="preload" as="image">`.
 - **R3** Visible visual diff (sprite vs vectorial). **Mitigation**: AC-3 + designer review before merge.
 - **Rollback**: feature flag `RENDER_USE_ATLAS` (`import.meta.env.VITE_RENDER_USE_ATLAS`) in `renderState.ts`. Disable in `.env` to revert without a deploy.
+
+## 8. Archival note (2026-04-25)
+
+### Trigger
+First real-device baseline captured on iPhone 15 Pro (iOS 18.5 Safari), phase 4, ~2–3 min of active gameplay. Source: `scripts/harness/.artifacts/perf-baseline.json`.
+
+### Numbers vs gate
+| Gate | Threshold | Measured | Verdict |
+|---|---|---|---|
+| `p5(frameTime)` (render worker) | > 20 ms | **0.20 ms** | ❌ not met (100× headroom) |
+| `p1(frameTime)` (slowest 1%) | — | 0.30 ms | no spikes |
+| Render worker idle most of the time? | — | yes (fps-equivalent ~8.6k) | confirmed |
+
+### Reasoning
+The very architecture this spec was meant to optimize (Canvas 2D rendering inside an OffscreenCanvas worker) is already so far below the budget that any draw-call reduction would be invisible to the player. Investing 2–3 hours in atlas tooling and visual regression review would be textbook premature optimization, violating the explicit engineering rule of "simplicity first" and contradicting the SDD gate this spec itself declared.
+
+### Where the bottleneck actually is
+The same baseline shows **256 long-tasks per minute** on the **main thread** — roughly 50 ms of blocking per task, accumulating ~21 s of frozen UI per minute. The observability work in REF-01 redirected attention from "make rendering faster" to "stop the main thread from stalling".
+
+### Replacement
+Author **REF-04 — Main-thread long-task elimination** (next in queue) targeting:
+- React `setGameState` cadence and re-render fan-out;
+- delta merge cost in `useGameLoop`;
+- HUD components subscribing to high-frequency state slices (StatusBar, GameInfo);
+- particle system if any portion still runs on main.
+
+### Reopening criteria
+Re-open this spec only if a future baseline (mid/low-end Android, throttled CPU emulation, or a denser game phase) shows `p5(frameTime) > 20 ms` for the render worker specifically. The artifact at `scripts/harness/.artifacts/perf-baseline.json` should be diffed by `node scripts/harness/perf-baseline.mjs` before any reopening.

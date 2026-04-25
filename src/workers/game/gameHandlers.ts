@@ -11,6 +11,7 @@ import { createPoisonShot } from '@/utils/poison';
 import { createPhaseStartSnapshot } from '@/utils/phaseStatistics';
 import { logger, LogContext } from '@/utils/logger';
 import type { WorkerState } from './gameState';
+import { emitSfx } from './gameSfx';
 
 /**
  * Handle resume after death
@@ -65,6 +66,7 @@ export function handleSpawnBoss(
   const boss = CHEFS.find((c) => c.id === bossId);
   if (boss) {
     state.gameState.activeBoss = boss;
+    emitSfx('boss.spawn');
 
     // Clean up existing boss/resources if any
     state.bossAbilityCooldowns.clear();

@@ -7,6 +7,7 @@ import { isLivesEnabled, addLife } from '@/utils/lives';
 import { initializeStatistics } from '@/utils/statistics';
 import { getPortalAtPosition, getPortalPair, getActivePortals } from '@/utils/portals';
 import { handleBossDefeat } from '@/utils/bosses';
+import { emitSfx } from './gameSfx';
 import { checkAchievements } from '@/utils/achievements';
 import { logger, LogContext } from '@/utils/logger';
 import {
@@ -92,6 +93,7 @@ export function handleCollision(
       statistics,
     };
     self.postMessage({ type: 'GAME_OVER_OR_DYING', payload: { status: GameStatus.DYING } });
+    emitSfx('damage.hit');
     logger.info(
       { context: LogContext.COLLISION, livesRemaining: gameState.lives - 1 },
       'Collision detected (Life Lost)',
@@ -109,6 +111,7 @@ export function handleCollision(
     type: 'GAME_OVER_OR_DYING',
     payload: { status: GameStatus.GAME_OVER, score: gameState.score },
   });
+  emitSfx('damage.death');
   logger.info(
     { context: LogContext.COLLISION, score: gameState.score },
     'Collision detected (Game Over)',
@@ -158,6 +161,7 @@ export function handleGuardianFlagCapture(
 
   bossLogicResult.guardianFlag = null;
   bossLogicResult.activeBoss = undefined;
+  emitSfx('boss.defeat');
   bossLogicResult.bossSnake = undefined;
 
   if (GAME_CONFIG.enableParticles && prev.guardianFlag) {

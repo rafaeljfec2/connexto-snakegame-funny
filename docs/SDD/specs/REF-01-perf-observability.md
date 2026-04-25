@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| **Status** | Approved |
+| **Status** | Done |
 | **Owner** | rafael |
 | **Created** | 2026-04-25 |
 | **Last updated** | 2026-04-25 |
@@ -132,3 +132,44 @@ Plus full harness: `bash scripts/harness/validate.sh` green.
 - **R1** `PerformanceObserver` for `long-animation-frames` is not universal yet (Safari < 17). **Mitigation**: `try/catch` on creation + fallback to `longtask`.
 - **R2** Access to `performance.memory` exists only in Chromium. **Mitigation**: optional field already in the interface.
 - **Rollback**: the panel is isolated; removing the F4 shortcut in `useDebugControls.ts` and the `main.tsx` import neutralizes everything. The `web-vitals` dependency removed in a single line.
+
+## 8. Implementation Notes (Done — 2026-04-25)
+
+### Delivered surface
+- `src/types/perf.ts` — `PerfFrameSample`, `PerfBatchMessage`, `PerfMetricsView`, `PerfWebVitalsEvent`, `PerfSnapshot`.
+- `src/utils/percentiles.ts` — pure `FrameTimeRing` + `summarize` with gaming-convention percentiles (`p1/p5` = slow tail, `p95` = fast tail).
+- `src/utils/perfBus.ts` — singleton aggregator (`render` / `game` / `main` rings, long-task counter, web-vitals buffer, `attachWorker(worker, source)`).
+- `src/workers/perfReporter.ts` — shared throttled batcher used by both workers (default 250 ms / 240 samples).
+- `src/utils/perfBootstrap.ts` — registers `long-animation-frame` (with `longtask` fallback) and `web-vitals` (LCP/INP/CLS/FCP/TTFB) into `pino` + `perfBus`.
+- `src/utils/perfSnapshot.ts` — builds `PerfSnapshot` and triggers JSON download.
+- `src/components/PerfDebugPanel.tsx` + `PerfDebugPanel.module.css` — fixed top-right overlay, mobile-first, `aside` with `aria-label`.
+- Wiring: `src/hooks/useGameLoop.ts` and `src/components/GameBoard.tsx` call `perfBus.attachWorker(...)`. Game and render workers post `PERF_SAMPLE` batches.
+- Shortcuts: `useDebugControls.ts` registers `F4` (toggle panel) and `Shift+F4` (export snapshot) with phase/boss context provided by `App.tsx`.
+
+### Deviations from the original design
+- **D1** Streaming percentiles are implemented in `src/utils/percentiles.ts` (not inside `performanceMetrics.ts`). Reason: keep the legacy adaptive metrics file scoped to the game-worker concern and isolate the panel-facing pipeline. `performanceMetrics.ts` was left untouched.
+- **D2** Worker → main transport uses regular `self.postMessage` of batched `PERF_SAMPLE` messages (~4/s per worker), not a dedicated `MessageChannel`. Reason: lower surface area, no extra port lifecycle, and additive `addEventListener` coexists with the existing `worker.onmessage` handlers.
+- **D3** `web-vitals@^5.2` was installed (latest stable) instead of `^4`.
+
+### Acceptance criteria status
+- **REF-01-AC-1** Done — `<PerfDebugPanel />` test renders panel with `data-testid` + `aria-label`; `useDebugControls` `F4` toggles `showPerfDebug`.
+- **REF-01-AC-2** Done — `Shift+F4` triggers `exportPerfSnapshot`; covered by `src/utils/__tests__/perfSnapshot.test.ts` (URL.createObjectURL → click → revoke).
+- **REF-01-AC-3** Pending field measurement — overhead is bounded by ring O(1) writes + ~4 batched messages/sec per worker; recommend running the snapshot loop on dev hardware once the panel is hooked into a CI artifact.
+- **REF-01-AC-4** Done — `bootstrapPerfObservability()` invoked from `src/main.tsx` registers all five web-vitals through `pino` (`context=performance`).
+- **REF-01-AC-5** Done — `pnpm lint` green, no `any` introduced.
+
+### Test footprint
+| Suite | Tests |
+|---|---|
+| `src/utils/__tests__/percentiles.test.ts` | 8 |
+| `src/utils/__tests__/perfBus.test.ts` | 8 |
+| `src/workers/__tests__/perfReporter.test.ts` | 5 |
+| `src/utils/__tests__/perfSnapshot.test.ts` | 2 |
+| `src/components/__tests__/PerfDebugPanel.test.tsx` | 2 |
+
+`bash scripts/harness/validate.sh` → green in 11 s (lint + tsc + 58 tests + build).
+
+### Suggested next steps
+- Capture a real baseline via `pnpm dev` → play 2 min on phase 9 → `Shift+F4` → store JSON under `docs/SDD/baselines/REF-01/<device>.json`.
+- Feed that baseline into `scripts/harness/perf-baseline.mjs` for REF-03 gating.
+- Optional: wire a tiny `perfBus.subscribe()` listener to log a structured `PERF_DROP` event whenever `p5 > 20 ms` (useful in CI smoke).

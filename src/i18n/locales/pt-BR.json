@@ -36,6 +36,12 @@
   "controls": {
     "instructions": "<kbd>↑↓←→</kbd> ou <kbd>WASD</kbd> para mover • <kbd>ESPAÇO</kbd> para iniciar/pausar"
   },
+  "audio": {
+    "toggle": {
+      "on": "Silenciar som",
+      "off": "Ativar som"
+    }
+  },
   "phase": {
     "phase": "FASE",
     "complete": "COMPLETA!",

@@ -16,6 +16,7 @@ import { TouchControls } from './components/TouchControls';
 import { GameStatistics as GameStatisticsComponent } from './components/GameStatistics';
 import { BossDebugPanel } from './components/BossDebugPanel';
 import { PhaseDebugPanel } from './components/PhaseDebugPanel';
+import { PerfDebugPanel } from './components/PerfDebugPanel';
 import { DynamicBackground } from './components/DynamicBackground';
 import { ActivePowerUps } from './components/ActivePowerUps';
 import { ComboDisplay } from './components/ComboDisplay';
@@ -72,6 +73,12 @@ function App() {
     (boss) => spawnBoss(boss),
     (boss, score) => {
       transitions.handleBossDefeat(boss, score, getPhaseNumber(gameState.level));
+    },
+    {
+      onSnapshotContext: () => ({
+        phaseId: gameState.currentPhase ?? getPhaseNumber(gameState.level),
+        bossId: gameState.activeBoss?.id,
+      }),
     },
   );
 
@@ -286,6 +293,8 @@ function App() {
         onSelectPhase={handlePhaseSelect}
         currentPhaseId={gameState.currentPhase ?? getPhaseNumber(gameState.level)}
       />
+
+      <PerfDebugPanel visible={debugControls.showPerfDebug} />
     </div>
   );
 }

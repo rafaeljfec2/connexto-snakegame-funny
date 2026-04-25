@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { GameInfo } from './GameInfo';
 import { StatusBar } from './StatusBar';
 import { LanguageSelector } from './LanguageSelector';
+import { AudioToggle } from './AudioToggle';
 import styles from '../App.module.css';
 
 interface GameHeaderProps {
@@ -32,6 +33,7 @@ export function GameHeader({
           </div>
         </div>
         <div className={styles.headerActions}>
+          <AudioToggle />
           <LanguageSelector />
         </div>
       </div>

@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$comment": "Machine-readable skill catalog. Update alongside SKILL.md frontmatter so the agent can map signals → personas without reading each file.",
+  "skills": [
+    {
+      "id": "web-game-architect",
+      "path": ".cursor/skills/web-game-architect/SKILL.md",
+      "tags": ["architecture", "game-loop", "fsm", "ecs", "workers", "offscreen-canvas", "messages", "determinism"],
+      "fileGlobs": ["src/workers/**/*.ts", "src/hooks/useGameLoop.ts", "src/hooks/useGameState.ts"]
+    },
+    {
+      "id": "canvas2d-rendering-expert",
+      "path": ".cursor/skills/canvas2d-rendering-expert/SKILL.md",
+      "tags": ["render", "canvas2d", "atlas", "batching", "dirty-rects", "layers", "drawimage"],
+      "fileGlobs": ["src/render/**/*.ts", "src/workers/render.worker.ts"]
+    },
+    {
+      "id": "webgl-shader-artist",
+      "path": ".cursor/skills/webgl-shader-artist/SKILL.md",
+      "tags": ["webgl", "webgpu", "shader", "glsl", "wgsl", "post-process", "fbo", "lighting"],
+      "fileGlobs": ["**/*.glsl", "**/*.vert", "**/*.frag", "**/*.wgsl"]
+    },
+    {
+      "id": "game-loop-performance-expert",
+      "path": ".cursor/skills/game-loop-performance-expert/SKILL.md",
+      "tags": ["performance", "fps", "jank", "gc", "fixed-timestep", "raf", "mobile", "profiling", "REF-01"],
+      "fileGlobs": ["src/workers/game.worker.ts", "src/hooks/useGameLoop.ts", "scripts/harness/perf-baseline.mjs"]
+    },
+    {
+      "id": "game-designer-mechanics",
+      "path": ".cursor/skills/game-designer-mechanics/SKILL.md",
+      "tags": ["design", "mechanics", "balancing", "juice", "boss", "powerup", "progression", "feel"],
+      "fileGlobs": ["src/game/**/*.ts", "src/utils/gameLogic.ts", "src/utils/bosses/**", "src/utils/phases/**"]
+    },
+    {
+      "id": "pixel-art-sprite-director",
+      "path": ".cursor/skills/pixel-art-sprite-director/SKILL.md",
+      "tags": ["art", "pixel-art", "palette", "sprite", "atlas", "animation", "REF-03"],
+      "fileGlobs": ["public/sprites/**", "public/atlas/**", "src/render/atlas/**"]
+    },
+    {
+      "id": "game-audio-designer",
+      "path": ".cursor/skills/game-audio-designer/SKILL.md",
+      "tags": ["audio", "sfx", "music", "howler", "web-audio", "mixing", "autoplay", "REF-02"],
+      "fileGlobs": ["public/audio/**", "src/audio/**", "src/hooks/useAudio*.ts"]
+    },
+    {
+      "id": "web-game-input-ux",
+      "path": ".cursor/skills/web-game-input-ux/SKILL.md",
+      "tags": ["input", "touch", "swipe", "joystick", "haptics", "accessibility", "wcag", "tutorial", "onboarding", "mobile-first"],
+      "fileGlobs": ["src/hooks/useKeyboard.ts", "src/hooks/useTouch*.ts", "src/hooks/useSwipe*.ts", "src/components/HUD/**", "src/components/**/*.module.css"]
+    }
+  ],
+  "comboRecipes": [
+    {
+      "name": "new-gameplay-feature",
+      "skills": ["game-designer-mechanics", "web-game-architect"],
+      "addIfTouches": {
+        "src/render/**": "canvas2d-rendering-expert",
+        "src/workers/**": "game-loop-performance-expert",
+        "src/components/**": "web-game-input-ux"
+      }
+    },
+    {
+      "name": "perf-regression",
+      "skills": ["game-loop-performance-expert", "canvas2d-rendering-expert"]
+    },
+    {
+      "name": "new-boss",
+      "skills": ["game-designer-mechanics", "pixel-art-sprite-director", "game-audio-designer", "web-game-architect"]
+    },
+    {
+      "name": "mobile-ux-overhaul",
+      "skills": ["web-game-input-ux", "canvas2d-rendering-expert", "game-loop-performance-expert"]
+    },
+    {
+      "name": "webgl-migration",
+      "skills": ["webgl-shader-artist", "web-game-architect", "game-loop-performance-expert", "canvas2d-rendering-expert"]
+    }
+  ]
+}

@@ -1,0 +1,66 @@
+---
+description: Game-dev skills catalog — load the right specialist persona before working on a task
+alwaysApply: true
+---
+
+# Game-dev skills (mandatory consultation)
+
+This repository ships a curated set of **specialist personas** under [`.cursor/skills/`](mdc:.cursor/skills/). They are progressively disclosed: each `SKILL.md` is loaded **only when relevant**.
+
+## Hard rule
+
+Before acting on any task that matches a category below, you **must read the corresponding `SKILL.md`** via the file read tool. Do not rely on memory — the persona, defaults and anti-patterns evolve.
+
+When in doubt about which to load, read [`.cursor/skills/README.md`](mdc:.cursor/skills/README.md) first; it is the index.
+
+## Trigger map (situation → skill to load)
+
+| Situation / signal in the user request or open files | Skill to read first |
+|---|---|
+| Architecture, game loop design, FSM, worker boundaries, ECS, message contracts, `postMessage`, "como estruturar" | [`web-game-architect`](mdc:.cursor/skills/web-game-architect/SKILL.md) |
+| Canvas 2D drawing, atlas, batching, dirty rects, layer canvases, `OffscreenCanvas` 2D | [`canvas2d-rendering-expert`](mdc:.cursor/skills/canvas2d-rendering-expert/SKILL.md) |
+| WebGL/WebGPU, shaders, GLSL, post-processing, FBOs, migration from Canvas 2D | [`webgl-shader-artist`](mdc:.cursor/skills/webgl-shader-artist/SKILL.md) |
+| FPS drops, jank, GC pressure, fixed timestep, RAF, mobile perf, frame budget, REF-01 baseline | [`game-loop-performance-expert`](mdc:.cursor/skills/game-loop-performance-expert/SKILL.md) |
+| New mechanic, balancing, juice/feel, boss patterns, power-ups, progression, "deixar mais divertido" | [`game-designer-mechanics`](mdc:.cursor/skills/game-designer-mechanics/SKILL.md) |
+| Visual style, palette, sprite sheets, atlas packing, animation timing, pixel-perfect | [`pixel-art-sprite-director`](mdc:.cursor/skills/pixel-art-sprite-director/SKILL.md) |
+| SFX, adaptive music, mixing, Howler.js, Web Audio API, mobile autoplay/suspend | [`game-audio-designer`](mdc:.cursor/skills/game-audio-designer/SKILL.md) |
+| Touch controls, swipe, virtual joystick, haptics, accessibility (WCAG, motion, color blindness), tutorial/onboarding | [`web-game-input-ux`](mdc:.cursor/skills/web-game-input-ux/SKILL.md) |
+
+## Auto-apply by file scope
+
+When the open or edited files match the patterns below, the matching skill is **mandatory** before proposing changes:
+
+| File pattern | Required skills |
+|---|---|
+| `src/workers/**/*.ts` | `web-game-architect` + `game-loop-performance-expert` |
+| `src/render/**/*.ts` | `canvas2d-rendering-expert` (+ `webgl-shader-artist` if WebGL) |
+| `src/game/**/*.ts`, `src/utils/gameLogic.ts`, `src/utils/bosses/**`, `src/utils/phases/**` | `game-designer-mechanics` + `web-game-architect` |
+| `src/utils/particles/**`, `src/workers/particle.worker.ts`, `src/workers/weather.worker.ts` | `canvas2d-rendering-expert` + `game-loop-performance-expert` |
+| `src/components/HUD/**`, `src/components/**/*.module.css` | `web-game-input-ux` (+ `pixel-art-sprite-director` if assets) |
+| `src/hooks/useKeyboard.ts`, `src/hooks/useTouch*`, `src/hooks/useSwipe*` | `web-game-input-ux` |
+| `src/hooks/useGameLoop.ts`, `src/hooks/useGameState.ts` | `web-game-architect` + `game-loop-performance-expert` |
+| `public/audio/**`, files importing `howler` | `game-audio-designer` |
+| `public/sprites/**`, atlas JSON, files referencing texture atlas | `pixel-art-sprite-director` + `canvas2d-rendering-expert` |
+
+## Combination patterns
+
+For larger tasks, **load multiple skills**. Example combos that come up often:
+
+- New gameplay feature → `game-designer-mechanics` (spec) + `web-game-architect` (design) + relevant implementation skill.
+- Performance regression → `game-loop-performance-expert` + `canvas2d-rendering-expert`.
+- New boss → `game-designer-mechanics` + `pixel-art-sprite-director` + `game-audio-designer` + `web-game-architect`.
+- Mobile UX overhaul → `web-game-input-ux` + `canvas2d-rendering-expert` + `game-loop-performance-expert`.
+
+## Order of operations
+
+1. Identify the task category.
+2. **Read the relevant `SKILL.md` files** (do this first — before code, before plan).
+3. Apply the persona's mindset, checklists and anti-patterns.
+4. Follow the SDD workflow (`docs/SDD/specs/REF-XX-*.md`) for any change > 20 LOC.
+5. Run `bash scripts/harness/validate.sh` before declaring done.
+
+## What NOT to do
+
+- Don't act on a category without loading the skill. The agent's general knowledge ≠ the project-tuned persona.
+- Don't dump skill contents into chat — read it for guidance and act, summarize only the decisions you took.
+- Don't edit a `SKILL.md` casually. They are tuned. Propose changes explicitly when the user asks.

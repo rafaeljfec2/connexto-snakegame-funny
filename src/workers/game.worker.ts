@@ -4,6 +4,7 @@ import { GameStatus } from '@/types/game';
 import { getActivePowerUps, getEffectiveGameSpeed } from '@/utils/powerUps';
 import { logger, LogContext } from '@/utils/logger';
 import { updateFrameTime, updateFramesSkipped, logMetrics } from '@/utils/performanceMetrics';
+import { createPerfReporter } from './perfReporter';
 import {
   createWorkerState,
   initGameState,
@@ -38,6 +39,11 @@ import {
 // Worker state
 const workerState: WorkerState = createWorkerState();
 const performanceState: PerformanceState = createPerformanceState();
+
+const perfReporter = createPerfReporter({
+  source: 'game',
+  postMessage: (message) => self.postMessage(message),
+});
 
 // Legacy references for compatibility - sync with workerState
 let gameState = workerState.gameState;
@@ -247,6 +253,7 @@ function startGameLoop() {
     // Update performance metrics
     updateFrameTime(frameTime);
     updateFramesSkipped(framesSkipped);
+    perfReporter.record(frameTime);
 
     // Log metrics every 60 frames (1 second at 60fps)
     if (framesSkipped % 60 === 0) {

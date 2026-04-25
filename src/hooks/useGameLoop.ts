@@ -6,6 +6,9 @@ import { spawnParticles } from '@/utils/particles';
 import { saveHighScore, getHighScore } from '@/utils/gameLogic';
 import { saveAchievements } from '@/utils/achievements';
 import { Chef } from '@/types/phases';
+import { perfBus } from '@/utils/perfBus';
+import { sfxEngine } from '@/utils/sfxEngine';
+import type { SfxWorkerMessage } from '@/types/sfx';
 
 // Initial state factory
 const getInitialState = (): GameState => ({
@@ -51,10 +54,17 @@ export function useGameLoop() {
     setWorkerInstance(workerRef.current);
 
     const worker = workerRef.current;
+    const detachPerf = perfBus.attachWorker(worker, 'game');
 
     // Handle messages from worker
     worker.onmessage = (e: MessageEvent) => {
       const { type, payload } = e.data;
+
+      if (type === 'SFX') {
+        const sfxMessage = e.data as SfxWorkerMessage;
+        sfxEngine.play(sfxMessage.id);
+        return;
+      }
 
       switch (type) {
         case 'GAME_STATE_UPDATE':
@@ -101,6 +111,7 @@ export function useGameLoop() {
     worker.postMessage({ type: 'INIT', payload: { highScore: getHighScore() } });
 
     return () => {
+      detachPerf();
       worker.terminate();
     };
   }, []);

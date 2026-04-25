@@ -36,6 +36,12 @@
   "controls": {
     "instructions": "<kbd>↑↓←→</kbd> or <kbd>WASD</kbd> to move • <kbd>SPACE</kbd> to start/pause"
   },
+  "audio": {
+    "toggle": {
+      "on": "Mute sound",
+      "off": "Unmute sound"
+    }
+  },
   "phase": {
     "phase": "COURSE",
     "complete": "COMPLETE!",

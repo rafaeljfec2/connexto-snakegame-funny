@@ -4,6 +4,7 @@ import { applyPowerUpEffect, createActivePowerUp } from '@/utils/powerUps';
 import { updateCombo } from '@/utils/combos';
 import { addLife } from '@/utils/lives';
 import { POWER_UP_CONFIG } from '@/constants/powerUps';
+import { emitSfx } from './gameSfx';
 
 // --- Types ---
 export interface FoodInteractionResult {
@@ -191,6 +192,8 @@ export function handleFoodInteraction(
   if (consumptionResult.powerUpEffect.shouldActivatePowerUp) {
     newActivePowerUps.push(createActivePowerUp(actualFoodType));
   }
+
+  emitSfx(atePowerUp ? 'powerup.collect' : 'food.eat');
 
   return {
     newScore,

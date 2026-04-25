@@ -12,9 +12,15 @@ import {
 } from './render/renderDrawers';
 import { updateTongueAnimation } from './render/renderAnimations';
 import { drawSnakeBody, drawSnakeHead, drawBossSnake } from './render/renderHelpers';
+import { createPerfReporter } from './perfReporter';
 
 // Global render state
 const state: RenderState = createRenderState();
+
+const perfReporter = createPerfReporter({
+  source: 'render',
+  postMessage: (message) => self.postMessage(message),
+});
 
 /**
  * Main render loop
@@ -33,8 +39,10 @@ const render = () => {
 
   state.isRenderDirty = false;
 
+  const renderStart = performance.now();
+
   // Time & Interpolation
-  const now = performance.now();
+  const now = renderStart;
   const elapsed = now - state.lastUpdate;
   const t = Math.min(Math.max(elapsed / state.speed, 0), 1);
 
@@ -96,6 +104,8 @@ const render = () => {
   for (let i = 0; i < shotsLength; i++) {
     drawShot(renderContext, shots[i]!, cellSize);
   }
+
+  perfReporter.record(performance.now() - renderStart);
 
   requestAnimationFrame(render);
 };

@@ -17,6 +17,7 @@ import { useEffect, useRef, useState, useMemo, memo } from 'react';
 import styles from './GameBoard.module.css';
 import { Chef } from '@/types/phases';
 import { GameBackground } from './GameBackground';
+import { perfBus } from '@/utils/perfBus';
 
 interface GameBoardProps {
   snake: Position[];
@@ -146,6 +147,7 @@ export const GameBoard = memo(function GameBoard({
       type: 'module',
     });
     renderWorkerRef.current = worker;
+    const detachPerf = perfBus.attachWorker(worker, 'render');
 
     const canvas = renderCanvasRef.current;
 
@@ -188,6 +190,7 @@ export const GameBoard = memo(function GameBoard({
     }
 
     return () => {
+      detachPerf();
       worker.terminate();
       renderWorkerRef.current = null;
     };

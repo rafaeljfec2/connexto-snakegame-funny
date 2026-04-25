@@ -9,7 +9,8 @@ interface PerfReporterOptions {
 }
 
 interface PerfReporter {
-  record(frameTimeMs: number): void;
+  recordWorkTime(workTimeMs: number): void;
+  recordInterval(intervalMs: number): void;
   flush(force?: boolean): void;
 }
 
@@ -25,28 +26,45 @@ export function createPerfReporter(options: PerfReporterOptions): PerfReporter {
     now = () => performance.now(),
   } = options;
 
-  let buffer: number[] = [];
+  let workTimes: number[] = [];
+  let intervals: number[] = [];
   let lastFlushAt = now();
+
+  const shouldFlush = (ts: number, force: boolean): boolean => {
+    if (force) return true;
+    const elapsed = ts - lastFlushAt;
+    if (elapsed >= flushIntervalMs) return true;
+    return workTimes.length >= maxBufferSize || intervals.length >= maxBufferSize;
+  };
 
   const flush = (force = false): void => {
     const ts = now();
-    const elapsed = ts - lastFlushAt;
-    if (!force && elapsed < flushIntervalMs && buffer.length < maxBufferSize) {
-      return;
-    }
-    if (buffer.length === 0) {
+    if (!shouldFlush(ts, force)) return;
+    if (workTimes.length === 0 && intervals.length === 0) {
       lastFlushAt = ts;
       return;
     }
-    postMessage({ type: 'PERF_SAMPLE', source, samples: buffer, batchEndTs: ts });
-    buffer = [];
+    postMessage({
+      type: 'PERF_SAMPLE',
+      source,
+      workTimes,
+      intervals,
+      batchEndTs: ts,
+    });
+    workTimes = [];
+    intervals = [];
     lastFlushAt = ts;
   };
 
   return {
-    record(frameTimeMs) {
-      if (!Number.isFinite(frameTimeMs) || frameTimeMs < 0) return;
-      buffer.push(frameTimeMs);
+    recordWorkTime(workTimeMs) {
+      if (!Number.isFinite(workTimeMs) || workTimeMs < 0) return;
+      workTimes.push(workTimeMs);
+      flush(false);
+    },
+    recordInterval(intervalMs) {
+      if (!Number.isFinite(intervalMs) || intervalMs < 0) return;
+      intervals.push(intervalMs);
       flush(false);
     },
     flush,

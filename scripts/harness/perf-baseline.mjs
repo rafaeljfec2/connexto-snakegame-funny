@@ -43,11 +43,14 @@ if (!existsSync(snapshotPath)) {
 }
 
 const snapshot = loadJson(snapshotPath);
-const requiredFields = ['fps', 'p5', 'phaseId'];
+const requiredFields = ['fps', 'frameIntervalP5', 'frameIntervalP95', 'phaseId'];
 for (const field of requiredFields) {
   if (snapshot[field] === undefined) {
-    fail(`snapshot is missing required field "${field}". See REF-01 PerfSnapshot contract.`);
+    fail(`snapshot is missing required field "${field}". See REF-01 PerfSnapshot v2 contract.`);
   }
+}
+if (snapshot.version !== 2) {
+  fail(`unsupported snapshot version: ${snapshot.version ?? 'unknown'} (expected 2).`);
 }
 
 const deviceTag = snapshot.viewport?.dpr ? `dpr${snapshot.viewport.dpr}` : 'dprX';
@@ -67,17 +70,33 @@ if (!existsSync(baselinePath)) {
 const baseline = loadJson(baselinePath);
 const budgetRatio = 1 + budgetPercent / 100;
 
-const deltaP5 = snapshot.p5 / baseline.p5;
+const deltaP95Interval = snapshot.frameIntervalP95 / baseline.frameIntervalP95;
+const deltaP95Work =
+  baseline.frameWorkTimeP95 > 0 ? snapshot.frameWorkTimeP95 / baseline.frameWorkTimeP95 : 1;
 const deltaFps = baseline.fps / snapshot.fps;
 
 console.log(`[perf-baseline] baseline: ${baselineName}`);
-console.log(`  p5(frameTime): baseline=${baseline.p5.toFixed(2)}ms, current=${snapshot.p5.toFixed(2)}ms`);
-console.log(`  fps:           baseline=${baseline.fps.toFixed(1)},   current=${snapshot.fps.toFixed(1)}`);
+console.log(
+  `  p95(frameInterval): baseline=${baseline.frameIntervalP95.toFixed(2)}ms, current=${snapshot.frameIntervalP95.toFixed(2)}ms`,
+);
+console.log(
+  `  p95(workTime):      baseline=${(baseline.frameWorkTimeP95 ?? 0).toFixed(2)}ms, current=${(snapshot.frameWorkTimeP95 ?? 0).toFixed(2)}ms`,
+);
+console.log(
+  `  fps:                baseline=${baseline.fps.toFixed(1)},   current=${snapshot.fps.toFixed(1)}`,
+);
 console.log(`  budget: +${budgetPercent}%`);
 
 const regressions = [];
-if (deltaP5 > budgetRatio) {
-  regressions.push(`p5 regressed ${((deltaP5 - 1) * 100).toFixed(1)}% (> ${budgetPercent}%)`);
+if (deltaP95Interval > budgetRatio) {
+  regressions.push(
+    `frameInterval p95 regressed ${((deltaP95Interval - 1) * 100).toFixed(1)}% (> ${budgetPercent}%)`,
+  );
+}
+if (deltaP95Work > budgetRatio) {
+  regressions.push(
+    `frameWorkTime p95 regressed ${((deltaP95Work - 1) * 100).toFixed(1)}% (> ${budgetPercent}%)`,
+  );
 }
 if (deltaFps > budgetRatio) {
   regressions.push(`fps regressed ${((deltaFps - 1) * 100).toFixed(1)}% (> ${budgetPercent}%)`);

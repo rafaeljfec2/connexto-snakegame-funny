@@ -10,7 +10,8 @@ describe('perfSnapshot', () => {
   describe('buildPerfSnapshot', () => {
     it('captures current metrics, viewport, ua, and context fields', () => {
       for (let i = 0; i < 30; i++) {
-        perfBus.recordFrameTime('render', 16);
+        perfBus.recordInterval('render', 16);
+        perfBus.recordWorkTime('render', 4);
       }
       perfBus.recordWebVital({ metric: 'LCP', value: 1234, rating: 'good' });
 
@@ -19,9 +20,12 @@ describe('perfSnapshot', () => {
 
       const snapshot = buildPerfSnapshot({ phaseId: 3, bossId: 'guardian' });
 
+      expect(snapshot.version).toBe(2);
       expect(snapshot.phaseId).toBe(3);
       expect(snapshot.bossId).toBe('guardian');
-      expect(snapshot.frameTime).toBeCloseTo(16);
+      expect(snapshot.frameIntervalMs).toBeCloseTo(16);
+      expect(snapshot.frameWorkTimeMs).toBeCloseTo(4);
+      expect(snapshot.fps).toBeCloseTo(62.5);
       expect(snapshot.longTasksPerMinute).toBe(2);
       expect(snapshot.longTasksTotalMsPerMinute).toBe(150);
       expect(snapshot.webVitals).toHaveLength(1);

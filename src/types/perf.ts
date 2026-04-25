@@ -1,5 +1,7 @@
 export type PerfSampleSource = 'render' | 'game' | 'main';
 
+export const PERF_SNAPSHOT_VERSION = 2 as const;
+
 export interface PerfFrameSample {
   source: PerfSampleSource;
   frameTimeMs: number;
@@ -9,23 +11,28 @@ export interface PerfFrameSample {
 export interface PerfBatchMessage {
   type: 'PERF_SAMPLE';
   source: PerfSampleSource;
-  samples: number[];
+  workTimes: number[];
+  intervals: number[];
   batchEndTs: number;
 }
 
 export interface PerfMetricsView {
   fps: number;
-  frameTime: number;
-  p1: number;
-  p5: number;
-  p50: number;
-  p95: number;
+  frameIntervalMs: number;
+  frameIntervalP1: number;
+  frameIntervalP5: number;
+  frameIntervalP50: number;
+  frameIntervalP95: number;
+  frameWorkTimeMs: number;
+  frameWorkTimeP50: number;
+  frameWorkTimeP95: number;
   longTasksPerMinute: number;
   longTasksLastMinute: number;
   longTasksTotalMsLastMinute: number;
   longTasksTotalMsPerMinute: number;
   heapMB?: number;
-  sampleCount: number;
+  intervalSampleCount: number;
+  workTimeSampleCount: number;
 }
 
 export interface PerfWebVitalsEvent {
@@ -35,12 +42,16 @@ export interface PerfWebVitalsEvent {
 }
 
 export interface PerfSnapshot {
+  version: typeof PERF_SNAPSHOT_VERSION;
   fps: number;
-  frameTime: number;
-  p1: number;
-  p5: number;
-  p50: number;
-  p95: number;
+  frameIntervalMs: number;
+  frameIntervalP1: number;
+  frameIntervalP5: number;
+  frameIntervalP50: number;
+  frameIntervalP95: number;
+  frameWorkTimeMs: number;
+  frameWorkTimeP50: number;
+  frameWorkTimeP95: number;
   longTasksPerMinute: number;
   longTasksTotalMsPerMinute: number;
   heapMB?: number;

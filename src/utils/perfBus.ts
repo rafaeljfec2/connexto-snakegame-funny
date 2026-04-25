@@ -19,26 +19,40 @@ interface MemoryLikePerformance {
   memory?: { usedJSHeapSize: number };
 }
 
+interface SourceRings {
+  workTimes: FrameTimeRing;
+  intervals: FrameTimeRing;
+}
+
 class PerfBus {
-  private readonly rings: Record<PerfSampleSource, FrameTimeRing> = {
-    render: createFrameTimeRing(FRAME_RING_CAPACITY),
-    game: createFrameTimeRing(FRAME_RING_CAPACITY),
-    main: createFrameTimeRing(FRAME_RING_CAPACITY),
+  private readonly rings: Record<PerfSampleSource, SourceRings> = {
+    render: createSourceRings(),
+    game: createSourceRings(),
+    main: createSourceRings(),
   };
   private readonly longTasks: { ts: number; durationMs: number }[] = [];
   private readonly webVitals: PerfWebVitalsEvent[] = [];
 
-  recordFrameTime(source: PerfSampleSource, frameTimeMs: number): void {
-    if (!Number.isFinite(frameTimeMs) || frameTimeMs < 0) return;
-    pushFrameTime(this.rings[source], frameTimeMs);
+  recordWorkTime(source: PerfSampleSource, workTimeMs: number): void {
+    if (!Number.isFinite(workTimeMs) || workTimeMs < 0) return;
+    pushFrameTime(this.rings[source].workTimes, workTimeMs);
+  }
+
+  recordInterval(source: PerfSampleSource, intervalMs: number): void {
+    if (!Number.isFinite(intervalMs) || intervalMs < 0) return;
+    pushFrameTime(this.rings[source].intervals, intervalMs);
   }
 
   recordBatch(message: PerfBatchMessage): void {
     const ring = this.rings[message.source];
     if (!ring) return;
-    for (let i = 0; i < message.samples.length; i++) {
-      const sample = message.samples[i] ?? 0;
-      pushFrameTime(ring, sample);
+    const workTimes = message.workTimes;
+    for (let i = 0; i < workTimes.length; i++) {
+      pushFrameTime(ring.workTimes, workTimes[i] ?? 0);
+    }
+    const intervals = message.intervals;
+    for (let i = 0; i < intervals.length; i++) {
+      pushFrameTime(ring.intervals, intervals[i] ?? 0);
     }
   }
 
@@ -60,7 +74,8 @@ class PerfBus {
       this.recordBatch({
         type: 'PERF_SAMPLE',
         source: data.source ?? defaultSource,
-        samples: Array.isArray(data.samples) ? data.samples : [],
+        workTimes: Array.isArray(data.workTimes) ? data.workTimes : [],
+        intervals: Array.isArray(data.intervals) ? data.intervals : [],
         batchEndTs: data.batchEndTs ?? nowMs(),
       });
     };
@@ -69,27 +84,33 @@ class PerfBus {
   }
 
   getMetricsBySource(source: PerfSampleSource): PerfMetricsView {
-    const summary = summarize(this.rings[source]);
+    const sourceRings = this.rings[source];
+    const intervalSummary = summarize(sourceRings.intervals);
+    const workSummary = summarize(sourceRings.workTimes);
     const fresh = this.pruneLongTasks(nowMs());
     const longTasksLastMinute = fresh.length;
     const longTasksTotalMsLastMinute = fresh.reduce((acc, lt) => acc + lt.durationMs, 0);
     const heapMB = readHeapMB();
-    const fps = summary.mean > 0 ? 1000 / summary.mean : 0;
+    const fps = intervalSummary.mean > 0 ? 1000 / intervalSummary.mean : 0;
     const minuteScale = 60_000 / LONG_TASK_WINDOW_MS;
 
     return {
       fps,
-      frameTime: summary.mean,
-      p1: summary.p1,
-      p5: summary.p5,
-      p50: summary.p50,
-      p95: summary.p95,
+      frameIntervalMs: intervalSummary.mean,
+      frameIntervalP1: intervalSummary.p1,
+      frameIntervalP5: intervalSummary.p5,
+      frameIntervalP50: intervalSummary.p50,
+      frameIntervalP95: intervalSummary.p95,
+      frameWorkTimeMs: workSummary.mean,
+      frameWorkTimeP50: workSummary.p50,
+      frameWorkTimeP95: workSummary.p95,
       longTasksPerMinute: longTasksLastMinute * minuteScale,
       longTasksLastMinute,
       longTasksTotalMsLastMinute,
       longTasksTotalMsPerMinute: longTasksTotalMsLastMinute * minuteScale,
       heapMB,
-      sampleCount: summary.count,
+      intervalSampleCount: intervalSummary.count,
+      workTimeSampleCount: workSummary.count,
     };
   }
 
@@ -102,16 +123,20 @@ class PerfBus {
   }
 
   reset(): void {
-    resetFrameTimeRing(this.rings.render);
-    resetFrameTimeRing(this.rings.game);
-    resetFrameTimeRing(this.rings.main);
+    resetFrameTimeRing(this.rings.render.workTimes);
+    resetFrameTimeRing(this.rings.render.intervals);
+    resetFrameTimeRing(this.rings.game.workTimes);
+    resetFrameTimeRing(this.rings.game.intervals);
+    resetFrameTimeRing(this.rings.main.workTimes);
+    resetFrameTimeRing(this.rings.main.intervals);
     this.longTasks.length = 0;
     this.webVitals.length = 0;
   }
 
   private preferredSource(): PerfSampleSource {
-    if (this.rings.render.size > 0) return 'render';
-    if (this.rings.game.size > 0) return 'game';
+    if (this.rings.render.intervals.size > 0 || this.rings.render.workTimes.size > 0)
+      return 'render';
+    if (this.rings.game.intervals.size > 0 || this.rings.game.workTimes.size > 0) return 'game';
     return 'main';
   }
 
@@ -122,6 +147,13 @@ class PerfBus {
     }
     return this.longTasks;
   }
+}
+
+function createSourceRings(): SourceRings {
+  return {
+    workTimes: createFrameTimeRing(FRAME_RING_CAPACITY),
+    intervals: createFrameTimeRing(FRAME_RING_CAPACITY),
+  };
 }
 
 function nowMs(): number {

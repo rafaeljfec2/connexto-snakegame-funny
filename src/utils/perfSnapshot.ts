@@ -1,4 +1,4 @@
-import type { PerfSnapshot } from '@/types/perf';
+import { PERF_SNAPSHOT_VERSION, type PerfSnapshot } from '@/types/perf';
 import { perfBus } from '@/utils/perfBus';
 
 export interface SnapshotContext {
@@ -17,12 +17,16 @@ export function buildPerfSnapshot(context: SnapshotContext): PerfSnapshot {
   const ua = typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown';
 
   return {
+    version: PERF_SNAPSHOT_VERSION,
     fps: metrics.fps,
-    frameTime: metrics.frameTime,
-    p1: metrics.p1,
-    p5: metrics.p5,
-    p50: metrics.p50,
-    p95: metrics.p95,
+    frameIntervalMs: metrics.frameIntervalMs,
+    frameIntervalP1: metrics.frameIntervalP1,
+    frameIntervalP5: metrics.frameIntervalP5,
+    frameIntervalP50: metrics.frameIntervalP50,
+    frameIntervalP95: metrics.frameIntervalP95,
+    frameWorkTimeMs: metrics.frameWorkTimeMs,
+    frameWorkTimeP50: metrics.frameWorkTimeP50,
+    frameWorkTimeP95: metrics.frameWorkTimeP95,
     longTasksPerMinute: metrics.longTasksPerMinute,
     longTasksTotalMsPerMinute: metrics.longTasksTotalMsPerMinute,
     heapMB: metrics.heapMB,

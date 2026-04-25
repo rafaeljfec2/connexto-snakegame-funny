@@ -6,41 +6,57 @@ describe('perfBus', () => {
     perfBus.reset();
   });
 
-  describe('recordFrameTime', () => {
-    it('feeds the source ring and exposes summary via getMetricsBySource', () => {
+  describe('recordInterval', () => {
+    it('feeds the interval ring and exposes fps via getMetricsBySource', () => {
       for (let i = 1; i <= 50; i++) {
-        perfBus.recordFrameTime('render', 16);
+        perfBus.recordInterval('render', 16);
       }
 
       const view = perfBus.getMetricsBySource('render');
 
-      expect(view.sampleCount).toBe(50);
-      expect(view.frameTime).toBeCloseTo(16);
+      expect(view.intervalSampleCount).toBe(50);
+      expect(view.frameIntervalMs).toBeCloseTo(16);
       expect(view.fps).toBeCloseTo(62.5);
-      expect(view.p1).toBe(16);
+      expect(view.frameIntervalP1).toBe(16);
     });
 
     it('ignores invalid samples (negative, NaN, Infinity)', () => {
-      perfBus.recordFrameTime('render', -1);
-      perfBus.recordFrameTime('render', Number.NaN);
-      perfBus.recordFrameTime('render', Number.POSITIVE_INFINITY);
+      perfBus.recordInterval('render', -1);
+      perfBus.recordInterval('render', Number.NaN);
+      perfBus.recordInterval('render', Number.POSITIVE_INFINITY);
 
-      expect(perfBus.getMetricsBySource('render').sampleCount).toBe(0);
+      expect(perfBus.getMetricsBySource('render').intervalSampleCount).toBe(0);
+    });
+  });
+
+  describe('recordWorkTime', () => {
+    it('feeds the work-time ring without affecting fps', () => {
+      for (let i = 0; i < 30; i++) {
+        perfBus.recordWorkTime('game', 4);
+      }
+
+      const view = perfBus.getMetricsBySource('game');
+      expect(view.workTimeSampleCount).toBe(30);
+      expect(view.frameWorkTimeMs).toBeCloseTo(4);
+      expect(view.fps).toBe(0);
     });
   });
 
   describe('recordBatch', () => {
-    it('aggregates samples received from a worker batch message', () => {
+    it('aggregates work-time and interval samples received from a worker batch message', () => {
       perfBus.recordBatch({
         type: 'PERF_SAMPLE',
         source: 'game',
-        samples: [10, 20, 30, 40],
+        workTimes: [1, 2, 3, 4],
+        intervals: [10, 20, 30, 40],
         batchEndTs: 0,
       });
 
       const view = perfBus.getMetricsBySource('game');
-      expect(view.sampleCount).toBe(4);
-      expect(view.frameTime).toBe(25);
+      expect(view.workTimeSampleCount).toBe(4);
+      expect(view.intervalSampleCount).toBe(4);
+      expect(view.frameWorkTimeMs).toBe(2.5);
+      expect(view.frameIntervalMs).toBe(25);
     });
   });
 
@@ -57,11 +73,18 @@ describe('perfBus', () => {
       const dispose = perfBus.attachWorker(fakeWorker, 'render');
 
       const evt = {
-        data: { type: 'PERF_SAMPLE', source: 'render', samples: [12, 13, 14] },
+        data: {
+          type: 'PERF_SAMPLE',
+          source: 'render',
+          workTimes: [5, 6],
+          intervals: [12, 13, 14],
+        },
       } as MessageEvent;
       listeners[0]?.(evt);
 
-      expect(perfBus.getMetricsBySource('render').sampleCount).toBe(3);
+      const view = perfBus.getMetricsBySource('render');
+      expect(view.workTimeSampleCount).toBe(2);
+      expect(view.intervalSampleCount).toBe(3);
       dispose();
       expect(fakeWorker.removeEventListener).toHaveBeenCalledTimes(1);
     });
@@ -77,10 +100,14 @@ describe('perfBus', () => {
 
       perfBus.attachWorker(fakeWorker, 'render');
 
-      const evt = { data: { type: 'OTHER', source: 'render', samples: [1] } } as MessageEvent;
+      const evt = {
+        data: { type: 'OTHER', source: 'render', workTimes: [1], intervals: [1] },
+      } as MessageEvent;
       listeners[0]?.(evt);
 
-      expect(perfBus.getMetricsBySource('render').sampleCount).toBe(0);
+      const view = perfBus.getMetricsBySource('render');
+      expect(view.workTimeSampleCount).toBe(0);
+      expect(view.intervalSampleCount).toBe(0);
     });
   });
 
@@ -118,14 +145,17 @@ describe('perfBus', () => {
 
   describe('reset', () => {
     it('clears samples, long tasks and web vitals', () => {
-      perfBus.recordFrameTime('render', 16);
+      perfBus.recordInterval('render', 16);
+      perfBus.recordWorkTime('render', 4);
       perfBus.recordLongTask(50);
       perfBus.recordWebVital({ metric: 'CLS', value: 0.05, rating: 'good' });
 
       perfBus.reset();
 
-      expect(perfBus.getMetricsBySource('render').sampleCount).toBe(0);
-      expect(perfBus.getMetricsBySource('render').longTasksLastMinute).toBe(0);
+      const view = perfBus.getMetricsBySource('render');
+      expect(view.intervalSampleCount).toBe(0);
+      expect(view.workTimeSampleCount).toBe(0);
+      expect(view.longTasksLastMinute).toBe(0);
       expect(perfBus.getWebVitals()).toHaveLength(0);
     });
   });

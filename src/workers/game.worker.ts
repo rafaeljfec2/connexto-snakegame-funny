@@ -220,11 +220,14 @@ function broadcastState() {
 function startGameLoop() {
   if (gameLoopId) return;
 
+  let lastTickTs = 0;
+
   function loop() {
     const frameStart = performance.now();
     const now = frameStart;
     // Cache Date.now() once per frame
     const currentTime = Date.now();
+    let didTick = false;
 
     if (gameState && gameState.status === GameStatus.PLAYING) {
       // Cache activePowerUps calculation - used in both speed calculation and updateGame
@@ -241,6 +244,7 @@ function startGameLoop() {
         // Pass cached activePowerUps and currentTime to avoid recalculation
         updateGame(now, currentTime, activePowerUps);
         lastUpdateTime = now;
+        didTick = true;
         // broadcastState checks dirty flags internally
         broadcastState();
       }
@@ -256,10 +260,15 @@ function startGameLoop() {
     skipOptionalEffects = performanceState.skipOptionalEffects;
     framesSkipped = performanceState.framesSkipped;
 
-    // Update performance metrics
-    updateFrameTime(frameTime);
+    if (didTick) {
+      updateFrameTime(frameTime);
+      perfReporter.recordWorkTime(frameTime);
+      if (lastTickTs > 0) {
+        perfReporter.recordInterval(frameStart - lastTickTs);
+      }
+      lastTickTs = frameStart;
+    }
     updateFramesSkipped(framesSkipped);
-    perfReporter.record(frameTime);
 
     // Log metrics every 60 frames (1 second at 60fps)
     if (framesSkipped % 60 === 0) {

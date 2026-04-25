@@ -28,6 +28,8 @@ const perfReporter = createPerfReporter({
   postMessage: (message) => self.postMessage(message),
 });
 
+let lastRenderFrameTs = 0;
+
 /**
  * Main render loop
  */
@@ -37,6 +39,12 @@ const render = () => {
     return;
   }
 
+  const frameTs = performance.now();
+  if (lastRenderFrameTs > 0) {
+    perfReporter.recordInterval(frameTs - lastRenderFrameTs);
+  }
+  lastRenderFrameTs = frameTs;
+
   // Skip render if nothing changed
   if (!state.isRenderDirty) {
     requestAnimationFrame(render);
@@ -45,7 +53,7 @@ const render = () => {
 
   state.isRenderDirty = false;
 
-  const renderStart = performance.now();
+  const renderStart = frameTs;
 
   // Time & Interpolation
   const now = renderStart;
@@ -111,7 +119,7 @@ const render = () => {
     drawShot(renderContext, shots[i]!, cellSize);
   }
 
-  perfReporter.record(performance.now() - renderStart);
+  perfReporter.recordWorkTime(performance.now() - renderStart);
 
   requestAnimationFrame(render);
 };

@@ -11,16 +11,20 @@ interface PerfDebugPanelProps {
 const DEFAULT_REFRESH_MS = 250;
 const EMPTY_METRICS: PerfMetricsView = {
   fps: 0,
-  frameTime: 0,
-  p1: 0,
-  p5: 0,
-  p50: 0,
-  p95: 0,
+  frameIntervalMs: 0,
+  frameIntervalP1: 0,
+  frameIntervalP5: 0,
+  frameIntervalP50: 0,
+  frameIntervalP95: 0,
+  frameWorkTimeMs: 0,
+  frameWorkTimeP50: 0,
+  frameWorkTimeP95: 0,
   longTasksPerMinute: 0,
   longTasksLastMinute: 0,
   longTasksTotalMsLastMinute: 0,
   longTasksTotalMsPerMinute: 0,
-  sampleCount: 0,
+  intervalSampleCount: 0,
+  workTimeSampleCount: 0,
 };
 
 export const PerfDebugPanel = memo(function PerfDebugPanel({
@@ -65,24 +69,30 @@ export const PerfDebugPanel = memo(function PerfDebugPanel({
       </div>
       <div className={styles.row}>
         <span className={styles.label}>frame</span>
-        <span className={`${styles.value} ${classifyFrame(metrics.frameTime)}`}>
-          {fmt(metrics.frameTime, 2)} ms
+        <span className={`${styles.value} ${classifyFrame(metrics.frameIntervalMs)}`}>
+          {fmt(metrics.frameIntervalMs, 2)} ms
         </span>
       </div>
       <div className={styles.row}>
-        <span className={styles.label}>p50</span>
-        <span className={styles.value}>{fmt(metrics.p50, 2)} ms</span>
+        <span className={styles.label}>p50 frame</span>
+        <span className={styles.value}>{fmt(metrics.frameIntervalP50, 2)} ms</span>
       </div>
       <div className={styles.row}>
-        <span className={styles.label}>p5</span>
-        <span className={`${styles.value} ${classifyFrame(metrics.p5)}`}>
-          {fmt(metrics.p5, 2)} ms
+        <span className={styles.label}>p95 frame</span>
+        <span className={`${styles.value} ${classifyFrame(metrics.frameIntervalP95)}`}>
+          {fmt(metrics.frameIntervalP95, 2)} ms
         </span>
       </div>
       <div className={styles.row}>
-        <span className={styles.label}>p1</span>
-        <span className={`${styles.value} ${classifyFrame(metrics.p1)}`}>
-          {fmt(metrics.p1, 2)} ms
+        <span className={styles.label}>work avg</span>
+        <span className={`${styles.value} ${classifyWork(metrics.frameWorkTimeMs)}`}>
+          {fmt(metrics.frameWorkTimeMs, 2)} ms
+        </span>
+      </div>
+      <div className={styles.row}>
+        <span className={styles.label}>work p95</span>
+        <span className={`${styles.value} ${classifyWork(metrics.frameWorkTimeP95)}`}>
+          {fmt(metrics.frameWorkTimeP95, 2)} ms
         </span>
       </div>
       <div className={styles.row}>
@@ -123,10 +133,17 @@ function classifyFps(fps: number): string {
   return '';
 }
 
-function classifyFrame(frameTimeMs: number): string {
-  if (frameTimeMs === 0) return '';
-  if (frameTimeMs > 33) return styles.bad ?? '';
-  if (frameTimeMs > 20) return styles.warn ?? '';
+function classifyFrame(frameIntervalMs: number): string {
+  if (frameIntervalMs === 0) return '';
+  if (frameIntervalMs > 33) return styles.bad ?? '';
+  if (frameIntervalMs > 20) return styles.warn ?? '';
+  return '';
+}
+
+function classifyWork(workTimeMs: number): string {
+  if (workTimeMs === 0) return '';
+  if (workTimeMs > 16) return styles.bad ?? '';
+  if (workTimeMs > 8) return styles.warn ?? '';
   return '';
 }
 

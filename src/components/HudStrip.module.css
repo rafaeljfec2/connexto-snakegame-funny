@@ -304,11 +304,6 @@
   display: inline-block;
 }
 
-.hudLanguageSelector {
-  display: inline-flex;
-  align-items: center;
-}
-
 @media (max-width: 968px) {
   .strip {
     padding: 0 var(--space-4);
@@ -364,10 +359,6 @@
   .legendIcon {
     width: 18px;
     height: 18px;
-  }
-
-  .hudLanguageSelector {
-    display: none;
   }
 
   .metric[data-priority='low'] {

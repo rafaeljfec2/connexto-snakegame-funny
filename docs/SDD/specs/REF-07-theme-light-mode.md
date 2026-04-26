@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| **Status** | In Progress (Phases A + B landed — palette, boot script and context are live; Phases C/D open) |
+| **Status** | In Progress (Phases A + B + C landed — palette, boot script, context and visible toggle are live; Phase D open) |
 | **Owner** | rafael |
 | **Created** | 2026-04-26 |
 | **Last updated** | 2026-04-26 |
@@ -255,7 +255,7 @@ _To be filled after implementation._
 |---|---|---|
 | **A — Contrast matrix + palette** ✅ | Write `:root[data-theme='light']` tokens. Extend `tokens.spec.ts` to loop both themes. Validate AA/AAA before writing any UI. | **Landed 2026-04-26**. Owner sign-off on the palette happens implicitly during B/C when the toggle lets the owner see the final values in-app. |
 | **B — Store + boot script** ✅ | Reused the existing `ThemeContext`, patched DOM sync, added inline boot script in `index.html`, deleted duplicated `src/hooks/useTheme.ts`. | **Landed 2026-04-26**. No visible UI yet by design — the provider runs, the attribute is written, the toggle mount is Phase C. |
-| **C — ThemeToggle component + HUD mount** | Visible in-app toggle, cycle state, aria + i18n keys. | Owner approves visual + interaction. |
+| **C — ThemeToggle component + drawer mount** ✅ | Accessible 3-state segmented radiogroup (`dark`/`auto`/`light`), i18n keys (`theme.*`), mounted in the drawer Settings section. LanguageSelector moved out of the HUD — all preferences now live in one place. | **Landed 2026-04-26**. |
 | **D — Validation + docs** | Bundle audit, Lighthouse re-check, screenshots, spec §8 implementation notes, ADR update if needed. | Spec moves to `Done`. |
 
 Each phase is independently releasable — if B is green but C is not ready for owner review, the feature flag equivalent is "no `<ThemeToggle />` mount yet" — the palette and store still function.
@@ -334,3 +334,40 @@ The user-facing contract (§4 `contract`) is unchanged.
 **Deliberately deferred to Phase C**
 
 - No `<ThemeToggle />` mount anywhere — the existing `src/components/ThemeToggle.tsx` was left untouched (emoji-only prototype, no i18n, no aria-live). Phase C will: replace it with an accessible 3-state segmented control, add i18n keys (`theme.dark`, `theme.light`, `theme.auto`, `theme.toggle`), mount inside `PowerUpsLegendDrawer` Settings section (alongside the Language selector landed in REF-06 Phase F.3), and style it with existing surface / stroke tokens so both palettes look native.
+
+### 9.3 Phase C — delivered 2026-04-26
+
+**Deliverable**
+
+- `src/components/ThemeToggle.tsx` (rewrite): accessible 3-state segmented control implementing the WAI-ARIA `radiogroup` pattern. Three options (`dark` / `auto` / `light`) with role `radio`, `aria-checked`, roving `tabIndex`, and `ArrowLeft` / `ArrowRight` cycling. Inline SVG glyphs (crescent moon, half-filled circle, sun with rays) scale cleanly at any DPI and ship as part of the JS bundle (no extra HTTP round-trip). Uses `useId()` for SSR-safe group id.
+- `src/components/ThemeToggle.module.css` (rewrite): token-first styling. Selected pill uses `--color-accent-primary` over `--color-bg-base` — both remap per theme so the toggle is visually native in dark and light without any branching rule set. Labels collapse to `sr-only` below 640 px (same pattern as the HUD legend button from REF-06 Phase F).
+- `src/i18n/locales/{en-US,pt-BR}.json`: `theme.title`, `theme.groupLabel`, `theme.dark`, `theme.light`, `theme.auto` added in both catalogues.
+- `src/components/PowerUpsLegendDrawer.tsx`: imports and mounts `<ThemeToggle />` in the Settings section next to `<LanguageSelector />`.
+- `src/components/PowerUpsLegendDrawer.module.css`: Settings section is now **always visible** in the drawer (previously mobile-only). The header comment documents the intent: the drawer Settings section is the single cross-viewport home for app preferences — consistent with the pattern every modern game / SaaS client (Steam, Discord, Figma) uses.
+- `src/components/HudStrip.{tsx,module.css}`: `LanguageSelector` and its `hudLanguageSelector` wrapper removed from the HUD. The HUD now carries only match-state UI (score, phase, combo, lives) plus two quick-action buttons (audio, legend). No duplication of language/theme controls.
+- Tests (+8, 205/205 green):
+  - `src/components/__tests__/ThemeToggle.test.tsx` (8): structure, default selection, restored preference, click switch, auto via matchMedia, ArrowLeft/ArrowRight cycling, roving tabIndex, ignore unrelated keys.
+  - `src/components/__tests__/PowerUpsLegendDrawer.test.tsx` (7, updated): renamed "mobile-only" expectation to "cross-viewport", added ThemeToggle presence + ARIA structure asserts, render helper wraps every test in `<ThemeProvider>`.
+
+**Gates**
+
+- `tsc ✅ · eslint ✅ · vitest 205/205 ✅` (+8 vs Phase B).
+- `vite build ✅`:
+  - `dist/assets/index-*.css`: 94.87 → 96.24 kB (+0.20 kB gzip — segmented control rules).
+  - `dist/assets/index-*.js`: 355.85 → 358.48 kB (+0.78 kB gzip — new component + radiogroup logic, net of the LanguageSelector import removal from HudStrip).
+  - `dist/index.html`: unchanged.
+  - **Phase C delta: +0.98 kB gzip**. Cumulative A+B+C: **+1.56 kB gzip**, inside the +2 kB budget committed in §1 "Success".
+
+**Dual-theme QA walkthrough**
+
+1. `pnpm build && pnpm preview --port 4173`.
+2. Open the HUD legend (⚡ button). Scroll the drawer to the bottom → `Settings` section shows `Language` selector + `Theme` segmented control (3 pills: Dark / Auto / Light).
+3. Click `Light` → full UI flips: HUD surface goes off-white, accents switch to deep-on-light variants (cyan `#0e647a`, green `#0c7238`, etc.), board canvas remains dark (arcade-canon, intentional).
+4. Click `Auto` → toggle OS theme → UI live-reacts.
+5. Reload → previous selection restored on first paint (no FOWT, verified by the Phase B inline boot script).
+6. Press `Tab` into the group → focus lands on the selected option (roving tabIndex). `ArrowRight` / `ArrowLeft` cycle without moving focus outside.
+
+**Closes**
+
+- REF-07-FR-1 / FR-2 / FR-3 / FR-5 (visible toggle, manual + auto preference, keyboard accessible, i18n).
+- Remaining for Phase D: AC-4 (bundle audit vs baseline, formalised), AC-5 (Lighthouse re-check on both themes), AC-7 (ADR-0005 revision documenting the light palette).

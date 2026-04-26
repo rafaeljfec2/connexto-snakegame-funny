@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { FoodType } from '@/types/game';
 import { POWER_UP_CONFIG } from '@/constants/powerUps';
 import { LanguageSelector } from './LanguageSelector';
+import { ThemeToggle } from './ThemeToggle';
 import styles from './PowerUpsLegendDrawer.module.css';
 
 interface PowerUpsLegendDrawerProps {
@@ -151,6 +152,10 @@ function PowerUpsLegendDrawerComponent({ open, onClose }: PowerUpsLegendDrawerPr
             <div className={styles.settingsRow}>
               <span className={styles.settingsLabel}>{t('language.title')}</span>
               <LanguageSelector />
+            </div>
+            <div className={styles.settingsRow}>
+              <span className={styles.settingsLabel}>{t('theme.title')}</span>
+              <ThemeToggle />
             </div>
           </section>
         </div>

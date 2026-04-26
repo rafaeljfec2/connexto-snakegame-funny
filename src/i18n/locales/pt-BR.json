@@ -160,6 +160,13 @@
   "drawer": {
     "settingsTitle": "Configurações"
   },
+  "theme": {
+    "title": "Tema",
+    "groupLabel": "Preferência de tema",
+    "dark": "Escuro",
+    "light": "Claro",
+    "auto": "Automático"
+  },
   "panels": {
     "powerUps": "Power-Ups",
     "combo": "Combo"

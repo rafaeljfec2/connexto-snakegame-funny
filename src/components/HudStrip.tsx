@@ -5,7 +5,6 @@ import { useGameStateSlice } from '@/state/gameStateStore';
 import { getCurrentPhase, getLevelInPhase, getPhaseProgress } from '@/utils/phases';
 import { getPhaseTranslationKey } from '@/utils/phaseTranslations';
 import { AudioToggle } from './AudioToggle';
-import { LanguageSelector } from './LanguageSelector';
 import styles from './HudStrip.module.css';
 
 const LEVELS_PER_PHASE = 5;
@@ -167,9 +166,6 @@ function HudStripComponent({ legendOpen, onToggleLegend }: HudStripProps) {
           <span className={styles.legendLabel}>{t('hud.legend')}</span>
         </button>
         <AudioToggle />
-        <span className={styles.hudLanguageSelector}>
-          <LanguageSelector />
-        </span>
       </div>
     </header>
   );

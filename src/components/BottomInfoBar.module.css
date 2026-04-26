@@ -1,0 +1,35 @@
+/*
+ * BottomInfoBar — REF-06 Phase A.2.
+ * Slim horizontal bar BELOW the board card. Holds calm/narrative information
+ * (current phase, progress within phase, level inside phase). Visual reference:
+ * Witcher 3 / Hades objective tracker — discreet, always visible, never noisy.
+ *
+ * Width matches the board card exactly because both live in the same .boardStack
+ * flex column with align-items: stretch.
+ */
+
+.bar {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface-translucent);
+  border: 1px solid var(--color-stroke-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-elev-1);
+  backdrop-filter: blur(10px) saturate(140%);
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  min-height: 56px;
+  animation: ref06FadeIn var(--motion-duration-base) var(--motion-ease-out) both;
+}
+
+.host {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+@media (max-width: 768px) {
+  .bar {
+    display: none;
+  }
+}

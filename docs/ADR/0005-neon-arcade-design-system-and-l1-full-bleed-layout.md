@@ -23,7 +23,14 @@ REF-06 was opened to address both. The owner approved the spec — including the
 
 We adopt **three rules** and one **migration discipline** for the entire React tree:
 
-1. **L1 full-bleed layout — the board is the page.** `App.tsx` renders a translucent `HudStrip` (top, 56 px) over a full-viewport `GameArea` whose only first-class child is the canvas. Side panels are deleted (`GameSidebar` removed). Secondary read-only data (`ActivePowerUps`, `ComboDisplay`, `PhaseDisplay`) is composed inside a `BoardOverlays` layer positioned over the canvas via absolute slots. The power-ups catalogue moves out of the always-on layout into a slide-out `PowerUpsLegendDrawer` triggered from the HUD. There is no left or right sidebar in any breakpoint.
+1. **L1 full-bleed layout — the board is the page.** `App.tsx` renders a translucent `HudStrip` (top, 56 px) over a full-viewport `GameArea` whose only first-class child is the canvas. Side panels are deleted (`GameSidebar` removed). The power-ups catalogue moves out of the always-on layout into a slide-out `PowerUpsLegendDrawer` triggered from the HUD. There is no left or right sidebar in any breakpoint.
+
+   **Phase A.2 revision (2026-04-25, same day):** the original Phase A wired secondary read-only data (`ActivePowerUps`, `ComboDisplay`, `PhaseDisplay`) inside a `BoardOverlays` layer floating *over the canvas*. After the first visual review, the owner rejected anything overlapping the playfield. The `BoardOverlays` component was deleted and replaced by **three viewport-anchored compositors**:
+   - **`ViewportPowerUpsRail`** — `position: fixed; top-left` outside the board card; vertical pill stack with timer ring; auto-hides when no power-up is active. Visual reference: WoW / FF14 buff bar.
+   - **`ViewportComboBadge`** — `position: fixed; top-right` outside the board card; glowing badge gated to `combo.count >= COMBO_CONFIG.minCombo`; auto-hides when combo expires. Visual reference: Devil May Cry / Bayonetta combo meter.
+   - **`BottomInfoBar`** — slim horizontal bar that lives in a `.boardStack` flex column directly below `.gameContainer`, sharing its width via `align-items: stretch`; hosts `PhaseDisplay`. Visual reference: Witcher 3 / Hades objective tracker.
+
+   Both viewport-fixed compositors hide on `max-width: 768px` (mobile path keeps the existing `MobileFloatingInfo` / `StatusBar`).
 
 2. **3-tier OKLCH design tokens are the single source of truth for color.** [`src/styles/tokens.css`](../../src/styles/tokens.css) defines:
    - **Tier 1 — primitives** (`--c-deep-900`, `--c-neon-cyan`, …) with sRGB hex fallbacks on `:root` and OKLCH overrides inside `@supports (color: oklch(0 0 0))`.

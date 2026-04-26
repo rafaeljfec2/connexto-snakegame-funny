@@ -45,6 +45,21 @@
   z-index: 1;
 }
 
+.boardStack {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-3);
+  width: min(
+    calc(100vw - var(--space-7)),
+    calc(
+      100dvh - var(--hud-strip-height) - var(--bottom-bar-reserved) - var(--space-7) * 2 -
+        var(--space-4)
+    )
+  );
+  max-width: 1100px;
+}
+
 .gameContainer {
   position: relative;
   display: flex;
@@ -58,12 +73,7 @@
     var(--shadow-elev-2),
     inset 0 0 60px rgb(77 226 255 / 0.06);
   aspect-ratio: 1;
-  width: min(
-    calc(100vw - var(--space-7)),
-    calc(100dvh - var(--hud-strip-height) - var(--space-7) * 2 - var(--space-4))
-  );
-  max-width: 1100px;
-  max-height: 1100px;
+  width: 100%;
   overflow: visible;
 }
 

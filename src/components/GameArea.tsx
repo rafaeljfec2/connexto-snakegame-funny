@@ -4,7 +4,7 @@ import { GameBoard } from './GameBoard';
 import { GameControls } from './GameControls';
 import { StatusBar } from './StatusBar';
 import { MobileFloatingInfo } from './MobileFloatingInfo';
-import { BoardOverlays } from './BoardOverlays';
+import { BottomInfoBar } from './BottomInfoBar';
 import { useGameStateSlice } from '@/state/gameStateStore';
 import styles from '../App.module.css';
 
@@ -23,12 +23,14 @@ function GameAreaComponent({ gameWorker, resetToken, onStart, onPause, onReset }
   return (
     <div className={styles.gameArea}>
       <MobileFloatingInfo />
-      <div className={styles.gameContainer}>
-        <GameBoard resetToken={resetToken} gameWorker={gameWorker} />
-        <BoardOverlays />
-        <div className={styles.gameControls} data-status={status}>
-          <GameControls onStart={onStart} onPause={onPause} onReset={onReset} status={status} />
+      <div className={styles.boardStack}>
+        <div className={styles.gameContainer}>
+          <GameBoard resetToken={resetToken} gameWorker={gameWorker} />
+          <div className={styles.gameControls} data-status={status}>
+            <GameControls onStart={onStart} onPause={onPause} onReset={onReset} status={status} />
+          </div>
         </div>
+        <BottomInfoBar />
       </div>
 
       <div className={styles.mobileStatusBar}>

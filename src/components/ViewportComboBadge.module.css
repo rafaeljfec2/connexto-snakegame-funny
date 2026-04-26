@@ -1,0 +1,36 @@
+/*
+ * ViewportComboBadge — REF-06 Phase A.2.
+ * Floating badge in the top-right of the viewport, OUTSIDE the board card.
+ * Appears only when the combo is active (count >= COMBO_CONFIG.minCombo) so it
+ * never competes with the gameplay surface when there's nothing to celebrate.
+ *
+ * Visual reference: Devil May Cry / Bayonetta combo meter — bright, glowing,
+ * impossible to miss when it pops, invisible when idle.
+ */
+
+.badge {
+  position: fixed;
+  top: calc(var(--hud-strip-height) + var(--space-3));
+  right: var(--space-5);
+  z-index: var(--z-overlay);
+  min-width: 200px;
+  max-width: 280px;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface-translucent);
+  border: 1px solid var(--color-stroke-soft);
+  border-top: 2px solid var(--color-accent-combo);
+  border-radius: var(--radius-md);
+  box-shadow:
+    var(--shadow-elev-2),
+    0 0 24px rgb(255 226 77 / 0.25);
+  backdrop-filter: blur(14px) saturate(160%);
+  pointer-events: auto;
+  animation: ref06SlideInRight var(--motion-duration-base) var(--motion-ease-out) both;
+  will-change: transform, opacity;
+}
+
+@media (max-width: 768px) {
+  .badge {
+    display: none;
+  }
+}

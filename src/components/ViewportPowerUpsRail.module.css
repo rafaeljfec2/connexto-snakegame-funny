@@ -1,0 +1,27 @@
+/*
+ * ViewportPowerUpsRail — REF-06 Phase A.2.
+ * Vertical buff bar in the top-left of the viewport, OUTSIDE the board card.
+ * Visual reference: WoW / FF14 buff timer rail — pills stack vertically, each
+ * one self-renders its remaining duration. Hidden until at least one power-up
+ * is active to keep the gameplay surface clean.
+ */
+
+.rail {
+  position: fixed;
+  top: calc(var(--hud-strip-height) + var(--space-3));
+  left: var(--space-5);
+  z-index: var(--z-overlay);
+  width: clamp(220px, 22vw, 280px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  pointer-events: auto;
+  animation: ref06SlideInUp var(--motion-duration-base) var(--motion-ease-out) both;
+  will-change: transform, opacity;
+}
+
+@media (max-width: 768px) {
+  .rail {
+    display: none;
+  }
+}

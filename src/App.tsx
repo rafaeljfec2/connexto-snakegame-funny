@@ -11,6 +11,8 @@ import { getPhaseNumber } from '@/utils/phases';
 import { PhaseType } from '@/types/phases';
 import { HudStrip } from './components/HudStrip';
 import { GameArea } from './components/GameArea';
+import { ViewportComboBadge } from './components/ViewportComboBadge';
+import { ViewportPowerUpsRail } from './components/ViewportPowerUpsRail';
 import { GameOverlays } from './components/GameOverlays';
 import { TouchControls } from './components/TouchControls';
 import { GameStatistics as GameStatisticsComponent } from './components/GameStatistics';
@@ -206,6 +208,9 @@ function App() {
       <DynamicBackground />
 
       <HudStrip />
+
+      <ViewportPowerUpsRail />
+      <ViewportComboBadge />
 
       <main className={styles.main}>
         <GameArea

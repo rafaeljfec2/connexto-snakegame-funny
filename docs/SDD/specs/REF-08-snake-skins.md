@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| **Status** | In Progress (Phase A landed) |
+| **Status** | In Progress (Phase B landed) |
 | **Owner** | rafael |
 | **Created** | 2026-04-26 |
 | **Last updated** | 2026-04-26 |
@@ -238,6 +238,6 @@ _To be filled after implementation._
 | Phase | Scope | Exit criteria |
 |---|---|---|
 | **A — Foundation: types + catalog + worker plumbing** | `src/types/skin.ts`, `src/constants/skins.ts`, `RenderState.skin`, `handleUiSkin`, `createSnakeGradient` reads from state. No React, no UI. | Canvas continues to render green (backward-compat); sending a manual `postMessage({ type: 'UI_SKIN', payload })` from devtools swaps the snake live. Tests: catalog contrast + renderState handler. All gates green. |
-| **B — State + persistence** | `src/utils/skin.ts`, `src/contexts/SkinContext.tsx`, `main.tsx` provider mount, `GameContainer` postMessage bridge. | Default skin reads from storage on mount and reaches the worker on first paint. Tests: storage round-trip, context hydration, provider-less error, memoized value. Gates green. |
+| **B — State + persistence** ✅ landed | `src/utils/skin.ts` (`getStoredSkin` / `saveSkin` with defensive storage reads), `src/contexts/SkinContext.tsx` (Provider + `useSkin()`, `skinId` ↔ `palette` memoized), `main.tsx` mounts `<SkinProvider>` nested inside `<ThemeProvider>`, `GameBoard.tsx` bridges `palette` → `worker.postMessage({ type: 'UI_SKIN', payload: { skin } })` keyed on `[palette, canvasKey]` (survives worker re-creation on reset). | Default skin reads from storage on mount and reaches the worker on first paint; storage round-trip + context hydration + provider-less error guard covered by 16 new tests (`src/utils/__tests__/skin.test.ts` · 10, `src/contexts/__tests__/SkinContext.test.tsx` · 6). `pnpm exec tsc`, `pnpm exec eslint`, `pnpm exec vitest run` (253/253) and `pnpm build` all green. Bundle: `render.worker.js` unchanged (12.41 kB raw, worker contract already in place from Phase A); main bundle absorbs provider + utils within the +5 kB gzip budget. |
 | **C — Selector UI + i18n + drawer mount** | `SkinSelector.tsx/.module.css`, i18n keys, drawer Settings row, RTL tests, updated `PowerUpsLegendDrawer.test.tsx`. | Selector visible in the drawer; keyboard navigable; persistence chain end-to-end. All gates green. |
 | **D — Validation + docs** | Bundle audit, Lighthouse re-check, `docs/ADR/0006`, `docs/IDEIAS_MELHORIAS.md` checklist fix, spec §8 fill, README index. | Spec moves to `Done`. |

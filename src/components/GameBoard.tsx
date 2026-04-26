@@ -8,6 +8,7 @@ import styles from './GameBoard.module.css';
 import { GameBackground } from './GameBackground';
 import { perfBus } from '@/utils/perfBus';
 import { useGameStateSlice } from '@/state/gameStateStore';
+import { useSkin } from '@/contexts/SkinContext';
 
 interface GameBoardProps {
   resetToken?: number;
@@ -28,6 +29,7 @@ function GameBoardComponent({ resetToken = 0, gameWorker }: Readonly<GameBoardPr
   const foodPosY = useGameStateSlice((s) => s.food.position.y);
   const foodType = useGameStateSlice((s) => s.food.type);
   const snakeIsEmpty = useGameStateSlice((s) => s.snake.length === 0);
+  const { palette } = useSkin();
 
   useEffect(() => {
     if (resetToken > 0) {
@@ -156,6 +158,12 @@ function GameBoardComponent({ resetToken = 0, gameWorker }: Readonly<GameBoardPr
       renderWorkerRef.current = null;
     };
   }, [canvasKey, gameWorker]);
+
+  useEffect(() => {
+    const worker = renderWorkerRef.current;
+    if (!worker) return;
+    worker.postMessage({ type: 'UI_SKIN', payload: { skin: palette } });
+  }, [palette, canvasKey]);
 
   const previousFoodKeyRef = useRef(`${foodPosX}-${foodPosY}-${foodType}`);
 

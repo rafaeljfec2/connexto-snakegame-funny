@@ -74,7 +74,7 @@ A spec moves to `Approved` only after the user signs off. Implementation starts 
 - [REF-04 — Main-thread long-task elimination](specs/REF-04-main-thread-long-tasks.md)
 - [REF-05 — Cumulative Layout Shift](specs/REF-05-cumulative-layout-shift.md)
 - [REF-06 — Visual redesign: Neon Arcade](specs/REF-06-visual-redesign.md)
-- [REF-07 — Light theme mode](specs/REF-07-theme-light-mode.md) (Draft)
+- [REF-07 — Light theme mode](specs/REF-07-theme-light-mode.md) (Done)
 
 ## When to write a new spec
 

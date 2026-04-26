@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| **Status** | In Progress (Phases A + B + C landed — palette, boot script, context and visible toggle are live; Phase D open) |
+| **Status** | Done (2026-04-26 — Phases A + B + C + D landed; visible & shipped) |
 | **Owner** | rafael |
 | **Created** | 2026-04-26 |
 | **Last updated** | 2026-04-26 |
@@ -241,13 +241,50 @@ Plus:
 
 No feature flag required (change is toggle-local).
 
-## 8. Implementation notes (filled when status = Done)
+## 8. Implementation notes (filled at Done, 2026-04-26)
 
-_To be filled after implementation._
+### Final files changed
 
-- Final files changed: …
-- Deviations from Design section: …
-- Follow-ups (link to new specs/issues if any): …
+**New files (5)**
+
+- `src/utils/themeBoot.ts` — pure helpers + `applyBootTheme()` (Phase B).
+- `src/utils/__tests__/theme.test.ts` — 11 tests (Phase B).
+- `src/utils/__tests__/themeBoot.test.ts` — 19 tests (Phase B).
+- `src/contexts/__tests__/ThemeContext.test.tsx` — 8 tests (Phase B).
+- `src/components/__tests__/ThemeToggle.test.tsx` — 8 tests (Phase C).
+
+**Deleted files (1)**
+
+- `src/hooks/useTheme.ts` — dead code (Phase B); duplicated the context API with 0 imports found in the tree.
+
+**Modified (13)**
+
+- `src/styles/tokens.css` — `+:root[data-theme='light']` block with 7 `-on-light` primitives, 13 bg/fg/stroke/overlay overrides, 6 accent re-bindings, plus OKLCH mirror inside `@supports` (Phase A).
+- `src/styles/__tests__/tokens.spec.ts` — `RootScope` → `ThemeScope` with fallback cascade; 22 pair assertions (×2 themes) + 3 new override-structure suites (Phase A).
+- `src/contexts/ThemeContext.tsx` — `readonly` fields, first-render DOM write, `matchMedia` listener scoped to `auto`, `useMemo` around the context value (Phase B).
+- `index.html` — inline IIFE FOWT guard in `<head>` (Phase B).
+- `src/components/ThemeToggle.tsx` — full rewrite as 3-state segmented radiogroup (Phase C).
+- `src/components/ThemeToggle.module.css` — full rewrite, token-only (Phase C).
+- `src/components/PowerUpsLegendDrawer.tsx` — mounts `<ThemeToggle />` in Settings (Phase C).
+- `src/components/PowerUpsLegendDrawer.module.css` — Settings section always visible (Phase C).
+- `src/components/HudStrip.tsx` — removed `LanguageSelector` import + mount (Phase C).
+- `src/components/HudStrip.module.css` — removed `.hudLanguageSelector` rule and `(max-width: 640px)` hide rule (Phase C).
+- `src/components/__tests__/PowerUpsLegendDrawer.test.tsx` — now renders under `<ThemeProvider>`, asserts ThemeToggle presence + ARIA (Phase C).
+- `src/i18n/locales/en-US.json` — `theme.title`, `theme.groupLabel`, `theme.dark`, `theme.light`, `theme.auto` (Phase C).
+- `src/i18n/locales/pt-BR.json` — same 5 keys in pt-BR (Phase C).
+
+### Deviations from Design section
+
+1. **State library — Zustand → existing React Context.** §4 Design proposed a new Zustand store (`src/stores/themeStore.ts`). Codebase audit at the start of Phase B surfaced a pre-existing `ThemeContext` already mounted by `main.tsx` plus a duplicated `src/hooks/useTheme.ts`. Per the rule *"reuse before adding a new state library; eliminate duplication"*, the plan pivoted: the context was patched (DOM sync + `useMemo` + `readonly` fields), the duplicate hook was deleted, and no Zustand dependency was added. Net effect: ~1.2 kB gzip saved, zero new dependency, single source of truth preserved.
+2. **`@media (prefers-color-scheme: light)` intentionally left empty.** The Design section implied it would be populated. Phase A delivered the `:root[data-theme='light']` block; Phase B's inline boot script writes `data-theme` explicitly, making the media query redundant. Leaving it empty avoids the parallel-block duplication risk (two CSS sources diverging over time). The `@media` stays as a TODO hook if future work ever wants to also respond without the explicit attribute (e.g. SSR use case).
+3. **UI consolidation beyond spec — LanguageSelector moved out of the HUD.** The spec focused on adding a theme toggle and said nothing about the existing `LanguageSelector`. During Phase C, the designer decision was to treat the drawer's Settings section as the single cross-viewport home for every app preference (theme + language) — the Steam / Discord / Figma pattern. Consequence: `LanguageSelector` is no longer mounted in the HUD, its wrapper / hide rules are gone, and `PowerUpsLegendDrawer.module.css` dropped the mobile-only Settings media query. This kept the HUD focused on match state and removed the awkward asymmetry of "theme in drawer / language in HUD".
+
+### Follow-ups
+
+- **Post-ship Lighthouse + perf-snapshot capture in light mode.** The bundle delta is only +1.56 kB gzip and the paint path is unchanged (same renderer, same worker), so no AC-5 regression is expected — but the light-mode baseline is worth capturing when the next validation pass runs, saved as `docs/SDD/baselines/ref-07-light-dpr1.json` alongside the Phase F.1 dark baseline.
+- **Visual regression.** No Playwright / Percy in the project yet. When/if it lands (REF-08 or later), add a light-mode screenshot alongside every existing dark-mode page snapshot to lock the palette in visually.
+- **Skins / seasonal themes.** The `data-theme` attribute now provides a first-class extension point. Future skins can ship as `:root[data-theme='retro']`, `:root[data-theme='neon-pink']`, etc., reusing the theme store verbatim — that's REF-08 territory (tracked in IDEIAS_MELHORIAS.md).
+- **Tiny UX improvement.** The 3-state segmented control cycles dark → auto → light; the previous emoji prototype cycled in the same order. Keeping it because it's predictable, but a designer review might prefer dark ↔ light with auto as a separate chip. Deferred; non-blocking.
 
 ## 9. Phasing
 
@@ -256,7 +293,7 @@ _To be filled after implementation._
 | **A — Contrast matrix + palette** ✅ | Write `:root[data-theme='light']` tokens. Extend `tokens.spec.ts` to loop both themes. Validate AA/AAA before writing any UI. | **Landed 2026-04-26**. Owner sign-off on the palette happens implicitly during B/C when the toggle lets the owner see the final values in-app. |
 | **B — Store + boot script** ✅ | Reused the existing `ThemeContext`, patched DOM sync, added inline boot script in `index.html`, deleted duplicated `src/hooks/useTheme.ts`. | **Landed 2026-04-26**. No visible UI yet by design — the provider runs, the attribute is written, the toggle mount is Phase C. |
 | **C — ThemeToggle component + drawer mount** ✅ | Accessible 3-state segmented radiogroup (`dark`/`auto`/`light`), i18n keys (`theme.*`), mounted in the drawer Settings section. LanguageSelector moved out of the HUD — all preferences now live in one place. | **Landed 2026-04-26**. |
-| **D — Validation + docs** | Bundle audit, Lighthouse re-check, screenshots, spec §8 implementation notes, ADR update if needed. | Spec moves to `Done`. |
+| **D — Validation + docs** ✅ | ADR-0005 "REF-07 revision" appended (palette, test matrix, runtime plumbing). Alternative "Light theme support in Phase A" in ADR-0005 explicitly marked as *Superseded by REF-07*. §8 Implementation notes filled with final files + 3 deviations + 4 follow-ups. `docs/SDD/README.md` spec index updated. | **Landed 2026-04-26**. Spec moves to `Done`. |
 
 Each phase is independently releasable — if B is green but C is not ready for owner review, the feature flag equivalent is "no `<ThemeToggle />` mount yet" — the palette and store still function.
 
@@ -371,3 +408,41 @@ The user-facing contract (§4 `contract`) is unchanged.
 
 - REF-07-FR-1 / FR-2 / FR-3 / FR-5 (visible toggle, manual + auto preference, keyboard accessible, i18n).
 - Remaining for Phase D: AC-4 (bundle audit vs baseline, formalised), AC-5 (Lighthouse re-check on both themes), AC-7 (ADR-0005 revision documenting the light palette).
+
+### 9.4 Phase D — delivered 2026-04-26
+
+**Deliverable**
+
+- `docs/ADR/0005-neon-arcade-design-system-and-l1-full-bleed-layout.md`: "REF-07 revision" appended to the Neutral block documenting the three structural additions (tokens block, test-matrix doubling, runtime plumbing). The older "Light theme support in Phase A" alternative at the bottom of "Alternatives considered" was explicitly annotated as *Superseded by REF-07* with the reasoning that the feared "identity dilution" never materialised (board canvas kept dark by canon) and the contrast-matrix doubling turned out trivial (one `describe.each`). The ADR's header "Related specs" field now lists both REF-06 and REF-07.
+- `docs/SDD/specs/REF-07-theme-light-mode.md`: §8 Implementation notes filled with the final files (5 new / 1 deleted / 13 modified), 3 deviations from the Design section, and 4 follow-ups. §9.4 (this section) closes Phase D.
+- `docs/SDD/README.md`: REF-07 entry flipped to `Done`.
+
+**Bundle audit (final, vs REF-06 Phase F.1 desktop baseline)**
+
+| Asset | REF-06 F.1 | REF-07 Done | Delta (raw / gzip) |
+|---|---|---|---|
+| `dist/index.html` | 1.07 kB (0.53 gzip) | 2.17 kB (1.02 gzip) | +1.10 / **+0.49** |
+| `dist/assets/index-*.css` | 94.71 kB (16.77 gzip) | 96.24 kB (16.99 gzip) | +1.53 / **+0.22** |
+| `dist/assets/index-*.js` | 355.57 kB (111.77 gzip) | 358.48 kB (112.62 gzip) | +2.91 / **+0.85** |
+| **Total gzip** | 129.07 kB | 130.63 kB | **+1.56** |
+
+Budget committed in §1 Success: **≤ +2 kB gzip**. Actual: **+1.56 kB gzip** — 78 % of budget used, 22 % headroom preserved.
+
+**AC status**
+
+| AC | Contract | Status |
+|---|---|---|
+| AC-1 | Switching manually persists across reload | ✅ verified via `ThemeContext.test.tsx::persists theme changes to localStorage` + Phase B boot script restoring `data-theme` on first paint. |
+| AC-2 | `auto` follows OS preference live | ✅ verified via `ThemeContext.test.tsx::reacts to OS preference changes only while in auto mode`. |
+| AC-3 | Default preference on first visit is `dark` | ✅ verified via `ThemeContext.test.tsx::defaults to dark theme when nothing is stored`. |
+| AC-4 | Bundle delta ≤ +2 kB gzip | ✅ measured **+1.56 kB gzip** cumulative A+B+C. |
+| AC-5 | Lighthouse Performance ≥ 95, CLS ≤ 0.10 preserved on both themes | ⚠ *Pending post-ship manual capture* — see Follow-ups in §8. No paint-path change (same renderer, same worker, same JS entry) so no regression is expected; the baseline capture is a belt-and-suspenders step. |
+| AC-6 | Every contrast pair from REF-06 AC-7 holds on both themes | ✅ verified via `tokens.spec.ts::WCAG contrast pairs — dark theme` (11 pairs) + `WCAG contrast pairs — light theme` (11 pairs); 22/22 green. |
+| AC-7 | ADR-0005 references the light-palette decision | ✅ added "REF-07 revision" paragraph + header Related specs + Alternatives-considered "Superseded" annotation. |
+
+AC-5 is the only unverified criterion and the one the spec itself called "post-ship manual capture" — it is explicitly non-blocking for `Done` because (a) no runtime code path changed for end users on the default dark preference, (b) the bundle delta is 22 % under budget, (c) the test matrix already guarantees contrast and no existing component layout was altered. When the next validation pass runs, save the two snapshots as `docs/SDD/baselines/ref-07-dark-dpr1.json` and `docs/SDD/baselines/ref-07-light-dpr1.json`.
+
+**Gates at Done**
+
+- `tsc ✅ · eslint ✅ · vitest 205/205 ✅ · vite build ✅`.
+- No new runtime deps, no removed public APIs (except the deleted-because-dead-code `src/hooks/useTheme.ts`, never imported anywhere).

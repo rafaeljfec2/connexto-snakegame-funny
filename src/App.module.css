@@ -150,10 +150,18 @@
    * D-pad needs plus breathing room, and let the board grow into the reclaimed
    * height. `.gameArea` no longer centers vertically, so the hint sits right
    * below the board instead of floating in a dead zone.
+   *
+   * Phase F.2 fix (code review): `--dpad-reserved` is declared on `.main` so
+   * it is scoped to a real selector — a bare declaration inside `@media` is a
+   * CSS parse error and was being silently dropped by every browser, which
+   * meant `var(--dpad-reserved)` resolved to the initial value and the calc()
+   * chains fell back to their property defaults. The mobile layout was only
+   * working through coincidence (aspect-ratio + justify-content: flex-start +
+   * the D-pad floating via position: fixed). With the token now scoped
+   * correctly, the padding reservation and the board max-height actually apply.
    */
-  --dpad-reserved: 240px;
-
   .main {
+    --dpad-reserved: 240px;
     padding: 0;
     padding-bottom: calc(var(--dpad-reserved) + env(safe-area-inset-bottom, 0px));
   }

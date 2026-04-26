@@ -91,7 +91,6 @@
 
   --hud-strip-height: 56px;
   --hud-overlay-pad: 12px;
-  --bottom-bar-reserved: 80px;
 }
 
 @supports (color: oklch(0 0 0)) {

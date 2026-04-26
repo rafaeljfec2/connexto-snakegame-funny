@@ -2,10 +2,14 @@ import { memo, useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { LIVES_CONFIG } from '@/constants/lives';
 import { useGameStateSlice } from '@/state/gameStateStore';
+import { getCurrentPhase, getLevelInPhase, getPhaseProgress } from '@/utils/phases';
+import { getPhaseTranslationKey } from '@/utils/phaseTranslations';
 import { AudioToggle } from './AudioToggle';
 import { LanguageSelector } from './LanguageSelector';
 import { PowerUpsLegendDrawer } from './PowerUpsLegendDrawer';
 import styles from './HudStrip.module.css';
+
+const LEVELS_PER_PHASE = 5;
 
 function HudStripComponent() {
   const { t } = useTranslation();
@@ -13,6 +17,7 @@ function HudStripComponent() {
   const highScore = useGameStateSlice((s) => s.highScore);
   const level = useGameStateSlice((s) => s.level);
   const lives = useGameStateSlice((s) => s.lives);
+  const currentPhase = useGameStateSlice((s) => s.currentPhase);
 
   const [legendOpen, setLegendOpen] = useState(false);
   const closeLegend = useCallback(() => setLegendOpen(false), []);
@@ -20,6 +25,13 @@ function HudStripComponent() {
 
   const livesCount = LIVES_CONFIG.enabled ? lives : 0;
   const showLives = LIVES_CONFIG.enabled;
+
+  const phase = getCurrentPhase(level) ?? undefined;
+  const phaseNumber = currentPhase ?? phase?.id ?? 1;
+  const levelInPhase = getLevelInPhase(level);
+  const phaseProgress = getPhaseProgress(level);
+  const phaseName = phase ? t(`phases.${getPhaseTranslationKey(phase.type)}.name`) : '';
+  const progressPercent = Math.round(phaseProgress * 100);
 
   return (
     <header className={styles.strip} role='banner' aria-label={t('hud.ariaLabel')}>
@@ -48,12 +60,45 @@ function HudStripComponent() {
 
         <div className={styles.divider} aria-hidden='true' />
 
-        <div className={styles.metric}>
-          <span className={styles.metricLabel}>{t('hud.level')}</span>
-          <span className={styles.metricValue} data-tone='success'>
-            {level}
-          </span>
-        </div>
+        {phase && (
+          <div
+            className={styles.phaseSlot}
+            data-testid='hud-phase-slot'
+            role='group'
+            aria-label={t('hud.phaseAriaLabel', {
+              phase: phaseNumber,
+              name: phaseName,
+              current: levelInPhase,
+              total: LEVELS_PER_PHASE,
+            })}
+          >
+            <div className={styles.phaseHead}>
+              <span className={styles.phaseLabel}>
+                {t('hud.phase')} <span className={styles.phaseNumber}>{phaseNumber}</span>
+              </span>
+              <span className={styles.phaseName} title={phaseName}>
+                {phaseName}
+              </span>
+            </div>
+            <div className={styles.phaseFooter}>
+              <div
+                className={styles.phaseProgress}
+                role='progressbar'
+                aria-valuemin={0}
+                aria-valuemax={LEVELS_PER_PHASE}
+                aria-valuenow={levelInPhase}
+              >
+                <div
+                  className={styles.phaseProgressFill}
+                  style={{ width: `${progressPercent}%` }}
+                />
+              </div>
+              <span className={styles.phaseStep} data-testid='hud-phase-step'>
+                {levelInPhase}/{LEVELS_PER_PHASE}
+              </span>
+            </div>
+          </div>
+        )}
 
         {showLives && (
           <>

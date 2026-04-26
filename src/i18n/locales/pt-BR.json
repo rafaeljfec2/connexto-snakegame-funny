@@ -172,7 +172,8 @@
     "metricsAriaLabel": "Métricas da partida",
     "score": "Pontos",
     "highScore": "Recorde",
-    "level": "Nível",
+    "phase": "Fase",
+    "phaseAriaLabel": "Fase {{phase}} {{name}} - Nível {{current}} de {{total}}",
     "lives": "Vidas",
     "livesAriaLabel": "{{count}} vidas restantes",
     "legend": "Power-ups"

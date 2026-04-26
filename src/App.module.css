@@ -2,9 +2,11 @@
  * App shell — REF-06 L1 layout (full-bleed board, HUD strip on top, no side rails).
  *
  * - REF-06-FR-1: full-bleed board
- * - REF-06-FR-2: BoardOverlays handle floating panels
- * - REF-06-FR-3: HudStrip handles the top hud
+ * - REF-06-FR-3: HudStrip is the single status surface; phase + progress live there too (Phase A.3)
  * - REF-06-D6: motion via shared keyframes; no JS-driven animations
+ *
+ * Floating overlays (combo badge, active power-ups) are mounted by App.tsx as
+ * viewport-fixed compositors outside the .gameArea tree.
  */
 
 .app {
@@ -45,21 +47,6 @@
   z-index: 1;
 }
 
-.boardStack {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: var(--space-3);
-  width: min(
-    calc(100vw - var(--space-7)),
-    calc(
-      100dvh - var(--hud-strip-height) - var(--bottom-bar-reserved) - var(--space-7) * 2 -
-        var(--space-4)
-    )
-  );
-  max-width: 1100px;
-}
-
 .gameContainer {
   position: relative;
   display: flex;
@@ -73,7 +60,11 @@
     var(--shadow-elev-2),
     inset 0 0 60px rgb(77 226 255 / 0.06);
   aspect-ratio: 1;
-  width: 100%;
+  width: min(
+    calc(100vw - var(--space-7)),
+    calc(100dvh - var(--hud-strip-height) - var(--space-7) * 2 - var(--space-4) * 2)
+  );
+  max-width: 1100px;
   overflow: visible;
 }
 

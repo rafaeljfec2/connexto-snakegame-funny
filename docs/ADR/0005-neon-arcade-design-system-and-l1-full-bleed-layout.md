@@ -32,6 +32,15 @@ We adopt **three rules** and one **migration discipline** for the entire React t
 
    Both viewport-fixed compositors hide on `max-width: 768px` (mobile path keeps the existing `MobileFloatingInfo` / `StatusBar`).
 
+   **Phase A.3 revision (2026-04-26):** the second visual review showed the `BottomInfoBar` was still perceived by the owner as a "container inside the game grid" because it sat directly below the board card and shared its width. The decision: phase + level-in-phase + progress are *persistent state* (same conceptual tier as Score/Best/Lives), so they belong in the **HUD strip itself**, not in a separate companion bar. Concretely:
+   - **`BottomInfoBar`** (and the `.boardStack` flex column wrapper) is **deleted**.
+   - **`PhaseDisplay`** is **deleted** (dead code after the move; its semantics are absorbed by the HUD).
+   - `HudStrip` gains a composite `phaseSlot` that **replaces** the legacy `Level` slot: `FASE N · Nome da Fase · ▓▓░░ X/5`. This kills the duplicated "Level" reading that previously appeared both in the HUD and in `BottomInfoBar`. The slot exposes a real `role="progressbar"` with proper `aria-valuemin/max/now` for screen readers.
+   - `--bottom-bar-reserved` token removed from `tokens.css`; `.gameContainer` width formula simplified accordingly.
+   - `.gameArea` is now strictly: `MobileFloatingInfo` (mobile only) + `gameContainer` + `mobileStatusBar` (mobile only) + `instructions` (footer hint). On desktop, the game card is the **only** child between the HUD strip and the instructions hint.
+
+   Visual reference for the consolidated HUD: AAA HUDs that compress all persistent state into a single top strip (Hades runs, Slay the Spire act bar, Vampire Survivors top HUD).
+
 2. **3-tier OKLCH design tokens are the single source of truth for color.** [`src/styles/tokens.css`](../../src/styles/tokens.css) defines:
    - **Tier 1 — primitives** (`--c-deep-900`, `--c-neon-cyan`, …) with sRGB hex fallbacks on `:root` and OKLCH overrides inside `@supports (color: oklch(0 0 0))`.
    - **Tier 2 — semantic** (`--color-bg-base`, `--color-on-bg-muted`, `--color-accent-success`, …) — the only tier components are allowed to consume.
@@ -47,7 +56,7 @@ We adopt **three rules** and one **migration discipline** for the entire React t
 
 ### Positive
 
-- **The board is unambiguously the protagonist.** Removing the side panels lifts the canvas to ~80 % of the viewport (vs ~45 % before), in line with the research norm for arcade-style web games (Slither.io, Agar.io, Diep.io). `BoardOverlays` keeps power-ups, combo, and phase visible without competing with the canvas for layout space.
+- **The board is unambiguously the protagonist.** Removing the side panels lifts the canvas to ~80 % of the viewport (vs ~45 % before), in line with the research norm for arcade-style web games (Slither.io, Agar.io, Diep.io). After Phase A.3, persistent state lives entirely in the HUD strip and transient feedback (combo, active power-ups) lives in viewport-fixed compositors *outside* the game card — nothing competes with the canvas for layout space.
 - **Theming and accessibility become structural properties, not vibes.** Any future skin (e.g., a "Carnival" event theme, a high-contrast variant, a colorblind-safe variant) is a swap of the semantic-tier tokens — no component changes. WCAG regressions are caught by `tokens.spec.ts` in CI.
 - **Wide-gamut without breaking sRGB.** `@supports (color: oklch(0 0 0))` upgrades supported browsers to OKLCH with no FOUC or fallback flash; legacy browsers keep the curated sRGB palette.
 - **Zero new runtime deps.** No `framer-motion`, no icon library, no design-system package. Phase A ships ~+5 kB of CSS and 0 kB of JS / fonts. Aligns with ADR-0001 (SDD)'s small-reversible-change principle.

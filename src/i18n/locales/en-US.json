@@ -172,7 +172,8 @@
     "metricsAriaLabel": "Match metrics",
     "score": "Score",
     "highScore": "Best",
-    "level": "Level",
+    "phase": "Course",
+    "phaseAriaLabel": "Course {{phase}} {{name}} - Level {{current}} of {{total}}",
     "lives": "Lives",
     "livesAriaLabel": "{{count}} lives remaining",
     "legend": "Power-ups"

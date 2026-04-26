@@ -1,0 +1,53 @@
+/*
+ * Typography tokens — Phase A uses a system display stack with tabular numerals
+ * (REF-06-D4 — webfont 26F Galaxy Sans Variable deferred to Phase B once
+ * the visual direction is approved by the owner in §11).
+ *
+ * - REF-06-FR-6
+ *
+ * Stack rationale:
+ *   - "SF Pro Display" / "Segoe UI Variable Display" — large display weights on macOS / Win11.
+ *   - "Inter" — kept as a final fallback for older OSes where Inter is bundled by the project.
+ *   - `font-feature-settings`: tabular-nums + ss01 (slashed zero) gives HUD digits a
+ *     stable monospaced rhythm so the score does not jitter as it grows.
+ */
+
+:root {
+  --font-display:
+    'SF Pro Display', 'Segoe UI Variable Display', 'Segoe UI Variable Text', system-ui, -apple-system,
+    'Inter', 'Helvetica Neue', Arial, sans-serif;
+  --font-ui:
+    system-ui, -apple-system, 'Segoe UI Variable Text', 'Segoe UI', 'Inter', Roboto,
+    'Helvetica Neue', Arial, sans-serif;
+  --font-mono:
+    'JetBrains Mono', 'SF Mono', 'Cascadia Mono', Menlo, Consolas, monospace;
+
+  --font-size-xs: 0.6875rem;   /* 11 */
+  --font-size-sm: 0.8125rem;   /* 13 */
+  --font-size-md: 0.9375rem;   /* 15 */
+  --font-size-lg: 1.125rem;    /* 18 */
+  --font-size-xl: 1.5rem;      /* 24 */
+  --font-size-2xl: 2rem;       /* 32 */
+  --font-size-display: 2.25rem;
+
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-black: 900;
+
+  --letter-tracked: 0.08em;
+  --letter-tracked-tight: 0.04em;
+  --letter-tracked-loose: 0.18em;
+
+  --line-tight: 1.05;
+  --line-snug: 1.2;
+  --line-base: 1.5;
+}
+
+.fontDisplayDigits {
+  font-family: var(--font-display);
+  font-feature-settings: 'tnum' 1, 'ss01' 1, 'cv11' 1;
+  font-variant-numeric: tabular-nums slashed-zero;
+  letter-spacing: var(--letter-tracked-tight);
+}

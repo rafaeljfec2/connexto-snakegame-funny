@@ -1,46 +1,35 @@
 .livesContainer {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
-  color: rgba(255, 255, 255, 0.9);
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+  color: var(--color-on-bg);
 }
 
 .livesLabel {
-  font-weight: 600;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-tracked);
+  color: var(--color-on-bg-faint);
 }
 
 .livesIcons {
-  display: flex;
-  gap: 0.25rem;
+  display: inline-flex;
   align-items: center;
+  gap: var(--space-1);
 }
 
 .lifeIcon {
-  font-size: 1rem;
-  transition: all 0.3s ease;
-  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+  font-size: 0.95rem;
+  line-height: 1;
 }
 
 .lifeIcon.active {
   opacity: 1;
-  transform: scale(1);
-  animation: heartbeat 1.5s ease-in-out infinite;
 }
 
 .lifeIcon.inactive {
   opacity: 0.3;
-  transform: scale(0.8);
-  filter: grayscale(100%) brightness(0.5);
-}
-
-@keyframes heartbeat {
-  0%,
-  100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.1);
-  }
+  filter: grayscale(100%);
 }

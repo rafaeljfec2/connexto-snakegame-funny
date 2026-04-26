@@ -1,0 +1,137 @@
+/*
+ * Design tokens — Neon Arcade
+ * Single source of truth for all colors, radii, spacing, and elevations.
+ * 3-tier architecture: primitives → semantic → component.
+ *
+ * - REF-06-FR-7, REF-06-NFR-6, REF-06-AC-7, REF-06-AC-8
+ * - OKLCH primaries with sRGB fallback gated by @supports (REF-06-D5).
+ *
+ * Hard rule: no hex / rgb() / hsl() literals outside this file.
+ */
+
+:root {
+  --c-deep-900: #0a0d1a;
+  --c-deep-800: #131829;
+  --c-deep-700: #1d2440;
+  --c-deep-600: #2a3258;
+
+  --c-ink-50: #f5f7ff;
+  --c-ink-100: #e3e7f5;
+  --c-ink-200: #c2c8e0;
+  --c-ink-400: #7a8099;
+  --c-ink-600: #4a5070;
+
+  --c-neon-green: #5cff9a;
+  --c-neon-green-deep: #2dd574;
+  --c-neon-pink: #ff3b8a;
+  --c-neon-cyan: #4de2ff;
+  --c-neon-cyan-deep: #1eb6dd;
+  --c-neon-yellow: #ffe24d;
+  --c-neon-violet: #b06bff;
+  --c-warn-amber: #ffb84d;
+  --c-danger-red: #ff5d6c;
+
+  --color-bg-base: var(--c-deep-900);
+  --color-bg-surface: var(--c-deep-800);
+  --color-bg-elevated: var(--c-deep-700);
+  --color-bg-hover: var(--c-deep-600);
+
+  --color-on-bg: var(--c-ink-50);
+  --color-on-bg-strong: var(--c-ink-50);
+  --color-on-bg-muted: var(--c-ink-200);
+  --color-on-bg-faint: var(--c-ink-400);
+
+  --color-accent-primary: var(--c-neon-cyan);
+  --color-accent-success: var(--c-neon-green);
+  --color-accent-warn: var(--c-warn-amber);
+  --color-accent-danger: var(--c-danger-red);
+  --color-accent-combo: var(--c-neon-yellow);
+  --color-accent-special: var(--c-neon-violet);
+
+  --color-snake: var(--c-neon-green);
+  --color-food: var(--c-neon-pink);
+  --color-boss: var(--c-neon-violet);
+
+  --color-stroke-subtle: rgb(255 255 255 / 0.08);
+  --color-stroke-soft: rgb(255 255 255 / 0.16);
+  --color-stroke-strong: rgb(255 255 255 / 0.28);
+
+  --color-overlay-scrim: rgb(10 13 26 / 0.72);
+  --color-surface-translucent: rgb(19 24 41 / 0.78);
+
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 22px;
+  --radius-pill: 999px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 32px;
+  --space-8: 40px;
+
+  --z-board: 1;
+  --z-overlay: 5;
+  --z-hud: 50;
+  --z-drawer: 60;
+  --z-modal: 100;
+  --z-toast: 200;
+
+  --shadow-glow-cyan: 0 0 18px rgb(77 226 255 / 0.45);
+  --shadow-glow-green: 0 0 18px rgb(92 255 154 / 0.45);
+  --shadow-glow-pink: 0 0 18px rgb(255 59 138 / 0.45);
+  --shadow-glow-yellow: 0 0 18px rgb(255 226 77 / 0.45);
+  --shadow-elev-1: 0 2px 8px rgb(0 0 0 / 0.45);
+  --shadow-elev-2: 0 8px 24px rgb(0 0 0 / 0.55);
+
+  --hud-strip-height: 56px;
+  --hud-overlay-pad: 12px;
+}
+
+@supports (color: oklch(0 0 0)) {
+  :root {
+    --c-deep-900: oklch(0.13 0.04 270);
+    --c-deep-800: oklch(0.18 0.05 270);
+    --c-deep-700: oklch(0.24 0.06 270);
+    --c-deep-600: oklch(0.32 0.07 270);
+
+    --c-ink-50: oklch(0.98 0.01 270);
+    --c-ink-100: oklch(0.93 0.015 270);
+    --c-ink-200: oklch(0.85 0.02 270);
+    --c-ink-400: oklch(0.65 0.02 270);
+    --c-ink-600: oklch(0.45 0.02 270);
+
+    --c-neon-green: oklch(0.85 0.27 145);
+    --c-neon-green-deep: oklch(0.7 0.27 145);
+    --c-neon-pink: oklch(0.72 0.3 5);
+    --c-neon-cyan: oklch(0.85 0.16 200);
+    --c-neon-cyan-deep: oklch(0.7 0.16 200);
+    --c-neon-yellow: oklch(0.9 0.2 95);
+    --c-neon-violet: oklch(0.7 0.25 305);
+    --c-warn-amber: oklch(0.8 0.2 75);
+    --c-danger-red: oklch(0.65 0.28 25);
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --color-stroke-subtle: rgb(255 255 255 / 0.18);
+    --color-stroke-soft: rgb(255 255 255 / 0.3);
+    --color-stroke-strong: rgb(255 255 255 / 0.5);
+    --color-on-bg-muted: var(--c-ink-100);
+    --color-on-bg-faint: var(--c-ink-200);
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  /*
+   * REF-06 ships dark-only for Phase A (game UIs prefer dark per ColorArchive 2026).
+   * Light theme reserved for a future REF; this block prevents accidental UA
+   * inversion of the document root color-scheme.
+   */
+}

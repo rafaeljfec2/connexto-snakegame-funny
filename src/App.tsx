@@ -9,7 +9,7 @@ import { logger, LogContext } from '@/utils/logger';
 import { GameStatus } from '@/types/game';
 import { getPhaseNumber } from '@/utils/phases';
 import { PhaseType } from '@/types/phases';
-import { GameHeader } from './components/GameHeader';
+import { HudStrip } from './components/HudStrip';
 import { GameArea } from './components/GameArea';
 import { GameOverlays } from './components/GameOverlays';
 import { TouchControls } from './components/TouchControls';
@@ -18,15 +18,10 @@ import { BossDebugPanel } from './components/BossDebugPanel';
 import { PhaseDebugPanel } from './components/PhaseDebugPanel';
 import { PerfDebugPanel } from './components/PerfDebugPanel';
 import { DynamicBackground } from './components/DynamicBackground';
-import { ActivePowerUps } from './components/ActivePowerUps';
-import { ComboDisplay } from './components/ComboDisplay';
-import { PhaseDisplay } from './components/PhaseDisplay';
 import { getGameStore } from '@/state/gameStateStore';
-import { useTranslation } from 'react-i18next';
 import styles from './App.module.css';
 
 function App() {
-  const { t } = useTranslation();
   const {
     gameState,
     resetGame,
@@ -90,7 +85,6 @@ function App() {
     };
   }, []);
 
-  // Reset level up animation when game state changes
   useEffect(() => {
     if (
       gameState.status === GameStatus.GAME_OVER ||
@@ -211,19 +205,9 @@ function App() {
     <div className={styles.app}>
       <DynamicBackground />
 
-      <GameHeader />
+      <HudStrip />
 
       <main className={styles.main}>
-        {/* Left Panel */}
-        <aside className={styles.leftPanel}>
-          <div className={styles.panelContent}>
-            <div className={styles.panelSection}>
-              <h3 className={styles.panelTitle}>{t('panels.powerUps')}</h3>
-              <ActivePowerUps />
-            </div>
-          </div>
-        </aside>
-
         <GameArea
           gameWorker={gameWorker}
           resetToken={gameResetToken}
@@ -231,19 +215,6 @@ function App() {
           onPause={handlePause}
           onReset={handleReset}
         />
-
-        {/* Right Panel */}
-        <aside className={styles.rightPanel}>
-          <div className={styles.panelContent}>
-            <div className={styles.panelSection}>
-              <PhaseDisplay />
-            </div>
-            <div className={styles.panelSection}>
-              <h3 className={styles.panelTitle}>{t('panels.combo')}</h3>
-              <ComboDisplay />
-            </div>
-          </div>
-        </aside>
       </main>
 
       <GameOverlays

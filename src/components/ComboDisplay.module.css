@@ -1,170 +1,64 @@
+/*
+ * ComboDisplay — slim overlay variant rendered by BoardOverlays (REF-06-FR-2).
+ * No card chrome of its own; the host slot (.comboHost) provides the surface.
+ */
+
 .comboDisplay {
-  background: linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 41, 59, 0.85) 100%);
-  backdrop-filter: blur(30px) saturate(180%);
-  border-radius: 12px;
-  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
   width: 100%;
-  border: 1px solid rgba(255, 215, 0, 0.3);
-  box-shadow:
-    0 4px 16px rgba(0, 0, 0, 0.3),
-    0 0 0 1px rgba(255, 215, 0, 0.1) inset,
-    0 0 20px rgba(255, 215, 0, 0.2);
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
-}
-
-.comboDisplay::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, transparent 0%, rgba(255, 215, 0, 0.6) 50%, transparent 100%);
-  opacity: 0.6;
-  animation: comboShine 2s ease-in-out infinite;
-}
-
-@keyframes comboShine {
-  0%,
-  100% {
-    opacity: 0.3;
-  }
-  50% {
-    opacity: 0.8;
-  }
 }
 
 .comboInfo {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
+  gap: var(--space-3);
 }
 
 .comboLabel {
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: rgba(255, 215, 0, 0.95);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
   text-transform: uppercase;
-  letter-spacing: 1.5px;
-  background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  letter-spacing: var(--letter-tracked);
+  color: var(--color-on-bg-faint);
 }
 
 .comboCount {
-  font-size: 1.75rem;
-  font-weight: 900;
-  color: rgba(255, 215, 0, 0.7);
-  text-shadow: 0 0 12px rgba(255, 215, 0, 0.5);
-  transition: all 0.3s ease;
-  background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.4));
+  font-family: var(--font-display);
+  font-feature-settings: 'tnum' 1;
+  font-variant-numeric: tabular-nums slashed-zero;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-black);
+  color: var(--color-accent-combo);
+  letter-spacing: var(--letter-tracked-tight);
+  line-height: 1;
+  text-shadow: 0 0 12px rgb(255 226 77 / 0.5);
+  transition: transform var(--motion-duration-fast) var(--motion-ease-bounce);
 }
 
 .comboCount.active {
-  color: #ffd700;
-  text-shadow: 0 0 15px rgba(255, 215, 0, 0.9);
-  filter: drop-shadow(0 0 12px rgba(255, 215, 0, 0.8));
-  animation: pulse 1s ease-in-out infinite;
+  animation: ref06Pulse 1s var(--motion-ease-out) infinite;
 }
 
 .comboBar {
+  position: relative;
   width: 100%;
-  height: 6px;
-  background: rgba(0, 0, 0, 0.4);
-  border-radius: 3px;
+  height: 4px;
+  background: rgb(255 255 255 / 0.08);
+  border-radius: var(--radius-pill);
   overflow: hidden;
-  border: 1px solid rgba(255, 215, 0, 0.2);
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .comboBarFill {
   height: 100%;
-  background: linear-gradient(90deg, #ffd700 0%, #ffed4e 50%, #fbbf24 100%);
-  background-size: 200% 100%;
-  border-radius: 3px;
-  transition: width 0.1s linear;
-  box-shadow:
-    0 0 10px rgba(255, 215, 0, 0.7),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
-  animation: progressShine 2s ease-in-out infinite;
-}
-
-@keyframes progressShine {
-  0%,
-  100% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-}
-
-@keyframes pulse {
-  0%,
-  100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.1);
-  }
-}
-
-.emptyCombo {
-  margin-top: 0.5rem;
-  padding: 0.5rem;
-  text-align: center;
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 0.7rem;
-  font-style: italic;
-}
-
-.emptyCombo span {
-  display: block;
-}
-
-@media (max-width: 768px) {
-  .comboDisplay {
-    padding: 0.5rem;
-    border-radius: 8px;
-  }
-
-  .comboCount {
-    font-size: 1rem;
-  }
-
-  .comboLabel {
-    font-size: 0.65rem;
-  }
-
-  .comboBar {
-    height: 3px;
-  }
-}
-
-@media (max-width: 480px) {
-  .comboDisplay {
-    padding: 0.4rem;
-  }
-
-  .comboCount {
-    font-size: 0.9rem;
-  }
-
-  .comboLabel {
-    font-size: 0.6rem;
-  }
-
-  .comboInfo {
-    gap: 0.3rem;
-    margin-bottom: 0.3rem;
-  }
+  background: linear-gradient(
+    90deg,
+    var(--color-accent-combo) 0%,
+    var(--c-warn-amber) 100%
+  );
+  border-radius: var(--radius-pill);
+  box-shadow: 0 0 8px rgb(255 226 77 / 0.6);
+  transition: width 100ms linear;
 }

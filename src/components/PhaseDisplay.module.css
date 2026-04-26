@@ -1,115 +1,65 @@
-.phaseDisplay {
-  background: linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 41, 59, 0.85) 100%);
-  backdrop-filter: blur(30px) saturate(180%);
-  border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 1.25rem;
-  margin-bottom: 1rem;
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.3),
-    0 1px 0 rgba(255, 255, 255, 0.05) inset,
-    inset 0 0 50px rgba(59, 130, 246, 0.08);
-  transition: all 0.3s ease;
-}
+/*
+ * PhaseDisplay — slim overlay variant rendered by BoardOverlays (REF-06-FR-2).
+ */
 
-.phaseDisplay:hover {
-  border-color: rgba(255, 255, 255, 0.15);
-  box-shadow:
-    0 12px 40px rgba(0, 0, 0, 0.4),
-    0 1px 0 rgba(255, 255, 255, 0.08) inset,
-    inset 0 0 60px rgba(59, 130, 246, 0.12);
+.phaseDisplay {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  width: 100%;
 }
 
 .phaseHeader {
   display: flex;
+  align-items: baseline;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.75rem;
-  gap: 1rem;
+  gap: var(--space-3);
 }
 
 .phaseLabel {
-  font-size: 0.875rem;
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.9);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
   text-transform: uppercase;
-  letter-spacing: 2px;
-  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  letter-spacing: var(--letter-tracked);
+  color: var(--color-accent-primary);
 }
 
 .phaseName {
-  font-size: 1rem;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.95);
+  font-family: var(--font-ui);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-on-bg);
   text-align: right;
-  flex: 1;
+  max-width: 60%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .progressBar {
+  position: relative;
   width: 100%;
-  height: 10px;
-  background: rgba(0, 0, 0, 0.4);
-  border-radius: 6px;
+  height: 6px;
+  background: rgb(255 255 255 / 0.08);
+  border-radius: var(--radius-pill);
   overflow: hidden;
-  margin-bottom: 0.625rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .progressFill {
   height: 100%;
-  background: linear-gradient(90deg, #3b82f6 0%, #8b5cf6 40%, #ec4899 80%, #f59e0b 100%);
-  background-size: 200% 100%;
-  border-radius: 6px;
-  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow:
-    0 0 12px rgba(59, 130, 246, 0.7),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
-  animation: progressShine 2s ease-in-out infinite;
-}
-
-@keyframes progressShine {
-  0%,
-  100% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
+  background: linear-gradient(
+    90deg,
+    var(--color-accent-primary) 0%,
+    var(--color-accent-special) 100%
+  );
+  border-radius: var(--radius-pill);
+  box-shadow: 0 0 8px rgb(77 226 255 / 0.6);
+  transition: width var(--motion-duration-base) var(--motion-ease-standard);
 }
 
 .levelInfo {
-  font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.7);
-  text-align: center;
-  font-weight: 500;
-}
-
-@media (max-width: 768px) {
-  .phaseDisplay {
-    padding: 0.75rem;
-    margin-bottom: 0.75rem;
-  }
-
-  .phaseHeader {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
-  }
-
-  .phaseLabel {
-    font-size: 0.75rem;
-  }
-
-  .phaseName {
-    font-size: 0.875rem;
-    text-align: left;
-  }
-
-  .levelInfo {
-    font-size: 0.7rem;
-  }
+  font-size: var(--font-size-xs);
+  color: var(--color-on-bg-muted);
+  font-weight: var(--font-weight-medium);
+  text-align: right;
 }

@@ -80,7 +80,12 @@
     "poison": "Poison",
     "reverseControls": "Reverse Controls",
     "slowDown": "Slow Down",
-    "normal": "Normal"
+    "normal": "Normal",
+    "activeAriaLabel": "Active power-ups",
+    "remainingAriaLabel": "Time remaining",
+    "legendTitle": "Power-up Catalogue",
+    "legendPositive": "Positive",
+    "legendNegative": "Negative"
   },
   "powerUpDescriptions": {
     "speedBoost": "Move faster for 5s",
@@ -161,6 +166,16 @@
   "panels": {
     "powerUps": "Power-Ups",
     "combo": "Combo"
+  },
+  "hud": {
+    "ariaLabel": "Main game HUD",
+    "metricsAriaLabel": "Match metrics",
+    "score": "Score",
+    "highScore": "Best",
+    "level": "Level",
+    "lives": "Lives",
+    "livesAriaLabel": "{{count}} lives remaining",
+    "legend": "Power-ups"
   },
   "phaseDisplay": {
     "phase": "Phase",

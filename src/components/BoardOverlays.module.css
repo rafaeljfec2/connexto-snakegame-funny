@@ -1,0 +1,74 @@
+/*
+ * BoardOverlays — floats critical-but-secondary information OVER the board
+ * instead of in side rails (REF-06-FR-2, REF-06-D2 — L1 layout).
+ *
+ *   ┌────────────────────────────────┐
+ *   │                       [PWUPS]  │
+ *   │                                │
+ *   │           BOARD                │
+ *   │                                │
+ *   │ [COMBO]  [PHASE PROGRESS]      │
+ *   └────────────────────────────────┘
+ *
+ * The container is purely positional — pointer-events: none — so click/touch
+ * still pass through to the board. Children opt-in by setting pointer-events: auto.
+ */
+
+.layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: var(--z-overlay);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  padding: var(--hud-overlay-pad);
+  gap: var(--space-3);
+}
+
+.slotTopRight {
+  grid-column: 2;
+  grid-row: 1;
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-start;
+  gap: var(--space-2);
+  pointer-events: auto;
+}
+
+.slotBottomLeft {
+  grid-column: 1;
+  grid-row: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  pointer-events: auto;
+}
+
+.activePowerUpsHost {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  max-width: 280px;
+  animation: ref06SlideInRight var(--motion-duration-base) var(--motion-ease-out) both;
+}
+
+.comboHost,
+.phaseHost {
+  background: var(--color-surface-translucent);
+  border: 1px solid var(--color-stroke-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+  min-width: 180px;
+  backdrop-filter: blur(10px) saturate(140%);
+  box-shadow: var(--shadow-elev-1);
+  animation: ref06SlideInUp var(--motion-duration-base) var(--motion-ease-out) both;
+}
+
+@media (max-width: 768px) {
+  .layer {
+    display: none;
+  }
+}

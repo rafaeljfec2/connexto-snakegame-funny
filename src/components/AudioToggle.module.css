@@ -2,27 +2,28 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   padding: 0;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.06);
-  color: var(--color-text, #e7e7ee);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-stroke-soft);
+  background: transparent;
+  color: var(--color-on-bg);
   cursor: pointer;
   font-size: 18px;
   line-height: 1;
   transition:
-    background 120ms ease,
-    color 120ms ease,
-    transform 80ms ease;
+    background var(--motion-duration-fast) var(--motion-ease-out),
+    color var(--motion-duration-fast) var(--motion-ease-out),
+    border-color var(--motion-duration-fast) var(--motion-ease-out),
+    transform var(--motion-duration-instant) var(--motion-ease-out);
 }
 
 .button:hover,
 .button:focus-visible {
-  background: rgba(255, 255, 255, 0.12);
-  outline: 2px solid rgba(255, 255, 255, 0.25);
-  outline-offset: 2px;
+  border-color: var(--color-accent-primary);
+  background: rgb(77 226 255 / 0.06);
+  outline: none;
 }
 
 .button:active {
@@ -30,18 +31,11 @@
 }
 
 .button[data-muted='true'] {
-  color: #f06e6e;
+  color: var(--color-accent-danger);
+  border-color: rgb(255 93 108 / 0.5);
 }
 
 .button[data-ready='false'] {
   opacity: 0.55;
   cursor: default;
-}
-
-@media (min-width: 768px) {
-  .button {
-    width: 44px;
-    height: 44px;
-    font-size: 20px;
-  }
 }

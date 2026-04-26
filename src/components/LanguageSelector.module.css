@@ -1,38 +1,45 @@
-@media (max-width: 768px) {
-  .languageSelector {
-    display: none !important;
-  }
-}
-
 .languageSelector {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
 }
 
 .select {
-  padding: 6px 12px;
-  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.2));
-  border-radius: 4px;
-  background: var(--bg-secondary, rgba(0, 0, 0, 0.3));
-  color: var(--text-primary, #ffffff);
-  font-size: 14px;
+  height: 36px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--color-stroke-soft);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-on-bg);
+  font-family: var(--font-ui);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--letter-tracked-tight);
+  text-transform: uppercase;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition:
+    border-color var(--motion-duration-fast) var(--motion-ease-out),
+    background var(--motion-duration-fast) var(--motion-ease-out);
 }
 
 .select:hover {
-  border-color: var(--border-hover, rgba(255, 255, 255, 0.4));
-  background: var(--bg-hover, rgba(0, 0, 0, 0.4));
+  border-color: var(--color-accent-primary);
+  background: rgb(77 226 255 / 0.06);
 }
 
-.select:focus {
+.select:focus-visible {
   outline: none;
-  border-color: var(--accent-color, #3b82f6);
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+  border-color: var(--color-accent-primary);
+  box-shadow: 0 0 0 2px rgb(77 226 255 / 0.25);
 }
 
 .select option {
-  background: var(--bg-primary, #1a1a1a);
-  color: var(--text-primary, #ffffff);
+  background: var(--color-bg-surface);
+  color: var(--color-on-bg);
+}
+
+@media (max-width: 768px) {
+  .languageSelector {
+    display: none;
+  }
 }

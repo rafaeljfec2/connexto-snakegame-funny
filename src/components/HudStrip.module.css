@@ -1,0 +1,224 @@
+/*
+ * Top HUD strip — replaces the dashboard-card header (REF-06-FR-3, REF-06-FR-1).
+ * Translucent, full-width, sticky to the top with a subtle bottom hairline glow.
+ * Static box-shadow only (no animation per REF-06-D6).
+ */
+
+.strip {
+  position: relative;
+  z-index: var(--z-hud);
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-5);
+  width: 100%;
+  min-height: var(--hud-strip-height);
+  padding: 0 var(--space-6);
+  padding-top: max(var(--space-2), env(safe-area-inset-top, 0px));
+  background: linear-gradient(180deg, var(--color-bg-base) 0%, rgb(10 13 26 / 0.78) 100%);
+  border-bottom: 1px solid var(--color-stroke-subtle);
+  box-shadow:
+    inset 0 -1px 0 rgb(77 226 255 / 0.18),
+    var(--shadow-elev-1);
+  backdrop-filter: blur(14px) saturate(140%);
+}
+
+.brand {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-black);
+  letter-spacing: var(--letter-tracked-loose);
+  text-transform: uppercase;
+  color: var(--color-on-bg);
+  font-size: var(--font-size-md);
+  line-height: 1;
+  user-select: none;
+}
+
+.brandMark {
+  color: var(--color-accent-success);
+  text-shadow: 0 0 12px rgb(92 255 154 / 0.55);
+}
+
+.brandSep {
+  color: var(--color-on-bg-faint);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: var(--letter-tracked-tight);
+}
+
+.brandWord {
+  color: var(--color-on-bg);
+}
+
+.metrics {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-6);
+  min-width: 0;
+}
+
+.metric {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.metricLabel {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-tracked);
+  color: var(--color-on-bg-faint);
+  line-height: 1;
+}
+
+.metricValue {
+  font-family: var(--font-display);
+  font-feature-settings: 'tnum' 1, 'ss01' 1;
+  font-variant-numeric: tabular-nums slashed-zero;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  line-height: 1;
+  color: var(--color-on-bg);
+  letter-spacing: var(--letter-tracked-tight);
+}
+
+.metricValue[data-tone='accent'] {
+  color: var(--color-accent-primary);
+  text-shadow: 0 0 10px rgb(77 226 255 / 0.45);
+}
+
+.metricValue[data-tone='success'] {
+  color: var(--color-accent-success);
+  text-shadow: 0 0 10px rgb(92 255 154 / 0.45);
+}
+
+.divider {
+  width: 1px;
+  height: 24px;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    var(--color-stroke-soft) 50%,
+    transparent 100%
+  );
+}
+
+.lives {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.lifeDot {
+  width: 12px;
+  height: 12px;
+  border-radius: var(--radius-pill);
+  background: var(--color-accent-danger);
+  box-shadow: 0 0 8px rgb(255 93 108 / 0.5);
+  transition: transform var(--motion-duration-fast) var(--motion-ease-out);
+}
+
+.lifeDot[data-active='false'] {
+  background: transparent;
+  border: 1.5px solid var(--color-stroke-soft);
+  box-shadow: none;
+}
+
+.actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex: 0 0 auto;
+}
+
+.legendButton {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: 36px;
+  padding: 0 var(--space-3);
+  background: transparent;
+  border: 1px solid var(--color-stroke-soft);
+  border-radius: var(--radius-md);
+  color: var(--color-on-bg-muted);
+  font-family: var(--font-ui);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--letter-tracked);
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    color var(--motion-duration-fast) var(--motion-ease-out),
+    border-color var(--motion-duration-fast) var(--motion-ease-out),
+    background var(--motion-duration-fast) var(--motion-ease-out);
+}
+
+.legendButton:hover,
+.legendButton:focus-visible {
+  color: var(--color-accent-primary);
+  border-color: var(--color-accent-primary);
+  background: rgb(77 226 255 / 0.06);
+  outline: none;
+}
+
+.legendButton[data-open='true'] {
+  color: var(--color-accent-primary);
+  border-color: var(--color-accent-primary);
+  background: rgb(77 226 255 / 0.1);
+}
+
+.legendIcon {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: var(--radius-xs);
+  background: currentColor;
+  opacity: 0.8;
+}
+
+@media (max-width: 968px) {
+  .strip {
+    padding: 0 var(--space-4);
+    gap: var(--space-3);
+  }
+
+  .brandSep,
+  .brandWord {
+    display: none;
+  }
+
+  .metrics {
+    gap: var(--space-4);
+  }
+
+  .metricValue {
+    font-size: var(--font-size-lg);
+  }
+
+  .divider {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .legendButton {
+    width: 36px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .legendButton span:not(.legendIcon) {
+    display: none;
+  }
+
+  .metric[data-priority='low'] {
+    display: none;
+  }
+}

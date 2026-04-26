@@ -33,3 +33,4 @@ An ADR captures **a single architectural decision**, **why** it was made, and **
 - [ADR-0002 — Keep Canvas 2D, defer PixiJS until metrics demand it](0002-keep-canvas2d-defer-pixijs.md)
 - [ADR-0003 — Universal AGENTS.md as the single source of truth for AI agents](0003-universal-agents-md.md)
 - [ADR-0004 — React external store via `useSyncExternalStore` and CSS-driven background animation](0004-react-external-store-and-css-driven-background.md)
+- [ADR-0005 — Neon Arcade design system and L1 full-bleed layout](0005-neon-arcade-design-system-and-l1-full-bleed-layout.md)

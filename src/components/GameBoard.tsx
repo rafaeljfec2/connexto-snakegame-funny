@@ -40,32 +40,31 @@ function GameBoardComponent({ resetToken = 0, gameWorker }: Readonly<GameBoardPr
 
   useEffect(() => {
     const updateCellSize = () => {
-      const isNarrow = window.innerWidth <= 1024;
-      const isLandscapeShort = window.innerHeight <= 800 && window.innerWidth > window.innerHeight;
-      const responsiveMode = isNarrow || isLandscapeShort;
+      const narrow = window.innerWidth <= 768;
+      setIsMobile(narrow);
 
-      setIsMobile(responsiveMode);
+      if (!boardRef.current) return;
+      const container = boardRef.current.parentElement;
+      if (!container) return;
 
-      if (boardRef.current) {
-        const container = boardRef.current.parentElement;
-        if (container) {
-          const containerRect = container.getBoundingClientRect();
-          const padding = responsiveMode ? 4 : 24;
-          const availableWidth = containerRect.width - padding * 2;
-          const availableHeight = containerRect.height - padding * 2;
+      const containerRect = container.getBoundingClientRect();
+      const containerStyle = window.getComputedStyle(container);
+      const horizontalPadding =
+        parseFloat(containerStyle.paddingLeft) + parseFloat(containerStyle.paddingRight);
+      const verticalPadding =
+        parseFloat(containerStyle.paddingTop) + parseFloat(containerStyle.paddingBottom);
 
-          const calculatedCellSize = Math.floor(
-            Math.min(availableWidth, availableHeight) / GAME_CONFIG.gridSize,
-          );
+      const availableWidth = containerRect.width - horizontalPadding;
+      const availableHeight = containerRect.height - verticalPadding;
+      const availableSide = Math.min(availableWidth, availableHeight);
 
-          if (responsiveMode) {
-            const finalCellSize = Math.max(calculatedCellSize, 8);
-            setCellSize(finalCellSize);
-          } else {
-            setCellSize(GAME_CONFIG.cellSize);
-          }
-        }
-      }
+      if (availableSide <= 0) return;
+
+      const rawCellSize = Math.floor(availableSide / GAME_CONFIG.gridSize);
+      const minCellSize = narrow ? 8 : 12;
+      const maxCellSize = 32;
+      const finalCellSize = Math.max(minCellSize, Math.min(maxCellSize, rawCellSize));
+      setCellSize(finalCellSize);
     };
 
     updateCellSize();

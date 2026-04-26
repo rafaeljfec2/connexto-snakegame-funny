@@ -1,0 +1,50 @@
+{
+  "version": 2,
+  "fps": 60.00150003752329,
+  "frameIntervalMs": 16.66624999999379,
+  "frameIntervalP1": 16.299999997019768,
+  "frameIntervalP5": 16.399999998509884,
+  "frameIntervalP50": 16.69999999552965,
+  "frameIntervalP95": 16.900000005960464,
+  "frameWorkTimeMs": 0.09624999975785613,
+  "frameWorkTimeP50": 0.10000000149011612,
+  "frameWorkTimeP95": 0.20000000298023224,
+  "longTasksPerMinute": 79,
+  "longTasksTotalMsPerMinute": 5491.799999982119,
+  "heapMB": 35.86362266540527,
+  "phaseId": 1,
+  "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+  "viewport": {
+    "w": 1920,
+    "h": 911,
+    "dpr": 1
+  },
+  "capturedAt": "2026-04-26T19:06:43.489Z",
+  "webVitals": [
+    {
+      "metric": "TTFB",
+      "value": 394.5,
+      "rating": "good"
+    },
+    {
+      "metric": "FCP",
+      "value": 760,
+      "rating": "good"
+    },
+    {
+      "metric": "CLS",
+      "value": 0.01861775227618924,
+      "rating": "good"
+    },
+    {
+      "metric": "LCP",
+      "value": 760,
+      "rating": "good"
+    },
+    {
+      "metric": "INP",
+      "value": 120,
+      "rating": "good"
+    }
+  ]
+}

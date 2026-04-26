@@ -94,6 +94,62 @@
   --hud-overlay-pad: 12px;
 }
 
+/*
+ * REF-07 Phase A — Light theme palette.
+ *
+ * The Neon Arcade design system supports two lighting conditions. The dark
+ * palette is the default; the light palette activates via `<html data-theme='light'>`
+ * and inherits every token from `:root` that is not overridden below (identity
+ * preserved — spacing, radii, z-index, typography, motion timings are the same).
+ *
+ * Accent tokens do NOT keep the same primitives as dark: neon colors designed
+ * for a black background (e.g., `--c-neon-cyan: #4de2ff`) fall to ~1.4:1
+ * contrast on an off-white surface. We introduce a parallel set of "-on-light"
+ * primitives (deeper, more saturated versions of the same hues) so AA/AAA
+ * contrast holds on the light palette without sacrificing brand hue identity.
+ *
+ * The playfield canvas (board itself) keeps its own dark surface in both
+ * themes — classic arcade convention (Pac-Man, Galaga, Space Invaders always
+ * render on a black cabinet regardless of ambient lighting). Only the app
+ * chrome (HUD, drawer, instructions, toggles, cards) flips.
+ */
+:root[data-theme='light'] {
+  --c-neon-green-on-light: #0c7238;
+  --c-neon-cyan-on-light: #0e647a;
+  --c-neon-pink-on-light: #b3175a;
+  --c-neon-yellow-on-light: #7a5e00;
+  --c-neon-violet-on-light: #5e28a8;
+  --c-warn-amber-on-light: #8a5200;
+  --c-danger-red-on-light: #c31728;
+
+  --color-bg-base: #f7f9fd;
+  --color-bg-surface: #ffffff;
+  --color-bg-elevated: #eef1f8;
+  --color-bg-hover: #e0e5f0;
+
+  --color-on-bg: #0f1424;
+  --color-on-bg-strong: #050914;
+  --color-on-bg-muted: #3e4460;
+  --color-on-bg-faint: #6a7088;
+
+  --color-accent-primary: var(--c-neon-cyan-on-light);
+  --color-accent-success: var(--c-neon-green-on-light);
+  --color-accent-warn: var(--c-warn-amber-on-light);
+  --color-accent-danger: var(--c-danger-red-on-light);
+  --color-accent-combo: var(--c-neon-yellow-on-light);
+  --color-accent-special: var(--c-neon-violet-on-light);
+
+  --color-stroke-subtle: rgb(0 0 0 / 0.1);
+  --color-stroke-soft: rgb(0 0 0 / 0.16);
+  --color-stroke-strong: rgb(0 0 0 / 0.28);
+
+  --color-overlay-scrim: rgb(240 243 255 / 0.72);
+  --color-surface-translucent: rgb(247 249 253 / 0.82);
+
+  --shadow-elev-1: 0 2px 8px rgb(30 40 70 / 0.18);
+  --shadow-elev-2: 0 8px 24px rgb(30 40 70 / 0.26);
+}
+
 @media (max-width: 480px) {
   :root {
     --hud-strip-height: var(--hud-strip-height-mobile);
@@ -122,6 +178,16 @@
     --c-neon-violet: oklch(0.7 0.25 305);
     --c-warn-amber: oklch(0.8 0.2 75);
     --c-danger-red: oklch(0.65 0.28 25);
+  }
+
+  :root[data-theme='light'] {
+    --c-neon-green-on-light: oklch(0.45 0.18 145);
+    --c-neon-cyan-on-light: oklch(0.4 0.13 200);
+    --c-neon-pink-on-light: oklch(0.45 0.22 5);
+    --c-neon-yellow-on-light: oklch(0.45 0.14 95);
+    --c-neon-violet-on-light: oklch(0.38 0.2 305);
+    --c-warn-amber-on-light: oklch(0.45 0.15 75);
+    --c-danger-red-on-light: oklch(0.45 0.22 25);
   }
 }
 

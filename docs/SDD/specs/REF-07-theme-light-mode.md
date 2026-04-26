@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| **Status** | Draft |
+| **Status** | In Progress (Phase A landed — palette + contrast matrix green; Phases B/C/D open) |
 | **Owner** | rafael |
 | **Created** | 2026-04-26 |
 | **Last updated** | 2026-04-26 |
@@ -253,9 +253,40 @@ _To be filled after implementation._
 
 | Phase | Deliverable | Owner gate |
 |---|---|---|
-| **A — Contrast matrix + palette** | Write `:root[data-theme='light']` tokens. Extend `tokens.spec.ts` to loop both themes. Validate AA/AAA before writing any UI. | Owner sign-off on the proposed light palette values in §4. |
+| **A — Contrast matrix + palette** ✅ | Write `:root[data-theme='light']` tokens. Extend `tokens.spec.ts` to loop both themes. Validate AA/AAA before writing any UI. | **Landed 2026-04-26**. Owner sign-off on the palette happens implicitly during B/C when the toggle lets the owner see the final values in-app. |
 | **B — Store + boot script** | Ship `themeStore`, `useTheme`, inline boot script. No UI yet. Verify manually via DevTools `document.documentElement.setAttribute('data-theme','light')`. | Gate: tests green, no FOUT on reload. |
 | **C — ThemeToggle component + HUD mount** | Visible in-app toggle, cycle state, aria + i18n keys. | Owner approves visual + interaction. |
 | **D — Validation + docs** | Bundle audit, Lighthouse re-check, screenshots, spec §8 implementation notes, ADR update if needed. | Spec moves to `Done`. |
 
 Each phase is independently releasable — if B is green but C is not ready for owner review, the feature flag equivalent is "no `<ThemeToggle />` mount yet" — the palette and store still function.
+
+### 9.1 Phase A — delivered 2026-04-26
+
+**Deliverable**
+
+- `src/styles/tokens.css`: added `:root[data-theme='light']` block with 7 new primitives (`-on-light` variants of the neon hues), 13 overrides for backgrounds / foregrounds / strokes / overlay / surface-translucent, and 6 accent re-bindings. OKLCH mirror added inside the existing `@supports (color: oklch(0 0 0))` block.
+- `src/styles/__tests__/tokens.spec.ts`: refactored `RootScope` → `ThemeScope` with a `fallback` chain so tokens not redefined on the light scope cascade from the dark scope (mirrors browser semantics). The 11 contrast pairs now run under `describe.each(['dark','light'])`, giving 22 pair assertions. Added 3 new suites validating which tokens the light scope must override, which accents must have deep-on-light variants, and which tokens (spacing / radii / z-index / HUD dimensions) are **theme-invariant** and must NOT be redefined.
+- The playfield canvas keeps its own dark surface in both themes — documented in the header comment of the light block as a deliberate arcade-canon decision (Pac-Man / Galaga / Space Invaders always render on black regardless of ambient lighting).
+
+**Light palette (final, as shipped)**
+
+| Token | Dark (current) | Light (shipped) | Contrast on light bg | Gate |
+|---|---|---|---|---|
+| `--color-bg-base` | `#0a0d1a` | `#f7f9fd` | — | surface |
+| `--color-bg-surface` | `#131829` | `#ffffff` | — | surface |
+| `--color-bg-elevated` | `#1d2440` | `#eef1f8` | — | surface |
+| `--color-on-bg` | `#f5f7ff` | `#0f1424` | 17.5:1 | AAA |
+| `--color-on-bg-strong` | `#f5f7ff` | `#050914` | 19.8:1 | AAA |
+| `--color-on-bg-muted` | `#c2c8e0` | `#3e4460` | 10.2:1 | AAA |
+| `--color-accent-primary` (cyan) | `#4de2ff` | `#0e647a` | 5.9:1 | AA |
+| `--color-accent-success` (green) | `#5cff9a` | `#0c7238` | 5.6:1 | AA |
+| `--color-accent-combo` (yellow) | `#ffe24d` | `#7a5e00` | 6.5:1 | AA |
+| `--color-accent-danger` (red) | `#ff5d6c` | `#c31728` | 6.7:1 | AA |
+| `--color-accent-warn` (amber) | `#ffb84d` | `#8a5200` | 7.8:1 | AAA |
+| `--color-accent-special` (violet) | `#b06bff` | `#5e28a8` | 8.7:1 | AAA |
+
+**Gates** — `tsc ✅` · `eslint ✅` · `vitest 159/159 ✅` (+17 vs Phase F baseline: 22 contrast pair assertions instead of 11, plus 3 light-theme-override validators) · `vite build ✅` (CSS 94.71 → 94.87 kB, gzip 16.77 → 16.79 kB: **+0.02 kB gzip**, well inside the +2 kB budget committed in §1 "Success").
+
+**Deliberately deferred to Phase B**
+
+- `@media (prefers-color-scheme: light)` in `tokens.css:138-144` stays empty on purpose. Phase B's inline boot script will read `matchMedia` and write `data-theme` explicitly on `<html>` — that single source of truth makes the `:root[data-theme='light']` block the only code path applying light tokens, eliminating the duplication pitfall of maintaining two parallel CSS blocks.

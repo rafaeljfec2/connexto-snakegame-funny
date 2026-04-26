@@ -2,11 +2,11 @@
 
 | Field | Value |
 |---|---|
-| **Status** | In Progress (Phase D — Mobile polish landed; Phase B.2 motion + E validation pending) |
+| **Status** | Done (Phase A → A.1 → A.2 → A.3 → D → E landed; Phase B.2 "motion polish" deferred to a future REF) |
 | **Owner** | rafael |
 | **Created** | 2026-04-25 |
 | **Last updated** | 2026-04-26 |
-| **Related ADRs** | ADR-0005 (to be opened in Phase A) — "Visual direction: Neon Arcade + 3-tier design tokens" |
+| **Related ADRs** | [ADR-0005](../../ADR/0005-neon-arcade-design-system-and-l1-full-bleed-layout.md) — "Neon Arcade design system and L1 full-bleed layout" (Accepted) |
 | **Supersedes** | — |
 | **Parallel to** | none — REF-04 and REF-05 are Done; this is the next workstream |
 
@@ -320,6 +320,75 @@ Reply with one of:
 - *Tiny5 / 26F Galaxy Sans / Digital Numbers Font* — Fontesk / GitHub: 26F Galaxy Sans is a true variable display font *purpose-built for game UI* (Techmino Galaxy), OFL, supports digit-tabular figures. Drives D4.
 - *Slither.io* / *Krunker.io* / *Diep.io* — gamedeveloper.com / fanbolt.com: "simple concept and simple graphics drive addictive appeal"; HUD lives at edges, board dominates center; vibrant colors are signature. Drives D2 (L1 layout).
 
-## 13. Implementation notes (filled when status = Done)
+## 13. Implementation notes (status = Done)
 
-_Empty until Phase A lands._
+### 13.1 Phase A — Foundation + vertical slice (landed 2026-04-25)
+
+- New tokens file [`src/styles/tokens.css`](../../../src/styles/tokens.css): 3-tier OKLCH with sRGB fallback, `@supports` gated, `@media (prefers-contrast: more)` ladder, z-indices, radii, spacing, HUD geometry.
+- New motion primitives [`src/styles/motion.css`](../../../src/styles/motion.css): `ref06*` keyframes, durations, easings, `prefers-reduced-motion` media block.
+- New layout primitives [`src/styles/layout.css`](../../../src/styles/layout.css): app-shell, HUD strip, game container geometry.
+- `HudStrip` shipped as the single top strip hosting brand + Score/Best/Phase/Lives (+ Length on mobile only) + actions (`PowerUpsLegendDrawer` toggle, `AudioToggle`, `LanguageSelector`).
+- `GameHeader`, `GameSidebar`, `BoardOverlays`, `BottomInfoBar`, `PhaseDisplay`, `StatusBar`, `LivesDisplay` **deleted** across the A/A.3/D phases — each unused component was removed in its defining phase (no dead code kept for rollback).
+- `App.module.css` reduced from ~1300 LOC to the shell-only concerns; dashboard chrome gone.
+
+### 13.2 Phase A.1 — Board scaling fix (same day)
+
+- Dynamic `cellSize` computation on `GameBoard` reads the actual `.gameContainer` width and solves `cellCount × (cellSize + gap)` against it, so the playing field tracks the viewport instead of a hardcoded breakpoint.
+
+### 13.3 Phase A.2 — Viewport-anchored overlays (same day)
+
+- `ViewportPowerUpsRail` (`position: fixed; top-left`) and `ViewportComboBadge` (`position: fixed; top-right`) replace the `BoardOverlays` layer, pulling transient read-only state **off** the canvas.
+- Both hide below 768 px, where mobile flow keeps the HUD-only rendering.
+
+### 13.4 Phase A.3 — Phase + progress folded into the HUD (2026-04-26)
+
+- `BottomInfoBar` and `PhaseDisplay` deleted; their data moved into the HUD strip's `phaseSlot` (FASE N · Name · ▓▓░░ X/5), exposing a real `role="progressbar"` with `aria-valuemin/max/now`.
+- `--bottom-bar-reserved` token removed; `.gameContainer` max-height simplified to read `--hud-strip-height` only.
+
+### 13.5 Phase D — Mobile polish (2026-04-26)
+
+- `StatusBar` ("MobileStatusBar") + `LivesDisplay` deleted; `HudStrip` gains a `data-mobile-only` `LENGTH` slot.
+- Dual-mode responsive HUD: ≤ 968 px compacts brand to mark-only, ≤ 640 px hides `Best` + phase name, ≤ 480 px wraps to two rows; `--hud-strip-height` jumps from 56 → 88 px through the scoped `--hud-strip-height-mobile` token.
+- `controls.instructions` split into `[data-variant="keyboard"]` (desktop) and `[data-variant="touch"]` (≤ 768 px) — mobile users see "Swipe or use the D-pad…" instead of a useless `↑↓←→` legend.
+- `TouchControls` rebuilt on Neon Arcade tokens: 56 × 56 hit targets (Apple HIG / Material), cyan glow on `:active`, success-gradient pill for the central poison button, `@media (prefers-reduced-motion: reduce)` blocks every transition, haptic feedback (`navigator.vibrate(15)`) preserved.
+
+### 13.6 Phase B.1 (webfont) — reverted
+
+- Introduced `26F Galaxy Sans Variable` (OFL, 39 kB subset woff2) as the display face. Reverted in the same phase after owner review: the glyphs rendered poorly at the sizes where the display stack is actually used (HUD metric labels, drawer title at 10–13 px with aggressive letter-spacing).
+- Artifacts removed: `@font-face`, `<link rel="preload">` hint, `public/fonts/*`, `src/styles/__tests__/webfont.spec.ts`. Net effect on the critical path: **-39 kB webfont, -0.15 kB `index.html`, -0.37 kB CSS**.
+
+### 13.7 Phase E — Validation + closure (2026-04-26)
+
+- **Containing-block fix for `PowerUpsLegendDrawer`**: the drawer was rendered inside `HudStrip`, which has `backdrop-filter: blur(14px)`. Per the CSS Filter Effects spec, `backdrop-filter` ancestors become the containing block for `position: fixed` descendants, so the drawer's `right: 0; top: 0; bottom: 0` resolved against the 56 px HUD instead of the viewport — clipping 95 % of its content. Fix: lift the drawer up to `App.tsx` as a sibling of `HudStrip`, convert `HudStrip` to a controlled component (`legendOpen` + `onToggleLegend` props). Zero CSS changes needed. Documented in ADR-0005 §Decision 1, Phase E revision.
+- `tokens.spec.ts` expanded from 9 to **14 WCAG pairs**: added `accent-danger`, `accent-warn`, `accent-special` over `bg-base` (AA ≥ 4.5:1) and `on-bg` over `bg-elevated` (AAA ≥ 7:1 for drawer headings). All 14 pairs pass.
+- Final gated build: `pnpm tsc --noEmit`, `pnpm lint`, `pnpm test --run`, `pnpm build` — all green.
+
+### 13.8 Final metrics
+
+| Metric | Baseline (pre-REF-06) | After REF-06 | Delta |
+|---|---|---|---|
+| `index-*.css` (raw / gzip) | — | **92.39 kB / 16.28 kB** | new tokens/motion/layout primitives |
+| `index-*.js` (raw / gzip) | — | **354.83 kB / 111.52 kB** | effectively flat (no new JS deps) |
+| `index.html` (raw / gzip) | 1.22 kB / 0.59 kB | **1.07 kB / 0.53 kB** | `-0.15 kB` (webfont preload removed) |
+| Webfont bytes on the wire | 0 | **0** | Phase B.1 reverted |
+| Unit tests | 122 | **140** | `+18` (new HUD / drawer / token pairs; `-12` from the deleted webfont contract) |
+| WCAG contrast pairs covered | 9 | **14** | `+5` (accent-danger / accent-warn / accent-special / on-bg on elevated) |
+| LOC removed (`App.module.css`) | ~1300 | ~450 | `-65 %` dashboard chrome |
+| Components deleted | 0 | **7** | `GameHeader`, `GameSidebar`, `BoardOverlays`, `BottomInfoBar`, `PhaseDisplay`, `StatusBar`, `LivesDisplay` |
+
+### 13.9 Acceptance check against §7
+
+| AC | Status | Notes |
+|---|---|---|
+| AC-1 Owner accepts before/after | ✅ | Approved visually through Phase D + E screenshots. |
+| AC-2 Board ≥ 60 % width desktop / 92 % mobile | ✅ | `.gameContainer` formula honors `--hud-strip-height`; board dominates the viewport on every breakpoint. |
+| AC-3 Web Vitals `CLS ≤ 0.10` / `INP ≤ 200 ms` / `LCP ≤ 1.5 s` | ⚠️ Manual | Needs owner to capture a fresh perf snapshot via Shift+F4 (`src/components/PerfDebugPanel.tsx`) on a dpr-1 run and compare with `docs/SDD/baselines/phase-1-dpr1.json`. |
+| AC-4 REF-04 budget held | ⚠️ Manual | Same snapshot as AC-3. Visually: no change to worker / render hot path in REF-06. |
+| AC-5 Lighthouse Performance ≥ 95 | ⚠️ Manual | Owner runs Chrome DevTools → Lighthouse on `pnpm preview`; no Lighthouse CLI installed (would require introducing a new dev dep, blocked by user rule). |
+| AC-6 Lint + test + build green, bundle delta ≤ +25 kB gzip | ✅ | All gates green. Net delta vs. pre-REF-06 is dominated by new CSS; JS flat. Webfont never lands. |
+| AC-7 `tokens.css` as single source of truth | ✅ | `rg '#[0-9a-f]{3,8}\|rgb\(\|hsl\(' src/components --type css` returns 0 non-token references. |
+| AC-8 Contrast contract ≥ AA / AAA | ✅ | 14 pairs in `tokens.spec.ts`, all pass. |
+| AC-9 `prefers-reduced-motion` honored | ✅ | `motion.css` root media block + per-component local overrides (TouchControls, PowerUpsLegendDrawer, overlays). |
+| AC-10 Dead imports / `tsc --noEmit` green | ✅ | 7 deleted components; `pnpm tsc --noEmit` green. |
+
+**Owner-manual items (AC-3, AC-4, AC-5)** are documented as follow-up in the PR body — they require a real browser and are out of scope for the agent run. The rest of the acceptance criteria are green.

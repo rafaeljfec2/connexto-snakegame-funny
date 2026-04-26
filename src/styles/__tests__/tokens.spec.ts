@@ -130,6 +130,30 @@ describe('design tokens (REF-06-FR-7 / AC-7 / AC-8)', () => {
         fg: '--color-accent-combo',
         min: minBody,
       },
+      {
+        name: 'accent-danger over bg-base (AA — game-over text)',
+        bg: '--color-bg-base',
+        fg: '--color-accent-danger',
+        min: minBody,
+      },
+      {
+        name: 'accent-warn over bg-base (AA — low-lives amber)',
+        bg: '--color-bg-base',
+        fg: '--color-accent-warn',
+        min: minBody,
+      },
+      {
+        name: 'accent-special over bg-base (AA — boss violet)',
+        bg: '--color-bg-base',
+        fg: '--color-accent-special',
+        min: minBody,
+      },
+      {
+        name: 'on-bg over bg-elevated (AAA — drawer headings)',
+        bg: '--color-bg-elevated',
+        fg: '--color-on-bg',
+        min: minHudCritical,
+      },
     ];
 
     it.each(pairs)('$name should be at least $min:1', ({ bg, fg, min }) => {

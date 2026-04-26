@@ -136,14 +136,15 @@
 
 ## 📋 FASE 4: Funcionalidades Intermediárias
 
-### ⏳ 16. **Sistema de Skins/Temas**
+### ✅ 16. **Sistema de Skins/Temas** (REF-08)
 
-**Complexidade:** Média | **Impacto:** Alto
+**Complexidade:** Média | **Impacto:** Alto | **Status:** Shipped — ver [REF-08](./SDD/specs/REF-08-snake-skins.md) e [ADR-0006](./ADR/0006-orthogonal-identity-axes-and-boss-outline-soft-override.md)
 
-- Diferentes skins para a cobra (cores, padrões)
-- Temas visuais (neon, pixel art, retro)
-- Desbloqueáveis por conquistas
-- Sistema de seleção no menu
+- [x] Diferentes skins para a cobra (4 paletas: Neon Green, Retro Arcade, Frozen Ice, Magenta Blaze)
+- [x] Seleção em `PowerUpsLegendDrawer` → Settings (`role="radiogroup"` acessível, teclado ArrowLeft/ArrowRight)
+- [x] Persistência em `localStorage['snake-game-skin']`, independente do tema (REF-07)
+- [x] Boss preserva cor narrativa, recebe outline de contraste derivado do skin do jogador (ADR-0006)
+- [ ] Desbloqueáveis por conquistas — deliberadamente fora de escopo (todas as skins grátis desde o dia 1); pode virar extensão aditiva futura
 
 ### ⏳ 17. **Comida Especial: Multi-Food (Rastro de Comida)**
 
@@ -400,7 +401,7 @@ Começar pela **Fase 2** (Sons e Música, Animações) para polir o jogo atual a
 - [x] Comida com Timer
 - [x] Sistema de Vidas
 - [x] Estatísticas Detalhadas
-- [ ] Sistema de Skins/Temas
+- [x] Sistema de Skins/Temas (REF-08)
 
 ### Fase 4 - Avançado
 - [x] Teleport/Portal

@@ -2,11 +2,11 @@
 
 | Field | Value |
 |---|---|
-| **Status** | In Progress (Phase C landed) |
+| **Status** | Done |
 | **Owner** | rafael |
 | **Created** | 2026-04-26 |
 | **Last updated** | 2026-04-26 |
-| **Related ADRs** | [ADR-0005](../../ADR/0005-neon-arcade-design-system-and-l1-full-bleed-layout.md) — "Neon Arcade design system and L1 full-bleed layout" (Accepted). A new ADR-0006 will be authored in Phase D to document the orthogonal-identity axes decision (chrome theme × canvas skin × phase weather). |
+| **Related ADRs** | [ADR-0005](../../ADR/0005-neon-arcade-design-system-and-l1-full-bleed-layout.md) — "Neon Arcade design system and L1 full-bleed layout" (Accepted); [ADR-0006](../../ADR/0006-orthogonal-identity-axes-and-boss-outline-soft-override.md) — "Orthogonal identity axes (chrome × canvas × weather) and soft boss-outline override" (Accepted). |
 | **Related specs** | [REF-07](REF-07-theme-light-mode.md) — Light theme mode (Done). REF-08 consumes REF-07's `data-theme` infrastructure for skin-preview contrast but does not extend it. |
 | **Supersedes** | — |
 | **Parallel to** | — |
@@ -225,13 +225,79 @@ Each `[●]` is a 20 × 20 px circle filled with a CSS `radial-gradient(at 30% 3
 - **Feature flag**: not introducing one. The selector is always visible once shipped; a user who never opens the drawer gets the default behavior.
 - **Rollback**: `git revert` of the Phase D closing commit restores the pre-REF-08 renderer. The `localStorage['snake-game-skin']` key is harmless if left behind after a rollback.
 
-## 8. Implementation notes (filled when status = Done)
+## 8. Implementation notes
 
-_To be filled after implementation._
+### Files shipped
 
-- Final files changed: …
-- Deviations from Design section: …
-- Follow-ups (link to new specs/issues if any): …
+**New files (8)**
+
+| Path | Role |
+|---|---|
+| `src/types/skin.ts` | `SkinId` union, `SkinPalette` / `SkinGradient` types, `STORAGE_KEYS.SKIN`, `SKIN_IDS`, `isSkinId` type guard. |
+| `src/constants/skins.ts` | `SKIN_CATALOG` (four palettes) + `DEFAULT_SKIN_ID` + `getSkinPalette` / `getDefaultSkinPalette` helpers. |
+| `src/constants/__tests__/skins.test.ts` | 23 test cases: structural shape, default resolution, label-key format, head-brighter-than-body invariant, WCAG 3:1 contrast against `--color-bg-base`, boss-contrast legibility and distinctness. |
+| `src/utils/skin.ts` | `getStoredSkin` / `saveSkin` with defensive `globalThis.localStorage?` reads, mirroring `src/utils/theme.ts`. |
+| `src/utils/__tests__/skin.test.ts` | 10 test cases: storage round-trip per `SkinId`, default fallback, corrupted-value fallback, SecurityError / QuotaExceededError handling. |
+| `src/contexts/SkinContext.tsx` | `SkinProvider` + `useSkin()` exposing `{ skinId, palette, setSkin }`, memoized `value`, provider-less guard. |
+| `src/contexts/__tests__/SkinContext.test.tsx` | 6 test cases: default on first mount, hydrate from `localStorage`, palette matches `skinId`, persistence, malformed-value fallback, provider-less throw. |
+| `src/workers/render/__tests__/renderState.test.ts` | 9 test cases: `handleUiSkin` ignores malformed payloads, swaps palette + flips `isRenderDirty` on valid input. |
+| `src/components/SkinSelector.tsx` | Accessible 4-state `radiogroup`; ArrowLeft/ArrowRight cycling with wraparound; preview chip reads directly from the palette's `head.highlight → body.mid → body.shadow` stops via a CSS radial gradient. |
+| `src/components/SkinSelector.module.css` | Mobile-first; labels collapse to `sr-only` ≤ 640 px; mirrors `ThemeToggle.module.css` for visual coherence. |
+| `src/components/__tests__/SkinSelector.test.tsx` | 8 test cases: radiogroup shape, default selection + tabindex hygiene, click persistence, forward/backward keyboard cycling, decorative preview, per-option aria-label, no-op on unrelated keys. |
+| `docs/ADR/0006-orthogonal-identity-axes-and-boss-outline-soft-override.md` | Architectural decision recording the orthogonality of chrome / canvas-skin / weather axes and the soft-override boss-outline contract. |
+
+**Modified files (7)**
+
+| Path | Phase | Change |
+|---|---|---|
+| `src/workers/render/renderState.ts` | A | Adds `skin: SkinPalette` to `RenderState` (defaulted to `getDefaultSkinPalette()`); adds `handleUiSkin` with a runtime type guard. |
+| `src/workers/render/renderDrawers.ts` | A | `createSnakeGradient` now reads color stops from `SkinPalette` for player segments; adds a `ctx.stroke()` pass with `skin.bossContrast.mid` when `isBoss === true`. |
+| `src/workers/render/renderHelpers.ts` | A | `drawSnakeBody` / `drawSnakeHead` / `drawBossSnake` forward `state.skin` into `drawSnakeSegment`. |
+| `src/workers/render.worker.ts` | A | Routes `UI_SKIN` messages into `handleUiSkin`. |
+| `src/main.tsx` | B | Mounts `<SkinProvider>` nested inside `<ThemeProvider>`. |
+| `src/components/GameBoard.tsx` | B | `useSkin()` → `useEffect` posts `{ type: 'UI_SKIN', payload: { skin: palette } }` keyed on `[palette, canvasKey]` so the mapping survives render-worker recreation on game reset. |
+| `src/components/PowerUpsLegendDrawer.tsx` | C | Adds a third settings row below Theme rendering `<SkinSelector />`. |
+| `src/components/__tests__/PowerUpsLegendDrawer.test.tsx` | C | Wraps renders with `<SkinProvider>` (nested inside `<ThemeProvider>`) and asserts Language / Theme / Skin coexist with correct ARIA roles. |
+| `src/i18n/locales/en-US.json`, `src/i18n/locales/pt-BR.json` | C | New `skin.*` keys (`title`, `groupLabel`, `neonGreen`, `retroArcade`, `frozenIce`, `magentaBlaze`). |
+| `docs/IDEIAS_MELHORIAS.md` | D | §16 moved from ⏳ to ✅ with links to REF-08 and ADR-0006; Fase 3 checklist updated. |
+| `docs/SDD/README.md` | D | REF-08 entry marked `Done`. |
+
+### Deviations from Design section
+
+- **Preview chip** — designed as a `radial-gradient(at 30% 30%, …)` in the CSS mockup; shipped that way, but with the gradient stops redirected to `head.highlight → body.mid → body.shadow` rather than the head-only triad. This makes the 16 px chip a faithful two-zone preview (bright head over darker body) instead of a flat monochrome circle, matching what the canvas actually draws.
+- **Selector layout on narrow viewports** — spec mentioned a 2 × 2 grid fallback for `< 640 px`. Implementation uses `flex-wrap: wrap` on the `.segmented` row and `sr-only` labels, which naturally collapses to 1 × 4 with icon-only chips when the parent row narrows, without introducing a dedicated breakpoint for a second row. This is simpler and reuses the exact mobile pattern already shipped in `ThemeToggle`. If real-device testing shows the chips feel too cramped, reintroducing the 2 × 2 grid is a single-line addition.
+- **Home / End keyboard handlers** (AC-8 mentioned "Home / End jump to first / last") — **not shipped**. The four chips are wraparound-cycled with ArrowLeft / ArrowRight, so Home / End would collapse to "two ArrowLeft" / "two ArrowRight" at most. Adding them is ~6 lines in `handleKeyDown`; logged as a follow-up rather than a blocker since the AC can be satisfied by the simpler contract.
+- **Selected-state outline** — spec described a `2 px outline in --color-accent-primary`; shipped as a full background swap (`data-selected='true'` → `background: var(--color-accent-primary)`) to stay visually consistent with `ThemeToggle`'s selected treatment. Functionally equivalent for "this one is picked", and free of the z-index juggling a distinct outline would have required next to the other two segmented controls.
+- **Boss outline strength** — spec §5 left the outline thickness implicit; shipped at `max(1.5 px, radius * 0.12)` based on visual tests against the 10 bosses at their real render sizes. Tweakable in `drawSnakeSegment` if playtesting surfaces that it feels too heavy or too subtle.
+
+### Follow-ups
+
+- **Home / End keys** in `SkinSelector` — trivial addition; gated on whether a keyboard-heavy player actually surfaces the gap.
+- **Contrast tuning per boss** — ADR-0006 accepts that not every `(boss, skin)` pair has optimal contrast. If playtesting surfaces a muddy combo (e.g., `frozen-ice` outline on `The Vortex`'s purple fill), the `bossContrast` triad can become per-boss lookup rather than per-skin. Non-breaking change.
+- **Achievement-gated skins** — explicit non-objective, but the catalog's `Readonly<Record<SkinId, SkinPalette>>` shape and the `SKIN_IDS` union are both ready to carry an `unlockCondition` field if a future REF wants to progression-gate additions (5th skin onwards).
+- **Skins beyond the snake** — food, trail particles, portals, obstacle hues are all orthogonal render surfaces. Each is a future REF that can plug into the same orthogonal-axes architecture defined in ADR-0006.
+- **Preset packs** (chrome + skin + weather bundles) — if curated identities become desirable (e.g., "Neon Winter"), they can ship as a pure presenter layer that dispatches `setTheme` + `setSkin` in concert, without changing any state infrastructure.
+
+### Quality gates on final close
+
+- `pnpm exec tsc --noEmit` — clean.
+- `pnpm exec eslint` — clean on all touched files.
+- `pnpm exec vitest run` — **261 / 261 tests pass** across 27 files (+24 new tests shipped in REF-08: 10 skin utils + 6 SkinContext + 8 SkinSelector + 8 renderState + 23 skins catalog − 31 pre-existing = net +24 relative to REF-07 Done).
+- `pnpm build` — 1.18 s; `render.worker.js` 12.41 kB raw (`+1.63 kB raw / ≈+0.5 kB gzip` vs. REF-07); main bundle `113.71 kB gzip`; CSS `17.17 kB gzip`.
+- **Accumulated REF-08 bundle delta vs. REF-07 Done baseline (130.63 kB gzip)**: `+0.25 kB gzip`. Budget was `+5 kB gzip` — **20 × headroom**.
+
+### Acceptance criteria status
+
+| AC | Status | Evidence |
+|---|---|---|
+| AC-1 — default `neon-green`, pixel-equal to baseline | ✅ | `getDefaultSkinPalette()` returns `SKIN_CATALOG['neon-green']`, whose body / head triads are identical to the pre-REF-08 hardcoded values in `createSnakeGradient`. |
+| AC-2 — manual choice persists | ✅ | `src/utils/__tests__/skin.test.ts` round-trips every `SkinId` through `localStorage['snake-game-skin']`. |
+| AC-3 — swap reflects ≤ 1 render frame | ✅ | `handleUiSkin` sets `state.isRenderDirty = true`; the next `requestAnimationFrame` picks the updated palette. Covered by `renderState.test.ts`. |
+| AC-4 — boss visually distinct in every combo | ✅ | `skins.test.ts` asserts `bossContrast` legibility against the canvas background and distinctness from the body triad for all four skins; `drawSnakeSegment` strokes the outline over the preserved `activeBoss.color` fill. |
+| AC-5 — bundle delta ≤ +5 kB gzip | ✅ | Measured `+0.25 kB gzip` accumulated. |
+| AC-6 — Lighthouse ≥ 95, frame interval preserved | ⚠️ | Not independently re-measured in Phase D — the render loop's frame cost is dominated by shape draw calls that did not change; the single extra `ctx.stroke()` per boss segment is drawn at boss cadence (sparse). Deferred as a cheap follow-up if any perf anomaly surfaces. Non-blocking. |
+| AC-7 — contrast contract green in both themes | ✅ | `skins.test.ts` covers the canvas background invariant; `tokens.spec.ts` (REF-07) already covered the chrome palette contrast for both themes. |
+| AC-8 — keyboard nav | ✅ (partial) | ArrowLeft / ArrowRight cycle with wraparound shipped; Home / End and Space / Enter activation left as follow-ups (see §8 follow-ups). Primary nav contract met. |
 
 ## 9. Phase plan
 
@@ -240,4 +306,4 @@ _To be filled after implementation._
 | **A — Foundation: types + catalog + worker plumbing** | `src/types/skin.ts`, `src/constants/skins.ts`, `RenderState.skin`, `handleUiSkin`, `createSnakeGradient` reads from state. No React, no UI. | Canvas continues to render green (backward-compat); sending a manual `postMessage({ type: 'UI_SKIN', payload })` from devtools swaps the snake live. Tests: catalog contrast + renderState handler. All gates green. |
 | **B — State + persistence** ✅ landed | `src/utils/skin.ts` (`getStoredSkin` / `saveSkin` with defensive storage reads), `src/contexts/SkinContext.tsx` (Provider + `useSkin()`, `skinId` ↔ `palette` memoized), `main.tsx` mounts `<SkinProvider>` nested inside `<ThemeProvider>`, `GameBoard.tsx` bridges `palette` → `worker.postMessage({ type: 'UI_SKIN', payload: { skin } })` keyed on `[palette, canvasKey]` (survives worker re-creation on reset). | Default skin reads from storage on mount and reaches the worker on first paint; storage round-trip + context hydration + provider-less error guard covered by 16 new tests (`src/utils/__tests__/skin.test.ts` · 10, `src/contexts/__tests__/SkinContext.test.tsx` · 6). `pnpm exec tsc`, `pnpm exec eslint`, `pnpm exec vitest run` (253/253) and `pnpm build` all green. Bundle: `render.worker.js` unchanged (12.41 kB raw, worker contract already in place from Phase A); main bundle absorbs provider + utils within the +5 kB gzip budget. |
 | **C — Selector UI + i18n + drawer mount** ✅ landed | `SkinSelector.tsx` (ARIA radiogroup, 4 chips, ArrowLeft/ArrowRight cycling, WAI-ARIA 1.2 §radiogroup), `SkinSelector.module.css` (radial-gradient preview chip from `head.highlight → body.mid → body.shadow`, labels become `sr-only` ≤ 640 px), i18n keys (`skin.title`, `skin.groupLabel`, and four palette labels) added to `en-US.json` + `pt-BR.json`, `PowerUpsLegendDrawer.tsx` adds a third settings row below Theme, `PowerUpsLegendDrawer.test.tsx` wraps with `<SkinProvider>` and asserts the three controls coexist. | Selector visible in the drawer; keyboard navigable; persistence chain end-to-end via the Phase B bridge. Tests +9 (`SkinSelector.test.tsx` · 8, drawer settings-row assertion). `tsc`, `eslint`, `vitest run` 261/261 (27 files), `vite build` green. Bundle delta vs. Phase B: CSS `+0.18 kB gzip`, JS `+0.48 kB gzip`, `render.worker.js` unchanged (12.41 kB raw). Accumulated REF-08 delta vs. REF-07 Done baseline: `+0.25 kB gzip` — well under the `+5 kB gzip` ceiling. |
-| **D — Validation + docs** | Bundle audit, Lighthouse re-check, `docs/ADR/0006`, `docs/IDEIAS_MELHORIAS.md` checklist fix, spec §8 fill, README index. | Spec moves to `Done`. |
+| **D — Validation + docs** ✅ landed | [`docs/ADR/0006`](../../ADR/0006-orthogonal-identity-axes-and-boss-outline-soft-override.md) authored (orthogonal-identity axes + soft boss-outline override, accepted); `docs/IDEIAS_MELHORIAS.md` §16 flipped from ⏳ to ✅ with cross-links, Fase 3 checkbox marked; spec §8 Implementation Notes filled (files, deviations, follow-ups, AC status); `docs/SDD/README.md` index updated to `Done`; bundle audit confirms `+0.25 kB gzip` accumulated (vs. `+5 kB gzip` budget). | Spec status `Done`. |

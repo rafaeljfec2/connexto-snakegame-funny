@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| **Status** | In Progress (Phase A landed — palette + contrast matrix green; Phases B/C/D open) |
+| **Status** | In Progress (Phases A + B landed — palette, boot script and context are live; Phases C/D open) |
 | **Owner** | rafael |
 | **Created** | 2026-04-26 |
 | **Last updated** | 2026-04-26 |
@@ -254,7 +254,7 @@ _To be filled after implementation._
 | Phase | Deliverable | Owner gate |
 |---|---|---|
 | **A — Contrast matrix + palette** ✅ | Write `:root[data-theme='light']` tokens. Extend `tokens.spec.ts` to loop both themes. Validate AA/AAA before writing any UI. | **Landed 2026-04-26**. Owner sign-off on the palette happens implicitly during B/C when the toggle lets the owner see the final values in-app. |
-| **B — Store + boot script** | Ship `themeStore`, `useTheme`, inline boot script. No UI yet. Verify manually via DevTools `document.documentElement.setAttribute('data-theme','light')`. | Gate: tests green, no FOUT on reload. |
+| **B — Store + boot script** ✅ | Reused the existing `ThemeContext`, patched DOM sync, added inline boot script in `index.html`, deleted duplicated `src/hooks/useTheme.ts`. | **Landed 2026-04-26**. No visible UI yet by design — the provider runs, the attribute is written, the toggle mount is Phase C. |
 | **C — ThemeToggle component + HUD mount** | Visible in-app toggle, cycle state, aria + i18n keys. | Owner approves visual + interaction. |
 | **D — Validation + docs** | Bundle audit, Lighthouse re-check, screenshots, spec §8 implementation notes, ADR update if needed. | Spec moves to `Done`. |
 
@@ -290,3 +290,47 @@ Each phase is independently releasable — if B is green but C is not ready for 
 **Deliberately deferred to Phase B**
 
 - `@media (prefers-color-scheme: light)` in `tokens.css:138-144` stays empty on purpose. Phase B's inline boot script will read `matchMedia` and write `data-theme` explicitly on `<html>` — that single source of truth makes the `:root[data-theme='light']` block the only code path applying light tokens, eliminating the duplication pitfall of maintaining two parallel CSS blocks.
+
+### 9.2 Phase B — delivered 2026-04-26
+
+**Scope pivot vs §4 Design**
+
+The Design section proposed a new **Zustand** store (`src/stores/themeStore.ts`). On opening Phase B the codebase audit surfaced a pre-existing `src/contexts/ThemeContext.tsx` already mounted by `src/main.tsx` and a duplicated `src/hooks/useTheme.ts` (dead-code shadow of the same API). Per the engineering rule *"verify if a similar abstraction already exists; eliminate legacy/duplicated logic instead of stacking a new framework"*, the plan was revised:
+
+- **Reuse** `ThemeContext` and its public API (`theme: 'dark' | 'light' | 'auto'`, `effectiveTheme`, `setTheme`, `toggleTheme`).
+- **Delete** `src/hooks/useTheme.ts` (0 imports found; dead code).
+- **Do NOT add** `zustand` as a dependency (saves ~1.2 kB gzip and keeps the dependency tree small).
+
+The user-facing contract (§4 `contract`) is unchanged.
+
+**Deliverable**
+
+- `src/utils/themeBoot.ts` (new): three pure helpers — `parseStoredTheme`, `resolveEffectiveTheme`, `resolveBootTheme({ readStored, prefersDark })` — plus `applyBootTheme()` which reads `localStorage` + `matchMedia` and writes `data-theme` on `<html>`. All helpers are defensive against `SecurityError` from sandboxed / 3rd-party-cookie-blocked storage, and against browsers without `matchMedia`.
+- `src/contexts/ThemeContext.tsx` (refactor):
+  - Explicit `EffectiveTheme` type alias and `ThemeContextValue` interface with `readonly` fields (complies with `sonarqube typescript:S6759`).
+  - First-render `useEffect` now writes the `data-theme` attribute on `<html>` (previously missing — the light palette shipped in Phase A would never have activated without this fix).
+  - Second `useEffect` subscribes to `matchMedia('(prefers-color-scheme: dark)')` **only** while `theme === 'auto'`, unsubscribing when the user picks an explicit preference.
+  - `useMemo` wraps the context value so consumers do not rerender on every parent render.
+- `src/hooks/useTheme.ts` (deleted): 1.2 kB of dead code removed.
+- `index.html`: inline IIFE in `<head>` mirrors `resolveBootTheme` with zero dependencies, runs **before** the CSS bundle loads, and sets `<html data-theme>` on first paint — guarantees no flash-of-wrong-theme (FOWT). CSP stays unchanged because `script-src 'self' 'unsafe-inline'` is already permitted.
+- Tests (38 new): `src/utils/__tests__/themeBoot.test.ts` (19 — parse, resolve, boot matrix, defensive fallbacks), `src/utils/__tests__/theme.test.ts` (11 — storage, media-query mapping), `src/contexts/__tests__/ThemeContext.test.tsx` (8 — defaults, persistence, toggle cycle, DOM sync, auto-mode OS reactivity, provider error).
+
+**Gates**
+
+- `tsc ✅ · eslint ✅ · vitest 197/197 ✅` (+38 vs Phase A: 159 → 197).
+- `vite build ✅`:
+  - `dist/index.html`: 1.07 → 2.17 kB (+0.49 kB gzip — inline boot script).
+  - `dist/assets/index-*.js`: 355.57 → 355.85 kB (+0.07 kB gzip — refactored `ThemeContext` + new `themeBoot.ts` utility).
+  - CSS unchanged (Phase A already shipped the full palette).
+  - **Phase B delta: +0.56 kB gzip**. Cumulative A+B: **+0.58 kB gzip**, inside the +2 kB budget committed in §1 "Success".
+
+**How to verify Phase B locally**
+
+1. `pnpm build && pnpm preview --port 4173`.
+2. Open the page; inspect `<html>` — the `data-theme` attribute is present on first frame.
+3. DevTools → Application → Local Storage → `snake-game-theme` = `light` → reload → UI renders in light palette on the very first paint (no flash). Change to `dark` / `auto`, reload, observe behaviour.
+4. With `snake-game-theme = auto`, toggle OS theme (macOS ⌘⌥T, Windows Settings → Colors) — attribute flips live without reload.
+
+**Deliberately deferred to Phase C**
+
+- No `<ThemeToggle />` mount anywhere — the existing `src/components/ThemeToggle.tsx` was left untouched (emoji-only prototype, no i18n, no aria-live). Phase C will: replace it with an accessible 3-state segmented control, add i18n keys (`theme.dark`, `theme.light`, `theme.auto`, `theme.toggle`), mount inside `PowerUpsLegendDrawer` Settings section (alongside the Language selector landed in REF-06 Phase F.3), and style it with existing surface / stroke tokens so both palettes look native.

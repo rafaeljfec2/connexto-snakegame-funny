@@ -1,59 +1,87 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Theme } from '@/types/theme';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react';
+import { type Theme } from '@/types/theme';
 import { getStoredTheme, saveTheme, getEffectiveTheme } from '@/utils/theme';
 
-interface ThemeContextType {
-  theme: Theme;
-  effectiveTheme: 'dark' | 'light';
-  setTheme: (theme: Theme) => void;
-  toggleTheme: () => void;
+type EffectiveTheme = 'dark' | 'light';
+
+interface ThemeContextValue {
+  readonly theme: Theme;
+  readonly effectiveTheme: EffectiveTheme;
+  readonly setTheme: (theme: Theme) => void;
+  readonly toggleTheme: () => void;
 }
 
-const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+interface ThemeProviderProps {
+  readonly children: ReactNode;
+}
 
-export function ThemeProvider({ children }: { children: ReactNode }) {
+const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
+
+function writeDomTheme(effective: EffectiveTheme): void {
+  globalThis.document?.documentElement.setAttribute('data-theme', effective);
+}
+
+export function ThemeProvider({ children }: ThemeProviderProps) {
   const [theme, setThemeState] = useState<Theme>(() => getStoredTheme());
-  const [effectiveTheme, setEffectiveTheme] = useState<'dark' | 'light'>(() =>
+  const [effectiveTheme, setEffectiveTheme] = useState<EffectiveTheme>(() =>
     getEffectiveTheme(getStoredTheme()),
   );
 
   useEffect(() => {
     saveTheme(theme);
-    setEffectiveTheme(getEffectiveTheme(theme));
-
-    // Listen for system theme changes if auto mode
-    if (theme === 'auto') {
-      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-      const handleChange = () => {
-        setEffectiveTheme(getEffectiveTheme(theme));
-      };
-
-      mediaQuery.addEventListener('change', handleChange);
-      return () => mediaQuery.removeEventListener('change', handleChange);
-    }
+    const next = getEffectiveTheme(theme);
+    setEffectiveTheme(next);
+    writeDomTheme(next);
   }, [theme]);
 
-  const setTheme = (newTheme: Theme) => {
-    setThemeState(newTheme);
-  };
+  useEffect(() => {
+    if (theme !== 'auto') return;
+    const mediaQuery = globalThis.window?.matchMedia('(prefers-color-scheme: dark)');
+    if (!mediaQuery) return;
+    const handleChange = (): void => {
+      const next = getEffectiveTheme('auto');
+      setEffectiveTheme(next);
+      writeDomTheme(next);
+    };
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, [theme]);
 
-  const toggleTheme = () => {
+  const setTheme = useCallback((next: Theme): void => {
+    setThemeState(next);
+  }, []);
+
+  const toggleTheme = useCallback((): void => {
     setThemeState((prev) => {
       if (prev === 'dark') return 'light';
       if (prev === 'light') return 'auto';
       return 'dark';
     });
-  };
+  }, []);
 
-  return (
-    <ThemeContext.Provider value={{ theme, effectiveTheme, setTheme, toggleTheme }}>
-      {children}
-    </ThemeContext.Provider>
+  const value = useMemo<ThemeContextValue>(
+    () => ({
+      theme,
+      effectiveTheme,
+      setTheme,
+      toggleTheme,
+    }),
+    [theme, effectiveTheme, setTheme, toggleTheme],
   );
+
+  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }
 
 // eslint-disable-next-line react-refresh/only-export-components
-export function useTheme() {
+export function useTheme(): ThemeContextValue {
   const context = useContext(ThemeContext);
   if (context === undefined) {
     throw new Error('useTheme must be used within a ThemeProvider');

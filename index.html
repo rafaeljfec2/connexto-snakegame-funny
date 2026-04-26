@@ -17,6 +17,33 @@
     <meta http-equiv="X-XSS-Protection" content="1; mode=block" />
     <meta name="referrer" content="no-referrer-when-downgrade" />
     <title>Snake Game</title>
+    <script>
+      /*
+       * REF-07 Phase B — FOWT (flash-of-wrong-theme) guard.
+       *
+       * Runs synchronously before the CSS bundle loads so the `:root[data-theme]`
+       * selector in src/styles/tokens.css matches on the very first paint.
+       *
+       * Mirrors the canonical logic in src/utils/themeBoot.ts::resolveBootTheme.
+       * Kept intentionally small (no ESM, no TS, IIFE + try/catch) so it cannot
+       * throw at boot under any storage / matchMedia / iframe scenario.
+       */
+      (function () {
+        try {
+          var raw = localStorage.getItem('snake-game-theme');
+          var theme = raw === 'dark' || raw === 'light' || raw === 'auto' ? raw : 'dark';
+          var effective =
+            theme === 'auto'
+              ? window.matchMedia('(prefers-color-scheme: dark)').matches
+                ? 'dark'
+                : 'light'
+              : theme;
+          document.documentElement.setAttribute('data-theme', effective);
+        } catch (_) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -72,6 +72,9 @@ A spec moves to `Approved` only after the user signs off. Implementation starts 
 - [REF-02 — Audio (SFX) with Howler.js](specs/REF-02-audio-howler.md)
 - [REF-03 — Texture Atlas on Canvas 2D](specs/REF-03-texture-atlas.md) (Archived; superseded by REF-04)
 - [REF-04 — Main-thread long-task elimination](specs/REF-04-main-thread-long-tasks.md)
+- [REF-05 — Cumulative Layout Shift](specs/REF-05-cumulative-layout-shift.md)
+- [REF-06 — Visual redesign: Neon Arcade](specs/REF-06-visual-redesign.md)
+- [REF-07 — Light theme mode](specs/REF-07-theme-light-mode.md) (Draft)
 
 ## When to write a new spec
 

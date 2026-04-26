@@ -32,6 +32,18 @@ describe('<PowerUpsLegendDrawer /> (REF-06 Phase A)', () => {
     expect(drawer.textContent).toContain('powerUps.legendNegative');
   });
 
+  it('renders every legend item (7 positive + 3 negative)', () => {
+    render(<PowerUpsLegendDrawer open={true} onClose={vi.fn()} />);
+    const drawer = screen.getByTestId('powerups-legend-drawer');
+    const sections = drawer.querySelectorAll('section');
+    const positiveItems = sections[0]?.children.length ?? 0;
+    const negativeItems = sections[1]?.children.length ?? 0;
+    expect(positiveItems).toBe(8);
+    expect(negativeItems).toBe(4);
+    expect(drawer.textContent).toContain('powerUps.speedBoost');
+    expect(drawer.textContent).toContain('powerUps.poison');
+  });
+
   it('calls onClose when the close button is clicked', () => {
     const onClose = vi.fn();
     render(<PowerUpsLegendDrawer open={true} onClose={onClose} />);

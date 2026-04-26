@@ -8,6 +8,7 @@ const sliceState = vi.hoisted(() => ({
   level: 4,
   lives: 2,
   currentPhase: 1,
+  snake: { length: 7 },
 }));
 
 vi.mock('@/state/gameStateStore', () => ({
@@ -63,22 +64,31 @@ describe('<HudStrip /> (REF-06 Phase A.3)', () => {
     sliceState.level = 4;
     sliceState.lives = 2;
     sliceState.currentPhase = 1;
+    sliceState.snake = { length: 7 };
   });
 
+  const renderHud = (opts: { legendOpen?: boolean } = {}) => {
+    const onToggleLegend = vi.fn();
+    const result = render(
+      <HudStrip legendOpen={opts.legendOpen ?? false} onToggleLegend={onToggleLegend} />,
+    );
+    return { ...result, onToggleLegend };
+  };
+
   it('renders banner role with HUD aria-label', () => {
-    render(<HudStrip />);
+    renderHud();
     expect(screen.getByRole('banner')).toHaveAttribute('aria-label', 'hud.ariaLabel');
   });
 
   it('formats score and high score with locale separators', () => {
-    render(<HudStrip />);
+    renderHud();
     const metricsGroup = screen.getByRole('group', { name: 'hud.metricsAriaLabel' });
     expect(within(metricsGroup).getByText('1,234')).toBeInTheDocument();
     expect(within(metricsGroup).getByText('9,876')).toBeInTheDocument();
   });
 
   it('renders the phase slot with phase number, name and step counter', () => {
-    render(<HudStrip />);
+    renderHud();
     const phaseSlot = screen.getByTestId('hud-phase-slot');
     expect(within(phaseSlot).getByText('1')).toBeInTheDocument();
     expect(within(phaseSlot).getByText('phases.classicSnake.name')).toBeInTheDocument();
@@ -86,7 +96,7 @@ describe('<HudStrip /> (REF-06 Phase A.3)', () => {
   });
 
   it('exposes the phase progress bar with proper aria attributes', () => {
-    render(<HudStrip />);
+    renderHud();
     const progress = screen.getByRole('progressbar');
     expect(progress).toHaveAttribute('aria-valuemin', '0');
     expect(progress).toHaveAttribute('aria-valuemax', '5');
@@ -94,12 +104,12 @@ describe('<HudStrip /> (REF-06 Phase A.3)', () => {
   });
 
   it('does not render the legacy "Level" metric label anywhere', () => {
-    render(<HudStrip />);
+    renderHud();
     expect(screen.queryByText('hud.level')).not.toBeInTheDocument();
   });
 
   it('renders one lives section with maxLives dots when lives system is enabled', () => {
-    render(<HudStrip />);
+    renderHud();
     if (!LIVES_CONFIG.enabled) return;
     const livesGroup = screen.getByRole('group', {
       name: `hud.livesAriaLabel:${sliceState.lives}`,
@@ -110,12 +120,24 @@ describe('<HudStrip /> (REF-06 Phase A.3)', () => {
     expect(active.length).toBe(sliceState.lives);
   });
 
-  it('toggles the legend drawer via button and reflects aria-expanded', () => {
-    render(<HudStrip />);
+  it('calls onToggleLegend and reflects aria-expanded from the prop', () => {
+    const { onToggleLegend, rerender } = renderHud({ legendOpen: false });
     const button = screen.getByTestId('hud-legend-toggle');
     expect(button).toHaveAttribute('aria-expanded', 'false');
     fireEvent.click(button);
+    expect(onToggleLegend).toHaveBeenCalledTimes(1);
+    rerender(<HudStrip legendOpen={true} onToggleLegend={onToggleLegend} />);
     expect(button).toHaveAttribute('aria-expanded', 'true');
-    expect(screen.getByTestId('powerups-legend-drawer')).toHaveAttribute('data-open', 'true');
+  });
+
+  it('renders the mobile-only length slot with snake length and aria-label (Phase D)', () => {
+    renderHud();
+    const lengthSlot = screen.getByTestId('hud-length-slot');
+    expect(lengthSlot).toHaveAttribute('data-mobile-only', 'true');
+    expect(lengthSlot).toHaveAttribute(
+      'aria-label',
+      `hud.lengthAriaLabel:${sliceState.snake.length}`,
+    );
+    expect(within(lengthSlot).getByText(String(sliceState.snake.length))).toBeInTheDocument();
   });
 });

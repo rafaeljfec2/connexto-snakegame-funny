@@ -2,11 +2,15 @@
  * App shell — REF-06 L1 layout (full-bleed board, HUD strip on top, no side rails).
  *
  * - REF-06-FR-1: full-bleed board
- * - REF-06-FR-3: HudStrip is the single status surface; phase + progress live there too (Phase A.3)
+ * - REF-06-FR-3: HudStrip is the single status surface; phase + progress + length live there too (Phase A.3 + D.1)
  * - REF-06-D6: motion via shared keyframes; no JS-driven animations
  *
  * Floating overlays (combo badge, active power-ups) are mounted by App.tsx as
  * viewport-fixed compositors outside the .gameArea tree.
+ *
+ * Mobile (Phase D): MobileStatusBar deleted; its data folded into the HUD strip
+ * (length slot mobile-only). Instructions are dual-variant (keyboard + touch),
+ * each variant gated by a media query — no runtime branching.
  */
 
 .app {
@@ -108,6 +112,7 @@
 .instructions {
   display: flex;
   justify-content: center;
+  align-items: center;
   color: var(--color-on-bg-muted);
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-medium);
@@ -117,14 +122,15 @@
   background: var(--color-surface-translucent);
   border-radius: var(--radius-pill);
   border: 1px solid var(--color-stroke-subtle);
+  text-align: center;
+}
+
+.instructions[data-variant='touch'] {
+  display: none;
 }
 
 .instructions p {
   margin: 0;
-}
-
-.mobileStatusBar {
-  display: none;
 }
 
 @media (max-width: 968px) {
@@ -140,7 +146,6 @@
 @media (max-width: 768px) {
   .main {
     padding: 0;
-    /* room for: TouchControls (~250px) + safe-area */
     padding-bottom: calc(280px + env(safe-area-inset-bottom, 0px));
   }
 
@@ -153,11 +158,11 @@
     width: 100%;
     max-width: min(
       calc(100vw - 1rem - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)),
-      calc(100dvh - var(--hud-strip-height) - 320px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))
+      calc(100dvh - var(--hud-strip-height) - 300px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))
     );
     max-height: min(
       calc(100vw - 1rem - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)),
-      calc(100dvh - var(--hud-strip-height) - 320px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))
+      calc(100dvh - var(--hud-strip-height) - 300px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))
     );
     padding: var(--space-2);
   }
@@ -167,16 +172,12 @@
     height: 100%;
   }
 
-  .instructions {
+  .instructions[data-variant='keyboard'] {
     display: none;
   }
 
-  .mobileStatusBar {
+  .instructions[data-variant='touch'] {
     display: flex;
-    justify-content: center;
-    width: 100%;
-    margin-top: var(--space-2);
-    padding: 0 var(--space-2);
   }
 }
 

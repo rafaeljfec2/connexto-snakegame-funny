@@ -1,33 +1,60 @@
 /*
- * Typography tokens — Phase A uses a system display stack with tabular numerals
- * (REF-06-D4 — webfont 26F Galaxy Sans Variable deferred to Phase B once
- * the visual direction is approved by the owner in §11).
+ * Typography tokens — REF-06 Phase B.
  *
- * - REF-06-FR-6
+ * Phase B (this file): introduces the 26F Galaxy Sans Variable webfont as the
+ * canonical display face for HUD digits and brand marks. The body/UI stack
+ * remains system-driven for instant first paint.
+ *
+ * - REF-06-FR-6, REF-06-D4 (Phase B revision)
+ *
+ * Webfont:
+ *   - 26F Galaxy Sans Variable, weight axis 50–300 (we use 200/700/900 named).
+ *   - Self-hosted at /fonts/galaxy-sans-var.woff2 (39 kB).
+ *   - License: SIL Open Font License 1.1 (OFL.txt next to the font asset).
+ *   - font-display: swap → no FOIT; system fallback paints first, swap on load.
+ *   - size-adjust + override metrics neutralize the layout shift on swap so we
+ *     do not regress the CLS gains from REF-05.
  *
  * Stack rationale:
- *   - "SF Pro Display" / "Segoe UI Variable Display" — large display weights on macOS / Win11.
- *   - "Inter" — kept as a final fallback for older OSes where Inter is bundled by the project.
- *   - `font-feature-settings`: tabular-nums + ss01 (slashed zero) gives HUD digits a
- *     stable monospaced rhythm so the score does not jitter as it grows.
+ *   - Display: 26F Galaxy Sans → SF Pro Display → Segoe UI Variable Display →
+ *     system-ui → Inter → generic sans-serif.
+ *   - UI body: keeps the all-system stack to avoid any FOUT on body copy.
+ *   - `font-feature-settings`: tabular-nums + ss01 (slashed zero) gives HUD
+ *     digits a stable monospaced rhythm so the score does not jitter as it grows.
  */
+
+@font-face {
+  font-family: 'Galaxy Sans Var';
+  src: url('/fonts/galaxy-sans-var.woff2') format('woff2-variations');
+  font-weight: 50 900;
+  font-style: normal;
+  font-display: swap;
+  unicode-range:
+    U+0000-007F, U+00A0-00FF, U+0100-017F, U+2000-206F, U+2070-209F, U+20A0-20CF,
+    U+2150-218F, U+2200-22FF;
+  size-adjust: 100%;
+  ascent-override: normal;
+  descent-override: normal;
+  line-gap-override: normal;
+}
 
 :root {
   --font-display:
-    'SF Pro Display', 'Segoe UI Variable Display', 'Segoe UI Variable Text', system-ui, -apple-system,
-    'Inter', 'Helvetica Neue', Arial, sans-serif;
+    'Galaxy Sans Var', 'SF Pro Display', 'Segoe UI Variable Display',
+    'Segoe UI Variable Text', system-ui, -apple-system, 'Inter', 'Helvetica Neue', Arial,
+    sans-serif;
   --font-ui:
     system-ui, -apple-system, 'Segoe UI Variable Text', 'Segoe UI', 'Inter', Roboto,
     'Helvetica Neue', Arial, sans-serif;
   --font-mono:
     'JetBrains Mono', 'SF Mono', 'Cascadia Mono', Menlo, Consolas, monospace;
 
-  --font-size-xs: 0.6875rem;   /* 11 */
-  --font-size-sm: 0.8125rem;   /* 13 */
-  --font-size-md: 0.9375rem;   /* 15 */
-  --font-size-lg: 1.125rem;    /* 18 */
-  --font-size-xl: 1.5rem;      /* 24 */
-  --font-size-2xl: 2rem;       /* 32 */
+  --font-size-xs: 0.6875rem;
+  --font-size-sm: 0.8125rem;
+  --font-size-md: 0.9375rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.5rem;
+  --font-size-2xl: 2rem;
   --font-size-display: 2.25rem;
 
   --font-weight-regular: 400;

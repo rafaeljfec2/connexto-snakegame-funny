@@ -26,15 +26,9 @@
     "continuingAutomatically": "Continuando automaticamente...",
     "gameOver": "Game Over - Pressione ESPAÇO para reiniciar"
   },
-  "statusBar": {
-    "length": "Tamanho",
-    "lives": "Vidas",
-    "phase": "Fase",
-    "lifeRemaining": "Vida restante",
-    "lifeLost": "Vida perdida"
-  },
   "controls": {
-    "instructions": "<kbd>↑↓←→</kbd> ou <kbd>WASD</kbd> para mover • <kbd>ESPAÇO</kbd> para iniciar/pausar"
+    "instructions": "<kbd>↑↓←→</kbd> ou <kbd>WASD</kbd> para mover • <kbd>ESPAÇO</kbd> para iniciar/pausar",
+    "touchInstructions": "Deslize ou use o D-pad para mover • Toque no botão central para atirar veneno"
   },
   "audio": {
     "toggle": {
@@ -176,6 +170,8 @@
     "phaseAriaLabel": "Fase {{phase}} {{name}} - Nível {{current}} de {{total}}",
     "lives": "Vidas",
     "livesAriaLabel": "{{count}} vidas restantes",
+    "length": "Tamanho",
+    "lengthAriaLabel": "Tamanho da cobra: {{count}}",
     "legend": "Power-ups"
   },
   "phaseDisplay": {
@@ -221,9 +217,6 @@
     "powerUp": "Power-up: {{type}}",
     "jokerFood": "Comida Coringa",
     "food": "Comida"
-  },
-  "livesDisplay": {
-    "lives": "Vidas:"
   },
   "bosses": {
     "classic": {

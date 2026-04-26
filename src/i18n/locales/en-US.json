@@ -26,15 +26,9 @@
     "continuingAutomatically": "Continuing automatically...",
     "gameOver": "Game Over - Press SPACE to restart"
   },
-  "statusBar": {
-    "length": "Length",
-    "lives": "Lives",
-    "phase": "Course",
-    "lifeRemaining": "Life remaining",
-    "lifeLost": "Life lost"
-  },
   "controls": {
-    "instructions": "<kbd>↑↓←→</kbd> or <kbd>WASD</kbd> to move • <kbd>SPACE</kbd> to start/pause"
+    "instructions": "<kbd>↑↓←→</kbd> or <kbd>WASD</kbd> to move • <kbd>SPACE</kbd> to start/pause",
+    "touchInstructions": "Swipe or use the D-pad to move • Tap the center button to fire poison"
   },
   "audio": {
     "toggle": {
@@ -176,6 +170,8 @@
     "phaseAriaLabel": "Course {{phase}} {{name}} - Level {{current}} of {{total}}",
     "lives": "Lives",
     "livesAriaLabel": "{{count}} lives remaining",
+    "length": "Length",
+    "lengthAriaLabel": "Snake length: {{count}}",
     "legend": "Power-ups"
   },
   "phaseDisplay": {
@@ -221,9 +217,6 @@
     "powerUp": "Power-up: {{type}}",
     "jokerFood": "Joker Food",
     "food": "Food"
-  },
-  "livesDisplay": {
-    "lives": "Lives:"
   },
   "bosses": {
     "classic": {

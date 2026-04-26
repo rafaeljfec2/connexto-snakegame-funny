@@ -2,6 +2,15 @@
  * Top HUD strip — replaces the dashboard-card header (REF-06-FR-3, REF-06-FR-1).
  * Translucent, full-width, sticky to the top with a subtle bottom hairline glow.
  * Static box-shadow only (no animation per REF-06-D6).
+ *
+ * Mobile (Phase D) responsive contract:
+ *   - desktop (> 968 px): single row, all slots visible, height = 56 px.
+ *   - tablet (≤ 968 px): single row, compacted gaps, brand mark only.
+ *   - mobile (≤ 640 px): single row, hides Best (data-priority=low) + phaseName,
+ *     reveals Length slot (data-mobile-only=true). Height stays 56 px.
+ *   - small mobile (≤ 480 px): wraps into 2 rows. Row 1 = brand + actions
+ *     (space-between). Row 2 = metrics centered. Height = 88 px (set by
+ *     --hud-strip-height-mobile and propagated to --hud-strip-height).
  */
 
 .strip {
@@ -9,9 +18,10 @@
   z-index: var(--z-hud);
   flex: 0 0 auto;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-5);
+  gap: var(--space-3) var(--space-5);
   width: 100%;
   min-height: var(--hud-strip-height);
   padding: 0 var(--space-6);
@@ -36,6 +46,7 @@
   font-size: var(--font-size-md);
   line-height: 1;
   user-select: none;
+  flex: 0 0 auto;
 }
 
 .brandMark {
@@ -67,6 +78,10 @@
   align-items: baseline;
   gap: var(--space-2);
   min-width: 0;
+}
+
+.metric[data-mobile-only='true'] {
+  display: none;
 }
 
 .metricLabel {
@@ -108,6 +123,10 @@
     var(--color-stroke-soft) 50%,
     transparent 100%
   );
+}
+
+.divider[data-mobile-only='true'] {
+  display: none;
 }
 
 .phaseSlot {
@@ -277,7 +296,7 @@
 @media (max-width: 968px) {
   .strip {
     padding: 0 var(--space-4);
-    gap: var(--space-3);
+    gap: var(--space-2) var(--space-3);
   }
 
   .brandSep,
@@ -322,6 +341,10 @@
     display: none;
   }
 
+  .metric[data-mobile-only='true'] {
+    display: inline-flex;
+  }
+
   .phaseSlot {
     min-width: 96px;
   }
@@ -332,5 +355,52 @@
 
   .phaseProgress {
     min-width: 48px;
+  }
+
+  .phaseFooter {
+    gap: var(--space-1);
+  }
+
+  .metricLabel {
+    font-size: 0.625rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .strip {
+    min-height: var(--hud-strip-height-mobile);
+    padding: var(--space-2) var(--space-3) var(--space-2);
+    gap: var(--space-2);
+    align-items: stretch;
+  }
+
+  .brand {
+    order: 1;
+    align-self: center;
+  }
+
+  .actions {
+    order: 2;
+    align-self: center;
+    gap: var(--space-2);
+  }
+
+  .metrics {
+    order: 3;
+    flex: 1 0 100%;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding: 0 var(--space-1);
+    padding-bottom: var(--space-1);
+  }
+
+  .phaseSlot {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  .phaseHead {
+    justify-content: flex-start;
+    gap: var(--space-1);
   }
 }

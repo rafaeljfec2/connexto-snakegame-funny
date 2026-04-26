@@ -1,53 +1,54 @@
+/*
+ * TouchControls — REF-06 Phase D redesign.
+ *
+ * Adopts the Neon Arcade tokens (3-tier OKLCH) so the D-pad and the central
+ * action button match the rest of the HUD instead of the old blue/green
+ * Material palette. Haptics already live in the TSX (navigator.vibrate).
+ *
+ * Accessibility / UX guarantees:
+ *   - Hit target ≥ 56×56 px (Apple HIG / Material Touch target).
+ *   - All animation is transform/opacity only (REF-06-D6).
+ *   - touch-action: manipulation removes the 300 ms tap delay.
+ */
+
 .touchControls {
-  display: none; /* Hidden by default, shown on mobile */
+  display: none;
   position: fixed;
-  bottom: 10px; /* Fallback */
-  bottom: calc(10px + env(safe-area-inset-bottom, 0px)); /* Safe area for iPhone home bar */
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
   left: 50%;
-  left: calc(50% + env(safe-area-inset-left, 0px) / 2 - env(safe-area-inset-right, 0px) / 2); /* Center with safe area consideration */
   transform: translateX(-50%);
-  z-index: 500; /* Above game elements but below modals (1000+) */
+  z-index: 500;
   pointer-events: auto;
-  touch-action: none; /* Prevent default touch behaviors */
+  touch-action: none;
   user-select: none;
   -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
   width: auto;
   max-width: calc(95vw - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px));
-  transition:
-    opacity 0.3s ease,
-    transform 0.3s ease;
+  transition: opacity var(--motion-duration-base) var(--motion-ease-standard);
 }
 
 .touchControls.disabled {
-  opacity: 1; /* Keep fully visible even when disabled */
-  pointer-events: none; /* Disable interactions when disabled */
+  opacity: 0.4;
+  pointer-events: none;
 }
 
 .controlGrid {
   display: grid;
-  grid-template-columns: repeat(3, 75px);
-  grid-template-rows: repeat(3, 75px);
-  gap: 6px;
-  padding: 10px;
-  /* Remove bulky background for cleaner look, keep minimal shadow */
-  /* background: rgba(0, 0, 0, 0.3); */
-  /* backdrop-filter: blur(10px); */
-  /* border-radius: 24px; */
-  /* border: 1px solid rgba(255, 255, 255, 0.1); */
+  grid-template-columns: repeat(3, 64px);
+  grid-template-rows: repeat(3, 64px);
+  gap: var(--space-2);
+  padding: var(--space-2);
 }
 
 .directionButton {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(30, 41, 59, 0.6); /* Darker, more visible */
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 16px;
+  background: var(--color-bg-surface);
+  backdrop-filter: blur(12px) saturate(140%);
+  border: 1px solid var(--color-stroke-soft);
+  border-radius: var(--radius-lg);
   cursor: pointer;
-  transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
@@ -56,44 +57,40 @@
   margin: 0;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-.directionButton::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 0;
-  height: 0;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
-  transform: translate(-50%, -50%);
+  box-shadow:
+    var(--shadow-elev-1),
+    inset 0 0 12px rgb(77 226 255 / 0.06);
+  color: var(--color-on-bg);
+  min-width: 56px;
+  min-height: 56px;
   transition:
-    width 0.2s,
-    height 0.2s;
-}
-
-.directionButton:active::before,
-.directionButton.active::before {
-  width: 150%;
-  height: 150%;
-  transition: 0s;
+    transform var(--motion-duration-fast) var(--motion-ease-out),
+    border-color var(--motion-duration-fast) var(--motion-ease-out),
+    background var(--motion-duration-fast) var(--motion-ease-out),
+    box-shadow var(--motion-duration-fast) var(--motion-ease-out);
 }
 
 .directionButton:active,
 .directionButton.active {
-  background: rgba(59, 130, 246, 0.6);
-  border-color: rgba(96, 165, 250, 0.5);
-  transform: scale(0.92);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  background: rgb(77 226 255 / 0.18);
+  border-color: var(--color-accent-primary);
+  transform: scale(0.94);
+  box-shadow:
+    0 0 14px rgb(77 226 255 / 0.55),
+    inset 0 0 18px rgb(77 226 255 / 0.18);
+}
+
+.directionButton:focus-visible {
+  outline: 2px solid var(--color-accent-primary);
+  outline-offset: 2px;
 }
 
 .buttonIcon {
-  font-size: 2rem;
-  font-weight: 900;
-  color: rgba(255, 255, 255, 0.95);
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  font-weight: var(--font-weight-bold);
+  color: var(--color-on-bg);
+  text-shadow: 0 0 8px rgb(77 226 255 / 0.4);
   pointer-events: none;
   line-height: 1;
 }
@@ -101,15 +98,11 @@
 .upButton {
   grid-column: 2;
   grid-row: 1;
-  border-bottom-left-radius: 8px;
-  border-bottom-right-radius: 8px;
 }
 
 .leftButton {
   grid-column: 1;
   grid-row: 2;
-  border-top-right-radius: 8px;
-  border-bottom-right-radius: 8px;
 }
 
 .centerSpace {
@@ -123,34 +116,55 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.4) 0%, rgba(5, 150, 105, 0.5) 100%);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(52, 211, 153, 0.4);
-  border-radius: 50%; /* Circular action button */
+  background: linear-gradient(
+    135deg,
+    rgb(92 255 154 / 0.22) 0%,
+    rgb(176 107 255 / 0.22) 100%
+  );
+  backdrop-filter: blur(12px) saturate(160%);
+  border: 1px solid var(--color-accent-success);
+  border-radius: var(--radius-pill);
   cursor: pointer;
-  transition: all 0.1s;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
   -webkit-user-select: none;
   padding: 0;
-  margin: 4px; /* Smaller than grid cell */
+  margin: 4px;
+  min-width: 56px;
+  min-height: 56px;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
+  box-shadow:
+    0 0 18px rgb(92 255 154 / 0.45),
+    inset 0 0 12px rgb(92 255 154 / 0.18);
   z-index: 2;
+  transition:
+    transform var(--motion-duration-fast) var(--motion-ease-out),
+    box-shadow var(--motion-duration-fast) var(--motion-ease-out),
+    background var(--motion-duration-fast) var(--motion-ease-out);
 }
 
 .poisonButton:active {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.6) 0%, rgba(5, 150, 105, 0.7) 100%);
-  border-color: rgba(52, 211, 153, 0.8);
+  background: linear-gradient(
+    135deg,
+    rgb(92 255 154 / 0.4) 0%,
+    rgb(176 107 255 / 0.4) 100%
+  );
   transform: scale(0.9);
-  box-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
+  box-shadow:
+    0 0 28px rgb(92 255 154 / 0.7),
+    inset 0 0 18px rgb(92 255 154 / 0.3);
+}
+
+.poisonButton:focus-visible {
+  outline: 2px solid var(--color-accent-success);
+  outline-offset: 2px;
 }
 
 .poisonIcon {
-  font-size: 1.75rem;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+  font-size: 1.5rem;
+  filter: drop-shadow(0 0 6px rgb(92 255 154 / 0.7));
   pointer-events: none;
   line-height: 1;
 }
@@ -158,35 +172,25 @@
 .rightButton {
   grid-column: 3;
   grid-row: 2;
-  border-top-left-radius: 8px;
-  border-bottom-left-radius: 8px;
 }
 
 .downButton {
   grid-column: 2;
   grid-row: 3;
-  border-top-left-radius: 8px;
-  border-top-right-radius: 8px;
 }
 
-/* Show on mobile devices - Always visible */
 @media (max-width: 768px) {
   .touchControls {
-    display: block !important; /* Force display on mobile */
-    visibility: visible !important;
-    opacity: 1;
-    bottom: 20px; /* Fallback - increased spacing */
-    bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+    display: block;
   }
 }
 
-/* Smaller buttons on very small screens */
 @media (max-width: 480px) {
   .controlGrid {
-    grid-template-columns: repeat(3, 65px);
-    grid-template-rows: repeat(3, 65px);
-    gap: 4px;
-    padding: 8px;
+    grid-template-columns: repeat(3, 60px);
+    grid-template-rows: repeat(3, 60px);
+    gap: 6px;
+    padding: 6px;
   }
 
   .buttonIcon {
@@ -194,55 +198,46 @@
   }
 
   .touchControls {
-    bottom: 15px; /* Fallback - increased spacing */
-    bottom: calc(15px + env(safe-area-inset-bottom, 0px));
+    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
   }
 }
 
-/* Landscape orientation adjustments */
-@media (orientation: landscape) and (max-height: 900px),
-  (orientation: landscape) and (max-width: 1366px) {
+@media (orientation: landscape) and (max-height: 600px) {
   .touchControls {
-    position: fixed;
     top: 50%;
-    top: calc(50% + env(safe-area-inset-top, 0px) / 2 - env(safe-area-inset-bottom, 0px) / 2);
-    left: 20px; /* Fallback */
-    left: calc(20px + env(safe-area-inset-left, 0px));
+    left: calc(16px + env(safe-area-inset-left, 0px));
     bottom: auto;
     right: auto;
-    transform: translateY(-50%); /* Center vertically */
-    opacity: 0.7;
-    z-index: 200; /* High z-index to be on top of game if needed */
-    display: block !important;
+    transform: translateY(-50%);
+    opacity: 0.85;
+    display: block;
   }
 
   .controlGrid {
-    grid-template-columns: repeat(3, 55px);
-    grid-template-rows: repeat(3, 55px);
-    gap: 6px;
-    padding: 8px;
-    background: rgba(15, 23, 42, 0.4); /* Slight background for visibility */
-    border-radius: 50%;
-    backdrop-filter: blur(4px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    grid-template-columns: repeat(3, 56px);
+    grid-template-rows: repeat(3, 56px);
+    gap: 4px;
+    padding: 4px;
   }
 
   .buttonIcon {
-    font-size: 1.4rem;
+    font-size: 1.25rem;
   }
 
   .poisonIcon {
-    font-size: 1.2rem;
-  }
-
-  .directionButton,
-  .poisonButton {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-    background: rgba(30, 41, 59, 0.7);
+    font-size: 1.1rem;
   }
 }
 
-/* Prevent scrolling when touching controls */
-.touchControls:active {
-  touch-action: none;
+@media (prefers-reduced-motion: reduce) {
+  .directionButton,
+  .poisonButton {
+    transition: none;
+  }
+
+  .directionButton:active,
+  .directionButton.active,
+  .poisonButton:active {
+    transform: none;
+  }
 }

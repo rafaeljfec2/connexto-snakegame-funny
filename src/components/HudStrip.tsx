@@ -1,4 +1,4 @@
-import { memo, useCallback, useState } from 'react';
+import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { LIVES_CONFIG } from '@/constants/lives';
 import { useGameStateSlice } from '@/state/gameStateStore';
@@ -6,22 +6,23 @@ import { getCurrentPhase, getLevelInPhase, getPhaseProgress } from '@/utils/phas
 import { getPhaseTranslationKey } from '@/utils/phaseTranslations';
 import { AudioToggle } from './AudioToggle';
 import { LanguageSelector } from './LanguageSelector';
-import { PowerUpsLegendDrawer } from './PowerUpsLegendDrawer';
 import styles from './HudStrip.module.css';
 
 const LEVELS_PER_PHASE = 5;
 
-function HudStripComponent() {
+interface HudStripProps {
+  readonly legendOpen: boolean;
+  readonly onToggleLegend: () => void;
+}
+
+function HudStripComponent({ legendOpen, onToggleLegend }: HudStripProps) {
   const { t } = useTranslation();
   const score = useGameStateSlice((s) => s.score);
   const highScore = useGameStateSlice((s) => s.highScore);
   const level = useGameStateSlice((s) => s.level);
   const lives = useGameStateSlice((s) => s.lives);
+  const length = useGameStateSlice((s) => s.snake.length);
   const currentPhase = useGameStateSlice((s) => s.currentPhase);
-
-  const [legendOpen, setLegendOpen] = useState(false);
-  const closeLegend = useCallback(() => setLegendOpen(false), []);
-  const toggleLegend = useCallback(() => setLegendOpen((v) => !v), []);
 
   const livesCount = LIVES_CONFIG.enabled ? lives : 0;
   const showLives = LIVES_CONFIG.enabled;
@@ -122,13 +123,25 @@ function HudStripComponent() {
             </div>
           </>
         )}
+
+        <div className={styles.divider} data-mobile-only='true' aria-hidden='true' />
+        <div
+          className={styles.metric}
+          data-mobile-only='true'
+          data-testid='hud-length-slot'
+          role='group'
+          aria-label={t('hud.lengthAriaLabel', { count: length })}
+        >
+          <span className={styles.metricLabel}>{t('hud.length')}</span>
+          <span className={styles.metricValue}>{length}</span>
+        </div>
       </div>
 
       <div className={styles.actions}>
         <button
           type='button'
           className={styles.legendButton}
-          onClick={toggleLegend}
+          onClick={onToggleLegend}
           data-open={legendOpen}
           data-testid='hud-legend-toggle'
           aria-controls='powerups-legend-drawer'
@@ -140,8 +153,6 @@ function HudStripComponent() {
         <AudioToggle />
         <LanguageSelector />
       </div>
-
-      <PowerUpsLegendDrawer open={legendOpen} onClose={closeLegend} />
     </header>
   );
 }

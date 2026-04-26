@@ -2,7 +2,6 @@ import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { GameBoard } from './GameBoard';
 import { GameControls } from './GameControls';
-import { StatusBar } from './StatusBar';
 import { MobileFloatingInfo } from './MobileFloatingInfo';
 import { useGameStateSlice } from '@/state/gameStateStore';
 import styles from '../App.module.css';
@@ -29,13 +28,16 @@ function GameAreaComponent({ gameWorker, resetToken, onStart, onPause, onReset }
         </div>
       </div>
 
-      <div className={styles.mobileStatusBar}>
-        <StatusBar />
-      </div>
-
-      <div className={styles.instructions}>
-        <p dangerouslySetInnerHTML={{ __html: t('controls.instructions') }} />
-      </div>
+      <div
+        className={styles.instructions}
+        data-variant='keyboard'
+        dangerouslySetInnerHTML={{ __html: t('controls.instructions') }}
+      />
+      <div
+        className={styles.instructions}
+        data-variant='touch'
+        dangerouslySetInnerHTML={{ __html: t('controls.touchInstructions') }}
+      />
     </div>
   );
 }

@@ -41,6 +41,20 @@ We adopt **three rules** and one **migration discipline** for the entire React t
 
    Visual reference for the consolidated HUD: AAA HUDs that compress all persistent state into a single top strip (Hades runs, Slay the Spire act bar, Vampire Survivors top HUD).
 
+   **Phase D revision (2026-04-26):** the first mobile capture made it clear that the desktop consolidation never made it to the mobile path. The HUD was overcrowded in a single row, while a separate `StatusBar` ("MobileStatusBar") rendered under the board, repeating `LIVES` and `PHASE` with different visual weights — the exact duplication problem that motivated Phase A.3 on desktop, replicated on the small viewport. Phase D propagates the same single-source-of-truth contract to mobile:
+   - **`StatusBar`** (the so-called MobileStatusBar component) is **deleted**, along with its `i18n` namespace `statusBar.*` and its CSS module.
+   - The orphaned `LivesDisplay` component (no remaining caller after the deletion) is removed alongside it to satisfy the "no legacy duplication" principle inherited from ADR-0001.
+   - `HudStrip` gains a new `data-mobile-only` `LENGTH` slot so the snake length data — the only piece of state previously unique to `StatusBar` — survives the consolidation. Component-level `[data-mobile-only="true"]` rules toggle the slot via media query, with **zero** runtime branching.
+   - The HUD becomes **dual-mode responsive**:
+     - `≤ 968 px` (tablet): same single row, brand reduced to mark only, gaps tightened.
+     - `≤ 640 px` (mobile): single row keeps Score/Phase/Lives + Length; phase name hidden, `Best` (`data-priority="low"`) hidden.
+     - `≤ 480 px` (small mobile): the strip wraps into **two rows** — row 1 is `brand + actions`, row 2 is the full metrics line — and `--hud-strip-height` jumps from 56 → 88 px through a media-query-scoped token override (`--hud-strip-height-mobile`).
+   - The board's available area formula (`.gameContainer`) is unaffected because it already reads `--hud-strip-height` instead of a hard-coded value.
+   - The board-area instructions (`controls.instructions` — keyboard-only legend) are gated to `[data-variant="keyboard"]` and hidden on `≤ 768 px`. A new `controls.touchInstructions` variant is mounted under `[data-variant="touch"]` so mobile users see a relevant hint ("Swipe or use the D-pad…") instead of a useless `↑↓←→` legend.
+   - **`TouchControls`** is rebuilt against the Neon Arcade tokens. The old Material-blue D-pad is replaced by a transparent surface with `--color-stroke-soft` borders, cyan glow on `:active` (matches the HUD palette), and the central poison button uses the success-special gradient with a pill radius. Hit targets enforce `min-width: 56px; min-height: 56px` (Apple HIG / Material Touch). Haptic feedback (`navigator.vibrate(15)`) was already in place; the redesign keeps it untouched. All animations stay on `transform` / `opacity` and a `prefers-reduced-motion` block disables them.
+
+   Visual reference: arcade D-pads (Vampire Survivors mobile, Pixel Dungeon, Streets of Rogue mobile) — neon-tinted glass over the playfield rather than opaque controllers.
+
 2. **3-tier OKLCH design tokens are the single source of truth for color.** [`src/styles/tokens.css`](../../src/styles/tokens.css) defines:
    - **Tier 1 — primitives** (`--c-deep-900`, `--c-neon-cyan`, …) with sRGB hex fallbacks on `:root` and OKLCH overrides inside `@supports (color: oklch(0 0 0))`.
    - **Tier 2 — semantic** (`--color-bg-base`, `--color-on-bg-muted`, `--color-accent-success`, …) — the only tier components are allowed to consume.
@@ -65,15 +79,15 @@ We adopt **three rules** and one **migration discipline** for the entire React t
 ### Negative / accepted trade-offs
 
 - **Token discipline is now load-bearing.** Any developer (or agent) who reaches for a hex literal in a `.module.css` file silently breaks the theming contract. Mitigated by: (a) tokens.css comments forbid it explicitly, (b) `tokens.spec.ts` catches missing semantic tokens, (c) future ESLint/stylelint rule planned in REF-06 Phase B if drift appears.
-- **Full-bleed makes mobile/responsive harder, not easier.** Phase A is desktop-only; mobile-first breakpoints, condensed HUD, and touch HUD ergonomics are explicit Phase B work. Until then, `< 720 px` viewports keep the legacy `.gameContainer` sizing — playable but not yet visually optimized for mobile.
+- **Full-bleed makes mobile/responsive harder, not easier.** Phase A was desktop-only; Phase D (2026-04-26) addresses mobile by deleting `StatusBar`, folding `LENGTH` into the HUD as a `data-mobile-only` slot, splitting the HUD into a 2-row layout below 480 px, and rebuilding `TouchControls` on the Neon Arcade tokens with ≥ 56 px hit targets. The dual-mode HUD eats 32 extra pixels of vertical space at the smallest viewport, which is reclaimed from the deleted `StatusBar` (~80 px previously). Net board height: **+48 px** at ≤ 480 px.
 - **Sidebars are gone for good.** Components that lived there (`GameSidebar`, the catalogue card in `ActivePowerUps`) are deleted, not hidden. Any future "stats panel" idea has to ship as a drawer/modal/overlay, not by re-adding a sidebar — that's the cost of committing to L1.
 - **CSS-only motion is less expressive.** Animations cannot react to game state (combo strength, boss entrance choreography). Phase A accepts this; level-up animations stay JS-driven (one-off React component using GPU-friendly transforms).
 - **System display stack today, webfont tomorrow.** Phase A HUD digits look slightly less distinctive than they will after Phase B's `26F Galaxy Sans Variable`. We accept the temporary aesthetic gap to keep the Phase A delta auditable.
 
 ### Neutral
 
-- The `i18next` keys grew (`hud.*`, `powerUps.legend*`); both `pt-BR.json` and `en-US.json` were updated in lockstep.
-- The `GameInfo` / `LivesDisplay` / `StatusBar` components survive only for the legacy mobile path and the statistics modal; their CSS modules were rewritten to consume tokens but their public API is unchanged.
+- The `i18next` keys grew (`hud.*`, `powerUps.legend*`); both `pt-BR.json` and `en-US.json` were updated in lockstep. Phase D removed the orphan `statusBar.*` and `livesDisplay.*` namespaces and added `hud.length`, `hud.lengthAriaLabel`, `controls.touchInstructions`.
+- After Phase D, the `StatusBar` and `LivesDisplay` components are deleted (they were the last legacy mobile-only renders). `GameInfo` is the only surviving legacy display component, used only by the statistics modal.
 - Phase A's bundle delta is dominated by the new CSS files; no JS-side regression is expected and `pnpm build` confirms (verified in REF-06 Phase A validation step).
 
 ## Alternatives considered

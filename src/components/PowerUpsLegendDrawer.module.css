@@ -5,7 +5,14 @@
  * - REF-06-AC-3: legend reachable in ≤ 1 click and within keyboard reach
  * - Uses transform-only motion (REF-06-D6, ADR-0004)
  *
- * Pure CSS — no portal — sits as a fixed-position aside above the strip.
+ * Desktop (> 768 px): right-anchored side panel, 420 px wide, full height.
+ * Mobile (≤ 768 px): bottom-sheet that slides up from the bottom — the native
+ * mobile pattern. Covers the TouchControls and the game card while open so
+ * the user can read the catalogue without visual noise behind it.
+ *
+ * Phase D fix: `.content` needs `min-height: 0` to let `overflow-y: auto` work
+ * inside a flex column (classic flexbox-overflow bug — without it the scroll
+ * is clipped and items can appear to "vanish" below the viewport).
  */
 
 .scrim {
@@ -32,6 +39,7 @@
   flex-direction: column;
   transform: translate3d(100%, 0, 0);
   transition: transform var(--motion-duration-base) var(--motion-ease-out);
+  min-height: 0;
 }
 
 .scrim[data-open='true'] {
@@ -49,6 +57,7 @@
   justify-content: space-between;
   padding: var(--space-5) var(--space-6);
   border-bottom: 1px solid var(--color-stroke-subtle);
+  flex-shrink: 0;
 }
 
 .title {
@@ -87,6 +96,7 @@
 
 .content {
   flex: 1 1 auto;
+  min-height: 0;
   overflow-y: auto;
   padding: var(--space-4) var(--space-6) var(--space-6);
   display: flex;
@@ -108,31 +118,39 @@
   text-transform: uppercase;
   letter-spacing: var(--letter-tracked);
   color: var(--color-on-bg-faint);
-  margin-top: var(--space-3);
+  margin: var(--space-3) 0 0 0;
+}
+
+.section:first-child .sectionTitle {
+  margin-top: 0;
 }
 
 .item {
   display: grid;
-  grid-template-columns: 32px 1fr;
+  grid-template-columns: 40px 1fr;
   gap: var(--space-3);
-  align-items: flex-start;
+  align-items: center;
   padding: var(--space-3);
   background: var(--color-bg-elevated);
   border: 1px solid var(--color-stroke-subtle);
   border-left: 3px solid var(--item-tint, var(--color-accent-primary));
   border-radius: var(--radius-md);
+  min-height: 56px;
 }
 
 .itemIcon {
-  font-size: 1.5rem;
+  font-size: 1.75rem;
   line-height: 1;
   text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .itemBody {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
+  gap: 2px;
   min-width: 0;
 }
 
@@ -148,4 +166,53 @@
   font-size: var(--font-size-xs);
   color: var(--color-on-bg-muted);
   line-height: var(--line-snug);
+}
+
+@media (max-width: 768px) {
+  .drawer {
+    top: auto;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    max-height: 85vh;
+    max-height: 85dvh;
+    border-left: none;
+    border-top: 1px solid var(--color-stroke-soft);
+    border-top-left-radius: var(--radius-xl);
+    border-top-right-radius: var(--radius-xl);
+    transform: translate3d(0, 100%, 0);
+  }
+
+  .drawer[data-open='true'] {
+    transform: translate3d(0, 0, 0);
+  }
+
+  .drawer::before {
+    content: '';
+    position: absolute;
+    top: var(--space-2);
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 4px;
+    border-radius: var(--radius-pill);
+    background: var(--color-stroke-soft);
+    pointer-events: none;
+  }
+
+  .header {
+    padding: var(--space-5) var(--space-4) var(--space-3);
+  }
+
+  .content {
+    padding: var(--space-3) var(--space-4) calc(var(--space-5) + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scrim,
+  .drawer {
+    transition: none;
+  }
 }

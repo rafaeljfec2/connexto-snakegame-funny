@@ -90,7 +90,14 @@
   --shadow-elev-2: 0 8px 24px rgb(0 0 0 / 0.55);
 
   --hud-strip-height: 56px;
+  --hud-strip-height-mobile: 88px;
   --hud-overlay-pad: 12px;
+}
+
+@media (max-width: 480px) {
+  :root {
+    --hud-strip-height: var(--hud-strip-height-mobile);
+  }
 }
 
 @supports (color: oklch(0 0 0)) {

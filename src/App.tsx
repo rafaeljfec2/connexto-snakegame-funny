@@ -13,6 +13,7 @@ import { HudStrip } from './components/HudStrip';
 import { GameArea } from './components/GameArea';
 import { ViewportComboBadge } from './components/ViewportComboBadge';
 import { ViewportPowerUpsRail } from './components/ViewportPowerUpsRail';
+import { PowerUpsLegendDrawer } from './components/PowerUpsLegendDrawer';
 import { GameOverlays } from './components/GameOverlays';
 import { TouchControls } from './components/TouchControls';
 import { GameStatistics as GameStatisticsComponent } from './components/GameStatistics';
@@ -49,6 +50,9 @@ function App() {
     typeof import('@/utils/statistics').createFinalStatistics
   > | null>(null);
   const [gameResetToken, setGameResetToken] = useState(0);
+  const [legendOpen, setLegendOpen] = useState(false);
+  const toggleLegend = useCallback(() => setLegendOpen((prev) => !prev), []);
+  const closeLegend = useCallback(() => setLegendOpen(false), []);
 
   const { isProcessingGameOver, resetProcessingState } = useGameOverHandler({
     gameState,
@@ -207,10 +211,12 @@ function App() {
     <div className={styles.app}>
       <DynamicBackground />
 
-      <HudStrip />
+      <HudStrip legendOpen={legendOpen} onToggleLegend={toggleLegend} />
 
       <ViewportPowerUpsRail />
       <ViewportComboBadge />
+
+      <PowerUpsLegendDrawer open={legendOpen} onClose={closeLegend} />
 
       <main className={styles.main}>
         <GameArea

@@ -75,6 +75,7 @@ A spec moves to `Approved` only after the user signs off. Implementation starts 
 - [REF-05 — Cumulative Layout Shift](specs/REF-05-cumulative-layout-shift.md)
 - [REF-06 — Visual redesign: Neon Arcade](specs/REF-06-visual-redesign.md)
 - [REF-07 — Light theme mode](specs/REF-07-theme-light-mode.md) (Done)
+- [REF-08 — Snake skins system](specs/REF-08-snake-skins.md) (Draft)
 
 ## When to write a new spec
 

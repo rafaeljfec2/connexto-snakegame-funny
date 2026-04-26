@@ -144,13 +144,24 @@
 }
 
 @media (max-width: 768px) {
+  /* Phase F (M2): tighter mobile chrome.
+   * Reserved D-pad area was 280 px but the D-pad itself is ~216 px (3×64 grid +
+   * gaps + padding) floating with bottom: 16 px. We now reserve exactly what the
+   * D-pad needs plus breathing room, and let the board grow into the reclaimed
+   * height. `.gameArea` no longer centers vertically, so the hint sits right
+   * below the board instead of floating in a dead zone.
+   */
+  --dpad-reserved: 240px;
+
   .main {
     padding: 0;
-    padding-bottom: calc(280px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(var(--dpad-reserved) + env(safe-area-inset-bottom, 0px));
   }
 
   .gameArea {
     padding: var(--space-2);
+    justify-content: flex-start;
+    gap: var(--space-2);
   }
 
   .gameContainer {
@@ -158,11 +169,11 @@
     width: 100%;
     max-width: min(
       calc(100vw - 1rem - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)),
-      calc(100dvh - var(--hud-strip-height) - 300px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))
+      calc(100dvh - var(--hud-strip-height) - var(--dpad-reserved) - var(--space-5) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))
     );
     max-height: min(
       calc(100vw - 1rem - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)),
-      calc(100dvh - var(--hud-strip-height) - 300px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))
+      calc(100dvh - var(--hud-strip-height) - var(--dpad-reserved) - var(--space-5) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))
     );
     padding: var(--space-2);
   }

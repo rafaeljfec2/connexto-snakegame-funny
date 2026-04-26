@@ -146,12 +146,30 @@ function HudStripComponent({ legendOpen, onToggleLegend }: HudStripProps) {
           data-testid='hud-legend-toggle'
           aria-controls='powerups-legend-drawer'
           aria-expanded={legendOpen}
+          aria-label={t('hud.legend')}
         >
-          <span className={styles.legendIcon} aria-hidden='true' />
-          <span>{t('hud.legend')}</span>
+          <svg
+            className={styles.legendIcon}
+            viewBox='0 0 20 20'
+            width='14'
+            height='14'
+            aria-hidden='true'
+            focusable='false'
+          >
+            <path
+              d='M11.2 1.5 3 11.3h5.1L7.4 18.5 16.6 8H11l1-6.5Z'
+              fill='currentColor'
+              stroke='currentColor'
+              strokeLinejoin='round'
+              strokeWidth='0.6'
+            />
+          </svg>
+          <span className={styles.legendLabel}>{t('hud.legend')}</span>
         </button>
         <AudioToggle />
-        <LanguageSelector />
+        <span className={styles.hudLanguageSelector}>
+          <LanguageSelector />
+        </span>
       </div>
     </header>
   );

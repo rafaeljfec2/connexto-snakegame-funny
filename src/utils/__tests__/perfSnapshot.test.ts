@@ -1,6 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { perfBus } from '@/utils/perfBus';
-import { buildPerfSnapshot, downloadPerfSnapshot } from '@/utils/perfSnapshot';
+import {
+  buildPerfSnapshot,
+  dedupeLatestPerMetric,
+  downloadPerfSnapshot,
+} from '@/utils/perfSnapshot';
 
 describe('perfSnapshot', () => {
   beforeEach(() => {
@@ -33,6 +37,45 @@ describe('perfSnapshot', () => {
       expect(snapshot.viewport).toMatchObject({ w: expect.any(Number), h: expect.any(Number) });
       expect(typeof snapshot.ua).toBe('string');
       expect(typeof snapshot.capturedAt).toBe('string');
+    });
+  });
+
+  describe('dedupeLatestPerMetric (Phase F)', () => {
+    it('keeps only the latest event per metric, preserving metric identity', () => {
+      const events = [
+        { metric: 'CLS' as const, value: 0.01, rating: 'good' as const },
+        { metric: 'LCP' as const, value: 1200, rating: 'good' as const },
+        { metric: 'CLS' as const, value: 0.03, rating: 'good' as const },
+        { metric: 'INP' as const, value: 95, rating: 'good' as const },
+        { metric: 'CLS' as const, value: 0.07, rating: 'good' as const },
+      ];
+
+      const deduped = dedupeLatestPerMetric(events);
+
+      expect(deduped).toHaveLength(3);
+      const byMetric = new Map(deduped.map((e) => [e.metric, e]));
+      expect(byMetric.get('CLS')?.value).toBeCloseTo(0.07);
+      expect(byMetric.get('LCP')?.value).toBe(1200);
+      expect(byMetric.get('INP')?.value).toBe(95);
+    });
+
+    it('returns an empty array when no events are recorded', () => {
+      expect(dedupeLatestPerMetric([])).toEqual([]);
+    });
+
+    it('emits a single entry per metric in the snapshot when reportAllChanges fires many times', () => {
+      perfBus.recordWebVital({ metric: 'CLS', value: 0.01, rating: 'good' });
+      perfBus.recordWebVital({ metric: 'CLS', value: 0.02, rating: 'good' });
+      perfBus.recordWebVital({ metric: 'INP', value: 80, rating: 'good' });
+      perfBus.recordWebVital({ metric: 'INP', value: 120, rating: 'good' });
+      perfBus.recordWebVital({ metric: 'CLS', value: 0.05, rating: 'good' });
+
+      const snapshot = buildPerfSnapshot({ phaseId: 1 });
+
+      expect(snapshot.webVitals).toHaveLength(2);
+      const byMetric = new Map(snapshot.webVitals!.map((e) => [e.metric, e]));
+      expect(byMetric.get('CLS')?.value).toBeCloseTo(0.05);
+      expect(byMetric.get('INP')?.value).toBe(120);
     });
   });
 

@@ -37,9 +37,3 @@
   background: var(--color-bg-surface);
   color: var(--color-on-bg);
 }
-
-@media (max-width: 768px) {
-  .languageSelector {
-    display: none;
-  }
-}

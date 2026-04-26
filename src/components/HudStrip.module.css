@@ -286,11 +286,27 @@
 
 .legendIcon {
   display: inline-block;
-  width: 12px;
-  height: 12px;
-  border-radius: var(--radius-xs);
-  background: currentColor;
-  opacity: 0.8;
+  width: 14px;
+  height: 14px;
+  color: var(--color-accent-combo);
+  filter: drop-shadow(0 0 4px rgb(255 226 77 / 0.55));
+  flex: 0 0 auto;
+  transition: filter var(--motion-duration-fast) var(--motion-ease-out);
+}
+
+.legendButton[data-open='true'] .legendIcon,
+.legendButton:hover .legendIcon,
+.legendButton:focus-visible .legendIcon {
+  filter: drop-shadow(0 0 6px rgb(255 226 77 / 0.85));
+}
+
+.legendLabel {
+  display: inline-block;
+}
+
+.hudLanguageSelector {
+  display: inline-flex;
+  align-items: center;
 }
 
 @media (max-width: 968px) {
@@ -333,7 +349,24 @@
     justify-content: center;
   }
 
-  .legendButton span:not(.legendIcon) {
+  .legendLabel {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .legendIcon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .hudLanguageSelector {
     display: none;
   }
 
@@ -402,5 +435,25 @@
   .phaseHead {
     justify-content: flex-start;
     gap: var(--space-1);
+  }
+}
+
+/*
+ * Phase F (M5): at ≤ 360 px the 2nd HUD row can't fit Score + Phase + Lives +
+ * Length without either wrapping into a 3rd row or truncating `Lives` dots.
+ * Length is the least-critical metric (the snake body length is also visible
+ * on the board), so we drop its slot at this breakpoint.
+ */
+@media (max-width: 360px) {
+  .metric[data-mobile-only='true'] {
+    display: none;
+  }
+
+  .divider[data-mobile-only='true'] {
+    display: none;
+  }
+
+  .metrics {
+    gap: var(--space-2);
   }
 }

@@ -2,6 +2,7 @@ import { memo, useEffect, useMemo, useRef, type CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FoodType } from '@/types/game';
 import { POWER_UP_CONFIG } from '@/constants/powerUps';
+import { LanguageSelector } from './LanguageSelector';
 import styles from './PowerUpsLegendDrawer.module.css';
 
 interface PowerUpsLegendDrawerProps {
@@ -140,6 +141,18 @@ function PowerUpsLegendDrawerComponent({ open, onClose }: PowerUpsLegendDrawerPr
         <div className={styles.content}>
           <LegendSection title={t('powerUps.legendPositive')} items={grouped.positive} tFn={t} />
           <LegendSection title={t('powerUps.legendNegative')} items={grouped.negative} tFn={t} />
+
+          <section
+            className={styles.settingsSection}
+            data-testid='drawer-settings-section'
+            aria-label={t('drawer.settingsTitle')}
+          >
+            <h3 className={styles.sectionTitle}>{t('drawer.settingsTitle')}</h3>
+            <div className={styles.settingsRow}>
+              <span className={styles.settingsLabel}>{t('language.title')}</span>
+              <LanguageSelector />
+            </div>
+          </section>
         </div>
       </aside>
     </>

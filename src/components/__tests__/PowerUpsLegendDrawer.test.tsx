@@ -4,7 +4,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string) => key,
-    i18n: { language: 'en-US' },
+    i18n: { language: 'en-US', changeLanguage: vi.fn() },
   }),
 }));
 
@@ -24,12 +24,13 @@ describe('<PowerUpsLegendDrawer /> (REF-06 Phase A)', () => {
     expect(drawer).toHaveAttribute('aria-hidden', 'false');
   });
 
-  it('renders both legend sections with positive and negative groups', () => {
+  it('renders legend sections (positive, negative) and the mobile settings section', () => {
     render(<PowerUpsLegendDrawer open={true} onClose={vi.fn()} />);
     const drawer = screen.getByTestId('powerups-legend-drawer');
-    expect(drawer.querySelectorAll('section').length).toBe(2);
+    expect(drawer.querySelectorAll('section').length).toBe(3);
     expect(drawer.textContent).toContain('powerUps.legendPositive');
     expect(drawer.textContent).toContain('powerUps.legendNegative');
+    expect(drawer.textContent).toContain('drawer.settingsTitle');
   });
 
   it('renders every legend item (7 positive + 3 negative)', () => {
@@ -42,6 +43,15 @@ describe('<PowerUpsLegendDrawer /> (REF-06 Phase A)', () => {
     expect(negativeItems).toBe(4);
     expect(drawer.textContent).toContain('powerUps.speedBoost');
     expect(drawer.textContent).toContain('powerUps.poison');
+  });
+
+  it('mounts the mobile Settings section carrying a LanguageSelector (Phase F M3)', () => {
+    render(<PowerUpsLegendDrawer open={true} onClose={vi.fn()} />);
+    const settings = screen.getByTestId('drawer-settings-section');
+    expect(settings).toBeInTheDocument();
+    const select = settings.querySelector('select');
+    expect(select).not.toBeNull();
+    expect(select).toHaveAttribute('aria-label', 'language.title');
   });
 
   it('calls onClose when the close button is clicked', () => {

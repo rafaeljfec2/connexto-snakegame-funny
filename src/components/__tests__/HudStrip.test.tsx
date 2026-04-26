@@ -140,4 +140,14 @@ describe('<HudStrip /> (REF-06 Phase A.3)', () => {
     );
     expect(within(lengthSlot).getByText(String(sliceState.snake.length))).toBeInTheDocument();
   });
+
+  it('legend toggle has aria-label and hidden SVG icon (Phase F M4)', () => {
+    renderHud();
+    const button = screen.getByTestId('hud-legend-toggle');
+    expect(button).toHaveAttribute('aria-label', 'hud.legend');
+    const svg = button.querySelector('svg');
+    expect(svg).not.toBeNull();
+    expect(svg).toHaveAttribute('aria-hidden', 'true');
+    expect(svg).toHaveAttribute('focusable', 'false');
+  });
 });

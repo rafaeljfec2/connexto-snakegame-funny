@@ -157,6 +157,9 @@
     "ptBR": "Português (Brasil)",
     "enUS": "English (US)"
   },
+  "drawer": {
+    "settingsTitle": "Settings"
+  },
   "panels": {
     "powerUps": "Power-Ups",
     "combo": "Combo"

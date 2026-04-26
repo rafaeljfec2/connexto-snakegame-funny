@@ -1,0 +1,30 @@
+{
+  "version": 2,
+  "fps": 60.00450033759238,
+  "frameIntervalMs": 16.66541666664804,
+  "frameIntervalP1": 16.299999997019768,
+  "frameIntervalP5": 16.399999998509884,
+  "frameIntervalP50": 16.69999999552965,
+  "frameIntervalP95": 17,
+  "frameWorkTimeMs": 0.178749999931703,
+  "frameWorkTimeP50": 0.10000000149011612,
+  "frameWorkTimeP95": 0.29999999701976776,
+  "longTasksPerMinute": 5,
+  "longTasksTotalMsPerMinute": 302.1000000014901,
+  "heapMB": 36.45037651062012,
+  "phaseId": 3,
+  "bossId": "classic",
+  "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+  "viewport": {
+    "w": 1920,
+    "h": 911,
+    "dpr": 1
+  },
+  "capturedAt": "2026-04-26T18:55:58.711Z",
+  "webVitals": [
+    { "metric": "TTFB", "value": 409, "rating": "good" },
+    { "metric": "FCP", "value": 776, "rating": "good" },
+    { "metric": "LCP", "value": 776, "rating": "good" }
+  ],
+  "_notes": "REF-06 Phase F final snapshot. Captured on pnpm preview cold start after playing through Fase 3 (Perigos em Movimento). Long-task budget dropped 61% vs Phase E (775 ms → 302 ms /min) and 72% vs baseline (1092 ms → 302 ms /min). CLS and INP were not flushed by web-vitals (no page-hide / visibilitychange before export). No layout-shift nor input-lag artifacts observed during gameplay."
+}

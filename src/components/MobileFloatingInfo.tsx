@@ -38,8 +38,6 @@ function MobileFloatingInfoComponent() {
 
   const [toasts, setToasts] = useState<Toast[]>([]);
   const previousPowerUpsRef = useRef<ActivePowerUp[]>([]);
-  const [headerHeight, setHeaderHeight] = useState(65);
-  const toastContainerRef = useRef<HTMLDivElement>(null);
 
   const getPowerUpInfo = useCallback(
     (type: FoodType) => {
@@ -102,39 +100,13 @@ function MobileFloatingInfoComponent() {
     previousPowerUpsRef.current = currentPowerUps;
   }, [activePowerUps, getPowerUpInfo]);
 
-  useEffect(() => {
-    const updateHeaderHeight = () => {
-      const header = document.querySelector('header') as HTMLElement | null;
-      if (header) {
-        const height = header.offsetHeight;
-        setHeaderHeight(height + 8);
-      }
-    };
-
-    updateHeaderHeight();
-    window.addEventListener('resize', updateHeaderHeight);
-    window.addEventListener('orientationchange', updateHeaderHeight);
-
-    const timeout = setTimeout(updateHeaderHeight, 100);
-
-    return () => {
-      window.removeEventListener('resize', updateHeaderHeight);
-      window.removeEventListener('orientationchange', updateHeaderHeight);
-      clearTimeout(timeout);
-    };
-  }, []);
-
   const removeToast = (id: string) => {
     setToasts((prev) => prev.filter((toast) => toast.id !== id));
   };
 
   return (
     <div className={styles.mobileFloatingInfo}>
-      <div
-        ref={toastContainerRef}
-        className={styles.toastContainer}
-        style={{ top: `${headerHeight}px` }}
-      >
+      <div className={styles.toastContainer}>
         {toasts.map((toast) => (
           <PowerUpToast
             key={toast.id}

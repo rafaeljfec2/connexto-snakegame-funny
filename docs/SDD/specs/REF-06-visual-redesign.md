@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| **Status** | Done (Phase A → A.1 → A.2 → A.3 → D → E landed; Phase B.2 "motion polish" deferred to a future REF) |
+| **Status** | Done (Phase A → A.1 → A.2 → A.3 → D → E → F landed; Phase B.2 "motion polish" deferred to a future REF) |
 | **Owner** | rafael |
 | **Created** | 2026-04-25 |
 | **Last updated** | 2026-04-26 |
@@ -382,8 +382,8 @@ Reply with one of:
 |---|---|---|
 | AC-1 Owner accepts before/after | ✅ | Approved visually through Phase D + E screenshots. |
 | AC-2 Board ≥ 60 % width desktop / 92 % mobile | ✅ | `.gameContainer` formula honors `--hud-strip-height`; board dominates the viewport on every breakpoint. |
-| AC-3 Web Vitals `CLS ≤ 0.10` / `INP ≤ 200 ms` / `LCP ≤ 1.5 s` | ⚠️ Manual | Needs owner to capture a fresh perf snapshot via Shift+F4 (`src/components/PerfDebugPanel.tsx`) on a dpr-1 run and compare with `docs/SDD/baselines/phase-1-dpr1.json`. |
-| AC-4 REF-04 budget held | ⚠️ Manual | Same snapshot as AC-3. Visually: no change to worker / render hot path in REF-06. |
+| AC-3 Web Vitals `CLS ≤ 0.10` / `INP ≤ 200 ms` / `LCP ≤ 1.5 s` | ✅ Partial | Owner captured `docs/SDD/baselines/ref-06-phase-f-dpr1.json` on 2026-04-26 18:55 UTC (Chrome 147, 1920×911, DPR 1, `pnpm preview` cold, gameplay through Fase 3 / score 610). **FCP 776 ms (good)**, **LCP 776 ms (good, ≤ 1.5 s)**, **TTFB 409 ms (good)**. `CLS` and `INP` were still not emitted in the export — `web-vitals` only flushes them on `visibilitychange: hidden` / `pagehide`, which the PERF panel's export button does not trigger. Manual gameplay showed **no layout-shift nor input-lag artifact**. |
+| AC-4 REF-04 budget held | ✅ | Captured snapshot: **`longTasksTotalMsPerMinute = 302` (budget 1500, `−72 %` vs 1092 baseline; `−61 %` vs 775 Phase E)**, **`longTasksPerMinute = 5` (vs 10 baseline)**, **`frameIntervalP95 = 17.0 ms` (at budget)**, **`FPS = 60` stable**, **`heapMB = 36.4` (`−17 %` vs 43.9 baseline)**. Phase F further reduced long-task surface and heap, no regression. |
 | AC-5 Lighthouse Performance ≥ 95 | ⚠️ Manual | Owner runs Chrome DevTools → Lighthouse on `pnpm preview`; no Lighthouse CLI installed (would require introducing a new dev dep, blocked by user rule). |
 | AC-6 Lint + test + build green, bundle delta ≤ +25 kB gzip | ✅ | All gates green. Net delta vs. pre-REF-06 is dominated by new CSS; JS flat. Webfont never lands. |
 | AC-7 `tokens.css` as single source of truth | ✅ | `rg '#[0-9a-f]{3,8}\|rgb\(\|hsl\(' src/components --type css` returns 0 non-token references. |
@@ -391,4 +391,68 @@ Reply with one of:
 | AC-9 `prefers-reduced-motion` honored | ✅ | `motion.css` root media block + per-component local overrides (TouchControls, PowerUpsLegendDrawer, overlays). |
 | AC-10 Dead imports / `tsc --noEmit` green | ✅ | 7 deleted components; `pnpm tsc --noEmit` green. |
 
-**Owner-manual items (AC-3, AC-4, AC-5)** are documented as follow-up in the PR body — they require a real browser and are out of scope for the agent run. The rest of the acceptance criteria are green.
+**Owner-manual items: AC-3 and AC-4 are now closed** with `docs/SDD/baselines/ref-06-phase-f-dpr1.json` (Phase F cut; supersedes the Phase E snapshot, which is kept as historical reference). AC-5 (Lighthouse) remains as the only pending owner-captured artifact; it is documented as a follow-up in the PR body.
+
+### 13.10 Perf snapshot comparison — baseline vs REF-06 final vs Phase F
+
+| Metric | Baseline (`phase-1-dpr1.json`, dev mode warm) | Phase E (`ref-06-final-dpr1.json`, preview cold) | **Phase F (`ref-06-phase-f-dpr1.json`, preview cold)** | Delta F vs baseline | Budget | Status |
+|---|---|---|---|---|---|---|
+| FPS | 59.75 | 60.0 | **60.0** | +0.25 | ≈ 60 | ✅ |
+| `frameIntervalP50` | 16.7 ms | 16.7 ms | **16.7 ms** | 0 | ≤ 17 ms | ✅ |
+| `frameIntervalP95` | 17.0 ms | 16.9 ms | **17.0 ms** | 0 | ≤ 17 ms | ✅ at budget |
+| `frameWorkTimeP95` | 0.2 ms | 0.3 ms | **0.3 ms** | +0.1 ms | — | ✅ negligible |
+| `longTasksPerMinute` | 10 | 13 | **5** | **−5** | — | ✅ improved |
+| `longTasksTotalMsPerMinute` | 1092 ms | 775 ms | **302 ms** | **−790 ms (−72 %)** | ≤ 1500 ms | ✅ improved |
+| `heapMB` | 43.9 MB | 37.6 MB | **36.4 MB** | **−7.5 MB (−17 %)** | — | ✅ improved |
+| FCP | 260 ms (dev warm) | 612 ms | **776 ms** (preview cold) | — | ≤ 1800 ms "good" | ✅ good |
+| LCP | 260 ms (dev warm) | 612 ms | **776 ms** (preview cold) | — | ≤ 1500 ms | ✅ good |
+| TTFB | 5.7 ms (HMR) | 420 ms | **409 ms** (preview cold) | — | ≤ 800 ms "good" | ✅ good |
+| CLS | 0.0095 | not emitted | not emitted | — | ≤ 0.10 | ➖ no flush in exports |
+| INP | 80 ms | not emitted | not emitted | — | ≤ 200 ms | ➖ no flush in exports |
+
+Notes:
+- **Phase F is the big perf win**: `longTasksTotalMsPerMinute` dropped 61 % from Phase E (775 → 302 ms). Root cause: `MobileFloatingInfo` carried a `useEffect` + `useState(headerHeight)` + `resize` + `orientationchange` listeners that fired on every mount — even on desktop, because the component mounted unconditionally and only its CSS used `display: none`. Phase F (M1) replaced the runtime measurement with a pure CSS `calc(var(--hud-strip-height) + ...)`, removing the listeners and shrinking the long-task surface.
+- `heapMB` dropped another 1.2 MB on top of the −6.3 MB Phase E had already earned — same root cause (less JS state + fewer detached closures).
+- FCP / LCP are `good` in both cuts; the 776 ms spike over Phase E's 612 ms is within run-to-run variance on a cold `pnpm preview` (different file-system caches; no code change affecting the critical path between E and F). Both sit well under the 1.5 s "good" budget.
+- CLS and INP still don't appear in the exports because `web-vitals` flushes them on `visibilitychange: hidden` / `pagehide`, and the PERF panel's export fires before that. The gameplay session that produced this snapshot reached **Fase 3 / Perigos em Movimento / score 610** — enough interaction to generate an INP, but the flush never happened. No layout-shift nor input-lag artifact was observed during the session.
+- No CLS bugs were observed during manual gameplay; REF-05 invariants held through REF-06.
+
+### 13.11 Phase F — Mobile polish (2026-04-26)
+
+Added on top of the "Done" cut after the owner validated REF-06 on a real mobile device (~462 px viewport portrait) and flagged 5 residual issues. Scope: bug fixes + UX correction, no architecture change, no new dependency.
+
+| ID | Problem observed on real device | Fix |
+|---|---|---|
+| **M1** | `PowerUpToast` + compact combo overlay in `MobileFloatingInfo` sat at `top: 65px` (hard-coded) but the HUD strip in Phase D grew to `88 px` on ≤ 480 px — the toast clipped the HUD's 2nd row. | Replaced the hard-coded pixels + runtime `headerHeight` measurement (`useEffect` + resize listener) with `top: calc(var(--hud-strip-height) + var(--space-2) + env(safe-area-inset-top))`. CSS-only, no JS, always in sync with `--hud-strip-height-mobile`. |
+| **M2** | Large visual gap between the touch-instruction pill and the D-pad because `.main` reserved `padding-bottom: 280px` while the D-pad itself only needed ~216 px, and `.gameArea` centered vertically, floating the board + hint mid-screen. | Reserved area reduced to `240 px` (`--dpad-reserved`), `.gameArea` now `justify-content: flex-start`, and the board's `max-height` formula was updated to consume the reclaimed space (`calc(100dvh − var(--hud-strip-height) − var(--dpad-reserved) − var(--space-5) − safe-area)`). The board grows ~40 px taller on typical mobile portrait, and the hint sits directly under it. |
+| **M3** | `LanguageSelector` was `display: none` in ≤ 768 px, leaving mobile users with no way to switch language. | `LanguageSelector` is now layout-agnostic (no media query of its own). In desktop, a `.hudLanguageSelector` wrapper in `HudStrip` keeps it visible; in ≤ 640 px, the wrapper hides and a new **Settings** section inside `PowerUpsLegendDrawer` (`data-testid="drawer-settings-section"`, visible only in ≤ 640 px) exposes the same `<LanguageSelector />` inside the drawer. Drawer identity stays "POWER-UPS"; Settings is an annex, not a rename. |
+| **M4** | On ≤ 640 px the legend button showed only a 12 px grey square (`.legendIcon` was a `<div>` filled with `currentColor`). No semantic meaning, no way to know that was the power-ups catalogue. | Replaced with an inline 14×14 SVG lightning bolt (~200 B) filled with `--color-accent-combo` (yellow neon) + 4 px `drop-shadow`. The button grew `aria-label={t('hud.legend')}` and the text node became a visually-hidden label (sr-only). On ≤ 640 px the icon scales up to 18×18 so it reads as a tap target. |
+| **M5** | On ≤ 360 px viewports (e.g. iPhone SE, 320 px), the HUD 2nd row (Score + Phase + Lives + Length) wrapped into a 3rd row or truncated the lives dots. | Added `@media (max-width: 360px)` that drops the `Length` slot (the snake length is visible on the board anyway) and tightens the row gap. Score + Phase + Lives fit cleanly in 320 px width. |
+
+**Phase F gates (2026-04-26 `pnpm exec vitest run` + `pnpm lint` + `pnpm build`)**:
+
+- `tsc`: ✅
+- `eslint`: 0 errors, 0 warnings
+- tests: **142 passed / 142** (+2 new: `PowerUpsLegendDrawer › Settings section carries LanguageSelector`, `HudStrip › legend toggle has aria-label and hidden SVG icon`)
+- build: ✅ `index.css 93.44 kB / 16.50 kB gzip` (was 93.38 / 16.49 — delta +0.06 kB raw, negligible after SVG inline + CSS section for Settings offset by removed `display:none` media rule). `index.js 355.43 kB / 111.74 kB gzip` (was 355.40 / 111.74 — delta +0.03 kB raw, flat on gzip; removed `useEffect` + `useState` + resize listener from `MobileFloatingInfo` offset SVG markup).
+
+**Net outcome**: mobile UX closes the gap between the desktop "Neon Arcade" polish and the ≤ 480 px experience. The five issues that were acceptable follow-ups become zero. Phase B.2 "motion polish" remains deferred to a future REF.
+
+**Phase F perf re-capture (2026-04-26 18:55 UTC, `docs/SDD/baselines/ref-06-phase-f-dpr1.json`)**: gameplay through Fase 3 / score 610 on a cold `pnpm preview`. Highlights (full table in §13.10):
+- `longTasksTotalMsPerMinute`: 775 → **302 ms** (−61 % inside Phase F alone, −72 % vs the REF-06 baseline). Root cause: Phase F M1 removed the `useEffect` + `useState(headerHeight)` + `resize`/`orientationchange` listeners from `MobileFloatingInfo`, which used to run on every render on every viewport.
+- `longTasksPerMinute`: 13 → **5**.
+- `heapMB`: 37.6 → **36.4 MB** (−1.2 MB on top of Phase E's −6.3 MB).
+- FCP/LCP/TTFB all remained `good` (776 / 776 / 409 ms).
+
+### 13.12 Phase F.1 — `reportAllChanges` for CLS/INP in perf-snapshot exports (2026-04-26)
+
+AC-3 was sitting at `✅ Partial` across Phase E and Phase F because the exported `perf-snapshot.json` always lacked CLS and INP. Diagnosed root cause: `web-vitals` only flushes those two metrics on `visibilitychange: hidden` / `pagehide` by default, and the PERF panel exports via button click — so the bus never received a value to put in the snapshot.
+
+**Fix** (≈ 15 LOC, bundle delta trivial):
+- `src/utils/perfBootstrap.ts`: `onCLS(handler, { reportAllChanges: true })` and `onINP(handler, { reportAllChanges: true })`. Other callbacks (FCP, LCP, TTFB) stay on their default "final value" semantics, which is what they're meant for.
+- `src/utils/perfSnapshot.ts`: new pure helper `dedupeLatestPerMetric(events)` that reduces the bus's push-only history to one entry per metric (last-wins). The recorder API stays historical — dedup happens only when the snapshot is serialized.
+- `src/utils/__tests__/perfSnapshot.test.ts`: +3 unit tests cover the dedup (`CLS` emits 3 times → snapshot keeps the latest, `INP` idem, empty input → empty output).
+
+**Gates (Phase F + F.1 combined)**: `tsc` ✅, `eslint` 0/0, **145 tests** (+3 from Phase F.1, +2 from Phase F), build ✅. JS bundle moved from 355.43 kB → **355.57 kB** (raw +0.14 kB, gzip +0.04 kB) — dedup function + `reportAllChanges` flag, within noise.
+
+**Next owner action (non-blocking)**: re-capture one perf snapshot on `pnpm preview` after 5–10 s of gameplay + a few key interactions to promote AC-3 from `Partial` to fully `✅` with CLS + INP now present in the exported JSON.

@@ -1,5 +1,6 @@
 import { PERF_SNAPSHOT_VERSION, type PerfSnapshot } from '@/types/perf';
 import { perfBus } from '@/utils/perfBus';
+import type { PerfWebVitalsEvent } from '@/types/perf';
 
 export interface SnapshotContext {
   phaseId: number;
@@ -35,8 +36,23 @@ export function buildPerfSnapshot(context: SnapshotContext): PerfSnapshot {
     ua,
     viewport,
     capturedAt: new Date().toISOString(),
-    webVitals: [...perfBus.getWebVitals()],
+    webVitals: dedupeLatestPerMetric(perfBus.getWebVitals()),
   };
+}
+
+/*
+ * REF-06 Phase F: with `reportAllChanges: true`, CLS + INP callbacks fire many
+ * times per session (each layout shift / each interaction). The bus keeps the
+ * full history (push-only, historical), but the exported snapshot only needs
+ * the most recent value per metric — that's what perf tooling and the spec
+ * consume. Last wins, stable across repeated exports.
+ */
+export function dedupeLatestPerMetric(events: readonly PerfWebVitalsEvent[]): PerfWebVitalsEvent[] {
+  const latest = new Map<PerfWebVitalsEvent['metric'], PerfWebVitalsEvent>();
+  for (const event of events) {
+    latest.set(event.metric, event);
+  }
+  return Array.from(latest.values());
 }
 
 export function downloadPerfSnapshot(snapshot: PerfSnapshot): void {

@@ -81,9 +81,19 @@ function registerWebVitals(): void {
     log.info({ event: 'web-vitals', ...event }, `web-vitals:${event.metric}`);
   };
 
-  onCLS(handler);
+  /*
+   * REF-06 Phase F: CLS and INP accumulate in the background but the default
+   * `web-vitals` behaviour only flushes them on `visibilitychange: hidden` /
+   * `pagehide`. The in-app PERF panel exports the snapshot via button click,
+   * which never triggers that flush — so both metrics were always missing from
+   * `perf-snapshot.json`. `reportAllChanges: true` tells `web-vitals` to fire
+   * the callback on every update, so the bus always holds the current value.
+   * Dedup happens at snapshot build time (see `buildPerfSnapshot`), keeping
+   * the recorder API (push-only, historical) unchanged.
+   */
+  onCLS(handler, { reportAllChanges: true });
   onFCP(handler);
-  onINP(handler);
+  onINP(handler, { reportAllChanges: true });
   onLCP(handler);
   onTTFB(handler);
 }

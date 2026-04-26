@@ -1,16 +1,28 @@
-import { useEffect, useState } from 'react';
+import { memo, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivePowerUp, FoodType } from '@/types/game';
 import { POWER_UP_CONFIG } from '@/constants/powerUps';
 import { getActivePowerUps } from '@/utils/powerUps';
+import { useGameStateSlice } from '@/state/gameStateStore';
 import styles from './ActivePowerUps.module.css';
 
-interface ActivePowerUpsProps {
-  powerUps: ActivePowerUp[];
+function powerUpsEqual(a: readonly ActivePowerUp[], b: readonly ActivePowerUp[]): boolean {
+  if (a === b) return true;
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    const aa = a[i];
+    const bb = b[i];
+    if (!aa || !bb) return false;
+    if (aa.type !== bb.type || aa.startTime !== bb.startTime || aa.duration !== bb.duration) {
+      return false;
+    }
+  }
+  return true;
 }
 
-export function ActivePowerUps({ powerUps }: ActivePowerUpsProps) {
+function ActivePowerUpsComponent() {
   const { t } = useTranslation();
+  const powerUps = useGameStateSlice((s) => s.activePowerUps, powerUpsEqual);
   const [currentTime, setCurrentTime] = useState(Date.now());
   const activePowerUps = getActivePowerUps(powerUps);
 
@@ -193,3 +205,6 @@ export function ActivePowerUps({ powerUps }: ActivePowerUpsProps) {
     </div>
   );
 }
+
+export const ActivePowerUps = memo(ActivePowerUpsComponent);
+ActivePowerUps.displayName = 'ActivePowerUps';

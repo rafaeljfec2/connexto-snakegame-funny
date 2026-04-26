@@ -1,14 +1,14 @@
+import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useGameStateSlice } from '@/state/gameStateStore';
 import styles from './GameInfo.module.css';
 
-interface GameInfoProps {
-  score: number;
-  highScore: number;
-  level: number;
-}
-
-export function GameInfo({ score, highScore, level }: GameInfoProps) {
+function GameInfoComponent() {
   const { t } = useTranslation();
+  const score = useGameStateSlice((s) => s.score);
+  const highScore = useGameStateSlice((s) => s.highScore);
+  const level = useGameStateSlice((s) => s.level);
+
   return (
     <div className={styles.gameInfo}>
       <div className={styles.scores}>
@@ -28,3 +28,6 @@ export function GameInfo({ score, highScore, level }: GameInfoProps) {
     </div>
   );
 }
+
+export const GameInfo = memo(GameInfoComponent);
+GameInfo.displayName = 'GameInfo';

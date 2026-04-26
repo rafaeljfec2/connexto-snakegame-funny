@@ -1,66 +1,36 @@
+import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { GameState } from '@/types/game';
 import { GameBoard } from './GameBoard';
 import { GameControls } from './GameControls';
 import { StatusBar } from './StatusBar';
 import { MobileFloatingInfo } from './MobileFloatingInfo';
+import { useGameStateSlice } from '@/state/gameStateStore';
 import styles from '../App.module.css';
 
 interface GameAreaProps {
-  gameState: GameState;
-  gameWorker: Worker | null;
-  resetToken: number;
-  onStart: () => void;
-  onPause: () => void;
-  onReset: () => void;
+  readonly gameWorker: Worker | null;
+  readonly resetToken: number;
+  readonly onStart: () => void;
+  readonly onPause: () => void;
+  readonly onReset: () => void;
 }
 
-export function GameArea({
-  gameState,
-  gameWorker,
-  resetToken,
-  onStart,
-  onPause,
-  onReset,
-}: Readonly<GameAreaProps>) {
+function GameAreaComponent({ gameWorker, resetToken, onStart, onPause, onReset }: GameAreaProps) {
   const { t } = useTranslation();
+  const status = useGameStateSlice((s) => s.status);
 
   return (
     <div className={styles.gameArea}>
-      <MobileFloatingInfo
-        activePowerUps={gameState.activePowerUps}
-        combo={gameState.combo}
-        snakeLength={gameState.snake.length}
-        lives={gameState.lives}
-        level={gameState.level}
-      />
+      <MobileFloatingInfo />
       <div className={styles.gameContainer}>
-        <GameBoard
-          snake={gameState.snake}
-          food={gameState.food}
-          status={gameState.status}
-          level={gameState.level}
-          activeBoss={gameState.activeBoss}
-          resetToken={resetToken}
-          gameWorker={gameWorker}
-        />
-        <div className={styles.gameControls} data-status={gameState.status}>
-          <GameControls
-            onStart={onStart}
-            onPause={onPause}
-            onReset={onReset}
-            status={gameState.status}
-          />
+        <GameBoard resetToken={resetToken} gameWorker={gameWorker} />
+        <div className={styles.gameControls} data-status={status}>
+          <GameControls onStart={onStart} onPause={onPause} onReset={onReset} status={status} />
         </div>
       </div>
 
-      {/* StatusBar below game on mobile */}
       <div className={styles.mobileStatusBar}>
-        <StatusBar
-          length={gameState.snake.length}
-          lives={gameState.lives}
-          level={gameState.level}
-        />
+        <StatusBar />
       </div>
 
       <div className={styles.instructions}>
@@ -69,3 +39,6 @@ export function GameArea({
     </div>
   );
 }
+
+export const GameArea = memo(GameAreaComponent);
+GameArea.displayName = 'GameArea';

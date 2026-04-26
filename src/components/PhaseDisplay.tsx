@@ -1,15 +1,15 @@
+import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useGameStateSlice } from '@/state/gameStateStore';
 import { getCurrentPhase, getLevelInPhase, getPhaseProgress } from '@/utils/phases';
 import { getPhaseTranslationKey } from '@/utils/phaseTranslations';
 import styles from './PhaseDisplay.module.css';
 
-interface PhaseDisplayProps {
-  level: number;
-  currentPhase?: number;
-}
-
-export function PhaseDisplay({ level, currentPhase }: PhaseDisplayProps) {
+function PhaseDisplayComponent() {
   const { t } = useTranslation();
+  const level = useGameStateSlice((s) => s.level);
+  const currentPhase = useGameStateSlice((s) => s.currentPhase);
+
   const phase = getCurrentPhase(level) ?? undefined;
   const phaseNumber = currentPhase ?? phase?.id ?? 1;
   const levelInPhase = getLevelInPhase(level);
@@ -38,3 +38,6 @@ export function PhaseDisplay({ level, currentPhase }: PhaseDisplayProps) {
     </div>
   );
 }
+
+export const PhaseDisplay = memo(PhaseDisplayComponent);
+PhaseDisplay.displayName = 'PhaseDisplay';

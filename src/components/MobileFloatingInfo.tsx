@@ -1,18 +1,11 @@
-import { ActivePowerUp, ComboState, FoodType } from '@/types/game';
+import { ActivePowerUp, FoodType } from '@/types/game';
 import { useTranslation } from 'react-i18next';
 import { getActivePowerUps } from '@/utils/powerUps';
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { memo, useEffect, useState, useRef, useCallback } from 'react';
 import { COMBO_CONFIG } from '@/constants/game';
+import { useGameStateSlice } from '@/state/gameStateStore';
 import { PowerUpToast } from './PowerUpToast';
 import styles from './MobileFloatingInfo.module.css';
-
-interface MobileFloatingInfoProps {
-  activePowerUps: ActivePowerUp[];
-  combo: ComboState;
-  snakeLength: number;
-  lives: number;
-  level: number;
-}
 
 interface Toast {
   id: string;
@@ -23,20 +16,31 @@ interface Toast {
   startTime: number;
 }
 
-export function MobileFloatingInfo({
-  activePowerUps,
-  combo,
-  snakeLength: _snakeLength,
-  lives: _lives,
-  level: _level,
-}: MobileFloatingInfoProps) {
+function powerUpsEqual(a: readonly ActivePowerUp[], b: readonly ActivePowerUp[]): boolean {
+  if (a === b) return true;
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    const aa = a[i];
+    const bb = b[i];
+    if (!aa || !bb) return false;
+    if (aa.type !== bb.type || aa.startTime !== bb.startTime || aa.duration !== bb.duration) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function MobileFloatingInfoComponent() {
   const { t } = useTranslation();
+  const activePowerUps = useGameStateSlice((s) => s.activePowerUps, powerUpsEqual);
+  const comboCount = useGameStateSlice((s) => s.combo.count);
+  const comboMultiplier = useGameStateSlice((s) => s.combo.multiplier);
+
   const [toasts, setToasts] = useState<Toast[]>([]);
   const previousPowerUpsRef = useRef<ActivePowerUp[]>([]);
-  const [headerHeight, setHeaderHeight] = useState(65); // Default height
+  const [headerHeight, setHeaderHeight] = useState(65);
   const toastContainerRef = useRef<HTMLDivElement>(null);
 
-  // Get power-up info
   const getPowerUpInfo = useCallback(
     (type: FoodType) => {
       const powerUpInfoMap: Record<FoodType, { name: string; icon: string }> = {
@@ -57,25 +61,21 @@ export function MobileFloatingInfo({
     [t],
   );
 
-  // Detect new power-ups and show toasts
   useEffect(() => {
     const currentPowerUps = getActivePowerUps(activePowerUps);
     const previousPowerUps = previousPowerUpsRef.current;
 
-    // Create a map of previous power-ups by their unique identifier
     const previousPowerUpMap = new Map<string, ActivePowerUp>();
     previousPowerUps.forEach((powerUp) => {
       const key = `${powerUp.type}-${powerUp.startTime}`;
       previousPowerUpMap.set(key, powerUp);
     });
 
-    // Find newly activated power-ups (those not in previous list)
     const newPowerUps = currentPowerUps.filter((current) => {
       const key = `${current.type}-${current.startTime}`;
       return !previousPowerUpMap.has(key);
     });
 
-    // Create toasts for new power-ups
     if (newPowerUps.length > 0) {
       const newToasts: Toast[] = newPowerUps
         .filter((powerUp) => powerUp.type !== FoodType.NORMAL)
@@ -94,7 +94,6 @@ export function MobileFloatingInfo({
       setToasts((prev) => [...prev, ...newToasts]);
     }
 
-    // Remove toasts for expired power-ups
     const activePowerUpIds = new Set(
       currentPowerUps.map((powerUp) => `${powerUp.type}-${powerUp.startTime}`),
     );
@@ -103,13 +102,12 @@ export function MobileFloatingInfo({
     previousPowerUpsRef.current = currentPowerUps;
   }, [activePowerUps, getPowerUpInfo]);
 
-  // Calculate header height dynamically
   useEffect(() => {
     const updateHeaderHeight = () => {
       const header = document.querySelector('header') as HTMLElement | null;
       if (header) {
         const height = header.offsetHeight;
-        setHeaderHeight(height + 8); // Add 8px padding
+        setHeaderHeight(height + 8);
       }
     };
 
@@ -117,7 +115,6 @@ export function MobileFloatingInfo({
     window.addEventListener('resize', updateHeaderHeight);
     window.addEventListener('orientationchange', updateHeaderHeight);
 
-    // Also update after a short delay to ensure header is rendered
     const timeout = setTimeout(updateHeaderHeight, 100);
 
     return () => {
@@ -133,7 +130,6 @@ export function MobileFloatingInfo({
 
   return (
     <div className={styles.mobileFloatingInfo}>
-      {/* Power-Up Toasts */}
       <div
         ref={toastContainerRef}
         className={styles.toastContainer}
@@ -152,13 +148,12 @@ export function MobileFloatingInfo({
         ))}
       </div>
 
-      {/* Top Right - Combo Only */}
-      {combo.count >= COMBO_CONFIG.minCombo && (
+      {comboCount >= COMBO_CONFIG.minCombo && (
         <div className={`${styles.mobileOverlay} ${styles.statsOverlay}`}>
           <div className={styles.floatingCard}>
             <div className={styles.compactCombo}>
               <span className={styles.compactComboLabel}>{t('panels.combo')}</span>
-              <span className={styles.compactComboValue}>x{combo.multiplier}</span>
+              <span className={styles.compactComboValue}>x{comboMultiplier}</span>
             </div>
           </div>
         </div>
@@ -166,3 +161,6 @@ export function MobileFloatingInfo({
     </div>
   );
 }
+
+export const MobileFloatingInfo = memo(MobileFloatingInfoComponent);
+MobileFloatingInfo.displayName = 'MobileFloatingInfo';

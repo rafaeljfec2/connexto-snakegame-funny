@@ -1,13 +1,12 @@
+import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { LIVES_CONFIG } from '@/constants/lives';
+import { useGameStateSlice } from '@/state/gameStateStore';
 import styles from './LivesDisplay.module.css';
 
-interface LivesDisplayProps {
-  lives: number;
-}
-
-export function LivesDisplay({ lives }: LivesDisplayProps) {
+function LivesDisplayComponent() {
   const { t } = useTranslation();
+  const lives = useGameStateSlice((s) => s.lives);
   if (!LIVES_CONFIG.enabled) {
     return null;
   }
@@ -29,3 +28,6 @@ export function LivesDisplay({ lives }: LivesDisplayProps) {
     </div>
   );
 }
+
+export const LivesDisplay = memo(LivesDisplayComponent);
+LivesDisplay.displayName = 'LivesDisplay';

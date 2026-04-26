@@ -17,6 +17,7 @@ describe('perfBus', () => {
       expect(view.intervalSampleCount).toBe(50);
       expect(view.frameIntervalMs).toBeCloseTo(16);
       expect(view.fps).toBeCloseTo(62.5);
+      expect(view.frameIntervalP95).toBe(16);
       expect(view.frameIntervalP1).toBe(16);
     });
 

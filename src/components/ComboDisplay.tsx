@@ -1,19 +1,21 @@
+import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ComboState } from '@/types/game';
 import { GAME_CONFIG, COMBO_CONFIG } from '@/constants/game';
+import { useGameStateSlice } from '@/state/gameStateStore';
 import styles from './ComboDisplay.module.css';
 
-interface ComboDisplayProps {
-  combo: ComboState;
-}
-
-export function ComboDisplay({ combo }: ComboDisplayProps) {
+function ComboDisplayComponent() {
   const { t } = useTranslation();
+  const combo = useGameStateSlice(
+    (s) => s.combo,
+    (a, b) =>
+      a.count === b.count && a.multiplier === b.multiplier && a.lastFoodTime === b.lastFoodTime,
+  );
+
   if (!GAME_CONFIG.enableCombos) {
     return null;
   }
 
-  // Always show combo display
   const now = Date.now();
   const timeSinceLastFood = combo.lastFoodTime > 0 ? now - combo.lastFoodTime : Infinity;
   const comboWindow = COMBO_CONFIG.comboWindow;
@@ -36,3 +38,6 @@ export function ComboDisplay({ combo }: ComboDisplayProps) {
     </div>
   );
 }
+
+export const ComboDisplay = memo(ComboDisplayComponent);
+ComboDisplay.displayName = 'ComboDisplay';

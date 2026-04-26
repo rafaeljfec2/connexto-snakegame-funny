@@ -1,23 +1,22 @@
+import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { LIVES_CONFIG } from '@/constants/lives';
+import { useGameStateSlice } from '@/state/gameStateStore';
 import { getCurrentPhase, getPhaseNumber } from '@/utils/phases';
 import { getPhaseTranslationKey } from '@/utils/phaseTranslations';
 import styles from './StatusBar.module.css';
 
-interface StatusBarProps {
-  length: number;
-  lives: number;
-  level: number;
-}
-
-export function StatusBar({ length, lives, level }: StatusBarProps) {
+function StatusBarComponent() {
   const { t } = useTranslation();
+  const length = useGameStateSlice((s) => s.snake.length);
+  const lives = useGameStateSlice((s) => s.lives);
+  const level = useGameStateSlice((s) => s.level);
+
   const phase = getCurrentPhase(level);
   const phaseNumber = phase ? getPhaseNumber(level) : 1;
 
   return (
     <div className={styles.statusBar}>
-      {/* Length - Always visible */}
       <div className={styles.statusItem}>
         <span className={styles.statusIcon}>🐍</span>
         <div className={styles.statusContent}>
@@ -26,7 +25,6 @@ export function StatusBar({ length, lives, level }: StatusBarProps) {
         </div>
       </div>
 
-      {/* Lives - Show if enabled */}
       {LIVES_CONFIG.enabled && (
         <>
           <div className={styles.separator} />
@@ -50,7 +48,6 @@ export function StatusBar({ length, lives, level }: StatusBarProps) {
         </>
       )}
 
-      {/* Phase - Show if exists */}
       {phase && (
         <>
           <div className={styles.separator} />
@@ -73,3 +70,6 @@ export function StatusBar({ length, lives, level }: StatusBarProps) {
     </div>
   );
 }
+
+export const StatusBar = memo(StatusBarComponent);
+StatusBar.displayName = 'StatusBar';

@@ -53,7 +53,7 @@ describe('percentiles', () => {
       expect(summary).toEqual({ count: 0, mean: 0, p1: 0, p5: 0, p50: 0, p95: 0 });
     });
 
-    it('uses gaming convention where p1 is the slow tail and p95 is the fast tail', () => {
+    it('uses standard statistical convention where p95 is the slow tail', () => {
       const ring = createFrameTimeRing(100);
       for (let i = 1; i <= 100; i++) {
         pushFrameTime(ring, i);
@@ -63,10 +63,10 @@ describe('percentiles', () => {
 
       expect(summary.count).toBe(100);
       expect(summary.mean).toBeCloseTo(50.5);
-      expect(summary.p1).toBe(100);
-      expect(summary.p5).toBe(96);
+      expect(summary.p1).toBe(2);
+      expect(summary.p5).toBe(6);
       expect(summary.p50).toBe(51);
-      expect(summary.p95).toBe(6);
+      expect(summary.p95).toBe(96);
     });
 
     it('reflects only the last capacity samples', () => {
@@ -79,8 +79,9 @@ describe('percentiles', () => {
 
       expect(summary.count).toBe(10);
       expect(summary.mean).toBeCloseTo(95.5);
-      expect(summary.p1).toBe(100);
+      expect(summary.p95).toBe(100);
       expect(summary.p50).toBe(96);
+      expect(summary.p1).toBe(91);
     });
 
     it('is idempotent across calls without mutating the ring', () => {

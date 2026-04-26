@@ -1,7 +1,5 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
-import { GameStatus, GameState, Direction, FoodType } from '@/types/game';
-import { INITIAL_SNAKE_POSITION, INITIAL_DIRECTION, GAME_CONFIG } from '@/constants/game';
-import { initializeStatistics } from '@/utils/statistics';
+import { GameStatus, GameState, Direction } from '@/types/game';
 import { spawnParticles } from '@/utils/particles';
 import { saveHighScore, getHighScore } from '@/utils/gameLogic';
 import { saveAchievements } from '@/utils/achievements';
@@ -9,45 +7,15 @@ import { Chef } from '@/types/phases';
 import { perfBus } from '@/utils/perfBus';
 import { sfxEngine } from '@/utils/sfxEngine';
 import type { SfxWorkerMessage } from '@/types/sfx';
-
-// Initial state factory
-const getInitialState = (): GameState => ({
-  snake: [...INITIAL_SNAKE_POSITION],
-  food: {
-    position: { x: 5, y: 5 }, // Placeholder
-    type: FoodType.NORMAL,
-    spawnTime: Date.now(),
-  },
-  direction: INITIAL_DIRECTION,
-  nextDirection: INITIAL_DIRECTION,
-  status: GameStatus.IDLE,
-  score: 0,
-  highScore: getHighScore(),
-  level: 1,
-  gameSpeed: GAME_CONFIG.gameSpeed,
-  activePowerUps: [],
-  obstacles: [],
-  portals: [],
-  combo: { count: 0, multiplier: 1, lastFoodTime: 0 },
-  particles: [],
-  poisonShots: [],
-  achievements: [],
-  lives: 3,
-  statistics: initializeStatistics(),
-  isSpeedBoosted: false,
-  isFiringPoison: false,
-});
+import { setGameStateUpdater, useGameStateSlice } from '@/state/gameStateStore';
 
 export function useGameLoop() {
-  // Local state mirror for React rendering
-  const [gameState, setGameState] = useState<GameState>(getInitialState());
+  const gameState = useGameStateSlice<GameState>((state) => state);
 
-  // Worker reference
   const workerRef = useRef<Worker | null>(null);
   const [workerInstance, setWorkerInstance] = useState<Worker | null>(null);
 
   useEffect(() => {
-    // Initialize Worker
     workerRef.current = new Worker(new URL('../workers/game.worker.ts', import.meta.url), {
       type: 'module',
     });
@@ -56,7 +24,6 @@ export function useGameLoop() {
     const worker = workerRef.current;
     const detachPerf = perfBus.attachWorker(worker, 'game');
 
-    // Handle messages from worker
     worker.onmessage = (e: MessageEvent) => {
       const { type, payload } = e.data;
 
@@ -68,17 +35,11 @@ export function useGameLoop() {
 
       switch (type) {
         case 'GAME_STATE_UPDATE':
-          // Legacy support - full state update
-          setGameState(payload);
+          setGameStateUpdater(() => payload);
           break;
 
         case 'GAME_STATE_DELTA':
-          // Delta compression - apply only changes
-          // Both full update and delta use the same merge logic
-          setGameState((prev) => ({
-            ...prev,
-            ...payload,
-          }));
+          setGameStateUpdater((prev) => ({ ...prev, ...payload }));
           break;
 
         case 'SPAWN_PARTICLES':
@@ -92,13 +53,10 @@ export function useGameLoop() {
           break;
 
         case 'GAME_OVER_OR_DYING':
-          if (payload.status === GameStatus.GAME_OVER) {
-            if (payload.score !== undefined) {
-              saveHighScore(payload.score);
-            }
+          if (payload.status === GameStatus.GAME_OVER && payload.score !== undefined) {
+            saveHighScore(payload.score);
           }
-          // Force status update if needed immediately
-          setGameState((prev) => ({ ...prev, status: payload.status }));
+          setGameStateUpdater((prev) => ({ ...prev, status: payload.status }));
           break;
 
         case 'SAVE_ACHIEVEMENTS':
@@ -107,7 +65,6 @@ export function useGameLoop() {
       }
     };
 
-    // Initialize worker state
     worker.postMessage({ type: 'INIT', payload: { highScore: getHighScore() } });
 
     return () => {
@@ -115,8 +72,6 @@ export function useGameLoop() {
       worker.terminate();
     };
   }, []);
-
-  // Actions interface - proxies to worker
 
   const startGame = useCallback(() => {
     workerRef.current?.postMessage({ type: 'START_GAME', payload: { highScore: getHighScore() } });
@@ -139,9 +94,7 @@ export function useGameLoop() {
   }, []);
 
   const firePoison = useCallback(() => {
-    // Send explicit fire command for immediate response
     workerRef.current?.postMessage({ type: 'FIRE_POISON' });
-    // Also enable continuous firing state
     workerRef.current?.postMessage({ type: 'SET_FIRING_POISON', payload: { enabled: true } });
   }, []);
 
@@ -180,7 +133,6 @@ export function useGameLoop() {
     workerRef.current?.postMessage({ type: 'RESUME_AFTER_DEATH' });
   }, []);
 
-  // Keyboard controls
   const handleKeyPress = useCallback(
     (key: string) => {
       if (key === ' ') {

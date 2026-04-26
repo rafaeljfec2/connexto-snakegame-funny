@@ -61,18 +61,15 @@ export function summarize(ring: FrameTimeRing): PercentileSummary {
   return {
     count: ring.size,
     mean,
-    p1: pickPercentile(sorted, 0.99),
-    p5: pickPercentile(sorted, 0.95),
+    p1: pickPercentile(sorted, 0.01),
+    p5: pickPercentile(sorted, 0.05),
     p50: pickPercentile(sorted, 0.5),
-    p95: pickPercentile(sorted, 0.05),
+    p95: pickPercentile(sorted, 0.95),
   };
 }
 
-function pickPercentile(sortedAsc: Float64Array, fractionFromTop: number): number {
+function pickPercentile(sortedAsc: Float64Array, fraction: number): number {
   if (sortedAsc.length === 0) return 0;
-  const idx = Math.min(
-    sortedAsc.length - 1,
-    Math.max(0, Math.floor(sortedAsc.length * fractionFromTop)),
-  );
+  const idx = Math.min(sortedAsc.length - 1, Math.max(0, Math.floor(sortedAsc.length * fraction)));
   return sortedAsc[idx] ?? 0;
 }

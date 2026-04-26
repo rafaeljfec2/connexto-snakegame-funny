@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { GameInfo } from './GameInfo';
 import { StatusBar } from './StatusBar';
@@ -5,21 +6,7 @@ import { LanguageSelector } from './LanguageSelector';
 import { AudioToggle } from './AudioToggle';
 import styles from '../App.module.css';
 
-interface GameHeaderProps {
-  score: number;
-  highScore: number;
-  level: number;
-  snakeLength: number;
-  lives: number;
-}
-
-export function GameHeader({
-  score,
-  highScore,
-  level,
-  snakeLength,
-  lives,
-}: Readonly<GameHeaderProps>) {
+function GameHeaderComponent() {
   const { t } = useTranslation();
 
   return (
@@ -27,9 +14,9 @@ export function GameHeader({
       <div className={styles.headerContent}>
         <h1 className={styles.title}>{t('common.snakeGame')}</h1>
         <div className={styles.headerStats}>
-          <GameInfo score={score} highScore={highScore} level={level} />
+          <GameInfo />
           <div className={styles.headerStatusBar}>
-            <StatusBar length={snakeLength} lives={lives} level={level} />
+            <StatusBar />
           </div>
         </div>
         <div className={styles.headerActions}>
@@ -40,3 +27,6 @@ export function GameHeader({
     </header>
   );
 }
+
+export const GameHeader = memo(GameHeaderComponent);
+GameHeader.displayName = 'GameHeader';

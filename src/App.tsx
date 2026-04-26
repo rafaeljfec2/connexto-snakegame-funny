@@ -21,6 +21,7 @@ import { DynamicBackground } from './components/DynamicBackground';
 import { ActivePowerUps } from './components/ActivePowerUps';
 import { ComboDisplay } from './components/ComboDisplay';
 import { PhaseDisplay } from './components/PhaseDisplay';
+import { getGameStore } from '@/state/gameStateStore';
 import { useTranslation } from 'react-i18next';
 import styles from './App.module.css';
 
@@ -118,19 +119,22 @@ function App() {
   });
 
   const handleStart = useCallback(() => {
-    if (gameState.status === GameStatus.IDLE) {
+    if (getGameStore().getState().status === GameStatus.IDLE) {
       startGame();
     }
-  }, [gameState.status, startGame]);
+  }, [startGame]);
 
   const handlePause = useCallback(() => {
     pauseGame();
   }, [pauseGame]);
 
-  // Global spacebar handler
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
-      if (e.key === ' ' && e.target === document.body && gameState.status !== GameStatus.PLAYING) {
+      if (
+        e.key === ' ' &&
+        e.target === document.body &&
+        getGameStore().getState().status !== GameStatus.PLAYING
+      ) {
         e.preventDefault();
         handleKeyPress(' ');
       }
@@ -138,7 +142,7 @@ function App() {
 
     globalThis.addEventListener('keydown', handleGlobalKeyDown);
     return () => globalThis.removeEventListener('keydown', handleGlobalKeyDown);
-  }, [gameState.status, handleKeyPress]);
+  }, [handleKeyPress]);
 
   const handleBossSelect = useCallback(
     (boss: import('@/types/phases').Chef | null) => {
@@ -207,13 +211,7 @@ function App() {
     <div className={styles.app}>
       <DynamicBackground level={gameState.level} />
 
-      <GameHeader
-        score={gameState.score}
-        highScore={gameState.highScore}
-        level={gameState.level}
-        snakeLength={gameState.snake.length}
-        lives={gameState.lives}
-      />
+      <GameHeader />
 
       <main className={styles.main}>
         {/* Left Panel */}
@@ -221,13 +219,12 @@ function App() {
           <div className={styles.panelContent}>
             <div className={styles.panelSection}>
               <h3 className={styles.panelTitle}>{t('panels.powerUps')}</h3>
-              <ActivePowerUps powerUps={gameState.activePowerUps} />
+              <ActivePowerUps />
             </div>
           </div>
         </aside>
 
         <GameArea
-          gameState={gameState}
           gameWorker={gameWorker}
           resetToken={gameResetToken}
           onStart={handleStart}
@@ -239,11 +236,11 @@ function App() {
         <aside className={styles.rightPanel}>
           <div className={styles.panelContent}>
             <div className={styles.panelSection}>
-              <PhaseDisplay level={gameState.level} currentPhase={gameState.currentPhase} />
+              <PhaseDisplay />
             </div>
             <div className={styles.panelSection}>
               <h3 className={styles.panelTitle}>{t('panels.combo')}</h3>
-              <ComboDisplay combo={gameState.combo} />
+              <ComboDisplay />
             </div>
           </div>
         </aside>

@@ -1,55 +1,45 @@
 import { useTranslation } from 'react-i18next';
-import { Position, GameStatus, Food as FoodType } from '@/types/game';
+import { GameStatus } from '@/types/game';
 import { GAME_CONFIG } from '@/constants/game';
 import { WeatherCanvas } from './WeatherCanvas';
 import { ParticleSystem } from './ParticleSystem';
 import { useEffect, useRef, useState, memo } from 'react';
 import styles from './GameBoard.module.css';
-import { Chef } from '@/types/phases';
 import { GameBackground } from './GameBackground';
 import { perfBus } from '@/utils/perfBus';
+import { useGameStateSlice } from '@/state/gameStateStore';
 
 interface GameBoardProps {
-  snake: Position[];
-  food: FoodType;
-  status: GameStatus;
-  level: number;
-  activeBoss?: Chef;
   resetToken?: number;
   gameWorker?: Worker | null;
 }
 
-export const GameBoard = memo(function GameBoard({
-  snake,
-  food,
-  status,
-  level,
-  activeBoss,
-  resetToken = 0,
-  gameWorker,
-}: Readonly<GameBoardProps>) {
+function GameBoardComponent({ resetToken = 0, gameWorker }: Readonly<GameBoardProps>) {
   const { t } = useTranslation();
   const boardRef = useRef<HTMLDivElement>(null);
   const [cellSize, setCellSize] = useState(GAME_CONFIG.cellSize);
   const [isMobile, setIsMobile] = useState(false);
   const [canvasKey, setCanvasKey] = useState(0);
 
-  // Reset worker when resetToken changes
+  const status = useGameStateSlice((s) => s.status);
+  const level = useGameStateSlice((s) => s.level);
+  const activeBossId = useGameStateSlice((s) => s.activeBoss?.id ?? null);
+  const foodPosX = useGameStateSlice((s) => s.food.position.x);
+  const foodPosY = useGameStateSlice((s) => s.food.position.y);
+  const foodType = useGameStateSlice((s) => s.food.type);
+  const snakeIsEmpty = useGameStateSlice((s) => s.snake.length === 0);
+
   useEffect(() => {
     if (resetToken > 0) {
       setCanvasKey((prev) => prev + 1);
     }
   }, [resetToken]);
 
-  // Worker for rendering Snake, Boss, Shots (High Frequency Updates)
   const renderCanvasRef = useRef<HTMLCanvasElement>(null);
   const renderWorkerRef = useRef<Worker | null>(null);
 
-  // Calculate responsive cell size based on container
   useEffect(() => {
     const updateCellSize = () => {
-      // Consider "mobile/responsive" if screen is narrow OR if it's landscape with limited height
-      // This ensures the game scales down on landscape tablets/phones instead of using fixed desktop size
       const isNarrow = window.innerWidth <= 1024;
       const isLandscapeShort = window.innerHeight <= 800 && window.innerWidth > window.innerHeight;
       const responsiveMode = isNarrow || isLandscapeShort;
@@ -60,7 +50,7 @@ export const GameBoard = memo(function GameBoard({
         const container = boardRef.current.parentElement;
         if (container) {
           const containerRect = container.getBoundingClientRect();
-          const padding = responsiveMode ? 4 : 24; // Less padding in responsive mode
+          const padding = responsiveMode ? 4 : 24;
           const availableWidth = containerRect.width - padding * 2;
           const availableHeight = containerRect.height - padding * 2;
 
@@ -69,11 +59,9 @@ export const GameBoard = memo(function GameBoard({
           );
 
           if (responsiveMode) {
-            // In responsive mode, use calculated size but ensure min 8px
             const finalCellSize = Math.max(calculatedCellSize, 8);
             setCellSize(finalCellSize);
           } else {
-            // Desktop mode - fixed size
             setCellSize(GAME_CONFIG.cellSize);
           }
         }
@@ -87,11 +75,7 @@ export const GameBoard = memo(function GameBoard({
       resizeObserver = new ResizeObserver(() => {
         setTimeout(updateCellSize, 50);
 
-        // Notify worker of resize
         if (renderCanvasRef.current && renderWorkerRef.current && boardRef.current) {
-          // Need accurate dimensions of the CANVAS/Grid, not just container
-          // The canvas fills the grid defined by CSS
-          // We can read boardRef dimensions
           const rect = boardRef.current.getBoundingClientRect();
           renderWorkerRef.current.postMessage({
             type: 'RESIZE',
@@ -118,7 +102,6 @@ export const GameBoard = memo(function GameBoard({
     };
   }, []);
 
-  // Initialize Render Worker
   useEffect(() => {
     if (!renderCanvasRef.current || renderWorkerRef.current) return;
 
@@ -130,7 +113,6 @@ export const GameBoard = memo(function GameBoard({
 
     const canvas = renderCanvasRef.current;
 
-    // Check if OffscreenCanvas is supported
     if (canvas.transferControlToOffscreen) {
       try {
         const offscreen = canvas.transferControlToOffscreen();
@@ -148,7 +130,6 @@ export const GameBoard = memo(function GameBoard({
           [offscreen],
         );
 
-        // Connect to Game Worker if available for direct rendering
         if (gameWorker) {
           const channel = new MessageChannel();
           worker.postMessage({ type: 'CONNECT_GAME_WORKER', payload: { port: channel.port1 } }, [
@@ -168,7 +149,6 @@ export const GameBoard = memo(function GameBoard({
       }
     } else {
       console.warn('OffscreenCanvas not supported, falling back or failing gracefully.');
-      // Fallback implementation logic would go here if needed
     }
 
     return () => {
@@ -178,14 +158,14 @@ export const GameBoard = memo(function GameBoard({
     };
   }, [canvasKey, gameWorker]);
 
-  const previousFoodKeyRef = useRef(`${food.position.x}-${food.position.y}-${food.type}`);
+  const previousFoodKeyRef = useRef(`${foodPosX}-${foodPosY}-${foodType}`);
 
   useEffect(() => {
-    const currentFoodKey = `${food.position.x}-${food.position.y}-${food.type}`;
+    const currentFoodKey = `${foodPosX}-${foodPosY}-${foodType}`;
     const foodChanged = currentFoodKey !== previousFoodKeyRef.current;
     previousFoodKeyRef.current = currentFoodKey;
 
-    if (!foodChanged || status !== GameStatus.PLAYING || snake.length === 0) return;
+    if (!foodChanged || status !== GameStatus.PLAYING || snakeIsEmpty) return;
 
     const worker = renderWorkerRef.current;
     if (!worker) return;
@@ -195,21 +175,20 @@ export const GameBoard = memo(function GameBoard({
       worker.postMessage({ type: 'UI_HINT', payload: { isEating: false } });
     }, 200);
     return () => clearTimeout(timeoutId);
-  }, [food.position.x, food.position.y, food.type, status, snake.length]);
+  }, [foodPosX, foodPosY, foodType, status, snakeIsEmpty]);
 
   const previousActiveBossIdRef = useRef<string | null>(null);
   useEffect(() => {
     const worker = renderWorkerRef.current;
     if (!worker) return;
-    const nextId = activeBoss?.id ?? null;
-    if (nextId === previousActiveBossIdRef.current) return;
-    previousActiveBossIdRef.current = nextId;
-    if (!activeBoss) return;
+    if (activeBossId === previousActiveBossIdRef.current) return;
+    previousActiveBossIdRef.current = activeBossId;
+    if (!activeBossId) return;
     worker.postMessage({
       type: 'UI_LOCALE',
-      payload: { activeBoss: { name: t(`bosses.${activeBoss.id}.name`) } },
+      payload: { activeBoss: { name: t(`bosses.${activeBossId}.name`) } },
     });
-  }, [activeBoss, t]);
+  }, [activeBossId, t]);
 
   const gridStyle = isMobile
     ? {
@@ -258,7 +237,6 @@ export const GameBoard = memo(function GameBoard({
       <div className={styles.gameLayer} style={gridStyle}>
         <WeatherCanvas level={level} isMobile={isMobile} />
 
-        {/* WORKER RENDER LAYER: Snake, Boss, Shots, Food, Obstacles, Portals */}
         <canvas
           key={canvasKey}
           ref={renderCanvasRef}
@@ -273,9 +251,11 @@ export const GameBoard = memo(function GameBoard({
           }}
         />
 
-        {/* Particle System (Separate Worker) */}
         <ParticleSystem />
       </div>
     </div>
   );
-});
+}
+
+export const GameBoard = memo(GameBoardComponent);
+GameBoard.displayName = 'GameBoard';

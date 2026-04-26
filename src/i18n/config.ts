@@ -22,7 +22,7 @@ const getInitialLanguage = (): string => {
   return 'en-US';
 };
 
-i18n.use(initReactI18next).init({
+export const i18nReady: Promise<unknown> = i18n.use(initReactI18next).init({
   resources: {
     'pt-BR': {
       translation: ptBR,
@@ -34,7 +34,7 @@ i18n.use(initReactI18next).init({
   lng: getInitialLanguage(),
   fallbackLng: 'en-US',
   interpolation: {
-    escapeValue: false, // React already escapes values
+    escapeValue: false,
   },
   react: {
     useSuspense: false,

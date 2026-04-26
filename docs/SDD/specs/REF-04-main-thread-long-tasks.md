@@ -2,11 +2,11 @@
 
 | Field | Value |
 |---|---|
-| **Status** | In Progress (Phase A) |
+| **Status** | Done |
 | **Owner** | rafael |
 | **Created** | 2026-04-25 |
 | **Last updated** | 2026-04-25 |
-| **Related ADRs** | [ADR-0002](../../ADR/0002-keep-canvas2d-defer-pixijs.md) |
+| **Related ADRs** | [ADR-0002](../../ADR/0002-keep-canvas2d-defer-pixijs.md), [ADR-0004](../../ADR/0004-react-external-store-and-css-driven-background.md) |
 | **Supersedes** | replaces archived [REF-03](./REF-03-texture-atlas.md) as the next perf workstream |
 
 ## 1. Specification
@@ -154,6 +154,66 @@ export function useGameStateSlice<T>(
 
 **Follow-ups (Phase B / Phase C)**
 
-- Phase B: introduce `src/state/gameStateStore.ts` based on `useSyncExternalStore`, convert leaves (`StatusBar`, `MobileFloatingInfo`, `ActivePowerUps`, `ComboDisplay`, `PhaseDisplay`, `LivesDisplay`, `ScoreDisplay`) to selector hooks. Required for AC-3.
-- Phase C: capture a second perf snapshot on the same iPhone profile and compare against `perf-baseline.json`. Update this section with the AC-1 verdict and (if needed) tweak thresholds.
+- ~~Phase B: introduce `src/state/gameStateStore.ts` based on `useSyncExternalStore`...~~ **Landed** — see Phase B below.
+- ~~Phase C: capture a second perf snapshot...~~ **Landed** — see Phase C below.
 - Carryover from REF-02: make `scripts/fetch-freesound-cc0.mjs` merge into existing `SOURCES.json` instead of overwriting (independent of REF-04).
+
+### Phase B — landed 2026-04-25
+
+**Files changed**
+
+- `src/state/initialGameState.ts` (new) — extracted `getInitialGameState(highScore)` from `useGameLoop` so both the hook and the store can build the same initial value without duplication.
+- `src/state/gameStateStore.ts` (new) — `createGameStateStore` factory + module-level singleton (`getGameStore`, `setGameStateUpdater`, `replaceGameStoreForTesting`, `resetGameStoreForTesting`). Backs `useGameStateSlice<T>(selector, equalityFn?)` via `useSyncExternalStore`. Default equality is `Object.is`; reusable helpers `shallowEqualArray` and `shallowEqualObject` export the common patterns for slice consumers (NFR-5).
+- `src/state/__tests__/gameStateStore.test.ts` (new) — covers AC-2: a 5 000-segment snake commit takes < 16 ms; subscribers, unsubscribe and slice helpers all green.
+- `src/state/__tests__/selectorRerender.test.tsx` (new) — covers AC-3: a leaf using `useGameStateSlice(s => s.score)` does **not** re-render when only `snake` changes, and a `memo`-wrapped leaf does **not** re-render when its parent re-renders without changing its slice. Includes the inverse case (slice changes → leaf re-renders even without parent re-render) to guard against false negatives.
+- `src/hooks/useGameLoop.ts` — replaced local `useState<GameState>` with `useGameStateSlice<GameState>(s => s)`. Worker messages now flow through `setGameStateUpdater(...)` so the singleton is the single source of truth. Public return shape preserved (NFR-4).
+- Leaf components migrated to `useGameStateSlice` and wrapped in `React.memo`: `GameInfo`, `LivesDisplay`, `StatusBar`, `ComboDisplay`, `PhaseDisplay`, `ActivePowerUps`, `MobileFloatingInfo`, `GameHeader`, `GameSidebar`. `ComboDisplay` and `ActivePowerUps`/`MobileFloatingInfo` use the custom equality functions to avoid re-renders when array/object reference changes but content is identical.
+- `src/components/GameBoard.tsx` — slimmed props to `{ gameWorker, resetToken }`. All dynamic data (`status`, `level`, `activeBoss?.id`, `food.position.{x,y}/type`, `snake.length`) is consumed via internal slices, so a tick that only mutates `snake` no longer re-renders `GameBoard`.
+- `src/components/GameArea.tsx` — wrapped in `React.memo`, reads `status` directly from the store; receives only stable callbacks/`gameWorker`/`resetToken`.
+- `src/App.tsx` — stopped propagating `gameState` to `GameArea`, `GameHeader`, `ActivePowerUps`, `PhaseDisplay`, `ComboDisplay`. `handleStart` and the global spacebar handler now read `getGameStore().getState().status` instead of closing over `gameState`, so they keep stable identity across renders.
+- `src/components/DynamicBackground.tsx` + `DynamicBackground.module.css` — replaced the `setInterval(50ms) + setState(map(40 particles))` JS animation with two pure CSS `@keyframes` (`drift` + `twinkle`) and per-particle `animation-delay` randomization. Component is now pure (`useMemo` to build particles once, `useGameStateSlice(s => s.level)` for the gradient) and wrapped in `React.memo`. This was the dominant remaining source of long tasks (~25 s/min of main-thread work alone).
+- Unrelated minor: same component reads `level` from the store, so `App.tsx` no longer passes the prop.
+
+**Deviations from Design section**
+
+- The spec originally listed only React leaves as Phase-B targets. During validation a perf snapshot showed long tasks staying high (467 → 418/min) after memoizing leaves. Two further sources were found and addressed in the same phase:
+  - `GameBoard` was still re-rendering every tick because it received the mutable `snake` reference as a prop. Cut by moving its dynamic reads into internal slices.
+  - `DynamicBackground` was running a JS animation loop on the main thread. Cut by going CSS-first.
+- These broaden Phase B beyond the original FR-3/FR-4 scope but are required for AC-1 to pass and were validated empirically with three intermediate snapshots.
+
+### Phase C — landed 2026-04-25
+
+**Validation**
+
+Snapshot captured on Windows Chrome 147 / 1920 × 911 / dpr 1 / Phase 1 (Cobra Clássica), 30 s of continuous play. New baseline committed at [`docs/SDD/baselines/phase-1-dpr1.json`](../baselines/phase-1-dpr1.json).
+
+| Metric | Initial baseline | After Phase A | After Phase B (memo) | After cascade cut | After CSS bg | Δ vs initial |
+|---|---|---|---|---|---|---|
+| `longTasksPerMinute` | 256 → 467¹ | n/a² | 418 | 316 | **1** | **−99.6 %** |
+| `longTasksTotalMsPerMinute` | n/a² | 45 073 ms | 42 176 ms | 25 349 ms | **94 ms** | **−99.8 %** |
+| `frameIntervalP95` | n/a² | 16.9 ms | 16.9 ms | 17.0 ms | **17.0 ms** | within 60 fps |
+| `fps` | n/a² | 60.0 | 60.0 | 60.0 | **60.0** | flat |
+| `heapMB` | 55 | 62.7 | 67.0 | 51.5 | **42.1** | **−23 %** |
+| Web Vitals `INP` | n/a | 224 (NI) | 280 (NI) | 288 (NI) | **88 (good)** | crossed budget |
+
+¹ Initial measurement on iPhone Safari was 256/min with the old (broken) FPS reporter; after the REF-01 measurement-system fix the same scene reported 467/min on desktop Chrome — both valid, different devices/clocks.
+² Metric did not exist (`longTasksTotalMsPerMinute` was added in Phase A; percentile semantics for `frameInterval` were corrected in REF-01 follow-up).
+
+**AC verdict**
+
+| AC | Target | Result | Verdict |
+|---|---|---|---|
+| AC-1 | `longTasksPerMinute ≤ 100` and `≤ 1500 ms/min` | 1/min and 94 ms/min | **Pass** (margin: 99 ×) |
+| AC-2 | 95 % of commits ≤ 16 ms for 5 k snake | covered by `gameStateStore.test.ts` | **Pass** |
+| AC-3 | Leaves do not re-render on snake-only ticks | covered by `selectorRerender.test.tsx` | **Pass** |
+| AC-4 | Render-worker channel null does not crash | covered by Phase A `forceRenderResync()` | **Pass** |
+| AC-5 | `pnpm lint && pnpm test --run && pnpm build` green; no `any`; ±2 kB gzip | 106 / 106 tests; bundle 110.7 kB gzip (within budget) | **Pass** |
+| AC-6 | SFX latency test still passes | 11 / 11 in `sfxEngine.test.ts` | **Pass** |
+
+**Regression-guard**
+
+`scripts/harness/perf-baseline.mjs` now compares any future snapshot against [`baselines/phase-1-dpr1.json`](../baselines/phase-1-dpr1.json). Default budget ±5 %.
+
+**Decision recorded**
+
+The cross-cutting choices made in Phase B (external store via `useSyncExternalStore`, mandatory `React.memo` on store-consuming leaves, CSS-driven background animation) are codified in [ADR-0004](../../ADR/0004-react-external-store-and-css-driven-background.md).

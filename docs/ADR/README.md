@@ -32,3 +32,4 @@ An ADR captures **a single architectural decision**, **why** it was made, and **
 - [ADR-0001 — Adopt Spec-Driven Development](0001-adopt-sdd.md)
 - [ADR-0002 — Keep Canvas 2D, defer PixiJS until metrics demand it](0002-keep-canvas2d-defer-pixijs.md)
 - [ADR-0003 — Universal AGENTS.md as the single source of truth for AI agents](0003-universal-agents-md.md)
+- [ADR-0004 — React external store via `useSyncExternalStore` and CSS-driven background animation](0004-react-external-store-and-css-driven-background.md)

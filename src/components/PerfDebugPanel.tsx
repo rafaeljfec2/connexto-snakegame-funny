@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, memo } from 'react';
 import { perfBus } from '@/utils/perfBus';
-import type { PerfMetricsView } from '@/types/perf';
+import type { PerfMetricsView, PerfWebVitalsEvent } from '@/types/perf';
 import styles from './PerfDebugPanel.module.css';
 
 interface PerfDebugPanelProps {
@@ -32,6 +32,8 @@ export const PerfDebugPanel = memo(function PerfDebugPanel({
   refreshIntervalMs = DEFAULT_REFRESH_MS,
 }: PerfDebugPanelProps) {
   const [metrics, setMetrics] = useState<PerfMetricsView>(EMPTY_METRICS);
+  const [cls, setCls] = useState<PerfWebVitalsEvent | undefined>(undefined);
+  const [inp, setInp] = useState<PerfWebVitalsEvent | undefined>(undefined);
   const lastTickRef = useRef<number>(0);
 
   useEffect(() => {
@@ -43,6 +45,8 @@ export const PerfDebugPanel = memo(function PerfDebugPanel({
       if (now - lastTickRef.current >= refreshIntervalMs) {
         lastTickRef.current = now;
         setMetrics(perfBus.getMetrics());
+        setCls(perfBus.getLatestWebVital('CLS'));
+        setInp(perfBus.getLatestWebVital('INP'));
       }
       rafId = requestAnimationFrame(tick);
     };
@@ -115,6 +119,18 @@ export const PerfDebugPanel = memo(function PerfDebugPanel({
           <span className={styles.value}>{fmt(metrics.heapMB, 1)} MB</span>
         </div>
       )}
+      <div className={styles.row}>
+        <span className={styles.label}>CLS</span>
+        <span className={`${styles.value} ${classifyCls(cls?.value)}`}>
+          {cls ? cls.value.toFixed(3) : '—'}
+        </span>
+      </div>
+      <div className={styles.row}>
+        <span className={styles.label}>INP</span>
+        <span className={`${styles.value} ${classifyInp(inp?.value)}`}>
+          {inp ? `${Math.round(inp.value)} ms` : '—'}
+        </span>
+      </div>
 
       <p className={styles.hint}>Shift+F4 to export</p>
     </aside>
@@ -158,5 +174,19 @@ function classifyLongTaskMs(totalMs: number): string {
   if (totalMs === 0) return '';
   if (totalMs > 1500) return styles.bad ?? '';
   if (totalMs > 500) return styles.warn ?? '';
+  return '';
+}
+
+function classifyCls(value: number | undefined): string {
+  if (value === undefined) return '';
+  if (value > 0.25) return styles.bad ?? '';
+  if (value > 0.1) return styles.warn ?? '';
+  return '';
+}
+
+function classifyInp(value: number | undefined): string {
+  if (value === undefined) return '';
+  if (value > 500) return styles.bad ?? '';
+  if (value > 200) return styles.warn ?? '';
   return '';
 }

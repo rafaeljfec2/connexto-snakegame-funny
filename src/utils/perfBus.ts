@@ -122,6 +122,14 @@ class PerfBus {
     return this.webVitals;
   }
 
+  getLatestWebVital(metric: PerfWebVitalsEvent['metric']): PerfWebVitalsEvent | undefined {
+    for (let i = this.webVitals.length - 1; i >= 0; i--) {
+      const event = this.webVitals[i];
+      if (event && event.metric === metric) return event;
+    }
+    return undefined;
+  }
+
   reset(): void {
     resetFrameTimeRing(this.rings.render.workTimes);
     resetFrameTimeRing(this.rings.render.intervals);

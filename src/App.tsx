@@ -209,7 +209,7 @@ function App() {
 
   return (
     <div className={styles.app}>
-      <DynamicBackground level={gameState.level} />
+      <DynamicBackground />
 
       <GameHeader />
 

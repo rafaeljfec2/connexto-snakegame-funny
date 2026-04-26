@@ -88,11 +88,18 @@
   0%,
   100% {
     opacity: 0.3;
-    transform: scale(1);
   }
   50% {
     opacity: 1;
-    transform: scale(1.2);
+  }
+}
+
+@keyframes drift {
+  from {
+    transform: translateY(-10vh);
+  }
+  to {
+    transform: translateY(110vh);
   }
 }
 

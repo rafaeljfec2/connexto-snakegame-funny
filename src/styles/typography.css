@@ -1,48 +1,24 @@
 /*
- * Typography tokens — REF-06 Phase B.
+ * Typography tokens — REF-06.
  *
- * Phase B (this file): introduces the 26F Galaxy Sans Variable webfont as the
- * canonical display face for HUD digits and brand marks. The body/UI stack
- * remains system-driven for instant first paint.
+ * Phase A shipped a pure system-ui stack (zero FOUT, zero CLS).
+ * Phase B.1 tried to adopt the `26F Galaxy Sans Variable` webfont as the
+ * display face, but the geometric / narrow letterforms render poorly on
+ * small uppercase + letter-spacing tracked labels (HUD metric labels,
+ * drawer headings). We reverted Phase B.1 and went back to the system
+ * stack, which:
+ *   - renders crisply at 10–13 px with aggressive letter-spacing,
+ *   - has native support for `tabular-nums` + `slashed-zero`,
+ *   - preserves the REF-05 CLS budget (no webfont swap),
+ *   - saves ~39 kB from the critical path.
  *
- * - REF-06-FR-6, REF-06-D4 (Phase B revision)
- *
- * Webfont:
- *   - 26F Galaxy Sans Variable, weight axis 50–300 (we use 200/700/900 named).
- *   - Self-hosted at /fonts/galaxy-sans-var.woff2 (39 kB).
- *   - License: SIL Open Font License 1.1 (OFL.txt next to the font asset).
- *   - font-display: swap → no FOIT; system fallback paints first, swap on load.
- *   - size-adjust + override metrics neutralize the layout shift on swap so we
- *     do not regress the CLS gains from REF-05.
- *
- * Stack rationale:
- *   - Display: 26F Galaxy Sans → SF Pro Display → Segoe UI Variable Display →
- *     system-ui → Inter → generic sans-serif.
- *   - UI body: keeps the all-system stack to avoid any FOUT on body copy.
- *   - `font-feature-settings`: tabular-nums + ss01 (slashed zero) gives HUD
- *     digits a stable monospaced rhythm so the score does not jitter as it grows.
+ * - REF-06-FR-6, REF-06-D4 (Phase B.1 revert)
  */
-
-@font-face {
-  font-family: 'Galaxy Sans Var';
-  src: url('/fonts/galaxy-sans-var.woff2') format('woff2-variations');
-  font-weight: 50 900;
-  font-style: normal;
-  font-display: swap;
-  unicode-range:
-    U+0000-007F, U+00A0-00FF, U+0100-017F, U+2000-206F, U+2070-209F, U+20A0-20CF,
-    U+2150-218F, U+2200-22FF;
-  size-adjust: 100%;
-  ascent-override: normal;
-  descent-override: normal;
-  line-gap-override: normal;
-}
 
 :root {
   --font-display:
-    'Galaxy Sans Var', 'SF Pro Display', 'Segoe UI Variable Display',
-    'Segoe UI Variable Text', system-ui, -apple-system, 'Inter', 'Helvetica Neue', Arial,
-    sans-serif;
+    'SF Pro Display', 'Segoe UI Variable Display', 'Segoe UI Variable Text', system-ui,
+    -apple-system, 'Inter', 'Helvetica Neue', Arial, sans-serif;
   --font-ui:
     system-ui, -apple-system, 'Segoe UI Variable Text', 'Segoe UI', 'Inter', Roboto,
     'Helvetica Neue', Arial, sans-serif;

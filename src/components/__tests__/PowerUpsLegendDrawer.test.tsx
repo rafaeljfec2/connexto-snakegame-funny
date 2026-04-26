@@ -11,6 +11,7 @@ vi.mock('react-i18next', () => ({
 
 import { PowerUpsLegendDrawer } from '@/components/PowerUpsLegendDrawer';
 import { ThemeProvider } from '@/contexts/ThemeContext';
+import { SkinProvider } from '@/contexts/SkinContext';
 
 function installMatchMedia(): void {
   vi.spyOn(window, 'matchMedia').mockImplementation(
@@ -24,7 +25,11 @@ function installMatchMedia(): void {
 }
 
 function renderWithTheme(ui: ReactElement) {
-  return render(<ThemeProvider>{ui}</ThemeProvider>);
+  return render(
+    <ThemeProvider>
+      <SkinProvider>{ui}</SkinProvider>
+    </ThemeProvider>,
+  );
 }
 
 describe('<PowerUpsLegendDrawer /> (REF-06 Phase A · REF-07 Phase C)', () => {
@@ -43,7 +48,9 @@ describe('<PowerUpsLegendDrawer /> (REF-06 Phase A · REF-07 Phase C)', () => {
 
     rerender(
       <ThemeProvider>
-        <PowerUpsLegendDrawer open={true} onClose={onClose} />
+        <SkinProvider>
+          <PowerUpsLegendDrawer open={true} onClose={onClose} />
+        </SkinProvider>
       </ThemeProvider>,
     );
     expect(drawer).toHaveAttribute('data-open', 'true');
@@ -72,7 +79,7 @@ describe('<PowerUpsLegendDrawer /> (REF-06 Phase A · REF-07 Phase C)', () => {
     expect(drawer.textContent).toContain('powerUps.poison');
   });
 
-  it('mounts the Settings section with LanguageSelector and ThemeToggle (REF-07 Phase C)', () => {
+  it('mounts the Settings section with LanguageSelector, ThemeToggle and SkinSelector (REF-07 Phase C + REF-08 Phase C)', () => {
     renderWithTheme(<PowerUpsLegendDrawer open={true} onClose={vi.fn()} />);
     const settings = screen.getByTestId('drawer-settings-section');
     expect(settings).toBeInTheDocument();
@@ -85,6 +92,12 @@ describe('<PowerUpsLegendDrawer /> (REF-06 Phase A · REF-07 Phase C)', () => {
     expect(themeToggle).toBeInTheDocument();
     expect(themeToggle).toHaveAttribute('role', 'radiogroup');
     expect(themeToggle).toHaveAttribute('aria-label', 'theme.groupLabel');
+
+    const skinSelector = screen.getByTestId('skin-selector');
+    expect(skinSelector).toBeInTheDocument();
+    expect(skinSelector).toHaveAttribute('role', 'radiogroup');
+    expect(skinSelector).toHaveAttribute('aria-label', 'skin.groupLabel');
+    expect(skinSelector.querySelectorAll('[role="radio"]')).toHaveLength(4);
   });
 
   it('calls onClose when the close button is clicked', () => {
@@ -111,7 +124,9 @@ describe('<PowerUpsLegendDrawer /> (REF-06 Phase A · REF-07 Phase C)', () => {
 
     rerender(
       <ThemeProvider>
-        <PowerUpsLegendDrawer open={true} onClose={onClose} />
+        <SkinProvider>
+          <PowerUpsLegendDrawer open={true} onClose={onClose} />
+        </SkinProvider>
       </ThemeProvider>,
     );
     fireEvent.keyDown(document, { key: 'Escape' });

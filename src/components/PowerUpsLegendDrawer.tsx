@@ -4,6 +4,7 @@ import { FoodType } from '@/types/game';
 import { POWER_UP_CONFIG } from '@/constants/powerUps';
 import { LanguageSelector } from './LanguageSelector';
 import { ThemeToggle } from './ThemeToggle';
+import { SkinSelector } from './SkinSelector';
 import styles from './PowerUpsLegendDrawer.module.css';
 
 interface PowerUpsLegendDrawerProps {
@@ -156,6 +157,10 @@ function PowerUpsLegendDrawerComponent({ open, onClose }: PowerUpsLegendDrawerPr
             <div className={styles.settingsRow}>
               <span className={styles.settingsLabel}>{t('theme.title')}</span>
               <ThemeToggle />
+            </div>
+            <div className={styles.settingsRow}>
+              <span className={styles.settingsLabel}>{t('skin.title')}</span>
+              <SkinSelector />
             </div>
           </section>
         </div>

@@ -167,6 +167,14 @@
     "light": "Claro",
     "auto": "Automático"
   },
+  "skin": {
+    "title": "Skin da cobra",
+    "groupLabel": "Preferência de skin da cobra",
+    "neonGreen": "Verde Neon",
+    "retroArcade": "Retrô Arcade",
+    "frozenIce": "Gelo Congelado",
+    "magentaBlaze": "Chama Magenta"
+  },
   "panels": {
     "powerUps": "Power-Ups",
     "combo": "Combo"

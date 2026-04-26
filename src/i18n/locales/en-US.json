@@ -167,6 +167,14 @@
     "light": "Light",
     "auto": "Auto"
   },
+  "skin": {
+    "title": "Snake skin",
+    "groupLabel": "Snake skin preference",
+    "neonGreen": "Neon Green",
+    "retroArcade": "Retro Arcade",
+    "frozenIce": "Frozen Ice",
+    "magentaBlaze": "Magenta Blaze"
+  },
   "panels": {
     "powerUps": "Power-Ups",
     "combo": "Combo"

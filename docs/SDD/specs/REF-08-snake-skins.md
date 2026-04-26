@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| **Status** | Draft |
+| **Status** | In Progress (Phase A landed) |
 | **Owner** | rafael |
 | **Created** | 2026-04-26 |
 | **Last updated** | 2026-04-26 |

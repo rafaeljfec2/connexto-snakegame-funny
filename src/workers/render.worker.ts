@@ -6,6 +6,7 @@ import {
   handleStateUpdate,
   handleUiHint,
   handleUiLocale,
+  handleUiSkin,
   type RenderState,
 } from './render/renderState';
 import {
@@ -211,6 +212,11 @@ globalThis.onmessage = (e: MessageEvent) => {
 
     case 'UI_LOCALE': {
       handleUiLocale(state, payload);
+      break;
+    }
+
+    case 'UI_SKIN': {
+      handleUiSkin(state, payload);
       break;
     }
 

@@ -1,4 +1,5 @@
 import { Position, PoisonShot, Food as FoodType, Obstacle, Portal } from '@/types/game';
+import { type SkinPalette } from '@/types/skin';
 import { adjustColor } from './renderUtils';
 import { getPulseAnimation } from './renderAnimations';
 
@@ -23,19 +24,18 @@ export interface SnakeSegmentParams {
   isBoss: boolean;
   activeBoss: ActiveBoss | null;
   tongueProgress: number;
+  skin: SkinPalette;
   scale?: number;
   angle?: number;
 }
 
-/**
- * Create gradient for snake segment
- */
 function createSnakeGradient(
   ctx: OffscreenCanvasRenderingContext2D,
   radius: number,
   isBoss: boolean,
   isHead: boolean,
   activeBoss: ActiveBoss | null,
+  skin: SkinPalette,
 ): CanvasGradient {
   const lightOff = -radius * 0.3;
   const gradient = ctx.createRadialGradient(lightOff, lightOff, radius * 0.1, 0, 0, radius);
@@ -44,16 +44,13 @@ function createSnakeGradient(
     gradient.addColorStop(0, activeBoss?.color || '#f87171');
     gradient.addColorStop(0.4, activeBoss?.color ? adjustColor(activeBoss.color, -20) : '#dc2626');
     gradient.addColorStop(1, activeBoss?.color ? adjustColor(activeBoss.color, -40) : '#991b1b');
-  } else if (isHead) {
-    gradient.addColorStop(0, '#86efac');
-    gradient.addColorStop(0.4, '#22c55e');
-    gradient.addColorStop(1, '#15803d');
-  } else {
-    gradient.addColorStop(0, '#4ade80');
-    gradient.addColorStop(0.4, '#16a34a');
-    gradient.addColorStop(1, '#14532d');
+    return gradient;
   }
 
+  const palette = isHead ? skin.head : skin.body;
+  gradient.addColorStop(0, palette.highlight);
+  gradient.addColorStop(0.4, palette.mid);
+  gradient.addColorStop(1, palette.shadow);
   return gradient;
 }
 
@@ -151,6 +148,7 @@ export function drawSnakeSegment(context: RenderContext, params: SnakeSegmentPar
     isBoss,
     activeBoss,
     tongueProgress,
+    skin,
     scale = 1,
     angle = 0,
   } = params;
@@ -165,7 +163,7 @@ export function drawSnakeSegment(context: RenderContext, params: SnakeSegmentPar
   if (isHead) ctx.rotate(angle);
   ctx.scale(scale, scale);
 
-  const gradient = createSnakeGradient(ctx, radius, isBoss, isHead, activeBoss);
+  const gradient = createSnakeGradient(ctx, radius, isBoss, isHead, activeBoss, skin);
   ctx.fillStyle = gradient;
 
   if (!isMobile) {
@@ -178,6 +176,17 @@ export function drawSnakeSegment(context: RenderContext, params: SnakeSegmentPar
   ctx.beginPath();
   ctx.arc(0, 0, radius, 0, Math.PI * 2);
   ctx.fill();
+
+  if (isBoss) {
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+    ctx.strokeStyle = skin.bossContrast.mid;
+    ctx.lineWidth = Math.max(1.5, radius * 0.12);
+    ctx.beginPath();
+    ctx.arc(0, 0, radius - ctx.lineWidth / 2, 0, Math.PI * 2);
+    ctx.stroke();
+  }
 
   if (isBoss && isHead && activeBoss) {
     drawBossLabel(ctx, radius, angle, activeBoss);

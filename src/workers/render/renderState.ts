@@ -7,6 +7,8 @@ import {
   Portal,
   Direction,
 } from '@/types/game';
+import { type SkinPalette } from '@/types/skin';
+import { getDefaultSkinPalette } from '@/constants/skins';
 import { bufferToPositions } from './renderUtils';
 import { AnimationState, createAnimationState } from './renderAnimations';
 
@@ -38,6 +40,11 @@ export interface RenderState {
   // Animation state
   animationState: AnimationState;
   gameStatus: string;
+
+  // Player skin palette (REF-08). Driven by UI_SKIN messages from the main
+  // thread; `createSnakeGradient` reads the body / head stops for the player
+  // snake and `bossContrast` for the boss outline triad.
+  skin: SkinPalette;
 }
 
 /**
@@ -67,6 +74,7 @@ export function createRenderState(): RenderState {
     isRenderDirty: false,
     animationState: createAnimationState(),
     gameStatus: 'IDLE',
+    skin: getDefaultSkinPalette(),
   };
 }
 
@@ -176,6 +184,34 @@ export function handleUiLocale(state: RenderState, payload: any): void {
           ? payload.activeBoss.name
           : state.activeBoss.name,
     };
+    state.isRenderDirty = true;
+  }
+}
+
+function isSkinGradient(value: unknown): value is SkinPalette['body'] {
+  if (!value || typeof value !== 'object') return false;
+  const g = value as Record<string, unknown>;
+  return (
+    typeof g.highlight === 'string' && typeof g.mid === 'string' && typeof g.shadow === 'string'
+  );
+}
+
+function isSkinPalette(value: unknown): value is SkinPalette {
+  if (!value || typeof value !== 'object') return false;
+  const p = value as Record<string, unknown>;
+  return (
+    typeof p.id === 'string' &&
+    typeof p.labelKey === 'string' &&
+    isSkinGradient(p.body) &&
+    isSkinGradient(p.head) &&
+    isSkinGradient(p.bossContrast)
+  );
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function handleUiSkin(state: RenderState, payload: any): void {
+  if (isSkinPalette(payload?.skin)) {
+    state.skin = payload.skin;
     state.isRenderDirty = true;
   }
 }

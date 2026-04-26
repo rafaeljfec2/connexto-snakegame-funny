@@ -37,6 +37,7 @@ export function drawSnakeBody(
       isBoss: false,
       activeBoss: state.activeBoss,
       tongueProgress: state.animationState.tongueProgress,
+      skin: state.skin,
       scale,
     });
   }
@@ -78,6 +79,7 @@ export function drawSnakeHead(
     isBoss: false,
     activeBoss: state.activeBoss,
     tongueProgress: state.animationState.tongueProgress,
+    skin: state.skin,
     scale: headScale,
     angle,
   });
@@ -118,6 +120,7 @@ export function drawBossSnake(
       isBoss: true,
       activeBoss: state.activeBoss,
       tongueProgress: state.animationState.tongueProgress,
+      skin: state.skin,
       scale: 1.2,
       angle: bossAngle,
     });

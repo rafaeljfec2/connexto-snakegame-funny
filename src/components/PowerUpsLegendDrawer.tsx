@@ -12,7 +12,7 @@ interface PowerUpsLegendDrawerProps {
   readonly onClose: () => void;
 }
 
-interface LegendItem {
+export interface LegendItem {
   readonly type: FoodType;
   readonly nameKey: string;
   readonly descriptionKey: string;
@@ -20,7 +20,9 @@ interface LegendItem {
   readonly group: 'positive' | 'negative';
 }
 
-const LEGEND_ITEMS: readonly LegendItem[] = [
+// Shared with the compact catalogue. A separate module would split the single list the drawer owns.
+// eslint-disable-next-line react-refresh/only-export-components
+export const LEGEND_ITEMS: readonly LegendItem[] = [
   {
     type: FoodType.SPEED_BOOST,
     nameKey: 'powerUps.speedBoost',

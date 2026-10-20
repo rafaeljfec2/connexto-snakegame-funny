@@ -36,9 +36,9 @@ function HudStripComponent({ legendOpen, onToggleLegend }: HudStripProps) {
   return (
     <header className={styles.strip} role='banner' aria-label={t('hud.ariaLabel')}>
       <div className={styles.brand} aria-hidden='true'>
-        <span className={styles.brandMark}>S</span>
-        <span className={styles.brandSep}>/</span>
-        <span className={styles.brandWord}>NEON</span>
+        <span className={styles.wordmark} data-testid='hud-wordmark'>
+          {t('hud.wordmark')}
+        </span>
       </div>
 
       <div className={styles.metrics} role='group' aria-label={t('hud.metricsAriaLabel')}>

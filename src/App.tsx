@@ -11,8 +11,7 @@ import { getPhaseNumber } from '@/utils/phases';
 import { PhaseType } from '@/types/phases';
 import { HudStrip } from './components/HudStrip';
 import { GameArea } from './components/GameArea';
-import { ViewportComboBadge } from './components/ViewportComboBadge';
-import { ViewportPowerUpsRail } from './components/ViewportPowerUpsRail';
+import { PlayfieldColumns } from './components/PlayfieldColumns';
 import { PowerUpsLegendDrawer } from './components/PowerUpsLegendDrawer';
 import { GameOverlays } from './components/GameOverlays';
 import { TouchControls } from './components/TouchControls';
@@ -213,18 +212,28 @@ function App() {
 
       <HudStrip legendOpen={legendOpen} onToggleLegend={toggleLegend} />
 
-      <ViewportPowerUpsRail />
-      <ViewportComboBadge />
-
       <PowerUpsLegendDrawer open={legendOpen} onClose={closeLegend} />
 
       <main className={styles.main}>
-        <GameArea
-          gameWorker={gameWorker}
-          resetToken={gameResetToken}
-          onStart={handleStart}
-          onPause={handlePause}
-          onReset={handleReset}
+        <PlayfieldColumns
+          controls={
+            <TouchControls
+              onDirectionChange={setDirection}
+              onSpeedBoost={setSpeedBoost}
+              onFirePoison={firePoison}
+              onStopFiringPoison={stopFiringPoison}
+              enabled={gameState.status === GameStatus.PLAYING}
+            />
+          }
+          board={
+            <GameArea
+              gameWorker={gameWorker}
+              resetToken={gameResetToken}
+              onStart={handleStart}
+              onPause={handlePause}
+              onReset={handleReset}
+            />
+          }
         />
       </main>
 
@@ -245,14 +254,6 @@ function App() {
         onNextPhase={handleNextPhase}
         onGameOver={handleGameOver}
         onResumeAfterDeath={resumeAfterDeath}
-      />
-
-      <TouchControls
-        onDirectionChange={setDirection}
-        onSpeedBoost={setSpeedBoost}
-        onFirePoison={firePoison}
-        onStopFiringPoison={stopFiringPoison}
-        enabled={gameState.status === GameStatus.PLAYING}
       />
 
       {showStatistics && gameStatistics && (

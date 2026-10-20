@@ -6,7 +6,7 @@ const log = createLogger(LogContext.PERFORMANCE, { module: 'sfxEngine' });
 
 const STORAGE_KEY_MUTED = 'snake.audio.muted';
 const STORAGE_KEY_VOLUME = 'snake.audio.volume';
-const DEFAULT_VOLUME = 0.7;
+const DEFAULT_VOLUME = 0.85;
 const POOL_SIZE = 8;
 
 export interface SfxEngineState {
@@ -57,6 +57,10 @@ class SfxEngine {
     if (!this.state.isReady || this.state.isMuted || !this.howl) return;
     try {
       const soundId = this.howl.play(id);
+      const ctx = Howler.ctx as (AudioContext & { state: string }) | null;
+      if (ctx && ctx.state === 'suspended') {
+        void ctx.resume();
+      }
       if (typeof opts.volume === 'number') {
         this.howl.volume(clampVolume(opts.volume), soundId);
       }
@@ -128,7 +132,7 @@ class SfxEngine {
     const manifestUrl = options.manifestUrl ?? '/audio/sfx.json';
     const fetcher = options.fetcher ?? fetch;
 
-    const response = await fetcher(manifestUrl, { cache: 'force-cache' });
+    const response = await fetcher(manifestUrl, { cache: 'no-cache' });
     if (!response.ok) {
       throw new Error(`manifest http ${response.status}`);
     }
@@ -144,7 +148,9 @@ class SfxEngine {
       sprite,
       preload: true,
       pool: POOL_SIZE,
-      volume: this.state.volume,
+      // Sprite gain stays at 1. Howler.volume is the only user gain;
+      // setting both to the same value squares it and drops the mix out.
+      volume: 1,
       mute: this.state.isMuted,
     });
 

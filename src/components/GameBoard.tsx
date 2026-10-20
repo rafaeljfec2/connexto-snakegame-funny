@@ -3,7 +3,7 @@ import { GameStatus } from '@/types/game';
 import { GAME_CONFIG } from '@/constants/game';
 import { WeatherCanvas } from './WeatherCanvas';
 import { ParticleSystem } from './ParticleSystem';
-import { useEffect, useRef, useState, memo } from 'react';
+import { useCallback, useEffect, useRef, useState, memo } from 'react';
 import styles from './GameBoard.module.css';
 import { GameBackground } from './GameBackground';
 import { perfBus } from '@/utils/perfBus';
@@ -18,9 +18,10 @@ interface GameBoardProps {
 function GameBoardComponent({ resetToken = 0, gameWorker }: Readonly<GameBoardProps>) {
   const { t } = useTranslation();
   const boardRef = useRef<HTMLDivElement>(null);
-  const [cellSize, setCellSize] = useState(GAME_CONFIG.cellSize);
-  const [isMobile, setIsMobile] = useState(false);
   const [canvasKey, setCanvasKey] = useState(0);
+  const [narrowViewport, setNarrowViewport] = useState(
+    () => typeof window !== 'undefined' && window.innerWidth <= 768,
+  );
 
   const status = useGameStateSlice((s) => s.status);
   const level = useGameStateSlice((s) => s.level);
@@ -39,69 +40,51 @@ function GameBoardComponent({ resetToken = 0, gameWorker }: Readonly<GameBoardPr
 
   const renderCanvasRef = useRef<HTMLCanvasElement>(null);
   const renderWorkerRef = useRef<Worker | null>(null);
+  const lastSizeRef = useRef({ width: -1, height: -1, dpr: -1 });
+
+  const publishBoardResize = useCallback(() => {
+    const board = boardRef.current;
+    const worker = renderWorkerRef.current;
+    if (!board || !worker) return;
+
+    const rect = board.getBoundingClientRect();
+    if (rect.width <= 0 || rect.height <= 0) return;
+
+    const dpr = window.devicePixelRatio > 0 ? window.devicePixelRatio : 1;
+    const last = lastSizeRef.current;
+    if (last.width === rect.width && last.height === rect.height && last.dpr === dpr) return;
+
+    lastSizeRef.current = { width: rect.width, height: rect.height, dpr };
+    worker.postMessage({
+      type: 'RESIZE',
+      payload: {
+        width: rect.width,
+        height: rect.height,
+        dpr,
+      },
+    });
+  }, []);
 
   useEffect(() => {
-    const updateCellSize = () => {
-      const narrow = window.innerWidth <= 768;
-      setIsMobile(narrow);
-
-      if (!boardRef.current) return;
-      const container = boardRef.current.parentElement;
-      if (!container) return;
-
-      const containerRect = container.getBoundingClientRect();
-      const containerStyle = window.getComputedStyle(container);
-      const horizontalPadding =
-        parseFloat(containerStyle.paddingLeft) + parseFloat(containerStyle.paddingRight);
-      const verticalPadding =
-        parseFloat(containerStyle.paddingTop) + parseFloat(containerStyle.paddingBottom);
-
-      const availableWidth = containerRect.width - horizontalPadding;
-      const availableHeight = containerRect.height - verticalPadding;
-      const availableSide = Math.min(availableWidth, availableHeight);
-
-      if (availableSide <= 0) return;
-
-      const rawCellSize = Math.floor(availableSide / GAME_CONFIG.gridSize);
-      const minCellSize = narrow ? 8 : 12;
-      const maxCellSize = 32;
-      const finalCellSize = Math.max(minCellSize, Math.min(maxCellSize, rawCellSize));
-      setCellSize(finalCellSize);
-    };
-
-    updateCellSize();
-
-    let resizeObserver: ResizeObserver | null = null;
-    if (boardRef.current?.parentElement) {
-      resizeObserver = new ResizeObserver(() => {
-        setTimeout(updateCellSize, 50);
-
-        if (renderCanvasRef.current && renderWorkerRef.current && boardRef.current) {
-          const rect = boardRef.current.getBoundingClientRect();
-          renderWorkerRef.current.postMessage({
-            type: 'RESIZE',
-            payload: {
-              width: rect.width,
-              height: rect.height,
-              dpr: window.devicePixelRatio,
-            },
-          });
-        }
+    const onResize = () => {
+      setNarrowViewport((prev) => {
+        const next = window.innerWidth <= 768;
+        return prev === next ? prev : next;
       });
-      resizeObserver.observe(boardRef.current.parentElement);
-    }
+      publishBoardResize();
+    };
+    const resizeObserver = new ResizeObserver(onResize);
+    if (boardRef.current) resizeObserver.observe(boardRef.current);
 
-    window.addEventListener('resize', updateCellSize);
-    window.addEventListener('orientationchange', () => {
-      setTimeout(updateCellSize, 100);
-    });
+    window.addEventListener('resize', onResize);
+    window.addEventListener('orientationchange', onResize);
 
     return () => {
-      if (resizeObserver) resizeObserver.disconnect();
-      window.removeEventListener('resize', updateCellSize);
-      window.removeEventListener('orientationchange', updateCellSize);
+      resizeObserver.disconnect();
+      window.removeEventListener('resize', onResize);
+      window.removeEventListener('orientationchange', onResize);
     };
-  }, []);
+  }, [publishBoardResize]);
 
   useEffect(() => {
     if (!renderCanvasRef.current || renderWorkerRef.current) return;
@@ -124,7 +107,7 @@ function GameBoardComponent({ resetToken = 0, gameWorker }: Readonly<GameBoardPr
               canvas: offscreen,
               width: canvas.clientWidth,
               height: canvas.clientHeight,
-              dpr: window.devicePixelRatio,
+              dpr: window.devicePixelRatio > 0 ? window.devicePixelRatio : 1,
               isMobile: window.innerWidth <= 768,
             },
           },
@@ -152,12 +135,15 @@ function GameBoardComponent({ resetToken = 0, gameWorker }: Readonly<GameBoardPr
       console.warn('OffscreenCanvas not supported, falling back or failing gracefully.');
     }
 
+    lastSizeRef.current = { width: -1, height: -1, dpr: -1 };
+    publishBoardResize();
+
     return () => {
       detachPerf();
       worker.terminate();
       renderWorkerRef.current = null;
     };
-  }, [canvasKey, gameWorker]);
+  }, [canvasKey, gameWorker, publishBoardResize]);
 
   useEffect(() => {
     const worker = renderWorkerRef.current;
@@ -197,19 +183,12 @@ function GameBoardComponent({ resetToken = 0, gameWorker }: Readonly<GameBoardPr
     });
   }, [activeBossId, t]);
 
-  const gridStyle = isMobile
-    ? {
-        gridTemplateColumns: `repeat(${GAME_CONFIG.gridSize}, 1fr)`,
-        gridTemplateRows: `repeat(${GAME_CONFIG.gridSize}, 1fr)`,
-        width: '100%',
-        height: '100%',
-      }
-    : {
-        gridTemplateColumns: `repeat(${GAME_CONFIG.gridSize}, ${cellSize}px)`,
-        gridTemplateRows: `repeat(${GAME_CONFIG.gridSize}, ${cellSize}px)`,
-        width: `${GAME_CONFIG.gridSize * cellSize}px`,
-        height: `${GAME_CONFIG.gridSize * cellSize}px`,
-      };
+  const gridStyle = {
+    gridTemplateColumns: `repeat(${GAME_CONFIG.gridSize}, 1fr)`,
+    gridTemplateRows: `repeat(${GAME_CONFIG.gridSize}, 1fr)`,
+    width: '100%',
+    height: '100%',
+  };
 
   const previousLevelRef = useRef(level);
   const [isLevelUp, setIsLevelUp] = useState(false);
@@ -230,19 +209,13 @@ function GameBoardComponent({ resetToken = 0, gameWorker }: Readonly<GameBoardPr
     <div
       ref={boardRef}
       className={boardClassName}
-      style={
-        isMobile
-          ? { width: '100%', height: '100%' }
-          : {
-              width: `${GAME_CONFIG.gridSize * cellSize}px`,
-              height: `${GAME_CONFIG.gridSize * cellSize}px`,
-            }
-      }
+      data-testid='game-board'
+      style={{ width: '100%', height: '100%' }}
     >
-      <GameBackground isMobile={isMobile} cellSize={cellSize} />
+      <GameBackground isMobile cellSize={GAME_CONFIG.cellSize} />
 
       <div className={styles.gameLayer} style={gridStyle}>
-        <WeatherCanvas level={level} isMobile={isMobile} />
+        <WeatherCanvas level={level} isMobile={narrowViewport} />
 
         <canvas
           key={canvasKey}

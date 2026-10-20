@@ -75,6 +75,11 @@ describe('<HudStrip /> (REF-06 Phase A.3)', () => {
     return { ...result, onToggleLegend };
   };
 
+  it('renders the SNAKEFLOW wordmark (REF-09-AC-7)', () => {
+    renderHud();
+    expect(screen.getByTestId('hud-wordmark')).toHaveTextContent('hud.wordmark');
+  });
+
   it('renders banner role with HUD aria-label', () => {
     renderHud();
     expect(screen.getByRole('banner')).toHaveAttribute('aria-label', 'hud.ariaLabel');

@@ -1,28 +1,22 @@
 /*
- * App shell — REF-06 L1 layout (full-bleed board, HUD strip on top, no side rails).
+ * App shell — REF-09 compact landscape.
  *
- * - REF-06-FR-1: full-bleed board
- * - REF-06-FR-3: HudStrip is the single status surface; phase + progress + length live there too (Phase A.3 + D.1)
- * - REF-06-D6: motion via shared keyframes; no JS-driven animations
- *
- * Floating overlays (combo badge, active power-ups) are mounted by App.tsx as
- * viewport-fixed compositors outside the .gameArea tree.
- *
- * Mobile (Phase D): MobileStatusBar deleted; its data folded into the HUD strip
- * (length slot mobile-only). Instructions are dual-variant (keyboard + touch),
- * each variant gated by a media query — no runtime branching.
+ * Below 964px the page may scroll and the playfield stacks (see PlayfieldColumns).
+ * From 964px the shell is one viewport: HUD and a three-column playfield.
+ * Tokens and motion stay REF-06. --hud-strip-height compacts to 44px only in that mode
+ * (PLAYFIELD_LAYOUT.hudCompactPx).
  */
 
 .app {
   display: flex;
   flex-direction: column;
   width: 100%;
-  height: 100vh;
-  height: 100dvh;
+  min-height: 100dvh;
+  height: auto;
   background: var(--color-bg-base);
   color: var(--color-on-bg);
   position: relative;
-  overflow: hidden;
+  overflow: visible;
   isolation: isolate;
   padding-left: env(safe-area-inset-left, 0px);
   padding-right: env(safe-area-inset-right, 0px);
@@ -31,62 +25,43 @@
 .main {
   flex: 1 1 auto;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
   position: relative;
   min-height: 0;
-  padding: var(--space-5);
+  padding: var(--space-2);
 }
 
 .gameArea {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-3);
+  width: 100%;
+  height: 100%;
+  min-width: 0;
   min-height: 0;
   position: relative;
-  width: 100%;
-  flex: 1;
   z-index: 1;
 }
 
 .gameContainer {
   position: relative;
   display: flex;
-  align-items: center;
+  align-items: stretch;
   justify-content: center;
-  padding: var(--space-3);
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
   background: var(--color-bg-surface);
-  border-radius: var(--radius-xl);
-  border: 1px solid var(--color-stroke-soft);
-  box-shadow:
-    var(--shadow-elev-2),
-    inset 0 0 60px rgb(77 226 255 / 0.06);
-  aspect-ratio: 1;
-  width: min(
-    calc(100vw - var(--space-7)),
-    calc(100dvh - var(--hud-strip-height) - var(--space-7) * 2 - var(--space-4) * 2)
-  );
-  max-width: 1100px;
-  overflow: visible;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--c-neon-cyan-deep);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--c-neon-cyan) 45%, transparent);
+  overflow: hidden;
 }
 
-.gameContainer::after {
-  content: '';
-  position: absolute;
-  inset: -1px;
-  border-radius: var(--radius-xl);
-  background: linear-gradient(
-    135deg,
-    rgb(92 255 154 / 0.35) 0%,
-    rgb(77 226 255 / 0.35) 50%,
-    rgb(176 107 255 / 0.35) 100%
-  );
-  z-index: -1;
-  filter: blur(8px);
-  opacity: 0.55;
-  pointer-events: none;
+.gameContainer > *:not(.gameControls) {
+  width: 100%;
+  height: 100%;
 }
 
 .gameControls {
@@ -103,111 +78,40 @@
   z-index: 20;
   margin: 0;
   width: auto;
+  height: auto;
 }
 
 .gameContainer > .gameControls[data-status='PLAYING'] {
   display: none;
 }
 
-.instructions {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  color: var(--color-on-bg-muted);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-medium);
-  letter-spacing: var(--letter-tracked-tight);
-  flex-shrink: 0;
-  padding: var(--space-2) var(--space-4);
-  background: var(--color-surface-translucent);
-  border-radius: var(--radius-pill);
-  border: 1px solid var(--color-stroke-subtle);
-  text-align: center;
+:global(html:root),
+:global(html body),
+:global(html body #root) {
+  overflow: auto;
+  height: auto;
+  min-height: 100%;
 }
 
-.instructions[data-variant='touch'] {
-  display: none;
-}
-
-.instructions p {
-  margin: 0;
-}
-
-@media (max-width: 968px) {
-  .main {
-    padding: var(--space-3);
-  }
-
-  .gameArea {
-    gap: var(--space-2);
-  }
-}
-
-@media (max-width: 768px) {
-  /* Phase F (M2): tighter mobile chrome.
-   * Reserved D-pad area was 280 px but the D-pad itself is ~216 px (3×64 grid +
-   * gaps + padding) floating with bottom: 16 px. We now reserve exactly what the
-   * D-pad needs plus breathing room, and let the board grow into the reclaimed
-   * height. `.gameArea` no longer centers vertically, so the hint sits right
-   * below the board instead of floating in a dead zone.
-   *
-   * Phase F.2 fix (code review): `--dpad-reserved` is declared on `.main` so
-   * it is scoped to a real selector — a bare declaration inside `@media` is a
-   * CSS parse error and was being silently dropped by every browser, which
-   * meant `var(--dpad-reserved)` resolved to the initial value and the calc()
-   * chains fell back to their property defaults. The mobile layout was only
-   * working through coincidence (aspect-ratio + justify-content: flex-start +
-   * the D-pad floating via position: fixed). With the token now scoped
-   * correctly, the padding reservation and the board max-height actually apply.
-   */
-  .main {
-    --dpad-reserved: 240px;
-    padding: 0;
-    padding-bottom: calc(var(--dpad-reserved) + env(safe-area-inset-bottom, 0px));
-  }
-
-  .gameArea {
-    padding: var(--space-2);
-    justify-content: flex-start;
-    gap: var(--space-2);
-  }
-
-  .gameContainer {
-    aspect-ratio: 1;
-    width: 100%;
-    max-width: min(
-      calc(100vw - 1rem - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)),
-      calc(100dvh - var(--hud-strip-height) - var(--dpad-reserved) - var(--space-5) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))
-    );
-    max-height: min(
-      calc(100vw - 1rem - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)),
-      calc(100dvh - var(--hud-strip-height) - var(--dpad-reserved) - var(--space-5) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))
-    );
-    padding: var(--space-2);
-  }
-
-  .gameContainer > *:not(.gameControls) {
-    width: 100%;
+@media (min-width: 964px) {
+  :global(html:root),
+  :global(html body),
+  :global(html body #root) {
+    overflow: hidden;
     height: 100%;
+    min-height: 0;
   }
 
-  .instructions[data-variant='keyboard'] {
-    display: none;
+  .app {
+    --hud-strip-height: 44px;
+    height: 100dvh;
+    overflow: hidden;
   }
 
-  .instructions[data-variant='touch'] {
-    display: flex;
-  }
-}
-
-@media (orientation: landscape) and (max-height: 600px) {
-  .instructions {
-    display: none;
-  }
-
-  .gameContainer {
-    height: calc(100dvh - var(--hud-strip-height) - var(--space-3) * 2);
-    width: auto;
-    aspect-ratio: 1;
+  .main {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+    padding: var(--space-2);
   }
 }

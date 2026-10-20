@@ -30,6 +30,11 @@
     "instructions": "<kbd>↑↓←→</kbd> ou <kbd>WASD</kbd> para mover • <kbd>ESPAÇO</kbd> para iniciar/pausar",
     "touchInstructions": "Deslize ou use o D-pad para mover • Toque no botão central para atirar veneno"
   },
+  "playfield": {
+    "controls": "Controles",
+    "keyboard": "Teclado",
+    "or": "ou"
+  },
   "audio": {
     "toggle": {
       "on": "Silenciar som",
@@ -190,7 +195,8 @@
     "livesAriaLabel": "{{count}} vidas restantes",
     "length": "Tamanho",
     "lengthAriaLabel": "Tamanho da cobra: {{count}}",
-    "legend": "Power-ups"
+    "legend": "Power-ups",
+    "wordmark": "SNAKEFLOW"
   },
   "phaseDisplay": {
     "phase": "Fase",

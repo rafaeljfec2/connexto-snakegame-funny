@@ -122,6 +122,12 @@ describe('sfxEngine', () => {
       expect(sfxEngine.getState().isMuted).toBe(true);
     });
 
+    it('keeps a stored volume instead of squaring it with the sprite gain', () => {
+      localStorage.setItem('snake.audio.volume', '0.4');
+      sfxEngine.reset();
+      expect(sfxEngine.getState().volume).toBe(0.4);
+    });
+
     it('clamps and stores volume between 0 and 1', () => {
       sfxEngine.setVolume(2);
       expect(sfxEngine.getState().volume).toBe(1);

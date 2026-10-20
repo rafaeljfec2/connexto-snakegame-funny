@@ -1,5 +1,4 @@
 import { memo } from 'react';
-import { useTranslation } from 'react-i18next';
 import { GameBoard } from './GameBoard';
 import { GameControls } from './GameControls';
 import { MobileFloatingInfo } from './MobileFloatingInfo';
@@ -15,7 +14,6 @@ interface GameAreaProps {
 }
 
 function GameAreaComponent({ gameWorker, resetToken, onStart, onPause, onReset }: GameAreaProps) {
-  const { t } = useTranslation();
   const status = useGameStateSlice((s) => s.status);
 
   return (
@@ -27,17 +25,6 @@ function GameAreaComponent({ gameWorker, resetToken, onStart, onPause, onReset }
           <GameControls onStart={onStart} onPause={onPause} onReset={onReset} status={status} />
         </div>
       </div>
-
-      <div
-        className={styles.instructions}
-        data-variant='keyboard'
-        dangerouslySetInnerHTML={{ __html: t('controls.instructions') }}
-      />
-      <div
-        className={styles.instructions}
-        data-variant='touch'
-        dangerouslySetInnerHTML={{ __html: t('controls.touchInstructions') }}
-      />
     </div>
   );
 }

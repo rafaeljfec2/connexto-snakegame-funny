@@ -30,6 +30,11 @@
     "instructions": "<kbd>↑↓←→</kbd> or <kbd>WASD</kbd> to move • <kbd>SPACE</kbd> to start/pause",
     "touchInstructions": "Swipe or use the D-pad to move • Tap the center button to fire poison"
   },
+  "playfield": {
+    "controls": "Controls",
+    "keyboard": "Keyboard",
+    "or": "or"
+  },
   "audio": {
     "toggle": {
       "on": "Mute sound",
@@ -190,7 +195,8 @@
     "livesAriaLabel": "{{count}} lives remaining",
     "length": "Length",
     "lengthAriaLabel": "Snake length: {{count}}",
-    "legend": "Power-ups"
+    "legend": "Power-ups",
+    "wordmark": "SNAKEFLOW"
   },
   "phaseDisplay": {
     "phase": "Phase",

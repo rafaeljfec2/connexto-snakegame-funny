@@ -196,6 +196,10 @@ Plus full harness: `bash scripts/harness/validate.sh` green.
 | `src/workers/__tests__/gameSfx.test.ts` | 2 |
 | **Subtotal REF-02** | **19** |
 
+### Mix pass (2026-10-20)
+
+The shipped sprite peaked at 0 dBFS and several clips were hard-clipped, which read as loud, shrill, and robotic. The sprite is low-passed around 6.2 kHz, peaks near −5 dBFS, and is served as MP3 first. Factory volume is 0.85 on `Howler.volume` only. `play()` resumes a suspended `AudioContext`.
+
 ### Follow-ups (not blocking)
 
 - ✅ ~~Add the missing SFX call sites listed under "Deviations".~~ — done in same wave.

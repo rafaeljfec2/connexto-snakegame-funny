@@ -1,7 +1,7 @@
 {
   "src": [
-    "/audio/sfx.webm",
-    "/audio/sfx.mp3"
+    "/audio/sfx.mp3?v=4",
+    "/audio/sfx.webm?v=4"
   ],
   "sprite": {
     "food.eat": [

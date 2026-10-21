@@ -125,11 +125,18 @@ export interface GameState {
   isFiringPoison?: boolean; // Continuous poison firing when fire button is held
   currentPhase?: number; // Current phase number (1-10)
   phaseLevelType?: import('./phases').PhaseLevelType; // Type of level in current phase
-  activeBoss?: import('./phases').Chef; // Active boss (if in boss level)
+  activeBoss?: import('./phases').ActiveBoss; // Chef in worker; PublishedBoss after postMessage (REF-10)
   bossSnake?: BossSnake; // Boss snake (positions, direction, etc.)
   guardianFlag?: Food | null; // Special flag food for Guardian boss (capture the flag mechanic)
   guardianFlagSide?: -1 | 1; // Which side the flag is on (-1 = left, 1 = right)
   phaseStartSnapshot?: import('@/utils/phaseStatistics').PhaseStartSnapshot; // Snapshot when phase started
+  /** Timestamp (ms) until which damage is ignored after a non-fatal hit (REF-10). */
+  invulnerableUntil?: number;
+  /** Last collected power-up (resolved type) for instant toast feedback (REF-10). */
+  lastPowerUpPickup?: {
+    type: FoodType;
+    collectedAt: number;
+  } | null;
 }
 
 export interface GameConfig {
@@ -150,7 +157,7 @@ export interface GameUpdateContext {
   finalSnake: Position[];
   activeObstacles: Obstacle[];
   activePortals: Portal[];
-  activeBoss: import('./phases').Chef | undefined;
+  activeBoss: import('./phases').ActiveBoss | undefined;
   lastObstacleSpawnTime: number;
   ateFood: boolean;
   forcedFoodType: FoodType | null;

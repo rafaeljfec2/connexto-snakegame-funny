@@ -7,7 +7,7 @@ import {
   BossSnake,
   PoisonShot,
 } from '@/types/game';
-import { Chef } from '@/types/phases';
+import type { ActiveBoss } from '@/types/phases';
 import { POISON_CONFIG } from '@/constants/game';
 import { handleBossDefeat } from '@/utils/bosses';
 import { weakenBossSnake, canDefeatBoss } from '@/utils/bossSnake';
@@ -29,7 +29,7 @@ export interface PoisonLogicResult {
   particlesToSpawn: Array<{ position: Position; color: string; count: number }>;
   bossUpdate?: {
     bossSnake: BossSnake;
-    activeBoss?: Chef;
+    activeBoss?: ActiveBoss;
     newScore: number;
     bossAbilityCooldowns: Map<string, number>;
     forcedFoodType: FoodType | null;
@@ -95,7 +95,7 @@ interface BossCollisionState {
 }
 
 interface BossCollisionContext {
-  activeBoss: Chef;
+  activeBoss: ActiveBoss;
   prevGameState: GameState;
   particles: Array<{ position: Position; color: string; count: number }>;
 }
@@ -201,7 +201,7 @@ function filterShotsByIds(shots: PoisonShot[], idsToRemove: string[]): PoisonSho
 
 function createBossUpdate(
   state: BossCollisionState,
-  activeBoss: Chef,
+  activeBoss: ActiveBoss,
   bossLogicResult: BossLogicResult,
 ): PoisonLogicResult['bossUpdate'] {
   if (state.defeated) {

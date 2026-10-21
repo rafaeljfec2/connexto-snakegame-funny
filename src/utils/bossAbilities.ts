@@ -6,7 +6,7 @@
  */
 
 import { GameState } from '@/types/game';
-import { Chef } from '@/types/phases';
+import type { ActiveBoss } from '@/types/phases';
 
 // Re-export types
 export type { BossAbilityResult, AbilityProcessContext } from './boss/bossAbilityTypes';
@@ -43,7 +43,7 @@ import {
  * Process boss abilities and return their effects
  */
 export function processBossAbilities(
-  boss: Chef,
+  boss: ActiveBoss,
   gameState: GameState,
   abilityCooldowns: Map<string, number>,
 ): { result: BossAbilityResult; updatedCooldowns: Map<string, number> } {

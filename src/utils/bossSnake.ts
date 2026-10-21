@@ -1,12 +1,12 @@
 import { Position, Direction, Obstacle, BossSnake } from '@/types/game';
-import { Chef } from '@/types/phases';
+import type { ActiveBoss } from '@/types/phases';
 import { getNextHeadPosition, moveSnake, isValidDirectionChange } from './gameLogic';
 
 /**
  * Initialize boss snake at a valid position
  */
 export function initializeBossSnake(
-  boss: Chef,
+  boss: ActiveBoss,
   playerSnake: Position[],
   obstacles: Obstacle[],
   gridSize: number,
@@ -37,133 +37,162 @@ export function initializeBossSnake(
   };
 }
 
+function buildBossSegmentLine(
+  startX: number,
+  startY: number,
+  direction: Direction,
+  length: number,
+  gridSize: number,
+): Position[] | null {
+  const positions: Position[] = [];
+  const seen = new Set<string>();
+
+  for (let i = 0; i < length; i++) {
+    let x = startX;
+    let y = startY;
+
+    if (direction === Direction.RIGHT) {
+      x = startX - i;
+    } else if (direction === Direction.LEFT) {
+      x = startX + i;
+    } else if (direction === Direction.DOWN) {
+      y = startY - i;
+    } else {
+      y = startY + i;
+    }
+
+    if (x < 0 || x >= gridSize || y < 0 || y >= gridSize) {
+      return null;
+    }
+
+    const key = `${x},${y}`;
+    if (seen.has(key)) {
+      return null;
+    }
+    seen.add(key);
+    positions.push({ x, y });
+  }
+
+  return positions;
+}
+
+function isBossSpawnValid(
+  positions: Position[],
+  playerSnake: Position[],
+  obstacles: Obstacle[],
+  minDistanceFromPlayer: number,
+): boolean {
+  const playerSet = new Set(playerSnake.map((p) => `${p.x},${p.y}`));
+  const obstacleSet = new Set(obstacles.map((o) => `${o.position.x},${o.position.y}`));
+  const playerHead = playerSnake[0];
+
+  for (const pos of positions) {
+    if (playerSet.has(`${pos.x},${pos.y}`)) {
+      return false;
+    }
+    if (obstacleSet.has(`${pos.x},${pos.y}`)) {
+      return false;
+    }
+    if (playerHead) {
+      const distance = Math.abs(pos.x - playerHead.x) + Math.abs(pos.y - playerHead.y);
+      if (distance < minDistanceFromPlayer) {
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
+
 /**
- * Find a valid spawn position for boss snake
+ * Find a valid spawn position for boss snake (REF-10: no clamp-collapsed segments, no player overlap).
  */
 function findValidBossSpawnPosition(
-  _boss: Chef,
+  _boss: ActiveBoss,
   playerSnake: Position[],
   obstacles: Obstacle[],
   gridSize: number,
   length: number,
 ): Position[] | null {
   const maxAttempts = 100;
-  const minDistanceFromPlayer = 8; // Minimum distance from player snake
+  const minDistanceFromPlayer = 8;
+  const margin = length + 1;
 
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    // Try to spawn in a corner or edge area
     const spawnArea = attempt % 4;
     let startX: number;
     let startY: number;
     let direction: Direction;
 
     switch (spawnArea) {
-      case 0: // Top-left area
-        startX = Math.floor(Math.random() * (gridSize / 4));
-        startY = Math.floor(Math.random() * (gridSize / 4));
+      case 0:
+        startX =
+          margin + Math.floor(Math.random() * Math.max(1, Math.floor(gridSize / 4) - margin));
+        startY =
+          margin + Math.floor(Math.random() * Math.max(1, Math.floor(gridSize / 4) - margin));
         direction = Direction.RIGHT;
         break;
-      case 1: // Top-right area
-        startX = Math.floor((gridSize * 3) / 4) + Math.floor(Math.random() * (gridSize / 4));
-        startY = Math.floor(Math.random() * (gridSize / 4));
+      case 1:
+        startX =
+          Math.floor((gridSize * 3) / 4) +
+          Math.floor(Math.random() * Math.max(1, Math.floor(gridSize / 4) - margin));
+        startY =
+          margin + Math.floor(Math.random() * Math.max(1, Math.floor(gridSize / 4) - margin));
         direction = Direction.LEFT;
         break;
-      case 2: // Bottom-left area
-        startX = Math.floor(Math.random() * (gridSize / 4));
-        startY = Math.floor((gridSize * 3) / 4) + Math.floor(Math.random() * (gridSize / 4));
+      case 2:
+        startX =
+          margin + Math.floor(Math.random() * Math.max(1, Math.floor(gridSize / 4) - margin));
+        startY =
+          Math.floor((gridSize * 3) / 4) +
+          Math.floor(Math.random() * Math.max(1, Math.floor(gridSize / 4) - margin));
         direction = Direction.RIGHT;
         break;
-      default: // Bottom-right area
-        startX = Math.floor((gridSize * 3) / 4) + Math.floor(Math.random() * (gridSize / 4));
-        startY = Math.floor((gridSize * 3) / 4) + Math.floor(Math.random() * (gridSize / 4));
+      default:
+        startX =
+          Math.floor((gridSize * 3) / 4) +
+          Math.floor(Math.random() * Math.max(1, Math.floor(gridSize / 4) - margin));
+        startY =
+          Math.floor((gridSize * 3) / 4) +
+          Math.floor(Math.random() * Math.max(1, Math.floor(gridSize / 4) - margin));
         direction = Direction.LEFT;
         break;
     }
 
-    // Generate snake positions
-    const positions: Position[] = [];
-    for (let i = 0; i < length; i++) {
-      let x = startX;
-      let y = startY;
-
-      // Adjust based on direction
-      if (direction === Direction.RIGHT) {
-        x = startX - i;
-      } else if (direction === Direction.LEFT) {
-        x = startX + i;
-      } else if (direction === Direction.DOWN) {
-        y = startY - i;
-      } else {
-        y = startY + i;
-      }
-
-      // Ensure within bounds
-      x = Math.max(0, Math.min(gridSize - 1, x));
-      y = Math.max(0, Math.min(gridSize - 1, y));
-
-      positions.push({ x, y });
-    }
-
-    // Check if all positions are valid
-    const isValid = positions.every((pos) => {
-      // Check bounds
-      if (pos.x < 0 || pos.x >= gridSize || pos.y < 0 || pos.y >= gridSize) {
-        return false;
-      }
-
-      // Check distance from player
-      const playerHead = playerSnake[0];
-      if (playerHead) {
-        const distance = Math.abs(pos.x - playerHead.x) + Math.abs(pos.y - playerHead.y);
-        if (distance < minDistanceFromPlayer) {
-          return false;
-        }
-      }
-
-      // Check collision with player snake
-      const collidesWithPlayer = playerSnake.some(
-        (segment) => segment.x === pos.x && segment.y === pos.y,
-      );
-      if (collidesWithPlayer) {
-        return false;
-      }
-
-      // Check collision with obstacles
-      const collidesWithObstacle = obstacles.some(
-        (obstacle) => obstacle.position.x === pos.x && obstacle.position.y === pos.y,
-      );
-      if (collidesWithObstacle) {
-        return false;
-      }
-
-      return true;
-    });
-
-    if (isValid) {
+    const positions = buildBossSegmentLine(startX, startY, direction, length, gridSize);
+    if (positions && isBossSpawnValid(positions, playerSnake, obstacles, minDistanceFromPlayer)) {
       return positions;
     }
   }
 
-  // Fallback: try center area
-  const centerX = Math.floor(gridSize / 2);
-  const centerY = Math.floor(gridSize / 2);
-  const positions: Position[] = [];
-
-  for (let i = 0; i < length; i++) {
-    positions.push({
-      x: centerX + i,
-      y: centerY,
-    });
+  // Fallback: scan for any free horizontal line away from the player
+  const playerSet = new Set(playerSnake.map((p) => `${p.x},${p.y}`));
+  for (let y = 0; y < gridSize; y++) {
+    for (let x = 0; x <= gridSize - length; x++) {
+      const positions: Position[] = [];
+      let free = true;
+      for (let i = 0; i < length; i++) {
+        const pos = { x: x + i, y };
+        if (playerSet.has(`${pos.x},${pos.y}`)) {
+          free = false;
+          break;
+        }
+        positions.push(pos);
+      }
+      if (free && isBossSpawnValid(positions, playerSnake, obstacles, 1)) {
+        return positions;
+      }
+    }
   }
 
-  return positions;
+  return null;
 }
 
 /**
  * Calculate next direction for boss snake based on behavior
  */
 export function calculateBossNextDirection(
-  boss: Chef,
+  boss: ActiveBoss,
   bossSnake: BossSnake,
   playerSnake: Position[],
   _obstacles: Obstacle[],

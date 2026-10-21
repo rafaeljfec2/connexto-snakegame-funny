@@ -59,7 +59,7 @@ export function hasBossCollision(snakeHead: Position, bossPosition: Position | n
  * Handle boss defeat (when snake collides with boss)
  */
 export function handleBossDefeat(
-  boss: Chef,
+  boss: import('@/types/phases').ActiveBoss,
   _gameState: GameState,
 ): { scoreIncrease: number; message: string } {
   // Different rewards based on boss phase

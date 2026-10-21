@@ -1,5 +1,5 @@
 import { GameState, FoodType } from '@/types/game';
-import { Chef, BossAbility } from '@/types/phases';
+import type { ActiveBoss, BossAbility, Chef } from '@/types/phases';
 import { GAME_CONFIG } from '@/constants/game';
 import { generatePortalPair } from '../portals';
 import type { BossAbilityResult, AbilityProcessContext } from './bossAbilityTypes';
@@ -211,12 +211,12 @@ export function mergeAbilityResults(source: BossAbilityResult, target: BossAbili
  * Handle multiple_abilities ability
  */
 export function handleMultipleAbilities(
-  boss: Chef,
+  boss: ActiveBoss,
   gameState: GameState,
   abilityCooldowns: Map<string, number>,
   result: BossAbilityResult,
   processFn: (
-    boss: Chef,
+    boss: ActiveBoss,
     gameState: GameState,
     cooldowns: Map<string, number>,
   ) => { result: BossAbilityResult; updatedCooldowns: Map<string, number> },
@@ -256,12 +256,12 @@ export function handleMultipleAbilities(
  * Handle all_abilities ability
  */
 export function handleAllAbilities(
-  boss: Chef,
+  boss: ActiveBoss,
   gameState: GameState,
   abilityCooldowns: Map<string, number>,
   result: BossAbilityResult,
   processFn: (
-    boss: Chef,
+    boss: ActiveBoss,
     gameState: GameState,
     cooldowns: Map<string, number>,
   ) => { result: BossAbilityResult; updatedCooldowns: Map<string, number> },

@@ -44,6 +44,22 @@ export interface Chef {
   initialLength?: number; // Initial snake length (default: 3)
 }
 
+/** Clone-safe boss payload (no ability.effect) for main/render (REF-10). */
+export interface PublishedBoss {
+  id: string;
+  name: string;
+  description: string;
+  phase: number;
+  abilities: Array<Omit<BossAbility, 'effect'>>;
+  visual: Chef['visual'];
+  health?: number;
+  behavior?: BossBehavior;
+  initialLength?: number;
+}
+
+/** Worker may hold full Chef; published state may hold PublishedBoss. */
+export type ActiveBoss = Chef | PublishedBoss;
+
 export interface PhaseConfig {
   obstaclesEnabled: boolean;
   obstaclesFrequency: number; // 0-1

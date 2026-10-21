@@ -1,4 +1,5 @@
 import { GameState, Position } from '@/types/game';
+import { toSerializableBoss } from '@/utils/bossPublish';
 
 /**
  * Check if two positions are equal
@@ -168,6 +169,15 @@ function processSimpleValueChanges(
   if (hasSimpleValueChanged(prev.lives, current.lives)) {
     delta.lives = current.lives;
   }
+  if (hasSimpleValueChanged(prev.invulnerableUntil, current.invulnerableUntil)) {
+    delta.invulnerableUntil = current.invulnerableUntil;
+  }
+  if (
+    prev.lastPowerUpPickup?.collectedAt !== current.lastPowerUpPickup?.collectedAt ||
+    prev.lastPowerUpPickup?.type !== current.lastPowerUpPickup?.type
+  ) {
+    delta.lastPowerUpPickup = current.lastPowerUpPickup;
+  }
   if (hasSimpleValueChanged(prev.isSpeedBoosted, current.isSpeedBoosted)) {
     delta.isSpeedBoosted = current.isSpeedBoosted;
   }
@@ -234,19 +244,30 @@ function processSpecialValueChanges(
   }
 
   if (prev.activeBoss?.id !== current.activeBoss?.id) {
-    delta.activeBoss = current.activeBoss;
+    // REF-10: never post ability.effect functions (DataCloneError freezes the game loop)
+    delta.activeBoss = current.activeBoss ? toSerializableBoss(current.activeBoss) : undefined;
   }
 }
 
 /**
  * Compute delta between previous and current state
  */
+function sanitizeStateForPostMessage(state: GameState): GameState {
+  if (!state.activeBoss) {
+    return state;
+  }
+  return {
+    ...state,
+    activeBoss: toSerializableBoss(state.activeBoss),
+  };
+}
+
 export function computeDelta(
   prev: Partial<GameState> | null,
   current: GameState,
 ): Partial<GameState> {
   if (!prev) {
-    return current;
+    return sanitizeStateForPostMessage(current);
   }
 
   const delta: Partial<GameState> = {};
@@ -280,11 +301,13 @@ export function shallowCopyState(state: GameState): Partial<GameState> {
     combo: state.combo,
     currentPhase: state.currentPhase,
     phaseLevelType: state.phaseLevelType,
-    activeBoss: state.activeBoss,
+    activeBoss: state.activeBoss ? toSerializableBoss(state.activeBoss) : state.activeBoss,
     bossSnake: state.bossSnake,
     guardianFlag: state.guardianFlag,
     isSpeedBoosted: state.isSpeedBoosted,
     isFiringPoison: state.isFiringPoison,
     achievements: state.achievements,
+    invulnerableUntil: state.invulnerableUntil,
+    lastPowerUpPickup: state.lastPowerUpPickup,
   };
 }

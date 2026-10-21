@@ -83,6 +83,6 @@ export function getChefById(id: string): Chef | undefined {
 /**
  * Get phase configuration from a boss/chef (for debug mode)
  */
-export function getPhaseByBoss(boss: Chef): PhaseType | undefined {
+export function getPhaseByBoss(boss: import('@/types/phases').ActiveBoss): PhaseType | undefined {
   return PHASES.find((phase) => phase.id === boss.phase);
 }

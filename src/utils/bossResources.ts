@@ -1,5 +1,5 @@
 import { Obstacle, Portal, Position } from '@/types/game';
-import { Chef } from '@/types/phases';
+import type { ActiveBoss } from '@/types/phases';
 import { GAME_CONFIG } from '@/constants/game';
 import { generateObstacles } from './obstacles';
 import { generatePortalPair } from './portals';
@@ -9,7 +9,7 @@ import { getPhaseByBoss } from './phases';
  * Generate initial resources for boss when it spawns
  */
 export function generateBossInitialResources(
-  boss: Chef,
+  boss: ActiveBoss,
   playerSnake: Position[],
   existingObstacles: Obstacle[],
   existingPortals: Portal[],

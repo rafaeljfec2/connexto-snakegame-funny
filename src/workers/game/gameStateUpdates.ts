@@ -1,5 +1,6 @@
 import { BossSnake, Food, FoodType, GameUpdateContext } from '@/types/game';
-import { Chef, PhaseLevelType, PhaseType } from '@/types/phases';
+import type { ActiveBoss, PhaseType } from '@/types/phases';
+import { PhaseLevelType } from '@/types/phases';
 import { GAME_CONFIG } from '@/constants/game';
 import { OBSTACLE_CONFIG } from '@/constants/obstacles';
 import { calculateLevel, calculateGameSpeed } from '@/utils/difficulty';
@@ -20,7 +21,7 @@ export interface GameStateUpdateResult {
   phaseLevelType?: PhaseLevelType;
   newObstacles: Obstacle[];
   newFood: Food;
-  activeBoss?: Chef;
+  activeBoss?: ActiveBoss;
   bossSnake?: BossSnake;
   newGuardianFlag: Food | null;
   updatedSpawnTime: number;
@@ -67,7 +68,7 @@ function determineCurrentPhase(
   prevLevel: number,
   newScore: number,
   prevPhase: number | undefined,
-  activeBoss?: Chef,
+  activeBoss?: ActiveBoss,
 ): PhaseType | undefined {
   let currentPhase: PhaseType | undefined;
 
@@ -166,8 +167,8 @@ function handleFoodGeneration(
  */
 function handleBossSpawning(
   newLevel: number,
-  prevActiveBoss?: Chef,
-): { newActiveBoss?: Chef; shouldInitialize: boolean } {
+  prevActiveBoss?: ActiveBoss,
+): { newActiveBoss?: ActiveBoss; shouldInitialize: boolean } {
   if (!shouldSpawnBoss(newLevel)) {
     return { newActiveBoss: prevActiveBoss, shouldInitialize: false };
   }
@@ -192,7 +193,7 @@ function handleBossSpawning(
  * Initialize boss resources
  */
 function initializeBossResources(
-  newActiveBoss: Chef,
+  newActiveBoss: ActiveBoss,
   context: GameUpdateContext,
   newObstacles: Obstacle[],
 ): {

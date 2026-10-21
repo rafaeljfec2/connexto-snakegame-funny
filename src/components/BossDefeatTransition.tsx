@@ -1,13 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Chef } from '@/types/phases';
+import type { ActiveBoss } from '@/types/phases';
 import { createLogger, LogContext } from '@/utils/logger';
 import styles from './BossDefeatTransition.module.css';
 
 const logger = createLogger(LogContext.TRANSITION);
 
 interface BossDefeatTransitionProps {
-  boss: Chef;
+  boss: ActiveBoss;
   score: number;
   onComplete: () => void;
 }

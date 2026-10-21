@@ -2,14 +2,14 @@ import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { CHEFS } from '@/constants/phases';
-import { Chef } from '@/types/phases';
+import type { ActiveBoss, Chef } from '@/types/phases';
 import styles from './BossDebugPanel.module.css';
 
 interface BossDebugPanelProps {
   isOpen: boolean;
   onClose: () => void;
   onSelectBoss: (boss: Chef | null) => void;
-  currentBoss?: Chef;
+  currentBoss?: ActiveBoss;
 }
 
 export function BossDebugPanel({

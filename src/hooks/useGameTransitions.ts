@@ -1,18 +1,18 @@
 import { useState, useCallback } from 'react';
-import { Chef } from '@/types/phases';
+import type { ActiveBoss } from '@/types/phases';
 
 interface UseGameTransitionsReturn {
   showLevelUp: boolean;
   showPhaseTransition: boolean;
   phaseTransitionNumber: number | null;
   showBossDefeatTransition: boolean;
-  defeatedBoss: Chef | null;
+  defeatedBoss: ActiveBoss | null;
   bossDefeatScore: number;
   defeatedBossPhaseNumber: number | null;
   setShowLevelUp: (show: boolean) => void;
   handleLevelUp: () => void;
   handlePhaseTransition: (phaseNumber: number) => void;
-  handleBossDefeat: (boss: Chef, scoreIncrease: number, phaseNumber: number) => void;
+  handleBossDefeat: (boss: ActiveBoss, scoreIncrease: number, phaseNumber: number) => void;
   handleBossDefeatTransitionComplete: () => void;
   resetTransitions: () => void;
 }
@@ -22,7 +22,7 @@ export function useGameTransitions(onBossDefeatPause: () => void): UseGameTransi
   const [showPhaseTransition, setShowPhaseTransition] = useState(false);
   const [phaseTransitionNumber, setPhaseTransitionNumber] = useState<number | null>(null);
   const [showBossDefeatTransition, setShowBossDefeatTransition] = useState(false);
-  const [defeatedBoss, setDefeatedBoss] = useState<Chef | null>(null);
+  const [defeatedBoss, setDefeatedBoss] = useState<ActiveBoss | null>(null);
   const [bossDefeatScore, setBossDefeatScore] = useState(0);
   const [defeatedBossPhaseNumber, setDefeatedBossPhaseNumber] = useState<number | null>(null);
 
@@ -36,7 +36,7 @@ export function useGameTransitions(onBossDefeatPause: () => void): UseGameTransi
   }, []);
 
   const handleBossDefeat = useCallback(
-    (boss: Chef, scoreIncrease: number, phaseNumber: number) => {
+    (boss: ActiveBoss, scoreIncrease: number, phaseNumber: number) => {
       onBossDefeatPause();
       setDefeatedBoss(boss);
       setBossDefeatScore(scoreIncrease);

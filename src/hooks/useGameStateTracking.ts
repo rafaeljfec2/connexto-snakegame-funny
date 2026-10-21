@@ -2,13 +2,13 @@ import { useEffect, useRef } from 'react';
 import { GameState, GameStatus } from '@/types/game';
 import { logger, LogContext } from '@/utils/logger';
 import { didPhaseChange, getPhaseNumber } from '@/utils/phases';
-import { Chef } from '@/types/phases';
+import type { ActiveBoss } from '@/types/phases';
 
 interface UseGameStateTrackingProps {
   gameState: GameState;
   onLevelUp: () => void;
   onPhaseTransition: (phaseNumber: number) => void;
-  onBossDefeat: (boss: Chef, scoreIncrease: number, phaseNumber: number) => void;
+  onBossDefeat: (boss: ActiveBoss, scoreIncrease: number, phaseNumber: number) => void;
   onAchievementsUnlocked: (achievementIds: string[]) => void;
 }
 
@@ -23,7 +23,7 @@ export function useGameStateTracking({
   const previousScoreRef = useRef(gameState.score);
   const previousAchievementsRef = useRef(gameState.achievements);
   const previousPhaseRef = useRef<number | undefined>(gameState.currentPhase);
-  const previousActiveBossRef = useRef<Chef | undefined>(gameState.activeBoss);
+  const previousActiveBossRef = useRef<ActiveBoss | undefined>(gameState.activeBoss);
 
   // Detect level up
   useEffect(() => {

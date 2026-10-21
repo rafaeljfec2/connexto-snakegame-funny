@@ -34,6 +34,14 @@
   background: var(--color-bg-elevated);
 }
 
+.controls {
+  align-items: stretch;
+}
+
+.controls > :not(.sectionTitle) {
+  align-self: center;
+}
+
 .sectionTitle {
   margin: 0;
   color: var(--color-on-bg);

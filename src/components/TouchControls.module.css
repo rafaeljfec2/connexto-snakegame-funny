@@ -7,14 +7,15 @@
  */
 
 .touchControls {
-  display: block;
+  display: flex;
+  justify-content: center;
   position: relative;
   z-index: 1;
   pointer-events: auto;
   touch-action: none;
   user-select: none;
   -webkit-user-select: none;
-  width: auto;
+  width: 100%;
   max-width: 100%;
   transition: opacity var(--motion-duration-base) var(--motion-ease-standard);
 }
@@ -26,10 +27,12 @@
 
 .controlGrid {
   display: grid;
-  grid-template-columns: repeat(3, 48px);
-  grid-template-rows: repeat(3, 48px);
-  gap: var(--space-2);
+  /* Solid cross — no gap so Up/Down/Left/Right sit flush like a real D-pad */
+  grid-template-columns: repeat(3, 44px);
+  grid-template-rows: repeat(3, 44px);
+  gap: 0;
   padding: 0;
+  margin-inline: auto;
 }
 
 .directionButton {
@@ -39,7 +42,7 @@
   background: var(--color-bg-surface);
   backdrop-filter: blur(12px) saturate(140%);
   border: 1px solid var(--color-stroke-soft);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   cursor: pointer;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
@@ -120,9 +123,10 @@
   user-select: none;
   -webkit-user-select: none;
   padding: 0;
-  margin: 0;
-  width: 100%;
-  height: 100%;
+  /* Slight overlap so the circle optically centers the cross */
+  margin: -3px;
+  width: calc(100% + 6px);
+  height: calc(100% + 6px);
   min-width: 44px;
   min-height: 44px;
   position: relative;
@@ -169,18 +173,19 @@
 }
 
 @media (min-width: 964px) {
+  /* 160px card: 3×44 = 132px flush cross, REF-09 ≥44px targets */
   .controlGrid {
     grid-template-columns: repeat(3, 44px);
     grid-template-rows: repeat(3, 44px);
-    gap: var(--space-1);
+    gap: 0;
   }
 
   .buttonIcon {
-    font-size: 1.25rem;
+    font-size: 1.15rem;
   }
 
   .poisonIcon {
-    font-size: 1.1rem;
+    font-size: 1rem;
   }
 }
 

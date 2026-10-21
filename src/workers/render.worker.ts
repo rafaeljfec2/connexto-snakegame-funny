@@ -46,20 +46,25 @@ const render = () => {
   }
   lastRenderFrameTs = frameTs;
 
-  // Skip render if nothing changed
-  if (!state.isRenderDirty) {
+  const renderStart = frameTs;
+
+  // Time & Interpolation (REF-10: keep painting while interpolating / blinking)
+  const now = renderStart;
+  const speed = Math.max(state.speed, 16);
+  const elapsed = now - state.lastUpdate;
+  const t = Math.min(Math.max(elapsed / speed, 0), 1);
+  const isPlaying = state.gameStatus === 'PLAYING';
+  const isInvulnerable = state.invulnerableUntil > now;
+  const needsContinuousPaint = isPlaying && (t < 1 || isInvulnerable);
+
+  if (!state.isRenderDirty && !needsContinuousPaint) {
     requestAnimationFrame(render);
     return;
   }
 
-  state.isRenderDirty = false;
-
-  const renderStart = frameTs;
-
-  // Time & Interpolation
-  const now = renderStart;
-  const elapsed = now - state.lastUpdate;
-  const t = Math.min(Math.max(elapsed / state.speed, 0), 1);
+  if (t >= 1 && !isInvulnerable) {
+    state.isRenderDirty = false;
+  }
 
   // Update tongue animation
   state.animationState.tongueProgress = updateTongueAnimation(now, state.animationState);

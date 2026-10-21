@@ -36,6 +36,7 @@ export interface RenderState {
   speed: number;
   lastUpdate: number;
   isRenderDirty: boolean;
+  invulnerableUntil: number;
 
   // Animation state
   animationState: AnimationState;
@@ -72,6 +73,7 @@ export function createRenderState(): RenderState {
     speed: 150,
     lastUpdate: 0,
     isRenderDirty: false,
+    invulnerableUntil: 0,
     animationState: createAnimationState(),
     gameStatus: 'IDLE',
     skin: getDefaultSkinPalette(),
@@ -82,41 +84,59 @@ export function createRenderState(): RenderState {
  * Update snake positions from payload
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function updateSnake(state: RenderState, payload: any): void {
+function updateSnake(state: RenderState, payload: any): boolean {
+  let newSnake: Position[];
   if (payload.snake instanceof ArrayBuffer) {
-    const newSnake = bufferToPositions(payload.snake, payload.snakeLength ?? 0);
-    state.prevSnake = state.snake && state.snake.length > 0 ? state.snake : newSnake;
-    state.snake = newSnake;
+    newSnake = bufferToPositions(payload.snake, payload.snakeLength ?? 0);
   } else {
-    state.prevSnake = state.snake && state.snake.length > 0 ? state.snake : payload.snake;
-    state.snake = payload.snake || [];
+    newSnake = payload.snake || [];
   }
+
+  const moved =
+    newSnake.length !== state.snake.length ||
+    newSnake.some((seg, i) => seg.x !== state.snake[i]?.x || seg.y !== state.snake[i]?.y);
+
+  if (moved) {
+    state.prevSnake = state.snake.length > 0 ? state.snake : newSnake;
+    state.snake = newSnake;
+  }
+  return moved;
 }
 
 /**
  * Update boss snake from payload
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function updateBossSnake(state: RenderState, payload: any): void {
+function updateBossSnake(state: RenderState, payload: any): boolean {
   if (!payload.bossSnake) {
+    const hadBoss = state.bossSnake !== null;
     state.bossSnake = null;
     state.prevBossSnake = [];
-    return;
+    return hadBoss;
   }
 
+  let bossPositions: Position[];
   if (payload.bossSnake instanceof ArrayBuffer) {
-    const bossPositions = bufferToPositions(payload.bossSnake, payload.bossSnakeLength ?? 0);
-    state.prevBossSnake = state.bossSnake ? state.bossSnake.positions : bossPositions;
+    bossPositions = bufferToPositions(payload.bossSnake, payload.bossSnakeLength ?? 0);
+  } else {
+    bossPositions = payload.bossSnake.positions;
+  }
+
+  const prevPositions = state.bossSnake?.positions ?? [];
+  const moved =
+    bossPositions.length !== prevPositions.length ||
+    bossPositions.some((seg, i) => seg.x !== prevPositions[i]?.x || seg.y !== prevPositions[i]?.y);
+
+  if (moved) {
+    state.prevBossSnake = prevPositions.length > 0 ? prevPositions : bossPositions;
     state.bossSnake = {
       positions: bossPositions,
       direction: state.bossSnake?.direction ?? Direction.RIGHT,
       nextDirection: state.bossSnake?.nextDirection ?? Direction.RIGHT,
       initialLength: state.bossSnake?.initialLength ?? bossPositions.length,
     };
-  } else {
-    state.prevBossSnake = state.bossSnake ? state.bossSnake.positions : payload.bossSnake.positions;
-    state.bossSnake = payload.bossSnake;
   }
+  return moved;
 }
 
 /**
@@ -164,6 +184,9 @@ function updateGameFields(state: RenderState, payload: any): void {
     state.isEating = Boolean(payload.isEating);
   }
   state.speed = payload.speed || 150;
+  if (payload.invulnerableUntil !== undefined) {
+    state.invulnerableUntil = Number(payload.invulnerableUntil) || 0;
+  }
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -223,11 +246,14 @@ export function handleUiSkin(state: RenderState, payload: any): void {
 export function handleStateUpdate(state: RenderState, payload: any): void {
   if (payload.snake === undefined) return;
 
-  updateSnake(state, payload);
-  updateBossSnake(state, payload);
+  const snakeMoved = updateSnake(state, payload);
+  const bossMoved = updateBossSnake(state, payload);
   updateGameFields(state, payload);
   updateGameStatus(state, payload);
 
-  state.lastUpdate = performance.now();
+  // REF-10: only restart interpolation when entities actually move
+  if (snakeMoved || bossMoved) {
+    state.lastUpdate = performance.now();
+  }
   state.isRenderDirty = true;
 }

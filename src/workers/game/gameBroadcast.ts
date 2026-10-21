@@ -6,6 +6,7 @@ import {
   positionsToTypedArray,
 } from './gameDelta';
 import { updateDeltaSize } from '@/utils/performanceMetrics';
+import { getActivePowerUps, getEffectiveGameSpeed } from '@/utils/powerUps';
 
 /**
  * Compare poison shots arrays efficiently
@@ -143,6 +144,7 @@ export interface RenderState {
   guardianFlag: import('@/types/game').Food | null;
   speed: number;
   status: GameStatus;
+  invulnerableUntil?: number;
 }
 
 /**
@@ -185,6 +187,12 @@ export function broadcastState(
   let newIsRenderDirty = isRenderDirty;
 
   if (renderPort) {
+    const activePowerUps = getActivePowerUps(gameState.activePowerUps);
+    let effectiveSpeed = getEffectiveGameSpeed(gameState.gameSpeed, activePowerUps);
+    if (gameState.isSpeedBoosted) {
+      effectiveSpeed = Math.floor(effectiveSpeed / 4);
+    }
+
     const currentRenderState: RenderState = {
       snake: gameState.snake,
       bossSnake: gameState.bossSnake,
@@ -200,8 +208,9 @@ export function broadcastState(
           }
         : null,
       guardianFlag: gameState.guardianFlag ?? null,
-      speed: gameState.gameSpeed,
+      speed: Math.max(effectiveSpeed, 16),
       status: gameState.status,
+      invulnerableUntil: gameState.invulnerableUntil,
     };
 
     // Check if render state changed - optimized comparisons without JSON.stringify
@@ -216,7 +225,8 @@ export function broadcastState(
       !activeBossEqual(previousRenderState.activeBoss, currentRenderState.activeBoss) ||
       !foodEqual(previousRenderState.guardianFlag, currentRenderState.guardianFlag) ||
       previousRenderState.speed !== currentRenderState.speed ||
-      previousRenderState.status !== currentRenderState.status;
+      previousRenderState.status !== currentRenderState.status ||
+      previousRenderState.invulnerableUntil !== currentRenderState.invulnerableUntil;
 
     if (renderChanged || isRenderDirty) {
       // Convert positions to TypedArrays for efficient transfer
@@ -245,6 +255,7 @@ export function broadcastState(
             guardianFlag: currentRenderState.guardianFlag ?? null,
             speed: currentRenderState.speed,
             status: currentRenderState.status,
+            invulnerableUntil: currentRenderState.invulnerableUntil,
           },
         },
         transferList,

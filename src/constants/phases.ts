@@ -219,8 +219,9 @@ export const CHEFS: Chef[] = [
     behavior: 'random',
     initialLength: 3,
     visual: {
-      color: '#22c55e',
-      icon: '⚡',
+      // REF-10: target / ally cyan — distinct from player skin green
+      color: '#22d3ee',
+      icon: '🎯',
       size: 1,
     },
   },
@@ -247,7 +248,8 @@ export const CHEFS: Chef[] = [
     behavior: 'flee', // Boss foge quando snake se aproxima
     initialLength: 4,
     visual: {
-      color: '#3b82f6',
+      // Friendly capture-the-flag target (cyan)
+      color: '#22d3ee',
       icon: '🛡️',
       size: 1.2,
     },

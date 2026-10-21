@@ -1,7 +1,28 @@
-import { Position, PoisonShot, Food as FoodType, Obstacle, Portal } from '@/types/game';
+import {
+  Position,
+  PoisonShot,
+  Food as FoodType,
+  FoodType as FoodTypeEnum,
+  Obstacle,
+  Portal,
+} from '@/types/game';
 import { type SkinPalette } from '@/types/skin';
+import { POWER_UP_CONFIG } from '@/constants/powerUps';
 import { adjustColor } from './renderUtils';
 import { getPulseAnimation } from './renderAnimations';
+
+const FOOD_GLYPHS: Partial<Record<FoodTypeEnum, string>> = {
+  [FoodTypeEnum.EXTRA_LIFE]: '♥',
+  [FoodTypeEnum.POISON]: '☠',
+  [FoodTypeEnum.SPEED_BOOST]: '⚡',
+  [FoodTypeEnum.BONUS_POINTS]: '$',
+  [FoodTypeEnum.PHASE_THROUGH]: '◌',
+  [FoodTypeEnum.JOKER]: '?',
+  [FoodTypeEnum.PORTAL]: '◎',
+  [FoodTypeEnum.REVERSE_CONTROLS]: '↺',
+  [FoodTypeEnum.SLOW_DOWN]: '🐌',
+  [FoodTypeEnum.EXTRA_GROWTH]: '+',
+};
 
 export interface RenderContext {
   ctx: OffscreenCanvasRenderingContext2D;
@@ -221,39 +242,11 @@ export function drawFood(
   const pulse = getPulseAnimation(now, 200);
   ctx.scale(pulse, pulse);
 
-  let color1 = '#ef4444';
-  let color2 = '#dc2626';
-
-  switch (food.type) {
-    case 'POISON':
-      color1 = '#10b981';
-      color2 = '#059669';
-      break;
-    case 'SPEED_BOOST':
-      color1 = '#3b82f6';
-      color2 = '#2563eb';
-      break;
-    case 'EXTRA_LIFE':
-      color1 = '#ec4899';
-      color2 = '#db2777';
-      break;
-    case 'BONUS_POINTS':
-      color1 = '#fbbf24';
-      color2 = '#d97706';
-      break;
-    case 'REVERSE_CONTROLS':
-      color1 = '#f59e0b';
-      color2 = '#b45309';
-      break;
-    case 'SLOW_DOWN':
-      color1 = '#6366f1';
-      color2 = '#4f46e5';
-      break;
-    case 'PHASE_THROUGH':
-      color1 = '#8b5cf6';
-      color2 = '#7c3aed';
-      break;
-  }
+  const palette =
+    POWER_UP_CONFIG.colors[food.type as FoodTypeEnum] ??
+    POWER_UP_CONFIG.colors[FoodTypeEnum.NORMAL];
+  const color1 = palette.primary;
+  const color2 = palette.secondary;
 
   const grad = ctx.createRadialGradient(-r * 0.3, -r * 0.3, r * 0.1, 0, 0, r);
   grad.addColorStop(0, color1);
@@ -271,6 +264,16 @@ export function drawFood(
   ctx.fill();
 
   ctx.shadowBlur = 0;
+
+  const glyph = FOOD_GLYPHS[food.type as FoodTypeEnum];
+  if (glyph) {
+    ctx.fillStyle = '#0a0d1a';
+    ctx.font = `bold ${Math.max(8, cellSize * 0.45)}px sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(glyph, 0, 1);
+  }
+
   ctx.restore();
 }
 
@@ -295,9 +298,10 @@ export function drawObstacle(context: RenderContext, obs: Obstacle, cellSize: nu
     grad.addColorStop(1, '#ef4444');
     ctx.strokeStyle = '#b91c1c';
   } else {
-    grad.addColorStop(0, '#e2e8f0');
-    grad.addColorStop(1, '#64748b');
-    ctx.strokeStyle = '#475569';
+    // REF-10: static hazards read as danger (red-slate), distinct from cyan target snake
+    grad.addColorStop(0, '#fca5a5');
+    grad.addColorStop(1, '#991b1b');
+    ctx.strokeStyle = '#7f1d1d';
   }
 
   ctx.fillStyle = grad;

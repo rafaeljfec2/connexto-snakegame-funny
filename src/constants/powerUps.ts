@@ -53,50 +53,50 @@ export const POWER_UP_CONFIG = {
     },
   },
 
-  // Visual colors for each power-up type
+  // Visual colors — REF-10: friendly cyan vs danger red; NORMAL is not danger-red
   colors: {
     [FoodType.NORMAL]: {
-      primary: '#ef4444',
-      secondary: '#dc2626',
+      primary: '#fbbf24', // Gold apple
+      secondary: '#d97706',
     },
     [FoodType.SPEED_BOOST]: {
-      primary: '#fb923c', // Laranja/bright orange (lightning bolt)
-      secondary: '#f97316',
+      primary: '#38bdf8', // Cyan lightning
+      secondary: '#0284c7',
     },
     [FoodType.BONUS_POINTS]: {
-      primary: '#f59e0b', // Dourado/gold (money bag)
+      primary: '#f59e0b', // Gold
       secondary: '#d97706',
     },
     [FoodType.EXTRA_GROWTH]: {
-      primary: '#60a5fa', // Azul claro/light blue (graph)
-      secondary: '#3b82f6',
-    },
-    [FoodType.POISON]: {
-      primary: '#10b981', // Verde/green (skull)
+      primary: '#34d399', // Mint growth
       secondary: '#059669',
     },
+    [FoodType.POISON]: {
+      primary: '#ef4444', // Danger red
+      secondary: '#b91c1c',
+    },
     [FoodType.REVERSE_CONTROLS]: {
-      primary: '#60a5fa', // Azul claro com borda rosa/light blue with pink border
-      secondary: '#3b82f6',
+      primary: '#f97316', // Warning orange
+      secondary: '#c2410c',
     },
     [FoodType.SLOW_DOWN]: {
-      primary: '#d97706', // Marrom/brown (snail)
-      secondary: '#b45309',
+      primary: '#fb7185', // Soft danger
+      secondary: '#be123c',
     },
     [FoodType.PHASE_THROUGH]: {
-      primary: '#a855f7', // Roxo/white-purple (ghost)
+      primary: '#a855f7', // Ghost purple
       secondary: '#9333ea',
     },
     [FoodType.JOKER]: {
-      primary: '#ec4899', // Rosa/pink (card)
-      secondary: '#db2777',
+      primary: '#e879f9', // Magenta card
+      secondary: '#c026d3',
     },
     [FoodType.EXTRA_LIFE]: {
-      primary: '#f43f5e',
-      secondary: '#e11d48',
+      primary: '#22d3ee', // Friendly cyan heart
+      secondary: '#0891b2',
     },
     [FoodType.PORTAL]: {
-      primary: '#6366f1', // Indigo
+      primary: '#818cf8', // Indigo
       secondary: '#4f46e5',
     },
   },

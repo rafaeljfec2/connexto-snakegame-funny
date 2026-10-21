@@ -464,3 +464,116 @@
     gap: var(--space-2);
   }
 }
+
+/*
+ * Compact shell card (must stay AFTER base .phaseSlot rules so row wins).
+ * True single-line HUD: phase = label · name · bar · step — never stacked.
+ */
+@media (min-width: 964px) {
+  .strip {
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: var(--space-2);
+    height: var(--hud-strip-height);
+    min-height: var(--hud-strip-height);
+    padding: 0 var(--space-3);
+    padding-top: 0;
+    overflow: hidden;
+  }
+
+  .metrics {
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: flex-start;
+    gap: var(--space-2);
+    min-width: 0;
+  }
+
+  .metric {
+    align-items: center;
+    gap: var(--space-1);
+  }
+
+  .metricLabel {
+    font-size: 0.625rem;
+  }
+
+  .metricValue {
+    font-size: var(--font-size-md);
+  }
+
+  .divider {
+    height: 14px;
+    flex: 0 0 auto;
+  }
+
+  .phaseSlot {
+    display: inline-flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: var(--space-2);
+    min-width: 0;
+    max-width: 280px;
+  }
+
+  .phaseHead {
+    display: inline-flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: var(--space-1);
+    min-width: 0;
+  }
+
+  .phaseLabel,
+  .phaseName,
+  .phaseStep {
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .phaseName {
+    max-width: 9.5rem;
+  }
+
+  .phaseFooter {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: var(--space-1);
+    min-width: 0;
+  }
+
+  /* Step number is enough in the 44px strip; bar is redundant at this density */
+  .phaseProgress {
+    display: none;
+  }
+
+  .lifeDot {
+    width: 10px;
+    height: 10px;
+  }
+
+  .actions {
+    gap: var(--space-2);
+  }
+
+  .legendButton {
+    height: 32px;
+    min-width: 44px;
+    padding: 0 var(--space-2);
+  }
+
+  .legendLabel {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+}

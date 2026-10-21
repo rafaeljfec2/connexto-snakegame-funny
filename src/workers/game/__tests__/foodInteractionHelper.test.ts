@@ -133,3 +133,67 @@ describe('handleFoodInteraction - active power-ups lifecycle', () => {
     expect(result.newActivePowerUps[0]).toEqual(stillActive);
   });
 });
+
+describe('handleFoodInteraction - EXTRA_LIFE and Joker (REF-10)', () => {
+  it('adds one life when EXTRA_LIFE pill is eaten and does not add a timed ActivePowerUp', () => {
+    const prev = buildGameState({
+      lives: 3,
+      food: { position: { x: 5, y: 5 }, type: FoodType.EXTRA_LIFE },
+    });
+
+    const result = handleFoodInteraction(true, prev, prev.snake, buildStats(), GRID, true, false);
+
+    expect(result.newLives).toBe(4);
+    expect(result.newActivePowerUps).toHaveLength(0);
+    expect(result.resolvedFoodType).toBe(FoodType.EXTRA_LIFE);
+  });
+
+  it('clamps EXTRA_LIFE at max lives', () => {
+    const prev = buildGameState({
+      lives: 5,
+      food: { position: { x: 5, y: 5 }, type: FoodType.EXTRA_LIFE },
+    });
+
+    const result = handleFoodInteraction(true, prev, prev.snake, buildStats(), GRID, true, false);
+
+    expect(result.newLives).toBe(5);
+  });
+
+  it('adds one life when Joker resolves to EXTRA_LIFE', () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0.99);
+    const prev = buildGameState({
+      lives: 2,
+      food: { position: { x: 5, y: 5 }, type: FoodType.JOKER },
+    });
+
+    // Force resolve by stubbing: pick last positive type EXTRA_LIFE (index 4 of 5)
+    // Pool: SPEED_BOOST, BONUS_POINTS, EXTRA_GROWTH, PHASE_THROUGH, EXTRA_LIFE
+    vi.spyOn(Math, 'random').mockReturnValue(0.99);
+
+    const result = handleFoodInteraction(true, prev, prev.snake, buildStats(), GRID, true, false);
+
+    expect(result.resolvedFoodType).toBe(FoodType.EXTRA_LIFE);
+    expect(result.newLives).toBe(3);
+    expect(result.newActivePowerUps.every((p) => p.type !== FoodType.EXTRA_LIFE)).toBe(true);
+    vi.restoreAllMocks();
+  });
+
+  it('does not add a life when Joker resolves to SPEED_BOOST and activates timed buff', () => {
+    // Index 0 → SPEED_BOOST
+    vi.spyOn(Math, 'random').mockReturnValue(0);
+    const prev = buildGameState({
+      lives: 3,
+      food: { position: { x: 5, y: 5 }, type: FoodType.JOKER },
+    });
+
+    const result = handleFoodInteraction(true, prev, prev.snake, buildStats(), GRID, true, false);
+
+    expect(result.resolvedFoodType).toBe(FoodType.SPEED_BOOST);
+    expect(result.newLives).toBe(3);
+    expect(result.newActivePowerUps.some((p) => p.type === FoodType.SPEED_BOOST)).toBe(true);
+    expect(
+      result.newActivePowerUps.find((p) => p.type === FoodType.SPEED_BOOST)?.duration,
+    ).toBeGreaterThan(0);
+    vi.restoreAllMocks();
+  });
+});

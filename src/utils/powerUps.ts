@@ -96,7 +96,10 @@ export function createActivePowerUp(type: FoodType): ActivePowerUp {
   };
 }
 
-export function getActivePowerUps(powerUps: ActivePowerUp[]): ActivePowerUp[] {
+export function getActivePowerUps(powerUps: ActivePowerUp[] | undefined | null): ActivePowerUp[] {
+  if (!powerUps || powerUps.length === 0) {
+    return [];
+  }
   const now = Date.now();
   return powerUps.filter((powerUp) => now - powerUp.startTime < powerUp.duration);
 }

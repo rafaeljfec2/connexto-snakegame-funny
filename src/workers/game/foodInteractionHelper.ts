@@ -17,6 +17,10 @@ export interface FoodInteractionResult {
   atePowerUp: boolean;
   particlesToSpawn: Array<{ position: Position; color: string; count: number }>;
   newPortals: Portal[];
+  /** Resolved food type after Joker roll (REF-10). */
+  resolvedFoodType: FoodType | null;
+  /** Optional invulnerability stamp applied mid-frame (e.g. boss head hit). */
+  invulnerableUntil?: number;
 }
 
 // --- Helper Functions ---
@@ -43,6 +47,7 @@ function resolveActualFoodType(foodType: FoodType): FoodType {
     FoodType.BONUS_POINTS,
     FoodType.EXTRA_GROWTH,
     FoodType.PHASE_THROUGH,
+    FoodType.EXTRA_LIFE,
   ];
   return positiveTypes[Math.floor(Math.random() * positiveTypes.length)] ?? FoodType.BONUS_POINTS;
 }
@@ -117,7 +122,7 @@ function processFoodConsumption(
   }
 
   let newLives = prevGameState.lives;
-  if (prevGameState.food.type === FoodType.EXTRA_LIFE) {
+  if (actualFoodType === FoodType.EXTRA_LIFE) {
     newLives = addLife(newLives);
   }
 
@@ -166,6 +171,8 @@ export function handleFoodInteraction(
       atePowerUp,
       particlesToSpawn,
       newPortals,
+      resolvedFoodType: null,
+      invulnerableUntil: undefined,
     };
   }
 
@@ -205,5 +212,7 @@ export function handleFoodInteraction(
     atePowerUp,
     particlesToSpawn,
     newPortals,
+    resolvedFoodType: actualFoodType,
+    invulnerableUntil: undefined,
   };
 }

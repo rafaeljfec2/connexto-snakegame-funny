@@ -95,16 +95,18 @@ function ActivePowerUpsComponent() {
               {icon}
             </span>
             <span className={styles.name}>{name}</span>
-            {remainingSec > 0 && (
+            {powerUp.duration > 0 && remainingSec > 0 && (
               <span className={styles.timer} aria-label={t('powerUps.remainingAriaLabel')}>
                 {remainingSec}s
               </span>
             )}
-            <span
-              className={styles.progress}
-              style={{ width: `${progress * 100}%` }}
-              aria-hidden='true'
-            />
+            {powerUp.duration > 0 && (
+              <span
+                className={styles.progress}
+                style={{ width: `${progress * 100}%` }}
+                aria-hidden='true'
+              />
+            )}
           </li>
         );
       })}

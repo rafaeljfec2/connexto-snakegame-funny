@@ -8,6 +8,22 @@
   isolation: isolate;
 }
 
+/* REF-10: subtle board tint while a temporary power-up is active */
+.effectTint {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  background: color-mix(in srgb, var(--effect-tint, transparent) 12%, transparent);
+  mix-blend-mode: soft-light;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .effectTint {
+    transition: none;
+  }
+}
+
 .gameBoardBackground {
   position: absolute;
   top: 0;

@@ -1,6 +1,7 @@
 import { ActivePowerUp, FoodType } from '@/types/game';
 import { useTranslation } from 'react-i18next';
 import { getActivePowerUps } from '@/utils/powerUps';
+import { POWER_UP_CONFIG } from '@/constants/powerUps';
 import { memo, useEffect, useState, useRef, useCallback } from 'react';
 import { COMBO_CONFIG } from '@/constants/game';
 import { useGameStateSlice } from '@/state/gameStateStore';
@@ -33,11 +34,13 @@ function powerUpsEqual(a: readonly ActivePowerUp[], b: readonly ActivePowerUp[])
 function MobileFloatingInfoComponent() {
   const { t } = useTranslation();
   const activePowerUps = useGameStateSlice((s) => s.activePowerUps, powerUpsEqual);
+  const lastPowerUpPickup = useGameStateSlice((s) => s.lastPowerUpPickup);
   const comboCount = useGameStateSlice((s) => s.combo.count);
   const comboMultiplier = useGameStateSlice((s) => s.combo.multiplier);
 
   const [toasts, setToasts] = useState<Toast[]>([]);
   const previousPowerUpsRef = useRef<ActivePowerUp[]>([]);
+  const previousPickupRef = useRef<string | null>(null);
 
   const getPowerUpInfo = useCallback(
     (type: FoodType) => {
@@ -92,13 +95,43 @@ function MobileFloatingInfoComponent() {
       setToasts((prev) => [...prev, ...newToasts]);
     }
 
-    const activePowerUpIds = new Set(
-      currentPowerUps.map((powerUp) => `${powerUp.type}-${powerUp.startTime}`),
-    );
-    setToasts((prev) => prev.filter((toast) => activePowerUpIds.has(toast.id)));
-
     previousPowerUpsRef.current = currentPowerUps;
   }, [activePowerUps, getPowerUpInfo]);
+
+  // REF-10: instant effects (duration 0) arrive via lastPowerUpPickup
+  useEffect(() => {
+    if (!lastPowerUpPickup || lastPowerUpPickup.type === FoodType.NORMAL) {
+      return;
+    }
+
+    const key = `${lastPowerUpPickup.type}-${lastPowerUpPickup.collectedAt}`;
+    if (previousPickupRef.current === key) {
+      return;
+    }
+    previousPickupRef.current = key;
+
+    const configuredDuration =
+      POWER_UP_CONFIG.durations[lastPowerUpPickup.type as keyof typeof POWER_UP_CONFIG.durations] ??
+      0;
+
+    // Timed buffs already toasted from activePowerUps
+    if (configuredDuration > 0) {
+      return;
+    }
+
+    const info = getPowerUpInfo(lastPowerUpPickup.type);
+    setToasts((prev) => [
+      ...prev,
+      {
+        id: key,
+        type: lastPowerUpPickup.type,
+        name: info.name,
+        icon: info.icon,
+        duration: 0,
+        startTime: lastPowerUpPickup.collectedAt,
+      },
+    ]);
+  }, [lastPowerUpPickup, getPowerUpInfo]);
 
   const removeToast = (id: string) => {
     setToasts((prev) => prev.filter((toast) => toast.id !== id));

@@ -1,14 +1,30 @@
 import { useTranslation } from 'react-i18next';
-import { GameStatus } from '@/types/game';
+import { GameStatus, type ActivePowerUp } from '@/types/game';
 import { GAME_CONFIG } from '@/constants/game';
+import { POWER_UP_CONFIG } from '@/constants/powerUps';
+import { getActivePowerUps } from '@/utils/powerUps';
 import { WeatherCanvas } from './WeatherCanvas';
 import { ParticleSystem } from './ParticleSystem';
-import { useCallback, useEffect, useRef, useState, memo } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, memo, type CSSProperties } from 'react';
 import styles from './GameBoard.module.css';
 import { GameBackground } from './GameBackground';
 import { perfBus } from '@/utils/perfBus';
 import { useGameStateSlice } from '@/state/gameStateStore';
 import { useSkin } from '@/contexts/SkinContext';
+
+function powerUpsEqual(a: readonly ActivePowerUp[], b: readonly ActivePowerUp[]): boolean {
+  if (a === b) return true;
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    const aa = a[i];
+    const bb = b[i];
+    if (!aa || !bb) return false;
+    if (aa.type !== bb.type || aa.startTime !== bb.startTime || aa.duration !== bb.duration) {
+      return false;
+    }
+  }
+  return true;
+}
 
 interface GameBoardProps {
   resetToken?: number;
@@ -30,7 +46,16 @@ function GameBoardComponent({ resetToken = 0, gameWorker }: Readonly<GameBoardPr
   const foodPosY = useGameStateSlice((s) => s.food.position.y);
   const foodType = useGameStateSlice((s) => s.food.type);
   const snakeIsEmpty = useGameStateSlice((s) => s.snake.length === 0);
+  const rawPowerUps = useGameStateSlice((s) => s.activePowerUps, powerUpsEqual);
   const { palette } = useSkin();
+
+  const effectTint = useMemo(() => {
+    const active = getActivePowerUps(rawPowerUps ?? []).filter((p) => p.duration > 0);
+    if (active.length === 0) return null;
+    const top = active[active.length - 1];
+    if (!top) return null;
+    return POWER_UP_CONFIG.colors[top.type]?.primary ?? null;
+  }, [rawPowerUps]);
 
   useEffect(() => {
     if (resetToken > 0) {
@@ -213,6 +238,15 @@ function GameBoardComponent({ resetToken = 0, gameWorker }: Readonly<GameBoardPr
       style={{ width: '100%', height: '100%' }}
     >
       <GameBackground isMobile cellSize={GAME_CONFIG.cellSize} />
+
+      {effectTint && (
+        <div
+          className={styles.effectTint}
+          style={{ '--effect-tint': effectTint } as CSSProperties}
+          aria-hidden='true'
+          data-testid='effect-tint'
+        />
+      )}
 
       <div className={styles.gameLayer} style={gridStyle}>
         <WeatherCanvas level={level} isMobile={narrowViewport} />

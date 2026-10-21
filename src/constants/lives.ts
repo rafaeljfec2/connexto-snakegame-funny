@@ -20,6 +20,9 @@ export const LIVES_CONFIG = {
   // Duration of death animation before consuming life (in milliseconds)
   deathAnimationDuration: 1500,
 
+  // Invulnerability window after non-fatal damage (milliseconds)
+  invulnerabilityDurationMs: 2000,
+
   // Enable lives system
   enabled: true,
 } as const;

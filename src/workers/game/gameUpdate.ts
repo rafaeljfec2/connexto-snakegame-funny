@@ -10,12 +10,7 @@ import { moveSnake, hasFoodCollision } from '@/utils/gameLogic';
 import { getActivePowerUps, hasPhaseThrough } from '@/utils/powerUps';
 import { getActiveObstacles, createObstacleSet } from '@/utils/obstacles';
 import { initializeStatistics } from '@/utils/statistics';
-import {
-  resolveDirection,
-  handleBossLogic,
-  handleBossCollisionCheck,
-  handleFoodInteraction,
-} from '../gameHelper';
+import { resolveDirection, handleBossLogic, handleFoodInteraction } from '../gameHelper';
 import { handleGameStateUpdates } from './gameStateUpdates';
 import { emitSfx } from './gameSfx';
 
@@ -81,6 +76,7 @@ export function updateGameLogic(context: UpdateContext, performanceTime: number)
     prev,
     obstacleSet,
     canPhaseThrough,
+    currentTime,
   );
   if (collisionState) {
     return createEarlyReturnResult(collisionState, context, true);
@@ -138,22 +134,21 @@ export function updateGameLogic(context: UpdateContext, performanceTime: number)
   const bossAbilityCooldowns = flagCapture.bossAbilityCooldowns;
   const forcedFoodType = flagCapture.forcedFoodType;
 
-  // 7. Boss Collision Check
-  const bossCollisionState = handleBossCollision(headPosition, bossLogicResult, prev, foodResult);
-  if (bossCollisionState) {
+  // 7. Boss Collision Check (single pass — reuse bossState for poison / updates)
+  const { fatalState, bossState: currentBossState } = handleBossCollision(
+    headPosition,
+    bossLogicResult,
+    prev,
+    foodResult,
+  );
+  if (fatalState) {
     return createBossCollisionResult(
-      bossCollisionState,
+      fatalState,
       bossAbilityCooldowns,
       forcedFoodType,
       context.lastObstacleSpawnTime,
     );
   }
-
-  const currentBossState = handleBossCollisionCheck(
-    headPosition,
-    bossLogicResult,
-    prev,
-  ).collisionResult;
 
   // 8. Poison Logic
   const poisonUpdate = handlePoisonUpdate(

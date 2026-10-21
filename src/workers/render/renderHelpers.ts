@@ -27,7 +27,9 @@ export function drawSnakeBody(
     }
 
     const fade = getDeathFade(now, state.animationState.deathStartTime, i, state.snake.length);
-    ctx.globalAlpha = fade;
+    const invulnBlink =
+      state.invulnerableUntil > now ? 0.45 + 0.55 * Math.abs(Math.sin(now / 80)) : 1;
+    ctx.globalAlpha = fade * invulnBlink;
 
     drawSnakeSegment(renderContext, {
       x: pos.x,
@@ -69,7 +71,9 @@ export function drawSnakeHead(
   }
 
   const headFade = getHeadDeathFade(now, state.animationState.deathStartTime);
-  ctx.globalAlpha = headFade;
+  const invulnBlink =
+    state.invulnerableUntil > now ? 0.45 + 0.55 * Math.abs(Math.sin(now / 80)) : 1;
+  ctx.globalAlpha = headFade * invulnBlink;
 
   drawSnakeSegment(renderContext, {
     x: headPos.x,

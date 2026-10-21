@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { GameState, GameStatus } from '@/types/game';
-import { Chef } from '@/types/phases';
+import type { ActiveBoss } from '@/types/phases';
 import { LevelUpAnimation } from './LevelUpAnimation';
 import { AchievementNotification } from './AchievementNotification';
 import { DeathTransition } from './DeathTransition';
@@ -18,7 +18,7 @@ interface GameOverlaysProps {
   showPhaseTransition: boolean;
   phaseTransitionNumber: number | null;
   showBossDefeatTransition: boolean;
-  defeatedBoss: Chef | null;
+  defeatedBoss: ActiveBoss | null;
   bossDefeatScore: number;
   defeatedBossPhaseNumber: number | null;
   newlyUnlockedAchievements: string[];
@@ -47,6 +47,7 @@ export function GameOverlays({
   onPhaseIntroComplete,
   onNextPhase,
   onGameOver,
+  onResumeAfterDeath,
 }: Readonly<GameOverlaysProps>) {
   const { t } = useTranslation();
 
@@ -65,11 +66,11 @@ export function GameOverlays({
         allAchievements={gameState.achievements}
       />
 
-      {/* Death Transition Animation */}
+      {/* Death Transition Animation — REF-10: resume repositions snake; never startGame while DYING */}
       <DeathTransition
         status={gameState.status}
         lives={gameState.lives}
-        onComplete={onPhaseIntroComplete}
+        onComplete={onResumeAfterDeath}
       />
 
       {/* Phase Transition Animation */}

@@ -3,7 +3,7 @@ import { GAME_CONFIG, PERFORMANCE_CONFIG } from '@/constants/game';
 import { PORTAL_CONFIG } from '@/constants/portals';
 import { hasSelfCollision } from '@/utils/gameLogic';
 import { hasObstacleCollision } from '@/utils/obstacles';
-import { isLivesEnabled, addLife } from '@/utils/lives';
+import { isLivesEnabled, addLife, isInvulnerable, getInvulnerableUntil } from '@/utils/lives';
 import { initializeStatistics } from '@/utils/statistics';
 import { getPortalAtPosition, getPortalPair, getActivePortals } from '@/utils/portals';
 import { handleBossDefeat } from '@/utils/bosses';
@@ -64,7 +64,7 @@ export function handlePortalTeleport(
 }
 
 /**
- * Handle collision detection and game over/dying logic
+ * Handle collision detection and game over / invulnerability logic (REF-10).
  */
 export function handleCollision(
   headPosition: Position | undefined,
@@ -72,8 +72,13 @@ export function handleCollision(
   gameState: GameState,
   activeObstacles: Set<string>,
   canPhaseThrough: boolean,
+  now: number = Date.now(),
 ): GameState | null {
   if (!headPosition) return null;
+
+  if (isInvulnerable(gameState.invulnerableUntil, now)) {
+    return null;
+  }
 
   const hasCollision =
     (GAME_CONFIG.enableObstacles &&
@@ -88,15 +93,15 @@ export function handleCollision(
   if (isLivesEnabled() && gameState.lives > 1) {
     const newState: GameState = {
       ...gameState,
-      status: GameStatus.DYING,
+      status: GameStatus.PLAYING,
       lives: gameState.lives - 1,
+      invulnerableUntil: getInvulnerableUntil(now),
       statistics,
     };
-    self.postMessage({ type: 'GAME_OVER_OR_DYING', payload: { status: GameStatus.DYING } });
     emitSfx('damage.hit');
     logger.info(
       { context: LogContext.COLLISION, livesRemaining: gameState.lives - 1 },
-      'Collision detected (Life Lost)',
+      'Collision detected (Life Lost + invulnerability)',
     );
     return newState;
   }
@@ -182,16 +187,30 @@ export function handleGuardianFlagCapture(
   };
 }
 
+export interface BossCollisionOutcome {
+  /** Fatal GAME_OVER state; null when the frame should continue. */
+  readonly fatalState: GameState | null;
+  /** Single boss-collision pass for the rest of the tick (poison / state updates). */
+  readonly bossState: ReturnType<typeof handleBossLogic>;
+}
+
 /**
- * Handle boss collision check
+ * Handle boss collision once per tick.
+ * Fatal hits return GAME_OVER in fatalState. Non-fatal hits update foodResult / bossLogicResult
+ * in place and leave fatalState null so the frame continues with invulnerability (REF-10).
+ * Callers must reuse bossState — do not call handleBossCollisionCheck again in the same tick
+ * (stale prev.invulnerableUntil would double-apply head damage).
  */
 export function handleBossCollision(
   headPosition: Position,
   bossLogicResult: ReturnType<typeof handleBossLogic>,
   prev: GameState,
   foodResult: ReturnType<typeof handleFoodInteraction>,
-): GameState | null {
+): BossCollisionOutcome {
   const collisionCheck = handleBossCollisionCheck(headPosition, bossLogicResult, prev);
+
+  // Sync mutated boss result back (particles, weakened boss, lives)
+  Object.assign(bossLogicResult, collisionCheck.collisionResult);
 
   const particlesLen = collisionCheck.collisionResult.particlesToSpawn.length;
   for (let i = 0; i < particlesLen; i++) {
@@ -199,23 +218,31 @@ export function handleBossCollision(
     if (p) self.postMessage({ type: 'SPAWN_PARTICLES', payload: p });
   }
 
-  if (!collisionCheck.gameOverOrDying) return null;
+  if (!collisionCheck.gameOverOrDying) {
+    return { fatalState: null, bossState: bossLogicResult };
+  }
 
-  if (collisionCheck.gameOverOrDying.status === GameStatus.DYING) {
-    return {
-      ...prev,
-      status: GameStatus.DYING,
-      lives: collisionCheck.gameOverOrDying.lives ?? prev.lives,
-      snake: foodResult.finalSnake,
-    };
+  if (
+    collisionCheck.gameOverOrDying.status === GameStatus.PLAYING ||
+    collisionCheck.gameOverOrDying.status === GameStatus.DYING
+  ) {
+    foodResult.newLives = collisionCheck.gameOverOrDying.lives ?? foodResult.newLives;
+    bossLogicResult.newLives = foodResult.newLives;
+    foodResult.invulnerableUntil =
+      collisionCheck.gameOverOrDying.invulnerableUntil ?? getInvulnerableUntil(Date.now());
+    emitSfx('damage.hit');
+    return { fatalState: null, bossState: bossLogicResult };
   }
 
   return {
-    ...prev,
-    status: GameStatus.GAME_OVER,
-    score: collisionCheck.gameOverOrDying.score ?? foodResult.newScore,
-    lives: 0,
-    snake: foodResult.finalSnake,
+    fatalState: {
+      ...prev,
+      status: GameStatus.GAME_OVER,
+      score: collisionCheck.gameOverOrDying.score ?? foodResult.newScore,
+      lives: 0,
+      snake: foodResult.finalSnake,
+    },
+    bossState: bossLogicResult,
   };
 }
 
@@ -370,6 +397,11 @@ export function buildFinalGameState(ctx: FinalStateContext): GameState {
   const { prev, foodResult, stateUpdates, poisonUpdate, currentDirection, updatedAchievements } =
     ctx;
 
+  const lastPowerUpPickup =
+    foodResult.resolvedFoodType !== null && foodResult.resolvedFoodType !== FoodType.NORMAL
+      ? { type: foodResult.resolvedFoodType, collectedAt: Date.now() }
+      : (prev.lastPowerUpPickup ?? null);
+
   return {
     ...prev,
     snake: foodResult.finalSnake,
@@ -397,6 +429,8 @@ export function buildFinalGameState(ctx: FinalStateContext): GameState {
       stateUpdates.activeBoss?.id === prev.activeBoss?.id
         ? poisonUpdate.newBossState.bossSnake
         : stateUpdates.bossSnake,
+    lastPowerUpPickup,
+    invulnerableUntil: foodResult.invulnerableUntil ?? prev.invulnerableUntil,
   };
 }
 

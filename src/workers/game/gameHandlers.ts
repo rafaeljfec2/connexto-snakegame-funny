@@ -1,6 +1,7 @@
 import { GameStatus, Direction, FoodType } from '@/types/game';
 import { INITIAL_SNAKE_POSITION, INITIAL_DIRECTION, GAME_CONFIG } from '@/constants/game';
 import { CHEFS } from '@/constants/phases';
+import { LIVES_CONFIG } from '@/constants/lives';
 import { getCurrentPhase } from '@/utils/phases';
 import { calculateGameSpeed } from '@/utils/difficulty';
 import { generateRandomFood } from '@/utils/gameLogic';
@@ -31,6 +32,7 @@ export function handleResumeAfterDeath(
       direction: INITIAL_DIRECTION,
       nextDirection: INITIAL_DIRECTION,
       status: GameStatus.PLAYING,
+      invulnerableUntil: Date.now() + LIVES_CONFIG.invulnerabilityDurationMs,
     };
 
     state.lastUpdateTime = performance.now();

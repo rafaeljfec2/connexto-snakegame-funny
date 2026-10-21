@@ -8,9 +8,9 @@ import {
   BossSnake,
   Food,
 } from '@/types/game';
-import { Chef } from '@/types/phases';
+import type { ActiveBoss } from '@/types/phases';
 import { GAME_CONFIG } from '@/constants/game';
-import { isLivesEnabled } from '@/utils/lives';
+import { isLivesEnabled, isInvulnerable, getInvulnerableUntil } from '@/utils/lives';
 import { handleBossDefeat } from '@/utils/bosses';
 import {
   moveBossSnake,
@@ -23,7 +23,7 @@ import { processBossAbilities, getFlagOffsetFromBossHead } from '@/utils/bossAbi
 
 // --- Types ---
 export interface BossLogicContext {
-  readonly activeBoss: Chef | undefined;
+  readonly activeBoss: ActiveBoss | undefined;
   readonly bossSnake: BossSnake | undefined;
   readonly prevGameState: GameState;
   readonly finalSnake: Position[];
@@ -36,7 +36,7 @@ export interface BossLogicContext {
 }
 
 interface InitializeBossResultParams {
-  readonly activeBoss: Chef | undefined;
+  readonly activeBoss: ActiveBoss | undefined;
   readonly bossSnake: BossSnake | undefined;
   readonly prevGameState: GameState;
   readonly obstacles: Obstacle[];
@@ -47,7 +47,7 @@ interface InitializeBossResultParams {
 }
 
 export interface BossLogicResult {
-  activeBoss?: Chef;
+  activeBoss?: ActiveBoss;
   bossSnake?: BossSnake;
   guardianFlag?: Food | null;
   guardianFlagSide?: -1 | 1;
@@ -106,7 +106,7 @@ function initializeBossResult(params: InitializeBossResultParams): BossLogicResu
  * Process boss abilities and update result
  */
 function processBossAbilitiesLogic(
-  activeBoss: Chef,
+  activeBoss: ActiveBoss,
   currentGS: GameState,
   result: BossLogicResult,
 ): ReturnType<typeof processBossAbilities> {
@@ -127,7 +127,7 @@ function processBossAbilitiesLogic(
  * Handle boss movement
  */
 function handleBossMovement(
-  activeBoss: Chef,
+  activeBoss: ActiveBoss,
   bossSnake: BossSnake,
   finalSnake: Position[],
   obstacles: Obstacle[],
@@ -300,7 +300,7 @@ export function handleBossLogic(context: BossLogicContext): BossLogicResult {
  */
 function handleBossDefeatVictory(
   result: BossLogicResult,
-  activeBoss: Chef,
+  activeBoss: ActiveBoss,
   prevGameState: GameState,
   bossHeadPosition: Position | undefined,
 ): void {
@@ -327,17 +327,33 @@ function handleBossDefeatVictory(
 function handleBossHeadCollision(
   result: BossLogicResult,
   bossSnake: BossSnake,
-  activeBoss: Chef,
+  activeBoss: ActiveBoss,
   prevGameState: GameState,
-): { gameOverOrDying?: { status: GameStatus; score?: number; lives?: number } } | null {
+): {
+  gameOverOrDying?: {
+    status: GameStatus;
+    score?: number;
+    lives?: number;
+    invulnerableUntil?: number;
+  };
+} | null {
   if (canDefeatBoss(bossSnake)) {
     handleBossDefeatVictory(result, activeBoss, prevGameState, bossSnake.positions[0]);
     return null;
   }
 
+  if (isInvulnerable(prevGameState.invulnerableUntil, Date.now())) {
+    return null;
+  }
+
   if (isLivesEnabled() && result.newLives > 1) {
+    result.newLives = result.newLives - 1;
     return {
-      gameOverOrDying: { status: GameStatus.DYING, lives: result.newLives - 1 },
+      gameOverOrDying: {
+        status: GameStatus.PLAYING,
+        lives: result.newLives,
+        invulnerableUntil: getInvulnerableUntil(Date.now()),
+      },
     };
   }
 
@@ -353,7 +369,7 @@ function handleBossBodyCollision(
   result: BossLogicResult,
   bossSnake: BossSnake,
   headPosition: Position,
-  activeBoss: Chef,
+  activeBoss: ActiveBoss,
   prevGameState: GameState,
 ): void {
   const weaken = weakenBossSnake(bossSnake, 2);
@@ -380,7 +396,12 @@ export function handleBossCollisionCheck(
   prevGameState: GameState,
 ): {
   collisionResult: BossLogicResult;
-  gameOverOrDying?: { status: GameStatus; score?: number; lives?: number };
+  gameOverOrDying?: {
+    status: GameStatus;
+    score?: number;
+    lives?: number;
+    invulnerableUntil?: number;
+  };
 } {
   const result = { ...bossState };
 

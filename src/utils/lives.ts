@@ -1,6 +1,20 @@
 import { LIVES_CONFIG } from '@/constants/lives';
 
 /**
+ * Whether the player is currently invulnerable (REF-10).
+ */
+export function isInvulnerable(invulnerableUntil: number | undefined, now: number): boolean {
+  return invulnerableUntil !== undefined && now < invulnerableUntil;
+}
+
+/**
+ * Timestamp until which damage should be ignored after a non-fatal hit.
+ */
+export function getInvulnerableUntil(now: number): number {
+  return now + LIVES_CONFIG.invulnerabilityDurationMs;
+}
+
+/**
  * Handle losing a life - apply penalties and return new state values
  */
 export function loseLife(

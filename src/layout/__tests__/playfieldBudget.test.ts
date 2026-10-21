@@ -49,6 +49,15 @@ describe('playfieldBoardSide (REF-09-AC-1)', () => {
   });
 });
 
+describe('PLAYFIELD_LAYOUT shell clamp (REF-09-AC-8)', () => {
+  it('caps the desktop shell at 964×640 matching the compact card framing', () => {
+    expect(PLAYFIELD_LAYOUT.shellMaxWidthPx).toBe(964);
+    expect(PLAYFIELD_LAYOUT.shellMaxWidthPx).toBe(PLAYFIELD_LAYOUT.columnBreakpointPx);
+    expect(PLAYFIELD_LAYOUT.shellMaxHeightPx).toBe(640);
+    expect(PLAYFIELD_LAYOUT.shellMaxHeightPx).toBeGreaterThan(PLAYFIELD_LAYOUT.hudCompactPx);
+  });
+});
+
 describe('canvasBackingStore (REF-09-AC-3)', () => {
   it('scales the backing store by device pixel ratio and keeps the 40-cell grid', () => {
     expect(GAME_CONFIG.gridSize).toBe(40);

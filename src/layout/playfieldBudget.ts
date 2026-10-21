@@ -6,6 +6,13 @@
 
 export const PLAYFIELD_LAYOUT = {
   columnBreakpointPx: 964,
+  /** Desktop shell max width — keeps side columns tight to the board (REF-09-FR-8). */
+  shellMaxWidthPx: 964,
+  /**
+   * Desktop shell max height — avoids 100dvh stretch that leaves empty side rails
+   * and horizontal gutters beside a height-limited board square.
+   */
+  shellMaxHeightPx: 640,
   leftColumnPx: 160,
   rightColumnPx: 240,
   hudCompactPx: 44,

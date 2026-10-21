@@ -102,10 +102,25 @@
     min-height: 0;
   }
 
+  /* Center the compact shell as a card over the full-bleed background */
+  :global(html body #root) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
   .app {
     --hud-strip-height: 44px;
-    height: 100dvh;
+    width: 100%;
+    max-width: 964px; /* PLAYFIELD_LAYOUT.shellMaxWidthPx — REF-09-FR-8 / AC-8 */
+    height: min(100dvh, 640px); /* PLAYFIELD_LAYOUT.shellMaxHeightPx */
+    min-height: 0; /* override base min-height: 100dvh so the card can shrink */
+    max-height: 100dvh;
+    margin: 0;
     overflow: hidden;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--c-neon-cyan-deep);
+    box-shadow: 0 0 16px color-mix(in srgb, var(--c-neon-cyan) 40%, transparent);
   }
 
   .main {

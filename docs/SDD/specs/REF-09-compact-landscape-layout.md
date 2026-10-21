@@ -5,7 +5,7 @@
 | **Status**       | Done                                                                                                                                                |
 | **Owner**        | rafael                                                                                                                                              |
 | **Created**      | 2026-10-20                                                                                                                                          |
-| **Last updated** | 2026-10-20                                                                                                                                          |
+| **Last updated** | 2026-10-21                                                                                                                                          |
 | **Related ADRs** | [ADR-0005](../../ADR/0005-neon-arcade-design-system-and-l1-full-bleed-layout.md)                                                                    |
 | **Supersedes**   | The "no side rails" playfield shell of [REF-06](REF-06-visual-redesign.md) on the game screen only. Tokens, motion, and gameplay rules stay REF-06. |
 
@@ -20,7 +20,7 @@
   - `playfieldBoardSide` at 964×583 is limited by height after HUD, footer, and padding, not by the side columns.
   - The right column renders phase (name, bar, step), all 10 `LEGEND_ITEMS`, and the combo block even when the combo count is 0.
   - The board box is 100% of the center square; `RESIZE` carries that CSS size and `devicePixelRatio`. Backing store is `css × dpr`. Collision `gridSize` stays 40.
-  - Browser check at 964×583 shows no page scroll and all three zones. 375×812 and 768×1024 stack without removing those blocks. 1440×900 grows the board while the columns stay at their content width.
+  - Browser check at 964×583 shows no page scroll and all three zones. 375×812 and 768×1024 stack without removing those blocks. On 1440×900 / 1920×1080 the shell stays ≤964 px wide (centered); columns stay 160/240 with no artificial gutters beside the board.
 
 ## 2. User Stories
 
@@ -39,6 +39,7 @@
 - **REF-09-FR-5** The center cell uses `container-type: size` on the area above the pill. The board square is `min(100cqw, 100cqh)`. Columns stay 160 px and 240 px. At 964×583 that still leaves the square limited by height.
 - **REF-09-FR-6** The board fills that square (no `gridSize * cellSize` pixel box). The existing `RESIZE` message sends the CSS width, height, and `devicePixelRatio`. The render worker keeps `cellSize = width / gridSize` and the backing store at `css × dpr`. Collision, `gridSize`, speed, and game workers do not change.
 - **REF-09-FR-7** The HUD wordmark reads `hud.wordmark` (“SNAKEFLOW” in both locales), colored with the accent gradient. It replaces the `S / NEON` mark.
+- **REF-09-FR-8** From `min-width: 964px`, the app shell (`.app`) is a centered card: `max-width: 964px` (`PLAYFIELD_LAYOUT.shellMaxWidthPx`), `height: min(100dvh, shellMaxHeightPx)` with `shellMaxHeightPx = 640`, and `#root` flex-centers it. The page background stays full-bleed; the shell does not stretch to ultrawide width or full viewport height.
 
 ### Non-Functional
 
@@ -110,7 +111,7 @@ export function canvasBackingStore(
 
 - `docs/SDD/specs/REF-09-compact-landscape-layout.md` — this spec.
 - `src/layout/playfieldBudget.ts` — pure side length and canvas backing metrics.
-- `src/layout/__tests__/playfieldBudget.test.ts` — REF-09-AC-1 and REF-09-AC-3.
+- `src/layout/__tests__/playfieldBudget.test.ts` — REF-09-AC-1, REF-09-AC-3, and REF-09-AC-8.
 - `src/App.tsx` — mount the shell, footer, and in-flow controls. Drop the fixed combo badge and fixed buff rail.
 - `src/App.module.css` — shell column, board fill, footer, scroll only below the breakpoint.
 - `src/components/GameArea.tsx` — instructions move to the app footer so they do not sit inside the square.
@@ -135,9 +136,10 @@ export function canvasBackingStore(
 - **REF-09-AC-2** Given the playfield side column, when it renders with combo count 0, then phase name, progress bar, step, and phase description are present, all 10 legend items show name and effect text, and the combo block is present.
 - **REF-09-AC-3** Given a CSS square and a device pixel ratio, when `canvasBackingStore` runs with `gridSize` 40, then backing width and height are `css × dpr` and `cellSize` is `cssWidth / 40`.
 - **REF-09-AC-4** Given `GameBoard` in a parent, when layout is measured, then the board box is 100% by 100% and a `RESIZE` message carries that CSS width, height, and `devicePixelRatio`.
-- **REF-09-AC-5** Given 964×583, when the app is shown, then the page does not scroll and the three zones are visible. Given 375×812 and 768×1024, the same blocks reflow in document order. Given 1440×900 and 1920×1080, the board grows and the columns stay 160 px and 240 px.
+- **REF-09-AC-5** Given 964×583, when the app is shown, then the page does not scroll and the three zones are visible. Given 375×812 and 768×1024, the same blocks reflow in document order. Given 1440×900 and 1920×1080, the shell width is ≤964 px (centered), columns stay 160 px and 240 px, and there is no wide empty gutter between the side cards and the board square.
 - **REF-09-AC-6** Given the controls card, when it renders, then it shows the controls title, arrow keycaps, the “or” label, and WASD keycaps, and it does not repeat `controls.instructions` inside the card. The pill under the board mounts both copies: `controls.touchInstructions` is the one shown below 769 px, and `controls.instructions` is the one shown from `min-width: 769px`.
 - **REF-09-AC-7** Given the HUD, when it renders, then the wordmark is `hud.wordmark`.
+- **REF-09-AC-8** Given `PLAYFIELD_LAYOUT`, when read, then `shellMaxWidthPx` equals `964` (equals `columnBreakpointPx`) and `shellMaxHeightPx` equals `640`.
 
 ## 6. Test Plan
 
@@ -150,6 +152,7 @@ export function canvasBackingStore(
 | REF-09-AC-5 | browser   | 964×583, 375×812, 768×1024, 1440×900, 1920×1080      |
 | REF-09-AC-6 | component | `src/components/__tests__/PlayfieldColumns.test.tsx` |
 | REF-09-AC-7 | component | `src/components/__tests__/HudStrip.test.tsx`         |
+| REF-09-AC-8 | unit      | `src/layout/__tests__/playfieldBudget.test.ts`       |
 
 Plus `bash scripts/harness/validate.sh`.
 
@@ -165,5 +168,6 @@ Plus `bash scripts/harness/validate.sh`.
 
 - Final files changed: the files in section 4. The instruction line moved from the full-bleed footer into a pill in the center column. The HUD wordmark is `hud.wordmark`.
 - Deviations from Design section: document scroll below 964 px uses `html:root` / `html body` / `html body #root` so it wins over `overflow: hidden` in `index.css`. Below 964 px flex `order` puts the board before the controls; at 964 px `order` resets so the grid stays controls, board, side. At idle 964×583 the 10 cards fit, so the catalogue does not scroll; phase and combo stay pinned when it does.
-- Follow-ups: none. Browser check, dark and light: 964×583 has no page scroll, HUD 44 px, columns 160/240, board and canvas 490×490, D-pad 44 px, 10 cards with name and effect, combo frame, pill under the board. 375×812 and 768×1024 stack board, controls, side and scroll. 1440×900 and 1920×1080 keep the columns fixed and grow the square.
+- Follow-ups: none. Browser check, dark and light: 964×583 has no page scroll, HUD 44 px, columns 160/240, board and canvas 490×490, D-pad 44 px, 10 cards with name and effect, combo frame, pill under the board. 375×812 and 768×1024 stack board, controls, side and scroll.
+- Shell clamp (2026-10-21): `.app` is a centered card — `max-width: 964px`, `height: min(100dvh, 640px)` (`shellMaxHeightPx`), `#root` flex-centers on desktop. Board square is centered in its cell. Avoids ultrawide gutters and tall empty side rails. Page background stays full-bleed.
 - Pill copy (ADR-0005): both strings stay mounted. Below 769 px only `controls.touchInstructions` is shown; from `min-width: 769px` only `controls.instructions` is shown.

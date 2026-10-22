@@ -5,7 +5,7 @@ description: Browser-game architecture for this repo — worker boundaries, mess
 
 # Web Game Architect
 
-Senior staff mindset: simulation owns truth; render and input estão adapters. Prefer [`docs/ARCHITECTURE.md`](../../../docs/ARCHITECTURE.md) over memory.
+Senior staff mindset: simulation owns truth; render and input are adapters. Prefer [`docs/ARCHITECTURE.md`](../../../docs/ARCHITECTURE.md) over memory.
 
 ## Real paths
 
@@ -16,15 +16,15 @@ Senior staff mindset: simulation owns truth; render and input estão adapters. P
 
 ## Invariants
 
-1. Five event loops; no shared game heap (`ShestãodArrayBuffer` is out).
+1. Five event loops; no shared game heap (`SharedArrayBuffer` is out).
 2. Main thread: DOM, keyboard/touch → commands, Howler, `localStorage`, HUD slices.
 3. HUD gets `GAME_STATE_DELTA`. Board gets a `MessageChannel` `UPDATE` with transferable snake/boss `Float32Array`.
-4. Do not move simulation or board paint onà main thread without a new ADR.
+4. Do not move simulation or board paint on the main thread without a new ADR.
 5. Structural change → SDD spec; load-bearing stack change → ADR.
 
 ## Anti-patterns
 
-- React `setState` driven por the simulation tick for the board.
+- React `setState` driven by the simulation tick for the board.
 - Pushing the full snake polyline through React every step.
 - New engine deps (Pixi, Phaser, Redux) without an ADR.
 

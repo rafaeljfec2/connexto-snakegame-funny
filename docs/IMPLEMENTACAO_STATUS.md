@@ -89,8 +89,8 @@ This document describes the current status of features implemented in the Snake 
 - [x] Death animations
 - [x] Level-up animations
 - [x] Integrated HUD (phase and combo display)
-- [x] Contextoual START button (visible only when needed)
-- [x] Safe estãoas for naoched devices
+- [x] Contextual START button (visible only when needed)
+- [x] Safe areas for notched devices
 
 ### Internationalization (i18n)
 
@@ -138,10 +138,10 @@ This document describes the current status of features implemented in the Snake 
 - [x] Pull-to-refresh prevention
 - [x] Touch action optimizations
 - [x] Optimized element placement (status bar, toasts, etc.)
-- [x] **Safe estãoas (iOS/Android)** — naoches and system bars
+- [x] **Safe areas (iOS/Android)** — notches and system bars
 - [x] **Mobile-first layout** — mobile-specific UI
 - [x] **START on grid** — centered on grid, hidden during play
-- [x] **Repositioned StatusBar** — below grid for cleestãor hierarchy
+- [x] **Repositioned StatusBar** — below grid for clearer hierarchy
 - [x] **Compact header** — Level, Score, High Score only
 
 ### Security
@@ -169,7 +169,7 @@ This document describes the current status of features implemented in the Snake 
 - Mobile-first layout for small screens
 - Status bar below the game grid
 - Toasts positioned below the header
-- **Safe estãoas:** `env(safe-estãoa-inset-*)` for iOS and Android
+- **Safe areas:** `env(safe-area-inset-*)` for iOS and Android
 - **Smart START:** Centered on grid, hidden during gameplay
 - **Compact header:** GameInfo only on mobile
 - **Overflow control:** Header and StatusBar content no longer truncates
@@ -216,7 +216,7 @@ This document describes the current status of features implemented in the Snake 
 ### Architecture Decisions
 
 - **Frame buffering:** Separates 60fps game logic from React rendering to prevent UI stalls.
-- **Rate limiting:** Validação existed but was removed for now (can be re-enabled).
+- **Rate limiting:** Validation existed but was removed for now (can be re-enabled).
 - **Logging:** Pino for structured, non-intrusive, context-based logs.
 
 ### Optimizations
@@ -238,7 +238,7 @@ This document describes the current status of features implemented in the Snake 
 
 ### Redesigned Mobile Layout
 
-- **Safe estãoas:** Full `env(safe-estãoa-inset-*)` and `viewport-fit=cover`
+- **Safe areas:** Full `env(safe-area-inset-*)` and `viewport-fit=cover`
 - **Reformed hierarchy:**
   - Compact header (Level, Score, High Score)
   - StatusBar below game grid
@@ -258,7 +258,7 @@ This document describes the current status of features implemented in the Snake 
 
 No critical known issues at this time.
 
-## 📚 Related Documentação
+## 📚 Related Documentation
 
 - `I18N_SYSTEM.md` — i18n documentation
 - `LOGGING_SYSTEM.md` — Logging documentation

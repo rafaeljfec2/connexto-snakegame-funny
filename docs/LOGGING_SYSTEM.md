@@ -22,7 +22,7 @@ Pino is configured for:
 
 - **Log level:** `LOG_LEVEL` (default: `debug`)
 - **Output:** Formatted browser console
-- **Contextos:** Logs categorized por game estãoa
+- **Contexts:** Logs categorized by game area
 - **Format:** Structured logs with metadata
 
 ## Log Levels
@@ -36,9 +36,9 @@ Supported levels (lowest to highest priority):
 5. **ERROR** — Errors
 6. **FATAL** — Critical errors
 
-## Log Contextos
+## Log Contexts
 
-Logs estão grouped por context for filtering and analysis:
+Logs are grouped by context for filtering and analysis:
 
 - **GAME_STATE** — Game state changes
 - **GAME_LOOP** — Main game loop
@@ -53,13 +53,13 @@ Logs estão grouped por context for filtering and analysis:
 
 ## Usage
 
-### Create a Contexto Logger
+### Create a Context Logger
 
 ```typescript
 import { createLogger } from '@/utils/logger';
-import { LogContexto } from '@/utils/logger';
+import { LogContext } from '@/utils/logger';
 
-const logger = createLogger(LogContexto.GAME_LOOP);
+const logger = createLogger(LogContext.GAME_LOOP);
 logger.info('Game loop started');
 ```
 
@@ -152,7 +152,7 @@ logGameEvent('food-eaten', {
 
 ### Log Throttling
 
-High-frequency logs estão throttled:
+High-frequency logs are throttled:
 
 ```typescript
 // Movement log every 500ms or on direction change
@@ -163,7 +163,7 @@ if (now - lastMoveLogTime > 500 || directionChanged) {
 
 ### Log Batching
 
-Related logs estão grouped:
+Related logs are grouped:
 
 ```typescript
 logger.debug(
@@ -224,7 +224,7 @@ if (import.meta.env.DEV) {
 
 1. Open DevTools (F12)
 2. Console tab
-3. Filter por context:
+3. Filter by context:
    - `context:GAME_LOOP`
    - `context:BOSS`
    - `level:ERROR`
@@ -271,7 +271,7 @@ const LOG_LEVEL = 'silent';
 
 ### Sentry (Future)
 
-Prepestãod for Sentry:
+Prepared for Sentry:
 
 ```typescript
 if (import.meta.env.PROD) {

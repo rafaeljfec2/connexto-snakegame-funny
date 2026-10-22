@@ -11,7 +11,7 @@
 
 ## 1. Specification
 
-- **Problem**: today only `src/utils/performanceMetrics.ts` computes `frameTime/avgFrameTime/fps` numa circular buffer, but the data is never displayed in-app and is not correlated with phase/boss. There is no baseline to judge any future migration (PixiJS, atlas, audio).
+- **Problem**: today only `src/utils/performanceMetrics.ts` computes `frameTime/avgFrameTime/fps` in a circular buffer, but the data is never displayed in-app and is not correlated with phase/boss. There is no baseline to judge any future migration (PixiJS, atlas, audio).
 - **Objective**: instrument and expose reliable performance metrics inside the game itself, with no perceptible FPS impact, producing a reproducible baseline per phase/boss/device.
 - **Non-objective**: send telemetry to an external server, build an aggregated dashboard, or change game logic.
 - **Success (measurable)**:
@@ -22,7 +22,7 @@
 ## 2. User Stories
 
 - **US-01** As a dev, I want to open a panel showing FPS/p1/p5 per phase to identify where the game drops frames.
-- **US-02** As a dev, I want to export a session JSON snapshot to compestão before/after an optimization.
+- **US-02** As a dev, I want to export a session JSON snapshot to compare before/after an optimization.
 - **US-03** As a dev, I want Web `long-animation-frames` logged via `pino` so I can reproduce jank outside the bug's window.
 
 ## 3. Requirements
@@ -31,8 +31,8 @@
 
 - **REF-01-FR-1** Extend `src/utils/performanceMetrics.ts` with streaming percentiles (`p1`, `p5`, `p50`, `p95`) — no per-frame `sort`.
 - **REF-01-FR-2** Capture `PerformanceObserver` for `entryTypes: ['long-animation-frames', 'longtask']` and expose `longTasksPerMinute`.
-- **REF-01-FR-3** Capture `web-vitals` (LCP/INP/CLS) **once at boot** in `src/main.tsx` and log via `createLogger(LogContexto.PERFORMANCE)`.
-- **REF-01-FR-4** New `PerfDebugPanel` component in `src/components/`, toggled por **F4** (matching the existing `useDebugControls.ts` pattern).
+- **REF-01-FR-3** Capture `web-vitals` (LCP/INP/CLS) **once at boot** in `src/main.tsx` and log via `createLogger(LogContext.PERFORMANCE)`.
+- **REF-01-FR-4** New `PerfDebugPanel` component in `src/components/`, toggled by **F4** (matching the existing `useDebugControls.ts` pattern).
 - **REF-01-FR-5** Snapshot export: **Shift+F4** triggers a `download(snapshot.json)` containing `metrics + phase + boss + ua + viewport + dpr`.
 
 ### Non-Functional
@@ -111,9 +111,9 @@ export interface PerfBus {
 
 - **REF-01-AC-1** Given the game running in development, when I press **F4**, then the panel appears in < 300 ms showing `fps/p1/p5/p50/frameTime/longTasks/heap`.
 - **REF-01-AC-2** Given the panel open for 60 s on phase 9 (storm), when I press **Shift+F4**, then a `perf-snapshot-<timestamp>.json` file is downloaded containing every field of `PerfSnapshot`.
-- **REF-01-AC-3** Given the game running without the panel, when I compestão `avgFrameTime` against the prior version across 10 two-minute matches, then the average difference is < 0.3 ms.
+- **REF-01-AC-3** Given the game running without the panel, when I compare `avgFrameTime` against the prior version across 10 two-minute matches, then the average difference is < 0.3 ms.
 - **REF-01-AC-4** Given a cold boot, when the game loads, then a `pino` log with `context=performance, event=web-vitals` is emitted with LCP/INP/CLS.
-- **REF-01-AC-5** No `any` introduced (verified por `pnpm lint`).
+- **REF-01-AC-5** No `any` introduced (verified by `pnpm lint`).
 
 ## 6. Test Plan
 
@@ -131,7 +131,7 @@ Plus full harness: `bash scripts/harness/validate.sh` green.
 
 - **R1** `PerformanceObserver` for `long-animation-frames` is not universal yet (Safari < 17). **Mitigation**: `try/catch` on creation + fallback to `longtask`.
 - **R2** Access to `performance.memory` exists only in Chromium. **Mitigation**: optional field already in the interface.
-- **Rollback**: the panel is isolated; removing the F4 shortcut in `useDebugControls.ts` and the `main.tsx` import neutralizes everything. The `web-vitals` dependency removed numa single line.
+- **Rollback**: the panel is isolated; removing the F4 shortcut in `useDebugControls.ts` and the `main.tsx` import neutralizes everything. The `web-vitals` dependency removed in a single line.
 
 ## 8. Implementation Notes (Done — 2026-04-25)
 
@@ -139,22 +139,22 @@ Plus full harness: `bash scripts/harness/validate.sh` green.
 - `src/types/perf.ts` — `PerfFrameSample`, `PerfBatchMessage`, `PerfMetricsView`, `PerfWebVitalsEvent`, `PerfSnapshot`.
 - `src/utils/percentiles.ts` — pure `FrameTimeRing` + `summarize` with gaming-convention percentiles (`p1/p5` = slow tail, `p95` = fast tail).
 - `src/utils/perfBus.ts` — singleton aggregator (`render` / `game` / `main` rings, long-task counter, web-vitals buffer, `attachWorker(worker, source)`).
-- `src/workers/perfReporter.ts` — shared throttled batcher used por both workers (default 250 ms / 240 samples).
-- `src/utils/perfBootstrap.ts` — registers `long-animation-frame` (com `longtask` fallback) and `web-vitals` (LCP/INP/CLS/FCP/TTFB) into `pino` + `perfBus`.
+- `src/workers/perfReporter.ts` — shared throttled batcher used by both workers (default 250 ms / 240 samples).
+- `src/utils/perfBootstrap.ts` — registers `long-animation-frame` (with `longtask` fallback) and `web-vitals` (LCP/INP/CLS/FCP/TTFB) into `pino` + `perfBus`.
 - `src/utils/perfSnapshot.ts` — builds `PerfSnapshot` and triggers JSON download.
 - `src/components/PerfDebugPanel.tsx` + `PerfDebugPanel.module.css` — fixed top-right overlay, mobile-first, `aside` with `aria-label`.
 - Wiring: `src/hooks/useGameLoop.ts` and `src/components/GameBoard.tsx` call `perfBus.attachWorker(...)`. Game and render workers post `PERF_SAMPLE` batches.
-- Shortcuts: `useDebugControls.ts` registers `F4` (toggle panel) and `Shift+F4` (export snapshot) with phase/boss context provided por `App.tsx`.
+- Shortcuts: `useDebugControls.ts` registers `F4` (toggle panel) and `Shift+F4` (export snapshot) with phase/boss context provided by `App.tsx`.
 
 ### Deviations from the original design
-- **D1** Streaming percentiles estão implemented in `src/utils/percentiles.ts` (nao inside `performanceMetrics.ts`). Reason: keep the legacy adaptive metrics file scoped à game-worker concern and isolate the panel-facing pipeline. `performanceMetrics.ts` was left untouched.
-- **D2** Worker → main transport uses regular `self.postMessage` of batched `PERF_SAMPLE` messages (~4/s per worker), not a dedicated `MessageChannel`. Reason: lower surface estãoa, no extra port lifecycle, and additive `addEventListener` coexists with the existing `worker.onmessage` handlers.
+- **D1** Streaming percentiles are implemented in `src/utils/percentiles.ts` (not inside `performanceMetrics.ts`). Reason: keep the legacy adaptive metrics file scoped to game-worker concern and isolate the panel-facing pipeline. `performanceMetrics.ts` was left untouched.
+- **D2** Worker → main transport uses regular `self.postMessage` of batched `PERF_SAMPLE` messages (~4/s per worker), not a dedicated `MessageChannel`. Reason: lower surface area, no extra port lifecycle, and additive `addEventListener` coexists with the existing `worker.onmessage` handlers.
 - **D3** `web-vitals@^5.2` was installed (latest stable) instead of `^4`.
 
 ### Acceptance criteria status
 - **REF-01-AC-1** Done — `<PerfDebugPanel />` test renders panel with `data-testid` + `aria-label`; `useDebugControls` `F4` toggles `showPerfDebug`.
-- **REF-01-AC-2** Done — `Shift+F4` triggers `exportPerfSnapshot`; covered por `src/utils/__tests__/perfSnapshot.test.ts` (URL.createObjectURL → click → revoke).
-- **REF-01-AC-3** Pending field measurement — overhead is bounded por ring O(1) writes + ~4 batched messages/sec per worker; recommend running the snapshot loop on dev hardwestão once the panel is hooked into a CI artifact.
+- **REF-01-AC-2** Done — `Shift+F4` triggers `exportPerfSnapshot`; covered by `src/utils/__tests__/perfSnapshot.test.ts` (URL.createObjectURL → click → revoke).
+- **REF-01-AC-3** Pending field measurement — overhead is bounded by ring O(1) writes + ~4 batched messages/sec per worker; recommend running the snapshot loop on dev hardware once the panel is hooked into a CI artifact.
 - **REF-01-AC-4** Done — `bootstrapPerfObservability()` invoked from `src/main.tsx` registers all five web-vitals through `pino` (`context=performance`).
 - **REF-01-AC-5** Done — `pnpm lint` green, no `any` introduced.
 
@@ -176,7 +176,7 @@ Plus full harness: `bash scripts/harness/validate.sh` green.
 
 ## 8. First baseline (2026-04-25, iPhone 15 Pro / iOS 18.5 Safari)
 
-Captured via `Shift+F4` after ~2–3 min of active gameplay on phase 4 (score 155, length 15). Raw artifact: `scripts/harness/.artefatos/perf-baseline.json`.
+Captured via `Shift+F4` after ~2–3 min of active gameplay on phase 4 (score 155, length 15). Raw artifact: `scripts/harness/.artifacts/perf-baseline.json`.
 
 | Metric | Value | Verdict |
 |---|---|---|
@@ -189,8 +189,8 @@ Captured via `Shift+F4` after ~2–3 min of active gameplay on phase 4 (score 15
 
 **Implications:**
 1. The off-main-thread architecture (game worker + render worker + OffscreenCanvas) is doing its job perfectly — render frame budget is essentially free.
-2. The bottleneck has shifted à **main thread itself**: ~4.3 long tasks/sec (>50 ms each). Likely culprits: React re-renders on `setGameState`, large delta merges, particle system on the main thread, or DOM-bound HUD updates.
-3. **REF-03 (texture atlas) is no longer justified** — see ADR (forthcoming) and REF-03 archival naoe.
+2. The bottleneck has shifted to **main thread itself**: ~4.3 long tasks/sec (>50 ms each). Likely culprits: React re-renders on `setGameState`, large delta merges, particle system on the main thread, or DOM-bound HUD updates.
+3. **REF-03 (texture atlas) is no longer justified** — see ADR (forthcoming) and REF-03 archival note.
 4. New work order: **REF-04 — main-thread long-task elimination** should be authored next, replacing REF-03 in the queue.
 
 Caveat: web-vitals INP is missing because no input event was tracked between the boot and the snapshot. Future captures should include a deliberate keypress before exporting.

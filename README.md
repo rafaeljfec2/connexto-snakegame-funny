@@ -105,7 +105,7 @@ Each phase has its own unique visual weather that reflects the boss theme:
 
 - **Obstacles** - Static and mobile obstacles that appear in phases
 - **Portals** - Teleportation between two grid points
-- **Combo System** - Earn multipliers por eating food quickly
+- **Combo System** - Earn multipliers by eating food quickly
 - **Lives System** - Continue after dying (up to 3 lives)
 - **Poison Shot** - Destroy obstacles and defeat bosses
 - **Visual Particles** - Visual effects for game actions
@@ -141,32 +141,32 @@ Each phase has a unique boss with special abilities:
 - **Fully Responsive** - Optimized for desktop, tablet, and mobile
 - **Mobile-First Layout** - Interface redesigned with focus on mobile devices
 - **Advanced Touch Controls** - Directional D-pad and fire button for mobile
-- **Safe Areas** - Support for naoches and navigation bars (iOS/Android)
+- **Safe Areas** - Support for notches and navigation bars (iOS/Android)
 - **Smooth Animations** - Transitions and animations on all elements
 - **Game-Like Layout** - Game-style interface with integrated HUD
 - **Dynamic Visual Effects** - Backgrounds and effects that change per phase
-- **Contextoual START Button** - Visible only when needed, centered on grid
+- **Contextual START Button** - Visible only when needed, centered on grid
 
 ### 🔧 Technical Features
 
-Five JavaScript event loops. The main thread keeps DOM, input, HUD, Howler audio, and `localStorage`. Gameplay, board paint, weather, and particles each run numa dedicated Web Worker. Heaps estão isolated: simulation state is message-passing, not shared memory. The full map of clocks and channels is in [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md).
+Five JavaScript event loops. The main thread keeps DOM, input, HUD, Howler audio, and `localStorage`. Gameplay, board paint, weather, and particles each run in a dedicated Web Worker. Heaps are isolated: simulation state is message-passing, not shared memory. The full map of clocks and channels is in [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md).
 
 - **`game.worker`**: simulation. `requestAnimationFrame` wakes every display frame; the snake steps only when `effectiveSpeed` elapses (120 ms down to 40 ms). Direction input is a queue of at most 3 turns, consumed one per tick.
 - **`render.worker`**: board paint on a transferred `OffscreenCanvas`. Interpolates between simulation ticks so the board still paints at display rate. Snake and boss positions arrive as transferable `Float32Array`s over a direct `MessageChannel` from the game worker.
 - **`weather.worker` / `particle.worker`**: own canvases and frame loops. Particle spawns hop through the main thread so the burst can be placed in CSS pixels.
 - **HUD**: worker deltas land in an external store (`useSyncExternalStore`). Components subscribe to slices, so a movement tick does not reconcile the whole React tree.
-- **Mobile performance**: 60 FPS target on mid-tier phones, lighter shadows on small screens, safe-estãoa insets.
+- **Mobile performance**: 60 FPS target on mid-tier phones, lighter shadows on small screens, safe-area insets.
 - **Safe Areas (iOS/Android)**:
-  - Full support for `env(safe-estãoa-inset-*)` for naoches and navigation bars.
+  - Full support for `env(safe-area-inset-*)` for notches and navigation bars.
   - `viewport-fit=cover` for fullscreen on modern devices.
-  - Dynamic padding that respects device safe estãoas.
+  - Dynamic padding that respects device safe areas.
 - Automatic save system (high score and achievements)
 - Structured logging system with Pino for debugging
 - Responsive grid that adapts to screen size
 
 ### 📝 Logging System
 
-The game has a complete logging system for debugging and observability, categorized por contexts (GAME_LOOP, BOSS, PHASE, etc.) and log levels.
+The game has a complete logging system for debugging and observability, categorized by contexts (GAME_LOOP, BOSS, PHASE, etc.) and log levels.
 
 ## 🧪 Tests
 
@@ -217,7 +217,7 @@ The game is fully responsive and optimized for mobile devices:
 - **Adaptive Grid**: Adjusts perfectly to any screen size.
 - **Native Touch Controls**: Directional D-pad with center action button.
 - **Gesture Prevention**: Blocking of accidental zoom and pull-to-refresh.
-- **Safe Areas (iOS/Android)**: Full support for naoches, navigation bars, and system gestures.
+- **Safe Areas (iOS/Android)**: Full support for notches, navigation bars, and system gestures.
 - **Mobile-First Layout**: Interface redesigned specifically for mobile devices.
 
 ### 📐 Optimized Mobile Layout
@@ -248,9 +248,9 @@ The mobile layout has been completely redesigned for better experience:
 
 **Layout Features:**
 - **Compact Header**: Displays only essential information (Level, Score, High Score)
-- **Centered Grid**: Maximized and centered game estãoa
+- **Centered Grid**: Maximized and centered game area
 - **START Button on Grid**: Positioned at the center of the grid for easy access
-- **StatusBar Below Grid**: Status information (Length, Lives, Phase) below the game estãoa
+- **StatusBar Below Grid**: Status information (Length, Lives, Phase) below the game area
 - **D-pad at Base**: Directional controls positioned for ergonomics
 
 ## 🐛 Debug Mode
@@ -288,7 +288,7 @@ The game has debug tools to facilitate testing and development:
 ## 🔒 Security
 
 - Security Headers (CSP, X-Frame-Options)
-- Input Validação
+- Input validation
 - State Protection
 
 ## 📊 Performance
@@ -296,7 +296,7 @@ The game has debug tools to facilitate testing and development:
 - **Five event loops**: main thread plus `game`, `render`, `weather`, and `particle` workers. See [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md).
 - **Two clocks**: simulation steps on `effectiveSpeed` (120–40 ms); the render worker interpolates those steps at display rate.
 - **Direct render channel**: `MessageChannel` plus transferable position buffers, so the snake polyline does not round-trip through React.
-- **Slice store**: `useSyncExternalStore` and `React.memo` keep HUD work proportional à fields that changed ([ADR-0004](./docs/ADR/0004-react-external-store-and-css-driven-background.md)).
+- **Slice store**: `useSyncExternalStore` and `React.memo` keep HUD work proportional to fields that changed ([ADR-0004](./docs/ADR/0004-react-external-store-and-css-driven-background.md)).
 
 ## 🤖 Working with AI agents
 
@@ -304,17 +304,17 @@ This repository is set up for collaborative work with AI coding tools (Cursor, C
 
 - **Single source of truth**: [`AGENTS.md`](./AGENTS.md). Read it before any other instruction file.
 - **Workflow**: Spec-Driven Development. See [`docs/SDD/README.md`](./docs/SDD/README.md).
-- **Specs**: [`docs/SDD/README.md`](./docs/SDD/README.md) indexes REF-01…REF-10 (REF-03 is Archived; of the not implement).
+- **Specs**: [`docs/SDD/README.md`](./docs/SDD/README.md) indexes REF-01…REF-10 (REF-03 is Archived; do not implement).
 - **Doc trust map**: [`docs/README.md`](./docs/README.md).
 - **Architecture decisions**: [`docs/ADR/`](./docs/ADR/).
-- **Validação harness**: `bash scripts/harness/validate.sh` (must pass before any task is declestãod done). See [`docs/SDD/HARNESS.md`](./docs/SDD/HARNESS.md).
+- **Validation harness**: `bash scripts/harness/validate.sh` (must pass before any task is declared done). See [`docs/SDD/HARNESS.md`](./docs/SDD/HARNESS.md).
 - **PR checklist**: [`docs/HARNESS_CHECKLIST.md`](./docs/HARNESS_CHECKLIST.md).
 
 Any AI agent that follows `AGENTS.md` and the harness can contribute autonomoususly.
 
-## 📚 Additional Documentação
+## 📚 Additional Documentation
 
-Start at the trust map: [`docs/README.md`](./docs/README.md). It separates canonical docs from domain naoes and historical files agents must not treat as contracts.
+Start at the trust map: [`docs/README.md`](./docs/README.md). It separates canonical docs from domain notes and historical files agents must not treat as contracts.
 
 **Canonical**
 
@@ -341,7 +341,7 @@ Start at the trust map: [`docs/README.md`](./docs/README.md). It separates canon
 ## 📈 Recent Evolution
 
 ### v2.0 - Redesigned Mobile Layout
-- **Safe Areas**: Complete implementation of safe estãoa support for iOS and Android
+- **Safe Areas**: Complete implementation of safe area support for iOS and Android
 - **Redesigned Layout**: New mobile-first visual hierarchy
   - Compact header with essential information (Level, Score, High Score)
   - StatusBar repositioned below the game grid
@@ -366,7 +366,7 @@ Start at the trust map: [`docs/README.md`](./docs/README.md). It separates canon
 
 This project is licensed under the **Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)**.
 
-You estão free to use, modify and shestão this project for personal and educational purposes.
+You are free to use, modify and share this project for personal and educational purposes.
 
 **Commercial use is strictly prohibited without explicit authorization from the author.**
 

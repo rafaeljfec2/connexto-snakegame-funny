@@ -34,8 +34,8 @@ Glenn Fiedler’s fixed-timestep accumulator is a **reference only**, not this c
 
 - `setInterval` / `setTimeout` for the game or paint loop.
 - `setState` every frame for decorative motion (use CSS; see ADR-0004).
-- “Optimize” por adopting Pixi/WebGL without a REF-01 baseline that demands it (ADR-0002).
+- “Optimize” by adopting Pixi/WebGL without a REF-01 baseline that demands it (ADR-0002).
 
-## Validação
+## Validation
 
-REF-01 panel / `scripts/harness/perf-baseline.mjs`. Compestão the same device and phase before claiming a win.
+REF-01 panel / `scripts/harness/perf-baseline.mjs`. Compare the same device and phase before claiming a win.

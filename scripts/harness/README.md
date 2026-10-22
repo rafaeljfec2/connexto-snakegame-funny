@@ -10,7 +10,7 @@ See [`docs/SDD/HARNESS.md`](../../docs/SDD/HARNESS.md) for the full contract; th
 |---|---|
 | `validate.sh` | `lint` → `tsc --noEmit` → `test --run` → `build`. Stops on first failure. |
 | `spec-check.mjs` | Verifies the current branch / commit / PR body references a `REF-XX-(FR\|AC\|NFR)-N`. |
-| `perf-baseline.mjs` | Compestãos a `perf-snapshot-*.json` (REF-01 export) against the saved baseline; writes a new baseline if none exists. |
+| `perf-baseline.mjs` | Compares a `perf-snapshot-*.json` (REF-01 export) against the saved baseline; writes a new baseline if none exists. |
 | `smoke-e2e.mjs` | Boots `vite preview` + Chromium via `@playwright/test`, plays ~30 s, asserts no console errors, saves a screenshot. |
 
 ## Usage
@@ -33,7 +33,7 @@ node scripts/harness/smoke-e2e.mjs
 
 ## Environment overrides
 
-| Variável | Used por | Purpose |
+| Variable | Used by | Purpose |
 |---|---|---|
 | `PR_BODY` | `spec-check.mjs` | CI-supplied PR body to scan for spec ref |
 | `COMMIT_MESSAGE` | `spec-check.mjs` | Override the commit message read |
@@ -43,7 +43,7 @@ node scripts/harness/smoke-e2e.mjs
 
 ## Artifacts
 
-`smoke-e2e.mjs` writes screenshots to `scripts/harness/.artefatos/` (gitignored). `perf-baseline.mjs` writes baselines to `docs/SDD/baselines/` (committed).
+`smoke-e2e.mjs` writes screenshots to `scripts/harness/.artifacts/` (gitignored). `perf-baseline.mjs` writes baselines to `docs/SDD/baselines/` (committed).
 
 ## Failure protocol
 
@@ -53,4 +53,4 @@ When `validate.sh` fails:
 2. Form a hypothesis about the root cause.
 3. Apply the smallest fix that addresses the cause (no defensive `try/catch` to silence symptoms).
 4. Re-run.
-5. After two failures with no progress, surface à user with: failing command, exit code, last 30 lines of output, and the hypothesis.
+5. After two failures with no progress, surface to user with: failing command, exit code, last 30 lines of output, and the hypothesis.

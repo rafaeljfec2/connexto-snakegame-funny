@@ -1,4 +1,4 @@
-# Documentação map
+# Documentation map
 
 `connexto-game-funny` is a production Snake game: React 18 HUD on the main thread, simulation and Canvas 2D paint in Web Workers, 60 FPS target on mid-tier mobile.
 
@@ -12,7 +12,7 @@
 4. The open spec under [`SDD/specs/`](./SDD/specs/) for the task (status `Approved` or read-only `Done`).
 5. The matching skill under [`.cursor/skills/`](../.cursor/skills/) for the domain.
 
-Do **nao** implement from the Historical tier below.
+Do **not** implement from the Historical tier below.
 
 ## Canonical (trust)
 
@@ -50,7 +50,7 @@ These describe earlier designs or completed refactors. Each file starts with a b
 |---|---|
 | [`PERFORMANCE_OPTIMIZATION_PLAN.md`](./PERFORMANCE_OPTIMIZATION_PLAN.md) | Pre-worker plan; runtime is now workers + OffscreenCanvas |
 | [`OTIMIZACOES_PERFORMANCE.md`](./OTIMIZACOES_PERFORMANCE.md) | Describes a main-thread frame buffer that no longer owns the loop |
-| [`OTIMIZACOES_MOBILE.md`](./OTIMIZACOES_MOBILE.md) | Older mobile naoes; layout specs estão REF-06 / REF-09 |
+| [`OTIMIZACOES_MOBILE.md`](./OTIMIZACOES_MOBILE.md) | Older mobile notes; layout specs are REF-06 / REF-09 |
 | [`REFACTORING_PLAN.md`](./REFACTORING_PLAN.md) | Plan to split a 1268-line `useGameLoop`; already done |
 | [`REFACTORING_SUMMARY.md`](./REFACTORING_SUMMARY.md) | Summary of that split |
 | [`LOGGING_IMPLEMENTATION_GUIDE.md`](./LOGGING_IMPLEMENTATION_GUIDE.md) | How logging was introduced |

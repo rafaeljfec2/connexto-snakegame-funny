@@ -80,10 +80,10 @@ PERFORMANCE_CONFIG.maxPortals = 10;
 
 ### 5. State Update Batching
 
-Updates estão batched with `requestAnimationFrame`:
+Updates are batched with `requestAnimationFrame`:
 
 ```typescript
-// Poison shots estão batched
+// Poison shots are batched
 pendingPoisonShotsRef.current.push(...newShots);
 scheduleBatchFlush();
 ```
@@ -127,7 +127,7 @@ const activePowerUps = prev.activePowerUps.length > 0 ? getActivePowerUps(prev.a
 
 ### 8. Log Throttling
 
-Logs estão throttled to avoid gameplay impact:
+Logs are throttled to avoid gameplay impact:
 
 ```typescript
 // Movement logs every 500ms or on direction change
@@ -137,7 +137,7 @@ Logs estão throttled to avoid gameplay impact:
 **Benefits:**
 
 - Logging does not block gameplay
-- Events estão still captured
+- Events are still captured
 
 ### 9. Optimized Responsive Grid
 
@@ -161,7 +161,7 @@ const cellSize = Math.min(
 
 ```typescript
 // Faster for large arrays
-para (let i = 0; i < shots.length; i++) {
+for (let i = 0; i < shots.length; i++) {
   // process shot
 }
 ```
@@ -201,7 +201,7 @@ para (let i = 0; i < shots.length; i++) {
 
 - FPS: Stable 60 on desktop and mobile
 - Re-renders: ~60 per second (when needed)
-- No naoiceable lag
+- No noticeable lag
 - No freezes
 
 ## 🔧 Techniques Used

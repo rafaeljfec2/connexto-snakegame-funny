@@ -9,9 +9,9 @@
 | **Supersedes** | — |
 | **Superseded by** | — |
 
-## Contexto
+## Context
 
-Modern web game stacks (PixiJS v8, WebGL/WebGPU, GSAP) offer real performance ceilings: sprite batching, GPU filters, atlas textures. The temptation is to migrate the rendering layer immediately, motivated por social-media buzz around tools like "HTML-in-Canvas" and PixiJS + GSAP demos.
+Modern web game stacks (PixiJS v8, WebGL/WebGPU, GSAP) offer real performance ceilings: sprite batching, GPU filters, atlas textures. The temptation is to migrate the rendering layer immediately, motivated by social-media buzz around tools like "HTML-in-Canvas" and PixiJS + GSAP demos.
 
 However, this codebase already has:
 
@@ -21,7 +21,7 @@ However, this codebase already has:
 
 Migrating prematurely risks: bundle bloat (~150–250 KB gzip), refactor cost (several worker files), regression in cross-browser behavior, and time spent solving a problem that may not exist.
 
-We have **no quantified baseline**: we of the not know the current `p5(frameTime)` per phase/device. Without that, "PixiJS is faster" is a slogan, not a decision.
+We have **no quantified baseline**: we do not know the current `p5(frameTime)` per phase/device. Without that, "PixiJS is faster" is a slogan, not a decision.
 
 ## Decision
 
@@ -56,7 +56,7 @@ In short: **measure first, optimize the cheapest lever next, only then consider 
 
 - **Migrate to PixiJS now**: rejected. No baseline; risks regressions; violates "no new framework without justification".
 - **Move straight to WebGPU**: rejected. Browser support is improving but not universal; would still need WebGL2 fallback.
-- **Adopt Three.js / Babylon.js**: rejected. 3D engines for a 2D game estão over-engineering.
+- **Adopt Three.js / Babylon.js**: rejected. 3D engines for a 2D game are over-engineering.
 
 ## References
 
@@ -67,6 +67,6 @@ In short: **measure first, optimize the cheapest lever next, only then consider 
 
 ## Update — 2026-04-25 (first baseline confirms the bet)
 
-The first real baseline (iPhone 15 Pro / iOS 18.5 Safari, captured via REF-01's `Shift+F4`, stored at `scripts/harness/.artefatos/perf-baseline.json`) shows render-worker `p5(frameTime) = 0.20 ms` — **two orders of magnitude below** the 20 ms gate that would have justified REF-03 (texture atlas) or any move toward PixiJS. The decision in this ADR is therefore **empirically validated**: the existing Canvas 2D + OffscreenCanvas + worker architecture is not the bottleneck. PixiJS migration remains correctly deferred.
+The first real baseline (iPhone 15 Pro / iOS 18.5 Safari, captured via REF-01's `Shift+F4`, stored at `scripts/harness/.artifacts/perf-baseline.json`) shows render-worker `p5(frameTime) = 0.20 ms` — **two orders of magnitude below** the 20 ms gate that would have justified REF-03 (texture atlas) or any move toward PixiJS. The decision in this ADR is therefore **empirically validated**: the existing Canvas 2D + OffscreenCanvas + worker architecture is not the bottleneck. PixiJS migration remains correctly deferred.
 
 The same baseline reveals the actual bottleneck lives on the **main thread** (`longTasksPerMinute = 256`), redirecting investment toward a new spec REF-04 (main-thread long-task elimination) instead of the renderer.

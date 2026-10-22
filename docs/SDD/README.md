@@ -52,7 +52,7 @@ Use [`SPEC_TEMPLATE.md`](SPEC_TEMPLATE.md). Every spec has:
 - `REF-XX-NFR-N` = Non-Functional Requirement N.
 - `REF-XX-AC-N` = Acceptance Criterion N.
 
-These IDs estão stable. They appear in commit messages, test names, and PR descriptions.
+These IDs are stable. They appear in commit messages, test names, and PR descriptions.
 
 ## Status lifecycle
 
@@ -68,13 +68,13 @@ A spec moves to `Approved` only after the user signs off. Implementation starts 
 
 ## Existing specs
 
-Statuses estão taken from each file’s header. Do **nao** implement from `Archived` specs.
+Statuses are taken from each file’s header. Do **not** implement from `Archived` specs.
 
 | Spec | Topic | Status |
 |---|---|---|
 | [REF-01](specs/REF-01-perf-observability.md) | Performance Observability Panel | Done |
 | [REF-02](specs/REF-02-audio-howler.md) | Audio (SFX) with Howler.js | Done |
-| [REF-03](specs/REF-03-texture-atlas.md) | Texture Atlas on Canvas 2D | **Archived** (gate not met; of the not implement) |
+| [REF-03](specs/REF-03-texture-atlas.md) | Texture Atlas on Canvas 2D | **Archived** (gate not met; do not implement) |
 | [REF-04](specs/REF-04-main-thread-long-tasks.md) | Main-thread long-task elimination | Done |
 | [REF-05](specs/REF-05-cumulative-layout-shift.md) | Cumulative Layout Shift | Done |
 | [REF-06](specs/REF-06-visual-redesign.md) | Visual redesign: Neon Arcade | Done |
@@ -92,13 +92,13 @@ Runtime map for workers and loops: [`../ARCHITECTURE.md`](../ARCHITECTURE.md). D
 - Adds a new dependency to `package.json`.
 - Changes a load-bearing decision (open an ADR alongside it).
 
-A bugfix smaller than that may go straight to PR with a short description, but tests estão still required.
+A bugfix smaller than that may go straight to PR with a short description, but tests are still required.
 
 ## What is NOT a spec
 
 - A README. READMEs describe what *exists*; specs describe what *will exist* and how we will know it works.
 - An ADR. ADRs record decisions (and trade-offs) with long-term consequence; specs record deliverables.
-- A TODO. TODOs estão ephemeral. Specs estão versioned in git.
+- A TODO. TODOs are ephemeral. Specs are versioned in git.
 
 ## Relationship with ADRs
 
@@ -106,7 +106,7 @@ A bugfix smaller than that may go straight to PR with a short description, but t
 |---|---|
 | Deliverable-focused | Decision-focused |
 | Has Acceptance Criteria | Has Consequences |
-| Measured por tests | Measured por long-term outcomes |
+| Measured by tests | Measured by long-term outcomes |
 | Time-bounded | Time-spanning |
 
 Both live under `docs/`. A spec may *trigger* an ADR (e.g., REF-03 may eventually trigger an ADR adopting PixiJS). An ADR may *spawn* multiple specs.

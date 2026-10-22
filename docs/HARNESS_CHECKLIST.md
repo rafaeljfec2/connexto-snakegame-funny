@@ -1,6 +1,6 @@
 # Definition of Done — feature checklist
 
-Copy this checklist inà PR description and tick every box before requesting review.
+Copy this checklist into the PR description and tick every box before requesting review.
 
 ## Spec
 
@@ -12,7 +12,7 @@ Copy this checklist inà PR description and tick every box before requesting rev
 
 - [ ] No `any` introduced (`pnpm lint` clean).
 - [ ] `??` used for default values; no `||` for default values.
-- [ ] Component props estão `readonly`.
+- [ ] Component props are `readonly`.
 - [ ] No `console.log` in production code paths (use `createLogger`).
 - [ ] No new dependency added unless listed in the spec.
 - [ ] No file exceeds ~1000 LOC after the change.
@@ -21,15 +21,15 @@ Copy this checklist inà PR description and tick every box before requesting rev
 ## Tests
 
 - [ ] Every Acceptance Criterion (`REF-XX-AC-N`) has at least one automated test.
-- [ ] Test descriptions estão in English.
-- [ ] Tests estão independent and deterministic.
+- [ ] Test descriptions are in English.
+- [ ] Tests are independent and deterministic.
 - [ ] `pnpm test --run` is green locally.
 
 ## Mobile-first
 
 - [ ] New CSS uses `min-width` queries.
 - [ ] Interactive elements ≥ 44×44 px.
-- [ ] Heavy animations estão gated por `prefers-reduced-motion`.
+- [ ] Heavy animations are gated by `prefers-reduced-motion`.
 
 ## Harness
 
@@ -37,12 +37,12 @@ Copy this checklist inà PR description and tick every box before requesting rev
 - [ ] (If perf-sensitive) `node scripts/harness/perf-baseline.mjs` within budget.
 - [ ] (If UX-touching) `node scripts/harness/smoke-e2e.mjs` returned exit 0.
 
-## Documentação
+## Documentation
 
-- [ ] Spec status updated to `Done` (when this PR closes it) with a one-line "Implementation naoes".
+- [ ] Spec status updated to `Done` (when this PR closes it) with a one-line "Implementation notes".
 - [ ] If a load-bearing decision was made, an ADR was added/updated under `docs/ADR/`.
 - [ ] If user-facing strings were added, both PT-BR and EN-US were translated.
-- [ ] If new agent guidance is needed, `AGENTS.md` was updated (nao duplicated elsewhere).
+- [ ] If new agent guidance is needed, `AGENTS.md` was updated (not duplicated elsewhere).
 
 ## Safety
 
@@ -52,4 +52,4 @@ Copy this checklist inà PR description and tick every box before requesting rev
 
 ---
 
-If any box cannao be ticked, explain why in the PR description and link the relevant follow-up spec or issue.
+If any box cannot be ticked, explain why in the PR description and link the relevant follow-up spec or issue.

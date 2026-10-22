@@ -11,7 +11,7 @@ Already in the project:
 - [x] Web Workers for game logic (`game.worker.ts`)
 - [x] Web Workers for rendering (`render.worker.ts` + OffscreenCanvas)
 - [x] Web Workers for particles and weather
-- [x] Safe estãoas for iOS and Android (`env(safe-estãoa-inset-*)`)
+- [x] Safe areas for iOS and Android (`env(safe-area-inset-*)`)
 - [x] Mobile-first layout with clear visual hierarchy
 - [x] Touch D-pad controls
 - [x] CSS optimizations (`transform`, `will-change`)
@@ -32,7 +32,7 @@ shape.drawHitFromCache();
 // Benefits:
 // - Fewer draw operations
 // - Better hit detection performance
-// - Essential for restãoly changing elements
+// - Essential for rarely changing elements
 ```
 
 ### 2. **Layer Separation (Layer Management)**
@@ -57,7 +57,7 @@ const animatedLayer = new Layer();
 Limit pixel ratio to avoid over-rendering:
 
 ```javascript
-// Mobile: use pixel ratio 1 or 2 (nao 3+)
+// Mobile: use pixel ratio 1 or 2 (not 3+)
 canvas.setPixelRatio(isMobile ? 1 : 2);
 
 // Benefits:
@@ -68,7 +68,7 @@ canvas.setPixelRatio(isMobile ? 1 : 2);
 
 ### 4. **Optimized Viewport Meta Tag**
 
-Proper viewport avoids bad scaling and enables safe estãoas:
+Proper viewport avoids bad scaling and enables safe areas:
 
 ```html
 <meta 
@@ -79,26 +79,26 @@ Proper viewport avoids bad scaling and enables safe estãoas:
 
 ### 4.1 **Safe Areas (iOS/Android) ✅ IMPLEMENTED**
 
-Full support for naoches, system bars, and gestures:
+Full support for notches, system bars, and gestures:
 
 ```css
-/* CSS variables for safe estãoas */
+/* CSS variables for safe areas */
 :root {
-  --safe-estãoa-top: env(safe-estãoa-inset-top, 0px);
-  --safe-estãoa-bottom: env(safe-estãoa-inset-bottom, 0px);
-  --safe-estãoa-left: env(safe-estãoa-inset-left, 0px);
-  --safe-estãoa-right: env(safe-estãoa-inset-right, 0px);
+  --safe-area-top: env(safe-area-inset-top, 0px);
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-left: env(safe-area-inset-left, 0px);
+  --safe-area-right: env(safe-area-inset-right, 0px);
 }
 
 /* Applied to elements */
 .header {
-  padding-top: max(0.75rem, calc(0.5rem + env(safe-estãoa-inset-top, 0px)));
-  padding-left: max(1.25rem, calc(1rem + env(safe-estãoa-inset-left, 0px)));
-  padding-right: max(1.25rem, calc(1rem + env(safe-estãoa-inset-right, 0px)));
+  padding-top: max(0.75rem, calc(0.5rem + env(safe-area-inset-top, 0px)));
+  padding-left: max(1.25rem, calc(1rem + env(safe-area-inset-left, 0px)));
+  padding-right: max(1.25rem, calc(1rem + env(safe-area-inset-right, 0px)));
 }
 
 .main {
-  padding-bottom: calc(390px + env(safe-estãoa-inset-bottom, 0px));
+  padding-bottom: calc(390px + env(safe-area-inset-bottom, 0px));
 }
 ```
 
@@ -231,7 +231,7 @@ Mobile-first hierarchy:
 ```css
 .touchable {
   touch-action: manipulation;
-  -webkit-tap-highlight-color: transpestãont;
+  -webkit-tap-highlight-color: transparent;
 }
 ```
 
@@ -253,7 +253,7 @@ const MAX_EFFECTS = isMobile ? 5 : 20;
 
 ### 1. Cache Complex Elements
 
-Cache restãoly changing items:
+Cache rarely changing items:
 
 - Static obstacles
 - Background elements

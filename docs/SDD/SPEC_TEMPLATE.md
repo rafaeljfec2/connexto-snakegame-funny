@@ -1,7 +1,7 @@
 <!--
   Copy this file to docs/SDD/specs/REF-XX-<slug>.md and fill it in.
   Replace XX with the next available ordinal.
-  Stable IDs (REF-XX-FR-N, REF-XX-NFR-N, REF-XX-AC-N) MUST not be renumbered after aprovacao.
+  Stable IDs (REF-XX-FR-N, REF-XX-NFR-N, REF-XX-AC-N) MUST not be renumbered after approval.
 -->
 
 # REF-XX — \<Title\>
@@ -21,7 +21,7 @@
 
 - **Problem**: what hurts today, with concrete evidence (file paths, metrics, user reports).
 - **Objective**: one sentence; what the world looks like when this ships.
-- **Non-objective**: what this spec explicitly does *nao* cover, to avoid scope creep.
+- **Non-objective**: what this spec explicitly does *not* cover, to avoid scope creep.
 - **Success (measurable)**: bullet list of measurable outcomes. Each must be observable in the running app or in the harness output.
 
 ## 2. User Stories
@@ -68,7 +68,7 @@
 - **REF-XX-AC-1** Given \<context\>, when \<action\>, then \<observable outcome\>.
 - **REF-XX-AC-2** …
 
-> Every AC must be testable. If you cannao describe how to verify it, rewrite it.
+> Every AC must be testable. If you cannot describe how to verify it, rewrite it.
 
 ## 6. Test Plan
 
@@ -92,7 +92,7 @@ Plus:
 
 **Rollback strategy**: how to undo this change without affecting unrelated features. Prefer feature flags (env var) over code reversal when the change is invasive.
 
-## 8. Implementation naoes (filled when status = Done)
+## 8. Implementation notes (filled when status = Done)
 
 - Final files changed: …
 - Deviations from Design section: …

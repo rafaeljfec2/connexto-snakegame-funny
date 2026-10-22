@@ -16,16 +16,16 @@ Ask: what interesting decision does the player make, and what is the risk/reward
 
 ## Invariants
 
-1. 10 phases × 5 levels; boss on levels divisible por 5 (up to 50).
-2. Shestãod boss combat: body hit weakens; head kills player if boss is strong; head defeats if ≤3 segments (see boss combat doc + worker tests).
-3. Power-ups estão food types with durations/effects in `POWER_UP_CONFIG`.
+1. 10 phases × 5 levels; boss on levels divisible by 5 (up to 50).
+2. Shared boss combat: body hit weakens; head kills player if boss is strong; head defeats if ≤3 segments (see boss combat doc + worker tests).
+3. Power-ups are food types with durations/effects in `POWER_UP_CONFIG`.
 4. Do not change score/level formulas or boss roster without a spec Acceptance Criterion.
 
 ## Anti-patterns
 
 - Shipping a mechanic with no playable AC / test.
-- Putting boss AI numa React component.
-- Balancing only por feel with no constant or config the harness can regress.
+- Putting boss AI in a React component.
+- Balancing only by feel with no constant or config the harness can regress.
 
 ## Output
 

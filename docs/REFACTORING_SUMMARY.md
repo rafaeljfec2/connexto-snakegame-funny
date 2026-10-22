@@ -1,80 +1,28 @@
-# Resumo da Refatoração do useGameLoop.ts
+# Refactoring Summary for `useGameLoop.ts`
 
-## Status da Refatoração
+> **Historical.** Do not implement from this file. Current runtime: [`ARCHITECTURE.md`](./ARCHITECTURE.md). Trust map: [`README.md`](./README.md).
 
-### ✅ Funções Extraídas e Integradas
+## Extracted helpers (at the time)
 
-1. **`handleDirection`** (Linhas 85-136)
-   - Processa mudanças de direção
-   - Suporta controles reversos
-   - Verifica segurança de movimentos
-   - **Resultado**: Código de direção isolado e testável
+1. **`handleDirection`** — direction changes, reverse controls, move safety
+2. **`handlePortalTeleport`** — portal teleport + particles
+3. **`handleFoodAndPowerUps`** — food, power-ups, growth/shrink, stats (~130 lines)
+4. **`handleObstacles`** — phase-based spawn and timers
+5. **`handlePoisonShotsObstacles`** — poison movement, obstacle destruction, particles
 
-2. **`handlePortalTeleport`** (Linhas 151-187)
-   - Gerencia teleporte através de portais
-   - Cria partículas de teleporte
-   - **Resultado**: Lógica de teleporte isolada
+## Metrics (historical)
 
-3. **`handleFoodAndPowerUps`** (Linhas 207-329)
-   - Processa consumo de comida
-   - Aplica efeitos de power-ups
-   - Gerencia crescimento/redução da snake
-   - Atualiza estatísticas
-   - **Resultado**: ~130 linhas de código complexo organizadas
+- Start size: 1268 lines
+- After extractions: ~1461 lines
+- Helpers created: 5
+- Lines pulled from `updateGame`: ~280
 
-4. **`handleObstacles`** (Linhas 344-402)
-   - Gera obstáculos baseado em fase
-   - Gerencia timer de spawn
-   - Atualiza estatísticas
-   - **Resultado**: Lógica de geração isolada
+## Then-open follow-ups
 
-5. **`handlePoisonShotsObstacles`** (Linhas 418-454)
-   - Move poison shots
-   - Destrói obstáculos atingidos
-   - Cria partículas de destruição
-   - **Resultado**: Lógica de poison shots com obstáculos isolada
+- Boss logic (~400 lines)
+- Poison vs boss integration
+- Further organization
 
-### 📊 Métricas
+## Note
 
-- **Tamanho inicial**: 1268 linhas
-- **Tamanho atual**: 1461 linhas
-- **Funções auxiliares criadas**: 5
-- **Linhas extraídas do updateGame**: ~280 linhas
-- **Complexidade reduzida**: Significativamente
-
-### 🔄 Estado Atual
-
-O código está muito mais organizado com:
-
-- Responsabilidades claras separadas
-- Funções menores e focadas
-- Melhor legibilidade
-- Mais fácil de manter e debugar
-
-### ⏳ Próximos Passos
-
-1. **Lógica do Boss** - A mais complexa (~400 linhas)
-   - Inicialização do boss
-   - Movimento e IA
-   - Processamento de habilidades
-   - Colisões com boss
-   - Derrota do boss
-
-2. **Colisões com Boss por Poison Shots** - Integrar melhor com a lógica existente
-
-3. **Otimizações finais** - Revisar e melhorar organização
-
-## Benefícios Já Alcançados
-
-✅ **Legibilidade**: Código muito mais fácil de ler
-✅ **Manutenibilidade**: Funções menores são mais fáceis de manter  
-✅ **Testabilidade**: Funções isoladas podem ser testadas
-✅ **Organização**: Código bem estruturado e documentado
-✅ **Debugging**: Mais fácil encontrar problemas
-
-## Notas Técnicas
-
-- Todas as funções auxiliares estão no mesmo arquivo para facilitar refatoração gradual
-- Interfaces TypeScript bem definidas para retornos das funções
-- Código duplicado removido
-- Warnings do linter corrigidos
+Simulation and board paint now live in Web Workers. Prefer `src/workers/game/` and [`ARCHITECTURE.md`](./ARCHITECTURE.md) over this summary when changing gameplay.

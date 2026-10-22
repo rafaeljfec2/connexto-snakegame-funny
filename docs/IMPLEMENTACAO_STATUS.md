@@ -1,265 +1,267 @@
-# Status de Implementação
+# Implementation Status
 
-Este documento descreve o status atual de todas as funcionalidades implementadas no jogo Snake.
+This document describes the current status of features implemented in the Snake game.
 
-## ✅ Funcionalidades Completas
+## ✅ Complete Features
 
-### Sistema de Progressão
+### Progression System
 
-- [x] 10 fases únicas com 5 níveis cada
-- [x] 10 bosses únicos com habilidades especiais
-- [x] Sistema de dificuldade progressiva
-- [x] Cálculo automático de níveis baseado em pontuação
-- [x] Sistema de detecção de mudanças de fase
+- [x] 10 unique phases with 5 levels each
+- [x] 10 unique bosses with special abilities
+- [x] Progressive difficulty
+- [x] Automatic level calculation from score
+- [x] Phase change detection
 
-### Sistema de Bosses
+### Boss System
 
-- [x] 10 bosses únicos (O Clássico, O Guardião, O Desafiador, etc.)
-- [x] Boss snake animado que persegue o jogador
-- [x] Sistema de combate com disparos de veneno
-- [x] Habilidades especiais por boss
-- [x] Sistema de flag do Guardião
-- [x] Transições animadas de derrota de boss
-- [x] Painel de debug de bosses (F1/Ctrl+D)
-- [x] Teste de transição de derrota de boss (F2)
+- [x] 10 unique bosses (O Clássico, O Guardião, O Desafiador, etc.)
+- [x] Animated boss snake that chases the player
+- [x] Combat with poison shots
+- [x] Per-boss special abilities
+- [x] Guardian flag system
+- [x] Animated boss defeat transitions
+- [x] Boss debug panel (F1/Ctrl+D)
+- [x] Boss defeat transition test (F2)
 
-### Sistema de Fases
+### Phase System
 
-- [x] 10 tipos diferentes de fases
-- [x] Mecânicas específicas por fase
-- [x] Configurações de obstáculos, portais e power-ups por fase
-- [x] Telas de introdução de fase
-- [x] Telas de conclusão de fase
-- [x] Painel de debug de fases (F3/Ctrl+F)
+- [x] 10 distinct phase types
+- [x] Phase-specific mechanics
+- [x] Per-phase obstacle, portal, and power-up settings
+- [x] Phase intro screens
+- [x] Phase complete screens
+- [x] Phase debug panel (F3/Ctrl+F)
 
-### Sistema de Debug
+### Debug System
 
-- [x] Painel de debug de bosses (F1/Ctrl+D) - Ativar qualquer boss
-- [x] Painel de debug de fases (F3/Ctrl+F) - Navegar para qualquer fase
-- [x] Teste de transição de boss (F2) - Simular derrota de boss
-- [x] Informações detalhadas de bosses e fases nos painéis
-- [x] Atalhos de teclado para acesso rápido
+- [x] Boss debug panel (F1/Ctrl+D) — spawn any boss
+- [x] Phase debug panel (F3/Ctrl+F) — jump to any phase
+- [x] Boss transition test (F2) — simulate boss defeat
+- [x] Detailed boss and phase info in panels
+- [x] Keyboard shortcuts for quick access
 
-### Efeitos Visuais e Climáticos
+### Visual and Weather Effects
 
-- [x] Sistema de efeitos climáticos por fase
-- [x] 10 climas únicos (estrelado, névoa, deserto, cósmico, fogo, psicodélico, névoa geométrica, apocalíptico, tempestade, celestial)
-- [x] Efeito de tempestade para Fase 9 (relâmpagos, chuva, nuvens, vento)
-- [x] Backgrounds dinâmicos que mudam por fase
-- [x] Sistema de partículas
-- [x] Animações de transição
+- [x] Per-phase weather effects
+- [x] 10 unique climates (starry, fog, desert, cosmic, fire, psychedelic, geometric fog, apocalyptic, storm, celestial)
+- [x] Storm effect for Phase 9 (lightning, rain, clouds, wind)
+- [x] Dynamic backgrounds per phase
+- [x] Particle system
+- [x] Transition animations
 
 ### Power-Ups
 
-- [x] 10 tipos diferentes de power-ups
-- [x] Power-ups positivos e negativos
-- [x] Sistema de duração e efeitos
-- [x] Power-ups visuais com toasts
-- [x] Comida temporizada
-- [x] Power-up Portal que cria portais
+- [x] 10 power-up types
+- [x] Positive and negative power-ups
+- [x] Duration and effect system
+- [x] Visual power-ups with toasts
+- [x] Timed food
+- [x] Portal power-up that creates portals
 
-### Mecânicas de Jogo
+### Gameplay Mechanics
 
-- [x] Movimento da cobra com detecção de colisão
-- [x] Sistema de comida com diferentes tipos
-- [x] Sistema de obstáculos (estáticos e móveis)
-- [x] Sistema de portais (teletransporte)
-- [x] Sistema de combos
-- [x] Sistema de vidas (até 3 vidas)
-- [x] Sistema de disparos de veneno
-- [x] Destruição de obstáculos com veneno
+- [x] Snake movement with collision detection
+- [x] Food system with multiple types
+- [x] Obstacles (static and moving)
+- [x] Portal teleport system
+- [x] Combo system
+- [x] Lives system (up to 3 lives)
+- [x] Poison shot system
+- [x] Obstacle destruction with poison
 
-### Sistema de Estatísticas
+### Statistics System
 
-- [x] Estatísticas de jogo (score, level, phase, etc.)
-- [x] Estatísticas por fase
-- [x] High score persistente
-- [x] Sistema de conquistas
-- [x] Rastreamento de comida consumida
-- [x] Rastreamento de obstáculos encontrados
+- [x] Game stats (score, level, phase, etc.)
+- [x] Per-phase statistics
+- [x] Persistent high score
+- [x] Achievement system
+- [x] Food consumed tracking
+- [x] Obstacles encountered tracking
 
-### Interface e UX
+### Interface and UX
 
-- [x] Interface moderna dark mode
-- [x] Layout totalmente responsivo (mobile-first)
-- [x] Controles desktop (teclado)
-- [x] Controles mobile avançados (D-pad direcional + botão de fogo)
-- [x] Sistema de pausa
-- [x] Transições suaves entre telas
-- [x] Animações de morte
-- [x] Animações de level up
-- [x] HUD integrado (phase e combo display)
-- [x] Botão START contextual (visível apenas quando necessário)
-- [x] Safe Areas para dispositivos com notch
+- [x] Modern dark-mode UI
+- [x] Fully responsive mobile-first layout
+- [x] Desktop controls (keyboard)
+- [x] Advanced mobile controls (directional D-pad + fire button)
+- [x] Pause system
+- [x] Smooth screen transitions
+- [x] Death animations
+- [x] Level-up animations
+- [x] Integrated HUD (phase and combo display)
+- [x] Contextual START button (visible only when needed)
+- [x] Safe areas for notched devices
 
-### Internacionalização (i18n)
+### Internationalization (i18n)
 
-- [x] Suporte para Português (Brasil)
-- [x] Suporte para Inglês (US)
-- [x] Detecção automática de idioma
-- [x] Persistência de preferência de idioma
-- [x] Seletor de idioma na interface
-- [x] Tradução completa de todas as strings:
-  - [x] UI geral
-  - [x] Fases e descrições
-  - [x] Bosses e descrições
-  - [x] Power-ups e descrições
-  - [x] Mensagens de transição
-  - [x] Estatísticas e conquistas
-  - [x] Painéis de debug
+- [x] Portuguese (Brazil) support
+- [x] English (US) support
+- [x] Automatic language detection
+- [x] Language preference persistence
+- [x] In-app language selector
+- [x] Full string coverage:
+  - [x] General UI
+  - [x] Phases and descriptions
+  - [x] Bosses and descriptions
+  - [x] Power-ups and descriptions
+  - [x] Transition messages
+  - [x] Statistics and achievements
+  - [x] Debug panels
 
-### Sistema de Logging
+### Logging System
 
-- [x] Sistema de logging estruturado com Pino
-- [x] Múltiplos contextos de log (GAME_LOOP, BOSS, PHASE, etc.)
-- [x] Logs de eventos importantes
-- [x] Logs não intrusivos (não interferem no jogo)
-- [x] Logs de debugging e observabilidade
+- [x] Structured logging with Pino
+- [x] Multiple log contexts (GAME_LOOP, BOSS, PHASE, etc.)
+- [x] Important event logs
+- [x] Non-intrusive logs (no gameplay impact)
+- [x] Debug and observability logs
 
 ### Performance
 
-- [x] Web Workers para lógica do jogo (game.worker.ts)
-- [x] Web Workers para renderização (render.worker.ts + OffscreenCanvas)
-- [x] Web Workers para partículas e clima (particle/weather workers)
-- [x] Frame buffering (separação de lógica e renderização)
-- [x] Memoização de componentes (React.memo)
-- [x] Memoização de cálculos (useMemo)
-- [x] Limites de entidades ativas (partículas, portais, disparos)
-- [x] Batching de atualizações de estado
-- [x] Otimizações CSS (transform, will-change)
-- [x] Redução de re-renders desnecessários
+- [x] Web Workers for game logic (`game.worker.ts`)
+- [x] Web Workers for rendering (`render.worker.ts` + OffscreenCanvas)
+- [x] Web Workers for particles and weather
+- [x] Frame buffering (logic vs. rendering separation)
+- [x] Component memoization (`React.memo`)
+- [x] Calculation memoization (`useMemo`)
+- [x] Active entity limits (particles, portals, shots)
+- [x] State update batching
+- [x] CSS optimizations (`transform`, `will-change`)
+- [x] Reduced unnecessary re-renders
 
 ### Mobile
 
-- [x] Layout responsivo
-- [x] Grid adaptativo
-- [x] Controles touch otimizados (D-pad direcional)
-- [x] Botão de fogo dedicado (botão central do D-pad)
-- [x] Prevenção de pull-to-refresh
-- [x] Otimizações de touch action
-- [x] Posicionamento otimizado de elementos (status bar, toasts, etc.)
-- [x] **Safe Areas (iOS/Android)** - Suporte completo a notches e barras de navegação
-- [x] **Layout Mobile-First** - Interface redesenhada especificamente para mobile
-- [x] **Botão START no Grid** - Centralizado no centro do grid, invisível durante gameplay
-- [x] **StatusBar Reposicionado** - Abaixo do grid do jogo para melhor hierarquia visual
-- [x] **Header Compacto** - Apenas informações essenciais (Level, Score, High Score)
+- [x] Responsive layout
+- [x] Adaptive grid
+- [x] Optimized touch controls (directional D-pad)
+- [x] Dedicated fire button (D-pad center)
+- [x] Pull-to-refresh prevention
+- [x] Touch action optimizations
+- [x] Optimized element placement (status bar, toasts, etc.)
+- [x] **Safe areas (iOS/Android)** — notches and system bars
+- [x] **Mobile-first layout** — mobile-specific UI
+- [x] **START on grid** — centered on grid, hidden during play
+- [x] **Repositioned StatusBar** — below grid for clearer hierarchy
+- [x] **Compact header** — Level, Score, High Score only
 
-### Segurança
+### Security
 
-- [x] Headers de segurança no HTML
+- [x] Security headers in HTML
 - [x] Content Security Policy
 - [x] X-Frame-Options
 - [x] X-XSS-Protection
-- [x] Validação de inputs
-- [x] Proteção contra manipulação de estado
+- [x] Input validation
+- [x] State tampering protection
 
-## 🔧 Melhorias Implementadas
+## 🔧 Improvements Delivered
 
 ### Performance
 
-- Frame buffering para separar lógica do jogo (60fps) de renderização React
-- Limites de partículas, portais e disparos simultâneos
-- Otimização de animações CSS com GPU
-- Redução de cálculos desnecessários com memoização
+- Frame buffering: 60fps internal logic vs. React rendering
+- Limits on particles, portals, and simultaneous shots
+- GPU-tuned CSS animations
+- Memoization to skip redundant work
 
-### UX Mobile
+### Mobile UX
 
-- D-pad direcional para controle preciso
-- Botão de fogo central sempre visível
-- Layout mobile-first otimizado para telas pequenas
-- Status bar reposicionado abaixo do grid do jogo
-- Toasts posicionados corretamente abaixo do header
-- **Safe Areas**: Suporte completo a env(safe-area-inset-*) para iOS e Android
-- **Botão START inteligente**: Centralizado no grid, desaparece durante gameplay
-- **Header compacto**: Apenas GameInfo (Level, Score, High Score) no mobile
-- **Overflow controlado**: Dados do header e StatusBar não truncam mais
+- Directional D-pad for precise control
+- Always-visible center fire button
+- Mobile-first layout for small screens
+- Status bar below the game grid
+- Toasts positioned below the header
+- **Safe areas:** `env(safe-area-inset-*)` for iOS and Android
+- **Smart START:** Centered on grid, hidden during gameplay
+- **Compact header:** GameInfo only on mobile
+- **Overflow control:** Header and StatusBar content no longer truncates
 
 ### Visual
 
-- 10 climas únicos por fase
-- Backgrounds dinâmicos
-- Efeitos de partículas
-- Animações suaves
-- Layout game-like com HUD integrado
+- 10 unique climates per phase
+- Dynamic backgrounds
+- Particle effects
+- Smooth animations
+- Game-like layout with integrated HUD
 
-## 📋 Funcionalidades Futuras (Sugestões)
+## 📋 Future Features (Suggestions)
 
 ### Multiplayer
 
-- [ ] Modo multiplayer online
-- [ ] Leaderboards global
-- [ ] Competições e torneios
+- [ ] Online multiplayer mode
+- [ ] Global leaderboards
+- [ ] Competitions and tournaments
 
-### Conteúdo Adicional
+### Additional Content
 
-- [ ] Mais fases e bosses
-- [ ] Power-ups adicionais
-- [ ] Modos de jogo alternativos
-- [ ] Níveis customizados
+- [ ] More phases and bosses
+- [ ] Additional power-ups
+- [ ] Alternate game modes
+- [ ] Custom levels
 
-### Melhorias Técnicas
+### Technical Improvements
 
-- [ ] Service Worker para PWA
-- [ ] Sistema de save/load de progresso
-- [ ] Integração com backend para rankings
-- [ ] Analytics e telemetria
+- [ ] Service Worker for PWA
+- [ ] Save/load progress
+- [ ] Backend integration for rankings
+- [ ] Analytics and telemetry
 
-### Acessibilidade
+### Accessibility
 
-- [ ] Suporte para leitores de tela
-- [ ] Opções de contraste
-- [ ] Controles alternativos
-- [ ] Legendas e indicações visuais
+- [ ] Screen reader support
+- [ ] Contrast options
+- [ ] Alternative controls
+- [ ] Captions and visual cues
 
-## 📝 Notas de Desenvolvimento
+## 📝 Development Notes
 
-### Decisões de Arquitetura
+### Architecture Decisions
 
-- **Frame Buffering**: Implementado para separar lógica do jogo (que roda a 60fps internamente) da renderização React, prevenindo travamentos na UI.
-- **Rate Limiting**: Sistema de validação implementado mas removido por enquanto (pode ser reativado se necessário).
-- **Sistema de Logging**: Usa Pino para logging estruturado, não intrusivo e categorizado por contexto.
+- **Frame buffering:** Separates 60fps game logic from React rendering to prevent UI stalls.
+- **Rate limiting:** Validation existed but was removed for now (can be re-enabled).
+- **Logging:** Pino for structured, non-intrusive, context-based logs.
 
-### Otimizações Realizadas
+### Optimizations
 
-- Redução de re-renders através de memoização
-- Limites de entidades ativas para performance
-- Batching de atualizações de estado
-- Otimização de animações CSS
-- Grid responsivo que se adapta ao tamanho da tela
+- Fewer re-renders via memoization
+- Active entity caps
+- State update batching
+- CSS animation tuning
+- Responsive grid sizing
 
-### Melhorias de UX
+### UX Improvements
 
-- Controles mobile com joystick analógico
-- Layout otimizado para diferentes tamanhos de tela
-- Efeitos visuais por fase para imersão
-- Transições suaves entre estados do jogo
+- Mobile controls with analog joystick
+- Layout for multiple screen sizes
+- Per-phase visuals for immersion
+- Smooth state transitions
 
-## 📈 Atualizações Recentes (v2.0)
+## 📈 Recent Updates (v2.0)
 
-### Layout Mobile Redesenhado
-- **Safe Areas**: Implementação completa de suporte a safe areas para iOS e Android usando `env(safe-area-inset-*)` e `viewport-fit=cover`
-- **Layout Reformulado**: Nova hierarquia visual mobile-first
-  - Header compacto com informações essenciais (Level, Score, High Score)
-  - StatusBar reposicionado abaixo do grid do jogo
-  - Botão START centralizado no centro do grid
-  - D-pad posicionado na base para melhor ergonomia
-- **Botão START Inteligente**: Desaparece automaticamente durante o jogo
-- **Overflow Controlado**: Conteúdo do header e StatusBar não trunca mais
-- **Espaçamento Otimizado**: Gaps e paddings ajustados para diferentes tamanhos de tela
+### Redesigned Mobile Layout
 
-### Melhorias Técnicas
-- Remoção de regras CSS duplicadas
-- Uso de `!important` para garantir especificidade em media queries
-- Combinação de `transform: translate()` com `scale()` para posicionamento e dimensionamento
+- **Safe areas:** Full `env(safe-area-inset-*)` and `viewport-fit=cover`
+- **Reformed hierarchy:**
+  - Compact header (Level, Score, High Score)
+  - StatusBar below game grid
+  - START centered on grid
+  - D-pad at bottom for ergonomics
+- **Smart START:** Auto-hides during play
+- **Overflow control:** Header and StatusBar no longer clip
+- **Spacing:** Gaps and padding tuned per breakpoint
 
-## 🐛 Issues Conhecidos
+### Technical
 
-Nenhum issue crítico conhecido no momento.
+- Removed duplicate CSS rules
+- `!important` where media-query specificity required it
+- Combined `transform: translate()` with `scale()` for layout
 
-## 📚 Documentação Relacionada
+## 🐛 Known Issues
 
-- `I18N_SYSTEM.md` - Documentação completa do sistema de i18n
-- `LOGGING_SYSTEM.md` - Documentação do sistema de logging
-- `PERFORMANCE_OPTIMIZATION_PLAN.md` - Detalhes das otimizações
-- `SISTEMA_COMBATE_BOSS.md` - Sistema de combate com bosses
-- `SISTEMA_TRANSICOES_FASE.md` - Sistema de transições
+No critical known issues at this time.
+
+## 📚 Related Documentation
+
+- `I18N_SYSTEM.md` — i18n documentation
+- `LOGGING_SYSTEM.md` — Logging documentation
+- `PERFORMANCE_OPTIMIZATION_PLAN.md` — Optimization details
+- `SISTEMA_COMBATE_BOSS.md` — Boss combat system
+- `SISTEMA_TRANSICOES_FASE.md` — Phase transitions

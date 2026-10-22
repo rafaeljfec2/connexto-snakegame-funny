@@ -1,143 +1,145 @@
-# Plano de Otimização de Performance - Separação de Lógica e Renderização
+# Performance Optimization Plan — Logic vs. Rendering Separation
 
-> **Status: ✅ IMPLEMENTADO** - As otimizações descritas neste documento foram implementadas com sucesso usando Web Workers e OffscreenCanvas.
+> **Historical.** Do not implement from this file. Current runtime: [`ARCHITECTURE.md`](./ARCHITECTURE.md). Trust map: [`README.md`](./README.md).
 
-## Implementação Atual
+> **Status: ✅ IMPLEMENTED** — The optimizations described here were implemented successfully using Web Workers and OffscreenCanvas.
 
-A arquitetura multi-thread foi implementada com os seguintes workers:
+## Current Implementation
 
-- `game.worker.ts` - Processa toda a lógica do jogo (movimento, colisões, IA)
-- `render.worker.ts` - Renderiza o tabuleiro usando OffscreenCanvas
-- `weather.worker.ts` - Gerencia efeitos climáticos de fundo
-- `particle.worker.ts` - Gerencia sistema de partículas e explosões
+The multi-thread architecture uses these workers:
 
-**Resultado**: Performance estável de 60 FPS em dispositivos móveis.
+- `game.worker.ts` — All game logic (movement, collisions, AI)
+- `render.worker.ts` — Board rendering via OffscreenCanvas
+- `weather.worker.ts` — Background weather effects
+- `particle.worker.ts` — Particles and explosions
+
+**Result:** Stable 60 FPS on mobile devices.
 
 ---
 
-## Problemas Identificados (Histórico)
+## Identified Issues (Historical)
 
-### 1. **Re-render Desnecessário a Cada Frame**
+### 1. **Unnecessary Re-render Every Frame**
 
-- O `updateGameState` chama `setGameState` a cada frame do game loop
-- Isso força re-render de todos os componentes que dependem de `gameState`
-- GameBoard renderiza todos os elementos (snake, obstacles, portals, particles, shots) a cada atualização
+- `updateGameState` calls `setGameState` on every game-loop frame
+- That forces re-renders of every component that depends on `gameState`
+- GameBoard re-renders all elements (snake, obstacles, portals, particles, shots) on each update
 
-### 2. **Processamento Pesado no Thread Principal**
+### 2. **Heavy Work on the Main Thread**
 
-- Toda lógica de jogo roda no mesmo thread da UI
-- Cálculos complexos (colisões, geração de obstáculos, portais, boss) bloqueiam a renderização
-- Múltiplas iterações e transformações de arrays a cada frame
+- All game logic runs on the same thread as the UI
+- Complex work (collisions, obstacle generation, portals, boss) blocks rendering
+- Multiple iterations and array transforms every frame
 
-### 3. **Falta de Memoização**
+### 3. **Missing Memoization**
 
-- Componentes não estão memoizados (React.memo)
-- Cálculos repetidos sem useMemo
-- Criação de novos objetos/arrays a cada render
+- Components are not wrapped in `React.memo`
+- Repeated calculations without `useMemo`
+- New objects/arrays created on every render
 
-## Abordagens Propostas
+## Proposed Approaches
 
-### **Abordagem 1: Frame Buffer + Estado Desacoplado (RECOMENDADA)**
+### **Approach 1: Frame Buffer + Decoupled State (RECOMMENDED)**
 
-**Conceito**: Separar o estado interno do jogo (em refs) do estado do React. Atualizar React state apenas quando necessário para renderização.
+**Concept:** Keep internal game state in refs separate from React state. Update React state only when needed for display.
 
-**Vantagens**:
+**Advantages:**
 
-- ✅ Zero lag - lógica roda independente de renderização
-- ✅ Controle preciso sobre quando renderizar
-- ✅ Compatível com React atual
-- ✅ Não requer Web Workers (evita complexidade)
+- ✅ Zero lag — logic runs independently of rendering
+- ✅ Precise control over when to render
+- ✅ Works with the current React setup
+- ✅ No Web Workers required (avoids extra complexity)
 
-**Implementação**:
+**Implementation:**
 
-1. Manter estado do jogo em `useRef` (não causa re-render)
-2. Atualizar React state apenas a cada N frames ou quando há mudanças visuais significativas
-3. Usar `requestAnimationFrame` para sincronizar renderização
-4. Memoizar componentes pesados
+1. Keep game state in `useRef` (no re-render)
+2. Update React state every N frames or on significant visual changes
+3. Use `requestAnimationFrame` to sync rendering
+4. Memoize heavy components
 
-### **Abordagem 2: Web Workers (ALTERNATIVA)**
+### **Approach 2: Web Workers (ALTERNATIVE)**
 
-**Conceito**: Mover processamento pesado para Web Worker.
+**Concept:** Move heavy processing to a Web Worker.
 
-**Desvantagens**:
+**Disadvantages:**
 
-- ❌ Limitações: Workers não podem acessar DOM
-- ❌ Complexidade: Serialização/desserialização de dados
-- ❌ Overhead de comunicação
-- ❌ Nem todo código pode ser movido (dependências do browser)
+- ❌ Workers cannot access the DOM
+- ❌ Serialization overhead and complexity
+- ❌ Communication cost
+- ❌ Not all code can move (browser dependencies)
 
-**Quando usar**: Apenas para cálculos muito pesados e independentes (ex: pathfinding, AI).
+**When to use:** Very heavy, independent calculations only (e.g. pathfinding, AI).
 
-### **Abordagem 3: Debouncing/Throttling de Estado (COMPLEMENTAR)**
+### **Approach 3: Debouncing/Throttling State (COMPLEMENTARY)**
 
-**Conceito**: Agrupar múltiplas atualizações de estado em batches.
+**Concept:** Batch multiple state updates.
 
-**Já implementado parcialmente**: Sistema de batching para disparos.
+**Partially implemented:** Batching for poison shots.
 
-## Plano de Implementação (Abordagem 1)
+## Implementation Plan (Approach 1)
 
-### Fase 1: Estado Desacoplado com Frame Buffer
+### Phase 1: Decoupled State with Frame Buffer
 
-1. **Criar sistema de frame buffer**:
-   - Manter `gameStateInternalRef` com estado atual
-   - Atualizar React state apenas quando necessário
-   - Usar `requestAnimationFrame` para sincronização
+1. **Frame buffer system:**
+   - Hold current state in `gameStateInternalRef`
+   - Update React state only when needed
+   - Sync with `requestAnimationFrame`
 
-2. **Otimizar frequência de updates**:
-   - Atualizar estado React a cada 2-3 frames (para 60fps visual)
-   - Lógica do jogo continua rodando a cada frame
-   - Renderização "lagada" mas sem travamentos
+2. **Update frequency:**
+   - React state every 2–3 frames (60 FPS feel)
+   - Game logic still every frame
+   - Slightly “lagged” visuals but no freezes
 
-3. **Interpolação visual** (opcional):
-   - Para animações mais suaves
-   - Interpolar posições entre frames
+3. **Visual interpolation** (optional):
+   - Smoother motion
+   - Interpolate positions between frames
 
-### Fase 2: Memoização de Componentes
+### Phase 2: Component Memoization
 
-1. **Memoizar GameBoard**:
+1. **Memoize GameBoard:**
 
    ```tsx
    export const GameBoard = React.memo(({ snake, food, ... }) => {
-     // componente
+     // component
    });
    ```
 
-2. **Memoizar elementos pesados**:
+2. **Memoize heavy elements:**
    - SnakeSegment
    - Obstacle
    - PoisonShot
    - ParticleSystem
 
-3. **useMemo para cálculos**:
+3. **`useMemo` for calculations:**
    - Portal pairs
    - Active obstacles
    - Filtered particles
 
-### Fase 3: Otimizações Específicas
+### Phase 3: Targeted Optimizations
 
-1. **Virtualização** (se necessário):
-   - Renderizar apenas elementos visíveis no viewport
-   - Para grid grande com muitos elementos
+1. **Virtualization** (if needed):
+   - Render only viewport-visible entities
+   - For large grids with many objects
 
-2. **Canvas rendering** (alternativa):
-   - Usar Canvas API em vez de DOM
-   - Renderização mais performática
-   - Mais complexo de implementar
+2. **Canvas rendering** (alternative):
+   - Canvas API instead of DOM
+   - Better draw performance
+   - More implementation complexity
 
-## Decisão: Implementar Abordagem 1
+## Decision: Implement Approach 1
 
-**Razão**:
+**Reason:**
 
-- Melhor relação custo/benefício
-- Implementação mais simples
-- Mantém arquitetura React atual
-- Resolve problema de lag sem adicionar complexidade excessiva
+- Best cost/benefit
+- Simpler to ship
+- Keeps current React architecture
+- Fixes lag without excessive complexity
 
-## Implementação Imediata
+## Immediate Implementation (Historical Note)
 
-Vou implementar:
+Planned work:
 
-1. Sistema de frame buffer para desacoplar lógica de renderização
-2. Memoização de componentes críticos
-3. Throttling inteligente de atualizações de estado
-4. useMemo para cálculos pesados
+1. Frame buffer to decouple logic from rendering
+2. Memoization of critical components
+3. Smart throttling of state updates
+4. `useMemo` for expensive calculations

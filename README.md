@@ -149,15 +149,13 @@ Each phase has a unique boss with special abilities:
 
 ### 🔧 Technical Features
 
-- **Multi-Thread Architecture (Web Workers)**:
-  - `game.worker.ts`: Processes all game logic (movement, collisions, AI) in a separate thread to not block the UI.
-  - `render.worker.ts`: Renders the game board (Snake, Food, Obstacles, Portals) using `OffscreenCanvas` in another thread, ensuring smooth graphics.
-  - `weather.worker.ts`: Manages background weather effects.
-  - `particle.worker.ts`: Manages the particle and explosion system.
-- **Mobile Performance**:
-  - Optimizations for stable 60 FPS.
-  - Removal of heavy shadows on mobile.
-  - State update batching.
+Five JavaScript event loops. The main thread keeps DOM, input, HUD, Howler audio, and `localStorage`. Gameplay, board paint, weather, and particles each run in a dedicated Web Worker. Heaps are isolated: simulation state is message-passing, not shared memory. The full map of clocks and channels is in [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md).
+
+- **`game.worker`**: simulation. `requestAnimationFrame` wakes every display frame; the snake steps only when `effectiveSpeed` elapses (120 ms down to 40 ms). Direction input is a queue of at most 3 turns, consumed one per tick.
+- **`render.worker`**: board paint on a transferred `OffscreenCanvas`. Interpolates between simulation ticks so the board still paints at display rate. Snake and boss positions arrive as transferable `Float32Array`s over a direct `MessageChannel` from the game worker.
+- **`weather.worker` / `particle.worker`**: own canvases and frame loops. Particle spawns hop through the main thread so the burst can be placed in CSS pixels.
+- **HUD**: worker deltas land in an external store (`useSyncExternalStore`). Components subscribe to slices, so a movement tick does not reconcile the whole React tree.
+- **Mobile performance**: 60 FPS target on mid-tier phones, lighter shadows on small screens, safe-area insets.
 - **Safe Areas (iOS/Android)**:
   - Full support for `env(safe-area-inset-*)` for notches and navigation bars.
   - `viewport-fit=cover` for fullscreen on modern devices.
@@ -190,9 +188,10 @@ pnpm build
 
 ```
 src/
-├── workers/            # Web Workers (Logic, Render, Weather, Particles)
+├── workers/            # game, render, weather, particle workers
+├── state/              # External game-state store (useSyncExternalStore)
 ├── components/         # React Components (UI)
-├── hooks/              # Custom Hooks
+├── hooks/              # Custom Hooks (useGameLoop, useKeyboard, ...)
 ├── types/              # Type definitions
 ├── utils/              # Utility functions
 ├── constants/          # Game constants
@@ -294,9 +293,10 @@ The game has debug tools to facilitate testing and development:
 
 ## 📊 Performance
 
-- **Web Workers**: Total separation of logic and rendering from the main thread.
-- **OffscreenCanvas**: Complex graphics without cost to the UI thread.
-- **Memoization**: Efficient use of React.memo and useMemo.
+- **Five event loops**: main thread plus `game`, `render`, `weather`, and `particle` workers. See [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md).
+- **Two clocks**: simulation steps on `effectiveSpeed` (120–40 ms); the render worker interpolates those steps at display rate.
+- **Direct render channel**: `MessageChannel` plus transferable position buffers, so the snake polyline does not round-trip through React.
+- **Slice store**: `useSyncExternalStore` and `React.memo` keep HUD work proportional to the fields that changed ([ADR-0004](./docs/ADR/0004-react-external-store-and-css-driven-background.md)).
 
 ## 🤖 Working with AI agents
 
@@ -304,7 +304,8 @@ This repository is set up for collaborative work with AI coding tools (Cursor, C
 
 - **Single source of truth**: [`AGENTS.md`](./AGENTS.md). Read it before any other instruction file.
 - **Workflow**: Spec-Driven Development. See [`docs/SDD/README.md`](./docs/SDD/README.md).
-- **Specs in flight**: [`docs/SDD/specs/`](./docs/SDD/specs/) — REF-01 (perf observability), REF-02 (audio), REF-03 (texture atlas).
+- **Specs**: [`docs/SDD/README.md`](./docs/SDD/README.md) indexes REF-01…REF-10 (REF-03 is Archived; do not implement).
+- **Doc trust map**: [`docs/README.md`](./docs/README.md).
 - **Architecture decisions**: [`docs/ADR/`](./docs/ADR/).
 - **Validation harness**: `bash scripts/harness/validate.sh` (must pass before any task is declared done). See [`docs/SDD/HARNESS.md`](./docs/SDD/HARNESS.md).
 - **PR checklist**: [`docs/HARNESS_CHECKLIST.md`](./docs/HARNESS_CHECKLIST.md).
@@ -313,16 +314,29 @@ Any AI agent that follows `AGENTS.md` and the harness can contribute autonomousl
 
 ## 📚 Additional Documentation
 
-Check the documents in `docs/` for more details:
+Start at the trust map: [`docs/README.md`](./docs/README.md). It separates canonical docs from domain notes and historical files agents must not treat as contracts.
 
-- `I18N_SYSTEM.md`
-- `LOGGING_SYSTEM.md`
-- `PERFORMANCE_OPTIMIZATION_PLAN.md`
-- `SISTEMA_COMBATE_BOSS.md`
-- `CONVENTIONS.md` — project code conventions
-- `HARNESS_CHECKLIST.md` — definition-of-done checklist for PRs
-- `SDD/` — Spec-Driven Development methodology, template, and active specs
-- `ADR/` — Architecture Decision Records
+**Canonical**
+
+- [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) — main thread, workers, clocks, message channels
+- [`docs/CONVENTIONS.md`](./docs/CONVENTIONS.md) — coding conventions
+- [`docs/HARNESS_CHECKLIST.md`](./docs/HARNESS_CHECKLIST.md) — PR definition of done
+- [`docs/SDD/`](./docs/SDD/) — Spec-Driven Development + REF-01…REF-10 index
+- [`docs/ADR/`](./docs/ADR/) — Architecture Decision Records
+- [`AGENTS.md`](./AGENTS.md) — agent contract
+
+**Domain (verify in code)**
+
+- [`docs/SISTEMA_COMBATE_BOSS.md`](./docs/SISTEMA_COMBATE_BOSS.md)
+- [`docs/I18N_SYSTEM.md`](./docs/I18N_SYSTEM.md)
+- [`docs/LOGGING_SYSTEM.md`](./docs/LOGGING_SYSTEM.md)
+
+**Historical (do not implement from these)**
+
+- `docs/PERFORMANCE_OPTIMIZATION_PLAN.md`, `docs/OTIMIZACOES_PERFORMANCE.md`, `docs/OTIMIZACOES_MOBILE.md`
+- `docs/REFACTORING_PLAN.md`, `docs/REFACTORING_SUMMARY.md`
+- `docs/LOGGING_IMPLEMENTATION_GUIDE.md`, `docs/LOGGING_STATUS.md`
+- `docs/IDEIAS_MELHORIAS.md`, `docs/DOMINIO_SUGESTOES.md`
 
 ## 📈 Recent Evolution
 

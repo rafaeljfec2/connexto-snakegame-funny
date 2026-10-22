@@ -97,9 +97,12 @@ log.info({ event: 'web-vitals', lcp, inp, cls }, 'web-vitals captured');
 
 ## Worker boundaries
 
-- Workers are **pure** — no DOM access, no `document`, no `window` outside `globalThis`.
-- Communication via `postMessage` or `MessageChannel` with typed payloads (`src/types/`).
-- Avoid sending large objects every frame; prefer deltas.
+The runtime map is [`ARCHITECTURE.md`](./ARCHITECTURE.md). Do not move the simulation tick or the board paint back onto the main thread without a new ADR.
+
+- Workers are **pure** — no DOM access, no `document`, no `window` outside `globalThis`. Audio, `localStorage`, and DOM events stay on the main thread.
+- Communication via `postMessage` or `MessageChannel` with typed payloads (`src/types/`). Do not introduce `SharedArrayBuffer` for game state.
+- HUD updates are deltas (`GAME_STATE_DELTA`). Snake and boss positions go to the render worker as transferable `Float32Array`s, not through React.
+- Particle bursts may hop through the main thread (`SPAWN_PARTICLES` → `game-spawn-particles`) so they can be placed in CSS pixels. Do not give the game worker a DOM measurement.
 
 ## Tests
 

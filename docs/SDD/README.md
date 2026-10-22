@@ -68,14 +68,22 @@ A spec moves to `Approved` only after the user signs off. Implementation starts 
 
 ## Existing specs
 
-- [REF-01 — Performance Observability Panel](specs/REF-01-perf-observability.md)
-- [REF-02 — Audio (SFX) with Howler.js](specs/REF-02-audio-howler.md)
-- [REF-03 — Texture Atlas on Canvas 2D](specs/REF-03-texture-atlas.md) (Archived; superseded by REF-04)
-- [REF-04 — Main-thread long-task elimination](specs/REF-04-main-thread-long-tasks.md)
-- [REF-05 — Cumulative Layout Shift](specs/REF-05-cumulative-layout-shift.md)
-- [REF-06 — Visual redesign: Neon Arcade](specs/REF-06-visual-redesign.md)
-- [REF-07 — Light theme mode](specs/REF-07-theme-light-mode.md) (Done)
-- [REF-08 — Snake skins system](specs/REF-08-snake-skins.md) (Done)
+Statuses are taken from each file’s header. Do **not** implement from `Archived` specs.
+
+| Spec | Topic | Status |
+|---|---|---|
+| [REF-01](specs/REF-01-perf-observability.md) | Performance Observability Panel | Done |
+| [REF-02](specs/REF-02-audio-howler.md) | Audio (SFX) with Howler.js | Done |
+| [REF-03](specs/REF-03-texture-atlas.md) | Texture Atlas on Canvas 2D | **Archived** (gate not met; do not implement) |
+| [REF-04](specs/REF-04-main-thread-long-tasks.md) | Main-thread long-task elimination | Done |
+| [REF-05](specs/REF-05-cumulative-layout-shift.md) | Cumulative Layout Shift | Done |
+| [REF-06](specs/REF-06-visual-redesign.md) | Visual redesign: Neon Arcade | Done |
+| [REF-07](specs/REF-07-theme-light-mode.md) | Light theme mode | Done |
+| [REF-08](specs/REF-08-snake-skins.md) | Snake skins system | Done |
+| [REF-09](specs/REF-09-compact-landscape-layout.md) | Compact landscape playfield | Done |
+| [REF-10](specs/REF-10-gameplay-feedback-fixes.md) | Gameplay feedback and collision fixes | Done |
+
+Runtime map for workers and loops: [`../ARCHITECTURE.md`](../ARCHITECTURE.md). Doc trust map: [`../README.md`](../README.md).
 
 ## When to write a new spec
 

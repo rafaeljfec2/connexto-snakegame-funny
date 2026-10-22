@@ -1,416 +1,418 @@
-# 🎮 Ideias para Tornar o Jogo Único e Diferente
+# 🎮 Ideas to Make the Game Unique
 
-> **Status de Implementação:** ✅ = Já implementado | 🔄 = Em progresso | ⏳ = Planejado
+> **Historical / backlog.** Not a contract. New work needs an SDD spec. Runtime: [`ARCHITECTURE.md`](./ARCHITECTURE.md). Trust map: [`README.md`](./README.md).
 
----
-
-## 📋 FASE 1: Fundamentos (Já Implementados) ✅
-
-### ✅ 1. **Grid Escalável**
-
-- Grid aumentado para 30x30
-- Sistema preparado para mudanças de tamanho
-
-### ✅ 2. **Sistema de Combos**
-
-- Multiplicador de pontos ao comer várias comidas seguidas rapidamente
-- Barra de combo que aumenta e pode ser perdida
-- Efeitos visuais quando atinge combos altos
-- Display visual no canto superior direito
-
-### ✅ 3. **Power-ups Negativos (Debuffs)**
-
-- Comida "venenosa" (POISON) que encolhe a cobra
-- Comida que inverte os controles temporariamente (REVERSE_CONTROLS)
-- Comida que torna a cobra mais lenta (SLOW_DOWN)
-- Adiciona desafio estratégico
-
-### ✅ 4. **Partículas e Efeitos Visuais**
-
-- Efeitos de partículas ao comer comida
-- Diferentes cores baseadas no tipo de comida
-- Animações suaves
-
-### ✅ 5. **Obstáculos e Barreiras**
-
-- Obstáculos que aparecem em níveis específicos (a partir do nível 3)
-- 3 padrões diferentes de obstáculos
-- Sistema de colisão implementado
-
-### ✅ 6. **Sistema de Conquistas (Achievements)**
-
-- 9 conquistas desbloqueáveis
-- Notificações visuais ao desbloquear
-- Persistência no localStorage
+> **Implementation status:** ✅ = Done | 🔄 = In progress | ⏳ = Planned
 
 ---
 
-## 📋 FASE 2: Melhorias Visuais e Feedback (Próximas)
+## 📋 PHASE 1: Foundations (Already Implemented) ✅
 
-### ⏳ 7. **Sons e Música**
+### ✅ 1. **Scalable Grid**
 
-**Complexidade:** Média | **Impacto:** Alto
+- Grid increased to 30×30
+- System ready for size changes
 
-- Efeitos sonoros para cada ação (comer comida, colisão, combo)
-- Música de fundo que muda com o nível
-- Feedback sonoro para power-ups
-- Controle de volume no menu
+### ✅ 2. **Combo System**
 
-### ⏳ 8. **Animações Mais Elaboradas**
+- Score multiplier for eating several foods quickly in a row
+- Combo bar that builds and can be lost
+- Visual effects at high combos
+- Display in the top-right corner
 
-**Complexidade:** Baixa | **Impacto:** Médio
+### ✅ 3. **Negative Power-Ups (Debuffs)**
 
-- Animação de "engolir" quando come comida
-- Transições suaves entre níveis
-- Efeitos de tela ao game over melhorados
-- Animação de morte da cobra
+- Poison food (POISON) that shrinks the snake
+- Food that reverses controls temporarily (REVERSE_CONTROLS)
+- Food that slows the snake (SLOW_DOWN)
+- Adds strategic challenge
 
-### ⏳ 9. **Rastro Visual na Cobra**
+### ✅ 4. **Particles and Visual Effects**
 
-**Complexidade:** Baixa | **Impacto:** Médio
+- Particle effects when eating food
+- Colors vary by food type
+- Smooth animations
 
-- Rastro visual que segue a cobra
-- Efeito de "trail" com fade-out
-- Opcional e configurável
+### ✅ 5. **Obstacles and Barriers**
 
-### ✅ 10. **Background Dinâmico**
+- Obstacles from specific levels (from level 3)
+- Three obstacle patterns
+- Collision system implemented
 
-**Complexidade:** Média | **Impacto:** Médio | **STATUS: IMPLEMENTADO**
+### ✅ 6. **Achievement System**
 
-- Background que muda com o nível ✅
-- Efeitos parallax sutis ✅
-- Partículas no fundo ✅
-- Gradientes dinâmicos ✅
-- 10 climas únicos por fase ✅
-
-### ⏳ 11. **Modo Dark/Light**
-
-**Complexidade:** Baixa | **Impacto:** Médio
-
-- Alternância de temas
-- Sistema de cores adaptativo
-- Preferências salvas no localStorage
+- 9 unlockable achievements
+- Visual notifications on unlock
+- Persistence in localStorage
 
 ---
 
-## 📋 FASE 3: Funcionalidades de Jogabilidade Básicas
+## 📋 PHASE 2: Visual Polish and Feedback (Next)
 
-### ✅ 12. **Multiplicador de Pontos Baseado em Comprimento**
+### ⏳ 7. **Sound and Music**
 
-**Complexidade:** Baixa | **Impacto:** Médio
+**Complexity:** Medium | **Impact:** High
 
-- Quanto maior a cobra, mais pontos você ganha
-- Incentiva estratégia de crescimento
-- Fórmula: pontos base × (1 + comprimento/10)
+- SFX for actions (eat, collision, combo)
+- Background music that changes with level
+- Audio feedback for power-ups
+- Volume control in menu
 
-### ✅ 13. **Comida com Timer**
+### ⏳ 8. **Richer Animations**
 
-**Complexidade:** Média | **Impacto:** Alto
+**Complexity:** Low | **Impact:** Medium
 
-- Comidas que desaparecem se não forem comidas a tempo
-- Comidas especiais que aparecem por pouco tempo
-- Pressão adicional e estratégia
-- Indicador visual do tempo restante
+- “Swallow” animation when eating
+- Smooth level transitions
+- Improved game over screen effects
+- Snake death animation
 
-### ✅ 14. **Sistema de Vidas**
+### ⏳ 9. **Visual Snake Trail**
 
-**Complexidade:** Média | **Impacto:** Alto
+**Complexity:** Low | **Impact:** Medium
 
-- Ter 3 vidas antes de game over
-- Power-up de vida extra
-- Continue após morte com penalidade
-- Display visual de vidas restantes
+- Trail following the snake
+- Fade-out trail effect
+- Optional and configurable
 
-### ✅ 15. **Estatísticas Detalhadas**
+### ✅ 10. **Dynamic Background**
 
-**Complexidade:** Média | **Impacto:** Médio | **STATUS: IMPLEMENTADO**
+**Complexity:** Medium | **Impact:** Medium | **STATUS: IMPLEMENTED**
 
-- Tela de estatísticas pós-jogo ✅
-- Estatísticas por fase ✅
-- Histórico de partidas ✅
-- Tempo de jogo, comidas comidas, etc. ✅
-- High score persistente ✅
-- Sistema de conquistas ✅
+- Background changes with level ✅
+- Subtle parallax ✅
+- Background particles ✅
+- Dynamic gradients ✅
+- 10 unique climates per phase ✅
+
+### ⏳ 11. **Dark/Light Mode**
+
+**Complexity:** Low | **Impact:** Medium
+
+- Theme toggle
+- Adaptive color system
+- Preferences saved in localStorage
 
 ---
 
-## 📋 FASE 4: Funcionalidades Intermediárias
+## 📋 PHASE 3: Core Gameplay Features
 
-### ✅ 16. **Sistema de Skins/Temas** (REF-08)
+### ✅ 12. **Length-Based Score Multiplier**
 
-**Complexidade:** Média | **Impacto:** Alto | **Status:** Shipped — ver [REF-08](./SDD/specs/REF-08-snake-skins.md) e [ADR-0006](./ADR/0006-orthogonal-identity-axes-and-boss-outline-soft-override.md)
+**Complexity:** Low | **Impact:** Medium
 
-- [x] Diferentes skins para a cobra (4 paletas: Neon Green, Retro Arcade, Frozen Ice, Magenta Blaze)
-- [x] Seleção em `PowerUpsLegendDrawer` → Settings (`role="radiogroup"` acessível, teclado ArrowLeft/ArrowRight)
-- [x] Persistência em `localStorage['snake-game-skin']`, independente do tema (REF-07)
-- [x] Boss preserva cor narrativa, recebe outline de contraste derivado do skin do jogador (ADR-0006)
-- [ ] Desbloqueáveis por conquistas — deliberadamente fora de escopo (todas as skins grátis desde o dia 1); pode virar extensão aditiva futura
+- Longer snake earns more points
+- Encourages growth strategy
+- Formula: base points × (1 + length/10)
 
-### ⏳ 17. **Comida Especial: Multi-Food (Rastro de Comida)**
+### ✅ 13. **Timed Food**
 
-**Complexidade:** Alta | **Impacto:** Alto
+**Complexity:** Medium | **Impact:** High
 
-- Ao comer certas comidas especiais, várias comidas aparecem em sequência
-- O jogador precisa seguir o rastro antes que desapareçam
-- Bônus maior se conseguir todas
-- Power-up especial que ativa o modo
+- Food disappears if not eaten in time
+- Special food with short lifetime
+- Extra pressure and strategy
+- Visual time remaining indicator
 
-### ⏳ 18. **Sistema de Missões/Desafios Diários**
+### ✅ 14. **Lives System**
 
-**Complexidade:** Alta | **Impacto:** Alto
+**Complexity:** Medium | **Impact:** High
 
-- Desafios diários com recompensas
-- "Coma 50 comidas em uma partida"
-- "Alcance nível 10 sem morrer"
-- "Use 5 power-ups em uma partida"
-- Sistema de recompensas
+- Three lives before game over
+- Extra-life power-up
+- Continue after death with penalty
+- Visual remaining lives display
+
+### ✅ 15. **Detailed Statistics**
+
+**Complexity:** Medium | **Impact:** Medium | **STATUS: IMPLEMENTED**
+
+- Post-game statistics screen ✅
+- Per-phase statistics ✅
+- Match history ✅
+- Play time, food eaten, etc. ✅
+- Persistent high score ✅
+- Achievement system ✅
+
+---
+
+## 📋 PHASE 4: Intermediate Features
+
+### ✅ 16. **Skins/Themes System** (REF-08)
+
+**Complexity:** Medium | **Impact:** High | **Status:** Shipped — see [REF-08](./SDD/specs/REF-08-snake-skins.md) and [ADR-0006](./ADR/0006-orthogonal-identity-axes-and-boss-outline-soft-override.md)
+
+- [x] Multiple snake skins (4 palettes: Neon Green, Retro Arcade, Frozen Ice, Magenta Blaze)
+- [x] Selection in `PowerUpsLegendDrawer` → Settings (accessible `role="radiogroup"`, ArrowLeft/ArrowRight)
+- [x] Persistence in `localStorage['snake-game-skin']`, independent of theme (REF-07)
+- [x] Boss keeps narrative color; contrast outline derived from player skin (ADR-0006)
+- [ ] Unlock via achievements — intentionally out of scope (all skins free day one); possible future additive extension
+
+### ⏳ 17. **Special Food: Multi-Food (Food Trail)**
+
+**Complexity:** High | **Impact:** High
+
+- Certain special foods spawn a sequence of foods
+- Player must follow the trail before they vanish
+- Bigger bonus if all are collected
+- Special power-up activates the mode
+
+### ⏳ 18. **Daily Missions/Challenges**
+
+**Complexity:** High | **Impact:** High
+
+- Daily challenges with rewards
+- “Eat 50 foods in one run”
+- “Reach level 10 without dying”
+- “Use 5 power-ups in one run”
+- Reward system
 
 ### ✅ 19. **Teleport/Portal**
 
-**Complexidade:** Alta | **Impacto:** Alto
+**Complexity:** High | **Impact:** High
 
-- Portais que teletransportam a cobra
-- Estratégia de usar portais para evitar colisões
-- Power-up de portal temporário
-- Dois portais conectados
+- Portals teleport the snake
+- Strategy to avoid collisions via portals
+- Temporary portal power-up
+- Paired connected portals
 
-### ⏳ 20. **Sistema de Tempo Slow-Motion**
+### ⏳ 20. **Slow-Motion Power-Up**
 
-**Complexidade:** Média | **Impacto:** Médio
+**Complexity:** Medium | **Impact:** Medium
 
-- Power-up que desacelera o tempo
-- Útil para situações difíceis
-- Duração curta
-- Efeito visual de distorção
-
----
-
-## 📋 FASE 5: Modos de Jogo Alternativos
-
-### ⏳ 21. **Modo Time Attack**
-
-**Complexidade:** Média | **Impacto:** Alto
-
-- Completar objetivos em tempo limitado
-- Metas por nível
-- Pontuação baseada em velocidade
-- Timer visual
-
-### ⏳ 22. **Modo Sobrevivência**
-
-**Complexidade:** Baixa | **Impacto:** Médio
-
-- Sobreviver o máximo de tempo possível
-- Velocidade aumenta constantemente
-- Foco em tempo ao invés de pontos
-- Leaderboard de sobrevivência
-
-### ⏳ 23. **Modo Labirinto**
-
-**Complexidade:** Média | **Impacto:** Alto
-
-- Grid com obstáculos fixos pré-definidos
-- Mapas diferentes por nível
-- Desafio de navegação
-
-### ⏳ 24. **Modo Zen**
-
-**Complexidade:** Baixa | **Impacto:** Baixo
-
-- Velocidade constante, mais relaxante
-- Sem game over (apenas quando sair)
-- Foco em crescimento e exploração
+- Power-up slows time
+- Useful in tight situations
+- Short duration
+- Visual distortion effect
 
 ---
 
-## 📋 FASE 6: Funcionalidades Avançadas
+## 📋 PHASE 5: Alternate Game Modes
 
-### ⏳ 25. **Grid Dinâmico**
+### ⏳ 21. **Time Attack Mode**
 
-**Complexidade:** Alta | **Impacto:** Alto
+**Complexity:** Medium | **Impact:** High
 
-- Grid que muda de tamanho em certos níveis
-- Grid rotativo (gira durante o jogo)
-- Grid que se expande/contrai
-- Efeitos visuais de transição
+- Complete objectives within a time limit
+- Per-level goals
+- Score based on speed
+- Visible timer
 
-### ✅ 26. **Obstáculos Móveis**
+### ⏳ 22. **Survival Mode**
 
-**Complexidade:** Alta | **Impacto:** Alto | **STATUS: IMPLEMENTADO**
+**Complexity:** Low | **Impact:** Medium
 
-- Obstáculos que se deslocam pelo grid ✅
-- Padrões de movimento diferentes ✅
-- Evitar colisões dinâmicas ✅
-- Boss "O Desafiador" move obstáculos em direção à cobra ✅
+- Survive as long as possible
+- Speed increases constantly
+- Focus on time instead of score
+- Survival leaderboard
 
-### ⏳ 27. **Modo Multiplayer Local (2 Cobras)**
+### ⏳ 23. **Maze Mode**
 
-**Complexidade:** Muito Alta | **Impacto:** Muito Alto
+**Complexity:** Medium | **Impact:** High
 
-- Duas cobras no mesmo grid
-- Competição por comida
-- Um pode comer o outro em certos modos
-- Controles separados (WASD + Arrow Keys)
+- Grid with fixed predefined obstacles
+- Different maps per level
+- Navigation challenge
 
-### ⏳ 28. **Cobras Rivais (IA)**
+### ⏳ 24. **Zen Mode**
 
-**Complexidade:** Muito Alta | **Impacto:** Alto
+**Complexity:** Low | **Impact:** Low
 
-- Cobras controladas por IA que competem por comida
-- Evitar ou enfrentar as rivais
-- Diferentes níveis de dificuldade da IA
+- Constant speed, relaxed pace
+- No game over (until exit)
+- Focus on growth and exploration
+
+---
+
+## 📋 PHASE 6: Advanced Features
+
+### ⏳ 25. **Dynamic Grid**
+
+**Complexity:** High | **Impact:** High
+
+- Grid size changes at certain levels
+- Rotating grid during play
+- Expanding/contracting grid
+- Transition visuals
+
+### ✅ 26. **Moving Obstacles**
+
+**Complexity:** High | **Impact:** High | **STATUS: IMPLEMENTED**
+
+- Obstacles move on the grid ✅
+- Different movement patterns ✅
+- Dynamic collision avoidance ✅
+- Boss “O Desafiador” moves obstacles toward the snake ✅
+
+### ⏳ 27. **Local Multiplayer (2 Snakes)**
+
+**Complexity:** Very High | **Impact:** Very High
+
+- Two snakes on one grid
+- Compete for food
+- Eat the other snake in some modes
+- Split controls (WASD + arrow keys)
+
+### ⏳ 28. **Rival Snakes (AI)**
+
+**Complexity:** Very High | **Impact:** High
+
+- AI snakes compete for food
+- Avoid or fight rivals
+- Multiple AI difficulty levels
 - AI pathfinding
 
 ---
 
-## 📋 FASE 7: Funcionalidades Muito Avançadas
+## 📋 PHASE 7: Very Advanced Features
 
-### ⏳ 29. **Sistema de Evolução**
+### ⏳ 29. **Evolution System**
 
-**Complexidade:** Alta | **Impacto:** Alto
+**Complexity:** High | **Impact:** High
 
-- Cobra evolui visualmente conforme cresce
-- Diferentes formas em diferentes tamanhos
-- Transformações épicas
-- Mudanças de aparência por milestones
+- Snake evolves visually as it grows
+- Different shapes at different sizes
+- Epic transformations
+- Milestone appearance changes
 
-### ⏳ 30. **Modo Puzzle**
+### ⏳ 30. **Puzzle Mode**
 
-**Complexidade:** Alta | **Impacto:** Médio
+**Complexity:** High | **Impact:** Medium
 
-- Níveis com objetivos específicos
-- "Chegue até a comida sem tocar nas paredes"
-- Lógica e estratégia combinadas
-- Editor de níveis
+- Levels with specific goals
+- “Reach the food without touching walls”
+- Logic plus strategy
+- Level editor
 
-### ✅ 31. **Sistema de Boss Fights**
+### ✅ 31. **Boss Fight System**
 
-**Complexidade:** Muito Alta | **Impacto:** Alto | **STATUS: IMPLEMENTADO**
+**Complexity:** Very High | **Impact:** High | **STATUS: IMPLEMENTED**
 
-- Encontros com "bosses" em níveis específicos ✅
-- 10 bosses únicos com habilidades especiais ✅
-- Chefes que precisam ser derrotados de forma especial ✅
-- Recompensas especiais ✅
-- Mecânicas únicas de boss ✅
-- Sistema de combate com disparos de veneno ✅
+- Boss encounters at specific levels ✅
+- 10 unique bosses with special abilities ✅
+- Bosses defeated in special ways ✅
+- Special rewards ✅
+- Unique boss mechanics ✅
+- Combat with poison shots ✅
 
-### ⏳ 32. **Power-up de Clone/Tail Split**
+### ⏳ 32. **Clone/Tail Split Power-Up**
 
-**Complexidade:** Muito Alta | **Impacto:** Médio
+**Complexity:** Very High | **Impact:** Medium
 
-- Dividir a cobra em duas cobras menores
-- Controlar ambas simultaneamente
-- Táticas avançadas
-- Merge back em certas condições
+- Split snake into two smaller snakes
+- Control both at once
+- Advanced tactics
+- Merge back under conditions
 
-### ⏳ 33. **Gravidade/Física**
+### ⏳ 33. **Gravity/Physics**
 
-**Complexidade:** Muito Alta | **Impacto:** Médio
+**Complexity:** Very High | **Impact:** Medium
 
-- Cobra "cai" se não estiver apoiada
-- Diferentes gravidades em níveis
-- Power-up de voo temporário
-- Física 2D completa
+- Snake “falls” without support
+- Different gravity per level
+- Temporary flight power-up
+- Full 2D physics
 
-### ⏳ 34. **Cobra com Habilidades Especiais**
+### ⏳ 34. **Snake with Special Abilities**
 
-**Complexidade:** Muito Alta | **Impacto:** Alto
+**Complexity:** Very High | **Impact:** High
 
-- Cada segmento pode ter uma habilidade
-- Cabeça pode "atirar" para destruir obstáculos
-- Cauda pode criar bloqueios temporários
-- Sistema de skills
+- Each segment can have an ability
+- Head can “shoot” to destroy obstacles
+- Tail can create temporary blocks
+- Skill system
 
-### ⏳ 35. **Sistema de Shop/Loja**
+### ⏳ 35. **Shop System**
 
-**Complexidade:** Alta | **Impacto:** Alto
+**Complexity:** High | **Impact:** High
 
-- Usar pontos para comprar upgrades
-- Power-ups permanentes
-- Skins e customizações
-- Moeda do jogo
+- Spend points on upgrades
+- Permanent power-ups
+- Skins and customization
+- In-game currency
 
-### ⏳ 36. **Modo Construção**
+### ⏳ 36. **Build Mode**
 
-**Complexidade:** Muito Alta | **Impacto:** Médio
+**Complexity:** Very High | **Impact:** Medium
 
-- Editar o grid antes de jogar
-- Criar seus próprios desafios
-- Compartilhar níveis (export/import)
-- Editor visual completo
-
----
-
-## 🎯 Resumo por Prioridade de Implementação
-
-### 🔥 Alta Prioridade (Próximas 5)
-
-1. **Sons e Música** - Melhora imediata da experiência
-2. **Animações Mais Elaboradas** - Polimento visual
-3. **Comida com Timer** - Adiciona pressão e estratégia
-4. **Sistema de Vidas** - Aumenta replayability
-5. **Sistema de Skins/Temas** - Personalização e engajamento
-
-### 📊 Média Prioridade
-
-6. Estatísticas Detalhadas
-7. Multiplicador de Pontos Baseado em Comprimento
-8. Rastro Visual na Cobra
-9. Background Dinâmico
-10. Modo Dark/Light
-
-### 🎮 Baixa Prioridade (Quando houver tempo)
-
-11. Modos de Jogo Alternativos
-12. Funcionalidades Avançadas
-13. Multiplayer e IA
+- Edit grid before playing
+- Create custom challenges
+- Share levels (export/import)
+- Full visual editor
 
 ---
 
-## 📝 Notas de Implementação
+## 🎯 Implementation Priority Summary
 
-- **Fase 1** está **100% completa** ✅
-- **Fase 2** pode ser implementada em paralelo (melhorias visuais)
-- **Fases 3-4** adicionam profundidade ao jogo
-- **Fases 5-7** são expansões maiores que podem vir em versões futuras
+### 🔥 High Priority (Next 5)
 
-### Recomendação Atual:
+1. **Sound and Music** — Immediate experience boost
+2. **Richer Animations** — Visual polish
+3. **Timed Food** — Pressure and strategy
+4. **Lives System** — More replayability
+5. **Skins/Themes System** — Personalization and engagement
 
-Começar pela **Fase 2** (Sons e Música, Animações) para polir o jogo atual antes de adicionar novas mecânicas complexas.
+### 📊 Medium Priority
+
+6. Detailed Statistics
+7. Length-Based Score Multiplier
+8. Visual Snake Trail
+9. Dynamic Background
+10. Dark/Light Mode
+
+### 🎮 Low Priority (When time allows)
+
+11. Alternate game modes
+12. Advanced features
+13. Multiplayer and AI
 
 ---
 
-## ✅ Checklist de Implementação
+## 📝 Implementation Notes
 
-### Fase 1 - Fundamentos ✅
-- [x] Grid Escalável
-- [x] Sistema de Combos
-- [x] Power-ups Negativos
-- [x] Partículas e Efeitos Visuais
-- [x] Obstáculos e Barreiras
-- [x] Sistema de Conquistas
+- **Phase 1** is **100% complete** ✅
+- **Phase 2** can run in parallel (visual polish)
+- **Phases 3–4** add depth
+- **Phases 5–7** are larger expansions for future versions
 
-### Fase 2 - Melhorias Visuais
-- [ ] Sons e Música
-- [x] Animações Mais Elaboradas (transições de fase/boss)
-- [ ] Rastro Visual na Cobra
-- [x] Background Dinâmico (10 climas por fase)
-- [ ] Modo Dark/Light
+### Current Recommendation
 
-### Fase 3 - Jogabilidade
-- [x] Comida com Timer
-- [x] Sistema de Vidas
-- [x] Estatísticas Detalhadas
-- [x] Sistema de Skins/Temas (REF-08)
+Start with **Phase 2** (sound and music, animations) to polish the current game before adding complex new mechanics.
 
-### Fase 4 - Avançado
+---
+
+## ✅ Implementation Checklist
+
+### Phase 1 — Foundations ✅
+- [x] Scalable Grid
+- [x] Combo System
+- [x] Negative Power-Ups
+- [x] Particles and Visual Effects
+- [x] Obstacles and Barriers
+- [x] Achievement System
+
+### Phase 2 — Visual Improvements
+- [ ] Sound and Music
+- [x] Richer Animations (phase/boss transitions)
+- [ ] Visual Snake Trail
+- [x] Dynamic Background (10 climates per phase)
+- [ ] Dark/Light Mode
+
+### Phase 3 — Gameplay
+- [x] Timed Food
+- [x] Lives System
+- [x] Detailed Statistics
+- [x] Skins/Themes System (REF-08)
+
+### Phase 4 — Advanced
 - [x] Teleport/Portal
-- [x] Sistema de Boss Fights (10 bosses únicos)
-- [x] Obstáculos Móveis
+- [x] Boss Fight System (10 unique bosses)
+- [x] Moving Obstacles
 
-### Fase 5 - Mobile
-- [x] Layout Mobile-First
+### Phase 5 — Mobile
+- [x] Mobile-First Layout
 - [x] Safe Areas (iOS/Android)
-- [x] D-pad Direcional
-- [x] Botão START Contextual
-- [x] StatusBar Reposicionado
+- [x] Directional D-Pad
+- [x] Contextual START Button
+- [x] Repositioned StatusBar

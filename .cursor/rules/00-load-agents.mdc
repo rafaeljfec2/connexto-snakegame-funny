@@ -7,6 +7,6 @@ The single source of truth for working in this repository is [AGENTS.md](mdc:AGE
 
 Read it before answering any question or making any change. Do not duplicate its content here — propose updates to `AGENTS.md` when guidance is missing.
 
-Canonical Spec-Driven Development specs are under [`docs/SDD/specs/`](mdc:docs/SDD/specs).
+Before trusting files under `docs/`, read [`docs/README.md`](mdc:docs/README.md) (canonical vs historical). Runtime map: [`docs/ARCHITECTURE.md`](mdc:docs/ARCHITECTURE.md). Specs: [`docs/SDD/`](mdc:docs/SDD).
 
 Before declaring any code task complete, run `bash scripts/harness/validate.sh`.

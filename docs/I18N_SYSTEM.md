@@ -1,55 +1,53 @@
-# Sistema de Internacionalização (i18n)
+# Internationalization (i18n) System
 
-## Visão Geral
+## Overview
 
-O sistema de internacionalização foi implementado usando **react-i18next**, permitindo que o jogo seja traduzido para múltiplos idiomas. Atualmente, os idiomas suportados são:
+Internationalization uses **react-i18next**, supporting multiple languages. Currently supported:
 
-- **Português (Brasil)** - `pt-BR` (padrão)
-- **Inglês (US)** - `en-US`
+- **Portuguese (Brazil)** — `pt-BR` (default)
+- **English (US)** — `en-US`
 
-## Estrutura de Arquivos
+## File Structure
 
 ```
 src/
 ├── i18n/
-│   ├── config.ts                    # Configuração do i18next
+│   ├── config.ts                    # i18next configuration
 │   └── locales/
-│       ├── pt-BR.json              # Traduções em Português
-│       └── en-US.json              # Traduções em Inglês
+│       ├── pt-BR.json              # Portuguese strings
+│       └── en-US.json              # English strings
 ├── components/
-│   └── LanguageSelector.tsx         # Componente seletor de idioma (oculto no mobile)
-└── main.tsx                         # Importação da configuração i18n
+│   └── LanguageSelector.tsx         # Language selector (hidden on mobile)
+└── main.tsx                         # i18n config import
 ```
 
-## Configuração
+## Configuration
 
-### Arquivo de Configuração (`src/i18n/config.ts`)
+### Config File (`src/i18n/config.ts`)
 
-O sistema de i18n é configurado para:
+The i18n setup:
 
-- Detectar automaticamente o idioma do navegador
-- Salvar a preferência do usuário no `localStorage` (chave: `i18nextLng`)
-- Usar `pt-BR` como idioma padrão (fallback)
-- Suportar React sem Suspense
-- Recarregar recursos quando o idioma muda
+- Detects browser language automatically
+- Saves user preference in `localStorage` (key: `i18nextLng`)
+- Uses `pt-BR` as fallback
+- Works with React without Suspense
+- Reloads resources when language changes
 
-### Detecção de Idioma
+### Language Detection Order
 
-O sistema detecta o idioma na seguinte ordem:
+1. **localStorage** — Saved preference (`i18nextLng`)
+2. **Browser** — `navigator.language`
+3. **Fallback** — `pt-BR`
 
-1. **localStorage** - Idioma salvo pelo usuário (`i18nextLng`)
-2. **Navegador** - Idioma do navegador (`navigator.language`)
-3. **Fallback** - `pt-BR` como padrão
+### Persistence
 
-### Persistência
+Changing language via the selector saves to `localStorage` automatically.
 
-A preferência de idioma é automaticamente salva no `localStorage` quando o usuário muda o idioma usando o seletor.
+## Translation Files
 
-## Arquivos de Tradução
+Files are organized by context in a hierarchical key structure.
 
-Os arquivos de tradução estão organizados por contexto e seguem uma estrutura hierárquica.
-
-### Estrutura de Chaves
+### Key Structure
 
 ```json
 {
@@ -80,36 +78,36 @@ Os arquivos de tradução estão organizados por contexto e seguem uma estrutura
 }
 ```
 
-## Componentes Traduzidos
+## Translated Components
 
-### Componentes Principais
+### Main UI
 
-- ✅ `App.tsx` - Interface principal
-- ✅ `GameInfo.tsx` - Informações do jogo
-- ✅ `StatusBar.tsx` - Barra de status
-- ✅ `GameControls.tsx` - Controles
-- ✅ `PhaseIntroScreen.tsx` - Tela de introdução
-- ✅ `PhaseCompleteScreen.tsx` - Tela de conclusão
-- ✅ `BossDefeatTransition.tsx` - Animação de derrota do boss
-- ✅ `DeathTransition.tsx` - Animação de morte
-- ✅ `GameStatistics.tsx` - Estatísticas
-- ✅ `BossDebugPanel.tsx` - Painel de debug de bosses
-- ✅ `PhaseDebugPanel.tsx` - Painel de debug de fases
+- ✅ `App.tsx` — Main shell
+- ✅ `GameInfo.tsx` — Game info
+- ✅ `StatusBar.tsx` — Status bar
+- ✅ `GameControls.tsx` — Controls
+- ✅ `PhaseIntroScreen.tsx` — Phase intro
+- ✅ `PhaseCompleteScreen.tsx` — Phase complete
+- ✅ `BossDefeatTransition.tsx` — Boss defeat animation
+- ✅ `DeathTransition.tsx` — Death animation
+- ✅ `GameStatistics.tsx` — Statistics
+- ✅ `BossDebugPanel.tsx` — Boss debug panel
+- ✅ `PhaseDebugPanel.tsx` — Phase debug panel
 
-### Componentes de Power-Ups
+### Power-Ups
 
-- ✅ `ActivePowerUps.tsx` - Power-ups ativos
-- ✅ `MobileFloatingInfo.tsx` - Informações mobile
-- ✅ `PowerUpToast.tsx` - Toasts de power-ups
+- ✅ `ActivePowerUps.tsx` — Active power-ups
+- ✅ `MobileFloatingInfo.tsx` — Mobile info
+- ✅ `PowerUpToast.tsx` — Power-up toasts
 
-### Componentes de Sistema
+### System
 
-- ✅ `LanguageSelector.tsx` - Seletor de idioma (oculto no mobile)
-- ✅ Todas as mensagens de erro e validação
+- ✅ `LanguageSelector.tsx` — Language selector (hidden on mobile)
+- ✅ Error and validation messages
 
-## Uso nos Componentes
+## Usage in Components
 
-### Hook useTranslation
+### useTranslation Hook
 
 ```typescript
 import { useTranslation } from 'react-i18next';
@@ -121,86 +119,86 @@ function MyComponent() {
 }
 ```
 
-### Interpolação
+### Interpolation
 
 ```typescript
-// Tradução
+// Translation
 {
-  "welcome": "Bem-vindo, {{name}}!"
+  "welcome": "Welcome, {{name}}!"
 }
 
-// Uso
-t('welcome', { name: 'Jogador' })
+// Usage
+t('welcome', { name: 'Player' })
 ```
 
-### Pluralização
+### Pluralization
 
 ```typescript
-// Tradução
+// Translation
 {
   "items_one": "{{count}} item",
-  "items_other": "{{count}} itens"
+  "items_other": "{{count}} items"
 }
 
-// Uso
+// Usage
 t('items', { count: 5 })
 ```
 
-## Contextos de Tradução
+## Translation Contexts
 
-### Fases
+### Phases
 
-Todas as 10 fases têm traduções completas:
+All 10 phases include:
 
-- Nome da fase
-- Descrição
-- Tipo de nível
+- Phase name
+- Description
+- Level type
 
 ### Bosses
 
-Todos os 10 bosses têm traduções completas:
+All 10 bosses include:
 
-- Nome do boss
-- Descrição
-- Comportamento/táticas
+- Boss name
+- Description
+- Behavior/tactics
 
 ### Power-Ups
 
-Todos os 10 power-ups têm traduções:
+All 10 power-ups include:
 
-- Nome do power-up
-- Descrição do efeito
+- Name
+- Effect description
 
-### UI e Mensagens
+### UI and Messages
 
-- Botões e ações
-- Mensagens de status
-- Mensagens de transição
-- Estatísticas
-- Conquistas
-- Mensagens de erro
+- Buttons and actions
+- Status messages
+- Transition copy
+- Statistics
+- Achievements
+- Errors
 
-## Características Especiais
+## Special Behavior
 
-### Seletor de Idioma
+### Language Selector
 
-O componente `LanguageSelector` permite ao usuário escolher o idioma:
+`LanguageSelector` lets users pick a language:
 
-- Disponível no header (desktop)
-- Oculto no mobile para economizar espaço
-- Persiste a escolha automaticamente
+- Available in the header (desktop)
+- Hidden on mobile to save space
+- Persists choice automatically
 
-### Tradução Dinâmica
+### Dynamic Strings
 
-Algumas strings são geradas dinamicamente:
+Some strings are built at runtime:
 
-- Nomes de fases e bosses são traduzidos via funções helper
-- Estatísticas usam interpolação para números
-- Mensagens de transição incluem informações dinâmicas
+- Phase and boss names via helper functions
+- Statistics use numeric interpolation
+- Transition messages include dynamic data
 
-## Exemplos de Tradução
+## Translation Examples
 
-### Português (pt-BR)
+### Portuguese (pt-BR)
 
 ```json
 {
@@ -226,7 +224,7 @@ Algumas strings são geradas dinamicamente:
 }
 ```
 
-### Inglês (en-US)
+### English (en-US)
 
 ```json
 {
@@ -252,56 +250,54 @@ Algumas strings são geradas dinamicamente:
 }
 ```
 
-## Adicionar Novo Idioma
+## Adding a New Language
 
-Para adicionar um novo idioma:
-
-1. Criar arquivo `src/i18n/locales/[codigo-idioma].json`
-2. Copiar estrutura de `pt-BR.json` ou `en-US.json`
-3. Traduzir todas as strings
-4. Adicionar o código do idioma em `src/i18n/config.ts`:
+1. Create `src/i18n/locales/[locale-code].json`
+2. Copy structure from `pt-BR.json` or `en-US.json`
+3. Translate all strings
+4. Register in `src/i18n/config.ts`:
 
 ```typescript
 resources: {
   'pt-BR': { translation: ptBR },
   'en-US': { translation: enUS },
-  'es-ES': { translation: esES }, // Novo idioma
+  'es-ES': { translation: esES }, // New locale
 }
 ```
 
-## Boas Práticas
+## Best Practices
 
-1. **Chaves Descritivas**: Use chaves que descrevam o contexto
+1. **Descriptive keys:** Context in the key path
    - ✅ `phases.phase1.name`
    - ❌ `p1n`
 
-2. **Interpolação**: Use interpolação para valores dinâmicos
+2. **Interpolation:** Dynamic values via placeholders
    - ✅ `t('score', { value: score })`
    - ❌ `t('score') + ' ' + score`
 
-3. **Namespace**: Organize por contexto (phases, bosses, powerUps, etc.)
+3. **Namespaces:** Group by domain (phases, bosses, powerUps, etc.)
 
-4. **Consistência**: Mantenha a mesma estrutura em todos os arquivos de idioma
+4. **Consistency:** Same structure in every locale file
 
 ## Troubleshooting
 
-### Idioma não muda
+### Language does not change
 
-- Verifique se o arquivo de tradução está importado em `config.ts`
-- Verifique se a chave existe no arquivo JSON
-- Limpe o `localStorage` e recarregue
+- Confirm locale is imported in `config.ts`
+- Confirm key exists in JSON
+- Clear `localStorage` and reload
 
-### Tradução não aparece
+### Missing translation
 
-- Verifique se está usando a chave correta
-- Verifique se há erros no console
-- Use `t('chave', { defaultValue: 'Fallback' })` para debug
+- Verify key path
+- Check console errors
+- Use `t('key', { defaultValue: 'Fallback' })` for debugging
 
 ## Status
 
-✅ Sistema completamente implementado e funcional
-✅ Todas as strings do jogo traduzidas
-✅ Suporte para 2 idiomas (pt-BR, en-US)
-✅ Seletor de idioma funcional
-✅ Persistência de preferência
-✅ Detecção automática de idioma
+✅ Fully implemented  
+✅ All game strings translated  
+✅ Two locales (pt-BR, en-US)  
+✅ Working language selector  
+✅ Preference persistence  
+✅ Automatic language detection  

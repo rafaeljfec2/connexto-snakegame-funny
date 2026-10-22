@@ -1,28 +1,30 @@
-# Guia de Implementação de Logs
+# Logging Implementation Guide
 
-Este documento descreve como adicionar logs em todos os eventos importantes do jogo.
+> **Historical.** Do not implement from this file. Prefer [`LOGGING_SYSTEM.md`](./LOGGING_SYSTEM.md) and `src/utils/logger.ts`. Trust map: [`README.md`](./README.md).
 
-## Estrutura de Logs
+This document describes how to add logs for important game events.
 
-Todos os logs seguem o padrão:
+## Log Structure
+
+All logs follow this pattern:
 
 ```typescript
 import { logGameEvent, createLogger, LogContext } from '@/utils/logger';
 
 const logger = createLogger(LogContext.CONTEXT_NAME);
 
-// Para eventos simples
+// Simple events
 logGameEvent('event-name', { metadata });
 
-// Para logs customizados
-logger.info({ metadata }, 'Mensagem');
+// Custom logs
+logger.info({ metadata }, 'Message');
 ```
 
-## Pontos de Log no useGameLoop
+## Log Points in useGameLoop
 
-### 1. Colisões
+### 1. Collisions
 
-**Localização**: Após detecção de colisão (linha ~665)
+**Location:** After collision detection (~line 665)
 
 ```typescript
 if (hasCollision) {
@@ -39,13 +41,13 @@ if (hasCollision) {
     score: prev.score,
     lives: prev.lives,
   });
-  // ... resto do código
+  // ... rest of handler
 }
 ```
 
-### 2. Comida Consumida
+### 2. Food Consumed
 
-**Localização**: Após processar comida (linha ~688-723)
+**Location:** After processing food (~lines 688–723)
 
 ```typescript
 if (ateFood) {
@@ -68,7 +70,7 @@ if (ateFood) {
 
 ### 3. Level Up
 
-**Localização**: Após calcular novo level (linha ~750)
+**Location:** After computing new level (~line 750)
 
 ```typescript
 const newLevel = calculateLevel(newScore);
@@ -82,9 +84,9 @@ if (newLevel > prev.level) {
 }
 ```
 
-### 4. Mudança de Fase
+### 4. Phase Change
 
-**Localização**: Após detectar mudança de fase (linha ~755-766)
+**Location:** After detecting phase change (~lines 755–766)
 
 ```typescript
 if (currentPhase?.id !== prev.currentPhase) {
@@ -99,7 +101,7 @@ if (currentPhase?.id !== prev.currentPhase) {
 
 ### 5. Boss Spawn
 
-**Localização**: Quando boss é inicializado (linha ~848)
+**Location:** When boss is initialized (~line 848)
 
 ```typescript
 if (activeBoss && (!prev.activeBoss || prev.activeBoss.id !== activeBoss.id)) {
@@ -109,13 +111,13 @@ if (activeBoss && (!prev.activeBoss || prev.activeBoss.id !== activeBoss.id)) {
     level: newLevel,
     phase: currentPhase?.id,
   });
-  // ... resto do código
+  // ... rest of handler
 }
 ```
 
 ### 6. Boss Defeat
 
-**Localização**: Quando boss é derrotado (linha ~1016, 1129, etc)
+**Location:** When boss is defeated (~lines 1016, 1129, etc.)
 
 ```typescript
 if (activeBoss && canDefeatBoss(bossSnake)) {
@@ -124,15 +126,15 @@ if (activeBoss && canDefeatBoss(bossSnake)) {
     bossName: activeBoss.name,
     score: newScore,
     level: newLevel,
-    method: 'head-collision', // ou 'poison', 'flag-capture'
+    method: 'head-collision', // or 'poison', 'flag-capture'
   });
-  // ... resto do código
+  // ... rest of handler
 }
 ```
 
 ### 7. Portal Teleport
 
-**Localização**: Após teleportação (linha ~643-646)
+**Location:** After teleport (~lines 643–646)
 
 ```typescript
 const portalResult = handlePortalTeleport(newSnake, prev.portals, newParticles);
@@ -146,7 +148,7 @@ if (portalResult.snake !== newSnake) {
 
 ### 8. Poison Shot
 
-**Localização**: Quando poison hit boss (linha ~1123, 1162)
+**Location:** Poison hits boss (~lines 1123, 1162)
 
 ```typescript
 if (hasBossHeadCollision(shot, bossSnake) || hasBossBodyCollision(shot, bossSnake)) {
@@ -160,7 +162,7 @@ if (hasBossHeadCollision(shot, bossSnake) || hasBossBodyCollision(shot, bossSnak
 
 ### 9. Game Over
 
-**Localização**: Quando game over (linha ~675, 1050)
+**Location:** Game over (~lines 675, 1050)
 
 ```typescript
 logGameEvent('game-over', {
@@ -171,7 +173,7 @@ logGameEvent('game-over', {
 });
 ```
 
-## Componentes de Transição
+## Transition Components
 
 ### PhaseTransition
 
@@ -183,7 +185,7 @@ const logger = createLogger(LogContext.TRANSITION);
 useEffect(() => {
   logger.info({ phaseNumber, level }, 'Phase transition started');
 
-  // ... código existente
+  // ... existing code
 
   if (newProgress >= 100) {
     logger.info({ phaseNumber }, 'Phase transition completed');
@@ -202,7 +204,7 @@ const logger = createLogger(LogContext.TRANSITION);
 useEffect(() => {
   logger.info({ bossId: boss.id, bossName: boss.name, score }, 'Boss defeat transition started');
 
-  // ... código existente
+  // ... existing code
 
   if (currentProgress >= 100) {
     logger.info({ bossId: boss.id }, 'Boss defeat transition completed');
@@ -234,7 +236,7 @@ useEffect(() => {
   if (status === GameStatus.DYING && lives > 0) {
     logger.info({ lives, status }, 'Death transition started');
 
-    // ... código existente
+    // ... existing code
 
     if (remaining <= 0) {
       logger.info({ lives: lives - 1 }, 'Death transition completed');
@@ -243,19 +245,19 @@ useEffect(() => {
 }, [status, lives]);
 ```
 
-## Sistemas de Colisão e Combate
+## Collision and Combat Systems
 
 ### Boss Combat (useGameLoop)
 
-Já coberto nos pontos 5 e 6 acima.
+Covered in sections 5 and 6 above.
 
 ### Poison System
 
-Os logs de poison já estão cobertos no ponto 8 acima.
+Covered in section 8 above.
 
 ### Obstacle Destruction
 
-**Localização**: `src/utils/obstacleDestruction.ts`
+**Location:** `src/utils/obstacleDestruction.ts`
 
 ```typescript
 import { createLogger, LogContext } from '@/utils/logger';
@@ -268,7 +270,7 @@ export function destroyObstacles(...) {
     hitObstaclesCount: hitObstacles.length
   }, 'Destroying obstacles');
 
-  // ... código existente
+  // ... existing code
 
   logger.info({
     destroyed: hitObstacles.length,
@@ -277,9 +279,9 @@ export function destroyObstacles(...) {
 }
 ```
 
-## Notas Importantes
+## Important Notes
 
-1. **Não-intrusivo**: Os logs não devem alterar a lógica do jogo
-2. **Performance**: Use `logger.debug()` para logs frequentes, `logger.info()` para eventos importantes
-3. **Contexto**: Sempre use o contexto apropriado (`LogContext`)
-4. **Metadata**: Inclua informações relevantes mas não sensíveis
+1. **Non-intrusive:** Logs must not change game logic
+2. **Performance:** Use `logger.debug()` for frequent events, `logger.info()` for important ones
+3. **Context:** Always use the right `LogContext`
+4. **Metadata:** Include relevant, non-sensitive fields only

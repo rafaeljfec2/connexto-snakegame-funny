@@ -1,59 +1,59 @@
-# Sistema de Logging e Observabilidade
+# Logging and Observability System
 
-## Visão Geral
+## Overview
 
-O sistema de logging foi implementado usando **Pino**, uma biblioteca de logging estruturado de alta performance para Node.js e browsers. O sistema é completamente não intrusivo e permite rastrear todos os eventos importantes do jogo sem impactar a performance.
+Logging uses **Pino**, a high-performance structured logger for Node.js and browsers. The system is non-intrusive and tracks important game events without hurting performance.
 
-## Arquitetura
+## Architecture
 
-### Estrutura de Arquivos
+### File Structure
 
 ```
 src/
 ├── utils/
-│   └── logger.ts                    # Configuração e funções de logging
+│   └── logger.ts                    # Configuration and logging helpers
 └── hooks/
-    └── useGameLoop.ts               # Uso de logs no game loop
+    └── useGameLoop.ts               # Logs in the game loop
 ```
 
-### Configuração (`src/utils/logger.ts`)
+### Configuration (`src/utils/logger.ts`)
 
-O sistema usa Pino configurado para:
+Pino is configured for:
 
-- **Nível de Log**: Configurável via `LOG_LEVEL` (padrão: `debug`)
-- **Output**: Console do navegador formatado
-- **Contextos**: Categorização de logs por área do jogo
-- **Formatação**: Logs estruturados com metadados
+- **Log level:** `LOG_LEVEL` (default: `debug`)
+- **Output:** Formatted browser console
+- **Contexts:** Logs categorized by game area
+- **Format:** Structured logs with metadata
 
-## Níveis de Log
+## Log Levels
 
-O sistema suporta os seguintes níveis (em ordem de prioridade):
+Supported levels (lowest to highest priority):
 
-1. **TRACE** - Logs muito detalhados (menor prioridade)
-2. **DEBUG** - Informações de debug
-3. **INFO** - Informações gerais
-4. **WARN** - Avisos
-5. **ERROR** - Erros
-6. **FATAL** - Erros críticos (maior prioridade)
+1. **TRACE** — Very verbose
+2. **DEBUG** — Debug information
+3. **INFO** — General information
+4. **WARN** — Warnings
+5. **ERROR** — Errors
+6. **FATAL** — Critical errors
 
-## Contextos de Log
+## Log Contexts
 
-Os logs são organizados por contexto para facilitar a filtragem e análise:
+Logs are grouped by context for filtering and analysis:
 
-- **GAME_STATE** - Mudanças de estado do jogo
-- **GAME_LOOP** - Loop principal do jogo
-- **BOSS** - Eventos relacionados a bosses
-- **PHASE** - Eventos relacionados a fases
-- **COLLISION** - Detecção de colisões
-- **TRANSITION** - Transições de tela
-- **POWER_UP** - Ativação de power-ups
-- **COMBAT** - Sistema de combate
-- **FOOD** - Sistema de comida
-- **POISON** - Sistema de disparos de veneno
+- **GAME_STATE** — Game state changes
+- **GAME_LOOP** — Main game loop
+- **BOSS** — Boss events
+- **PHASE** — Phase events
+- **COLLISION** — Collision detection
+- **TRANSITION** — Screen transitions
+- **POWER_UP** — Power-up activation
+- **COMBAT** — Combat system
+- **FOOD** — Food system
+- **POISON** — Poison shots
 
-## Uso
+## Usage
 
-### Criar Logger para um Contexto
+### Create a Context Logger
 
 ```typescript
 import { createLogger } from '@/utils/logger';
@@ -63,7 +63,7 @@ const logger = createLogger(LogContext.GAME_LOOP);
 logger.info('Game loop started');
 ```
 
-### Logs Estruturados
+### Structured Logs
 
 ```typescript
 logger.info(
@@ -76,11 +76,11 @@ logger.info(
 );
 ```
 
-### Funções Helper
+### Helper Functions
 
 #### logGameStateChange
 
-Registra mudanças de estado do jogo:
+Logs game state transitions:
 
 ```typescript
 import { logGameStateChange } from '@/utils/logger';
@@ -90,7 +90,7 @@ logGameStateChange(GameStatus.PLAYING, GameStatus.PAUSED, { reason: 'user_action
 
 #### logGameEvent
 
-Registra eventos do jogo:
+Logs game events:
 
 ```typescript
 import { logGameEvent } from '@/utils/logger';
@@ -102,71 +102,70 @@ logGameEvent('food-eaten', {
 });
 ```
 
-## Eventos Registrados
+## Logged Events
 
 ### Game Loop
 
-- ✅ Início e fim de cada frame
-- ✅ Movimento da cobra (throttled)
-- ✅ Mudanças de direção
-- ✅ Colisões detectadas
-- ✅ Comida comida
-- ✅ Power-ups ativados
+- ✅ Frame start/end
+- ✅ Snake movement (throttled)
+- ✅ Direction changes
+- ✅ Collisions
+- ✅ Food eaten
+- ✅ Power-ups activated
 
 ### Bosses
 
-- ✅ Spawn de boss
-- ✅ Colisões com boss
-- ✅ Enfraquecimento de boss
-- ✅ Derrota de boss
-- ✅ Habilidades de boss ativadas
+- ✅ Boss spawn
+- ✅ Boss collisions
+- ✅ Boss weakening
+- ✅ Boss defeat
+- ✅ Boss abilities
 
-### Fases
+### Phases
 
-- ✅ Mudança de fase
-- ✅ Início de fase
-- ✅ Conclusão de fase
-- ✅ Aplicação de mecânicas de fase
+- ✅ Phase change
+- ✅ Phase start
+- ✅ Phase complete
+- ✅ Phase mechanics applied
 
 ### Power-Ups
 
-- ✅ Ativação de power-up
-- ✅ Expiração de power-up
-- ✅ Efeitos aplicados
+- ✅ Activation
+- ✅ Expiration
+- ✅ Effects applied
 
-### Combate
+### Combat
 
-- ✅ Disparos de veneno
-- ✅ Colisões com obstáculos
-- ✅ Destruição de obstáculos
-- ✅ Colisões com bosses
+- ✅ Poison shots
+- ✅ Obstacle collisions
+- ✅ Obstacle destruction
+- ✅ Boss collisions
 
-### Transições
+### Transitions
 
-- ✅ Tela de introdução de fase
-- ✅ Tela de derrota de boss
-- ✅ Tela de morte
-- ✅ Tela de conclusão de fase
+- ✅ Phase intro screen
+- ✅ Boss defeat screen
+- ✅ Death screen
+- ✅ Phase complete screen
 
-## Otimizações de Performance
+## Performance Optimizations
 
-### Throttling de Logs
+### Log Throttling
 
-Logs que podem ser muito frequentes são throttled:
+High-frequency logs are throttled:
 
 ```typescript
-// Log de movimento a cada 500ms ou em mudança de direção
+// Movement log every 500ms or on direction change
 if (now - lastMoveLogTime > 500 || directionChanged) {
   logger.debug({ position, direction }, 'Snake moved');
 }
 ```
 
-### Batching de Logs
+### Log Batching
 
-Logs relacionados são agrupados:
+Related logs are grouped:
 
 ```typescript
-// Log de disparos agrupados
 logger.debug(
   {
     shotsAdded: 5,
@@ -176,9 +175,9 @@ logger.debug(
 );
 ```
 
-### Níveis Condicionais
+### Conditional Levels
 
-Logs detalhados só são gerados em desenvolvimento:
+Verbose logs mainly in development:
 
 ```typescript
 if (import.meta.env.DEV) {
@@ -186,9 +185,9 @@ if (import.meta.env.DEV) {
 }
 ```
 
-## Estrutura dos Logs
+## Log Structure
 
-### Formato Padrão
+### Default Format
 
 ```json
 {
@@ -202,7 +201,7 @@ if (import.meta.env.DEV) {
 }
 ```
 
-### Exemplo Real
+### Example
 
 ```json
 {
@@ -219,60 +218,60 @@ if (import.meta.env.DEV) {
 }
 ```
 
-## Filtragem e Análise
+## Filtering and Analysis
 
-### No Console do Navegador
+### Browser Console
 
-1. Abra DevTools (F12)
-2. Vá para a aba Console
-3. Use filtros para buscar por contexto:
+1. Open DevTools (F12)
+2. Console tab
+3. Filter by context:
    - `context:GAME_LOOP`
    - `context:BOSS`
    - `level:ERROR`
 
-### Exportar Logs
+### Exporting Logs
 
-Para análise externa, você pode:
+For external analysis:
 
-1. Copiar logs do console
-2. Salvar em arquivo JSON
-3. Processar com ferramentas de análise
+1. Copy from the console
+2. Save as JSON
+3. Process with analysis tools
 
-## Boas Práticas
+## Best Practices
 
-1. **Use o Contexto Correto**: Sempre especifique o contexto apropriado
-2. **Logs Estruturados**: Use objetos para dados, não strings concatenadas
-3. **Níveis Apropriados**:
-   - DEBUG para desenvolvimento
-   - INFO para eventos importantes
-   - WARN para problemas recuperáveis
-   - ERROR para erros
-4. **Não Logue em Hot Paths**: Evite logs em loops muito rápidos
-5. **Metadados Úteis**: Inclua informações relevantes nos logs
+1. **Use the right context**
+2. **Structured data:** Objects, not concatenated strings
+3. **Appropriate levels:**
+   - DEBUG for development
+   - INFO for important events
+   - WARN for recoverable issues
+   - ERROR for failures
+4. **Avoid hot-path spam:** Do not log every tick in tight loops
+5. **Useful metadata:** Include relevant fields
 
-## Configuração
+## Configuration
 
-### Alterar Nível de Log
+### Change Log Level
 
-Modifique `LOG_LEVEL` em `src/utils/logger.ts`:
+Edit `LOG_LEVEL` in `src/utils/logger.ts`:
 
 ```typescript
-const LOG_LEVEL = 'info'; // Apenas INFO e acima
+const LOG_LEVEL = 'info'; // INFO and above only
 ```
 
-### Desabilitar Logs
+### Disable Logs
 
-Para desabilitar completamente (não recomendado):
+Not recommended, but possible:
 
 ```typescript
 const LOG_LEVEL = 'silent';
 ```
 
-## Integração com Ferramentas Externas
+## External Tool Integration
 
-### Sentry (Futuro)
+### Sentry (Future)
 
-O sistema está preparado para integração com Sentry:
+Prepared for Sentry:
 
 ```typescript
 if (import.meta.env.PROD) {
@@ -282,9 +281,9 @@ if (import.meta.env.PROD) {
 }
 ```
 
-### Analytics (Futuro)
+### Analytics (Future)
 
-Logs podem ser enviados para serviços de analytics:
+Logs can feed analytics:
 
 ```typescript
 logger.info = (obj, msg) => {
@@ -294,29 +293,29 @@ logger.info = (obj, msg) => {
 
 ## Troubleshooting
 
-### Logs não aparecem
+### Logs not showing
 
-- Verifique o nível de log configurado
-- Verifique se há filtros no console
-- Verifique se está em modo de desenvolvimento
+- Check configured log level
+- Check console filters
+- Confirm development mode if expecting verbose logs
 
-### Performance degradada
+### Performance issues
 
-- Verifique se há logs em hot paths
-- Ajuste o nível de log para menos verboso
-- Verifique se há throttling adequado
+- Check for logs in hot paths
+- Lower verbosity
+- Ensure throttling is in place
 
 ## Status
 
-✅ Sistema completamente implementado
-✅ Todos os contextos principais cobertos
-✅ Logs não intrusivos
-✅ Otimizado para performance
-✅ Estruturado para análise
+✅ System fully implemented  
+✅ Main contexts covered  
+✅ Non-intrusive logs  
+✅ Performance tuned  
+✅ Structured for analysis  
 
-## Próximos Passos
+## Next Steps
 
-- [ ] Integração com serviço de logging remoto
-- [ ] Dashboard de análise de logs
-- [ ] Alertas automáticos para erros críticos
-- [ ] Métricas de performance baseadas em logs
+- [ ] Remote logging service integration
+- [ ] Log analysis dashboard
+- [ ] Automatic alerts for critical errors
+- [ ] Performance metrics derived from logs

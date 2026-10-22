@@ -1,72 +1,74 @@
-# Otimizações de Performance para Mobile
+# Mobile Performance Optimizations
 
-Este documento resume as melhores práticas de otimização de gráficos e performance para jogos mobile baseadas em pesquisa e documentação de engines e frameworks.
+> **Historical.** Do not implement from this file. Current runtime: [`ARCHITECTURE.md`](./ARCHITECTURE.md). Layout/specs: REF-06 / REF-09. Trust map: [`README.md`](./README.md).
 
-## ✅ Status de Implementação
+This document summarizes graphics and performance best practices for mobile games, based on engine/framework documentation and research.
 
-As seguintes otimizações já foram implementadas no projeto:
+## ✅ Implementation Status
 
-- [x] Web Workers para lógica do jogo (game.worker.ts)
-- [x] Web Workers para renderização (render.worker.ts + OffscreenCanvas)
-- [x] Web Workers para partículas e clima (particle/weather workers)
-- [x] Safe Areas para iOS e Android (env(safe-area-inset-*))
-- [x] Layout Mobile-First com hierarquia visual otimizada
-- [x] D-pad direcional para controles touch
-- [x] Otimizações CSS (transform, will-change)
-- [x] Batching de atualizações de estado
-- [x] Viewport meta tag com viewport-fit=cover
+Already in the project:
 
-## 🎯 Principais Técnicas Encontradas
+- [x] Web Workers for game logic (`game.worker.ts`)
+- [x] Web Workers for rendering (`render.worker.ts` + OffscreenCanvas)
+- [x] Web Workers for particles and weather
+- [x] Safe areas for iOS and Android (`env(safe-area-inset-*)`)
+- [x] Mobile-first layout with clear visual hierarchy
+- [x] Touch D-pad controls
+- [x] CSS optimizations (`transform`, `will-change`)
+- [x] State update batching
+- [x] Viewport meta with `viewport-fit=cover`
 
-### 1. **Cache de Elementos (Shape Caching)**
+## 🎯 Key Techniques
 
-Cachar elementos complexos evita re-renders desnecessários:
+### 1. **Element Caching (Shape Caching)**
+
+Caching complex shapes avoids redundant draws:
 
 ```javascript
-// Cache de formas complexas
+// Cache complex shapes
 shape.cache();
 shape.drawHitFromCache();
 
-// Benefícios:
-// - Reduz operações de desenho
-// - Melhora performance de hit detection
-// - Essencial para elementos que não mudam frequentemente
+// Benefits:
+// - Fewer draw operations
+// - Better hit detection performance
+// - Essential for rarely changing elements
 ```
 
-### 2. **Separação de Layers (Layer Management)**
+### 2. **Layer Separation (Layer Management)**
 
-Separar elementos estáticos de animados em layers diferentes:
+Separate static and animated content:
 
 ```javascript
-// Static layer - não precisa re-renderizar
+// Static layer — no re-render needed
 const staticLayer = new Layer({ listening: false });
 
-// Animated layer - apenas este precisa atualizar
+// Animated layer — only this updates
 const animatedLayer = new Layer();
 
-// Benefícios:
-// - Reduz área de re-render
-// - Melhora performance significativamente
-// - Backgorund não precisa ser redesenhado
+// Benefits:
+// - Smaller redraw region
+// - Large performance gain
+// - Background not redrawn every frame
 ```
 
-### 3. **Otimização de Pixel Ratio para Mobile**
+### 3. **Pixel Ratio on Mobile**
 
-Ajustar pixel ratio para evitar renderização excessiva:
+Limit pixel ratio to avoid over-rendering:
 
 ```javascript
-// Mobile: usar pixel ratio 1 ou 2 (não 3+)
+// Mobile: use pixel ratio 1 or 2 (not 3+)
 canvas.setPixelRatio(isMobile ? 1 : 2);
 
-// Benefícios:
-// - Reduz uso de memória
-// - Melhora performance em dispositivos móveis
-// - Evita renderização de alta resolução desnecessária
+// Benefits:
+// - Lower memory
+// - Better performance on phones
+// - Avoid unnecessary high-DPI rendering
 ```
 
-### 4. **Viewport Meta Tag Otimizado**
+### 4. **Optimized Viewport Meta Tag**
 
-Viewport tag adequado evita scaling desnecessário e habilita safe areas:
+Proper viewport avoids bad scaling and enables safe areas:
 
 ```html
 <meta 
@@ -75,12 +77,12 @@ Viewport tag adequado evita scaling desnecessário e habilita safe areas:
 />
 ```
 
-### 4.1 **Safe Areas (iOS/Android) ✅ IMPLEMENTADO**
+### 4.1 **Safe Areas (iOS/Android) ✅ IMPLEMENTED**
 
-Suporte completo a notches, barras de navegação e gestos do sistema:
+Full support for notches, system bars, and gestures:
 
 ```css
-/* Variáveis CSS para safe areas */
+/* CSS variables for safe areas */
 :root {
   --safe-area-top: env(safe-area-inset-top, 0px);
   --safe-area-bottom: env(safe-area-inset-bottom, 0px);
@@ -88,7 +90,7 @@ Suporte completo a notches, barras de navegação e gestos do sistema:
   --safe-area-right: env(safe-area-inset-right, 0px);
 }
 
-/* Aplicação em elementos */
+/* Applied to elements */
 .header {
   padding-top: max(0.75rem, calc(0.5rem + env(safe-area-inset-top, 0px)));
   padding-left: max(1.25rem, calc(1rem + env(safe-area-inset-left, 0px)));
@@ -100,231 +102,230 @@ Suporte completo a notches, barras de navegação e gestos do sistema:
 }
 ```
 
-### 5. **Desabilitar Event Listeners Desnecessários**
+### 5. **Disable Unnecessary Event Listeners**
 
-Reduzir listeners em layers que não precisam de interação:
+Turn off listening on non-interactive layers:
 
 ```javascript
-// Desabilitar listening em layers estáticos
+// Disable listening on static layers
 layer.listening(false);
 
-// Benefícios:
-// - Reduz overhead de event handling
-// - Melhora performance
+// Benefits:
+// - Less event overhead
+// - Better performance
 ```
 
-### 6. **Otimizações CSS para GPU**
+### 6. **GPU CSS Optimizations**
 
-Propriedades CSS que aceleram pela GPU:
+Properties that promote GPU compositing:
 
 ```css
 .element {
-  /* Força aceleração GPU */
+  /* Force GPU layer */
   will-change: transform;
   transform: translateZ(0);
   backface-visibility: hidden;
   
-  /* Usar transform em vez de top/left */
-  transform: translate(x, y); /* ✅ Bom */
-  /* top: y; left: x; */ /* ❌ Evitar */
+  /* Prefer transform over top/left */
+  transform: translate(x, y); /* ✅ Good */
+  /* top: y; left: x; */ /* ❌ Avoid */
   
-  /* Evitar filtros pesados */
-  /* filter: blur(); */ /* ❌ Pesado no mobile */
-  /* box-shadow: ... */ /* ✅ Mais leve */
+  /* Avoid heavy filters */
+  /* filter: blur(); */ /* ❌ Heavy on mobile */
+  /* box-shadow: ... */ /* ✅ Lighter */
 }
 ```
 
-### 7. **Redução de Efeitos Visuais no Mobile**
+### 7. **Reduce Visual Effects on Mobile**
 
-Desabilitar ou reduzir efeitos pesados:
+Disable or tone down heavy effects:
 
 ```javascript
 const isMobile = window.innerWidth <= 768;
 
-// Desabilitar efeitos pesados no mobile
 const enableEffects = !isMobile;
 
-// Reduzir qualidade de partículas
 const particleCount = isMobile ? count * 0.4 : count;
 ```
 
-### 8. **Otimização de Animações**
+### 8. **Animation Optimization**
 
-Animações mais leves e eficientes:
+Prefer cheap properties:
 
 ```css
-/* ✅ Bom - usar transform e opacity */
+/* ✅ Good — transform and opacity */
 @keyframes smooth {
   from { transform: translateX(0); opacity: 1; }
   to { transform: translateX(100px); opacity: 0.5; }
 }
 
-/* ❌ Evitar - animar propriedades que causam reflow */
+/* ❌ Avoid — properties that trigger reflow */
 @keyframes heavy {
   from { width: 100px; height: 100px; }
   to { width: 200px; height: 200px; }
 }
 ```
 
-### 9. **Batching de Atualizações**
+### 9. **Update Batching**
 
-Agrupar múltiplas atualizações em uma única operação:
+Group updates in one frame:
 
 ```javascript
-// ✅ Bom - agrupar atualizações
+// ✅ Good — batch updates
 requestAnimationFrame(() => {
   updateMultipleElements();
 });
 
-// ❌ Evitar - atualizações separadas
+// ❌ Avoid — separate updates
 updateElement1();
 updateElement2();
 updateElement3();
 ```
 
-### 10. **Virtualização e Culling**
+### 10. **Virtualization and Culling**
 
-Renderizar apenas elementos visíveis:
+Draw only what is visible:
 
 ```javascript
-// Renderizar apenas elementos no viewport
 const visibleElements = elements.filter(element => 
   isInViewport(element, viewport)
 );
 ```
 
-## 📱 Técnicas Específicas para Mobile
+## 📱 Mobile-Specific Techniques
 
-### Layout Mobile Redesenhado ✅ IMPLEMENTADO
+### Redesigned Mobile Layout ✅ IMPLEMENTED
 
-Nova hierarquia visual otimizada para mobile:
+Mobile-first hierarchy:
 
 ```
 ┌─────────────────────────────────┐
-│  LEVEL: 1 │ SCORE: 0 │ HIGH: 665│  ← Header (GameInfo apenas)
+│  LEVEL: 1 │ SCORE: 0 │ HIGH: 665│  ← Header (GameInfo only)
 ├─────────────────────────────────┤
 │                                 │
 │    ┌───────────────────────┐    │
 │    │                       │    │
 │    │      GAME GRID        │    │
-│    │       [START]         │    │  ← Botão centralizado
+│    │       [START]         │    │  ← Centered button
 │    │                       │    │
 │    └───────────────────────┘    │
 │                                 │
-│  🐍 LENGTH │ ❤️ LIVES │ ⭐ PHASE │  ← StatusBar abaixo do grid
+│  🐍 LENGTH │ ❤️ LIVES │ ⭐ PHASE │  ← StatusBar below grid
 │                                 │
 │           [↑]                   │
-│       [←] [♥] [→]               │  ← D-pad Controls
+│       [←] [♥] [→]               │  ← D-pad
 │           [↓]                   │
 └─────────────────────────────────┘
 ```
 
-**Características implementadas:**
-- Header compacto apenas com GameInfo (Level, Score, High Score)
-- StatusBar reposicionado abaixo do grid do jogo
-- Botão START centralizado no centro do grid
-- Botão invisível durante gameplay
-- D-pad posicionado na base para ergonomia
+**Implemented details:**
 
-### Performance de Touch
+- Compact header with GameInfo (Level, Score, High Score)
+- StatusBar below the game grid
+- START centered on the grid
+- START hidden during gameplay
+- D-pad at the bottom for ergonomics
+
+### Touch Performance
 
 ```css
-/* Otimizar touch response */
 .touchable {
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 }
 ```
 
-### Limites de Entidades
+### Entity Limits
 
 ```javascript
-// Limites mais conservadores no mobile
 const MAX_PARTICLES = isMobile ? 30 : 100;
 const MAX_EFFECTS = isMobile ? 5 : 20;
 ```
 
-### Redução de Complexidade Visual
+### Visual Complexity Reduction
 
-- Desabilitar efeitos climáticos no mobile
-- Reduzir qualidade de partículas
-- Simplificar animações
-- Usar cores sólidas em vez de gradientes complexos
+- Disable weather on mobile (optional)
+- Lower particle quality
+- Simpler animations
+- Solid colors instead of heavy gradients
 
-## 🔧 Implementações Recomendadas para o Projeto
+## 🔧 Recommended Project Follow-ups
 
-### 1. Cache de Elementos Complexos
+### 1. Cache Complex Elements
 
-Cachear elementos que não mudam frequentemente:
-- Obstáculos estáticos
+Cache rarely changing items:
+
+- Static obstacles
 - Background elements
 - UI components
 
-### 2. Separar Layers
+### 2. Separate Layers
 
-Criar layers separados para:
-- Background (estático)
+Layers for:
+
+- Background (static)
 - Game elements (snake, food)
 - Effects (particles, animations)
 - UI (overlay)
 
-### 3. Otimizar CSS
+### 3. Optimize CSS
 
-Aplicar otimizações GPU em:
+Apply GPU hints to:
+
 - Snake segments
 - Poison shots
 - Particles
 - Animations
 
-### 4. Reduzir Efeitos no Mobile
+### 4. Reduce Effects on Mobile
 
-- Desabilitar weather effects
-- Reduzir particle count
-- Simplificar animations
-- Usar box-shadow em vez de filter
+- Disable weather effects
+- Lower particle count
+- Simplify animations
+- Prefer `box-shadow` over `filter`
 
-### 5. Otimizar Pixel Ratio
+### 5. Optimize Pixel Ratio
 
-Ajustar para mobile:
 ```javascript
 const pixelRatio = isMobile ? 1 : Math.min(window.devicePixelRatio || 1, 2);
 ```
 
-## 📊 Métricas Esperadas
+## 📊 Expected Metrics
 
-### Antes das Otimizações
-- FPS: ~30-40
-- Render time: ~25-33ms
-- Memory: Alta
-- Battery: Alto consumo
+### Before
 
-### Depois das Otimizações
-- FPS: 60 estável
-- Render time: ~16ms
-- Memory: Reduzida
-- Battery: Menor consumo
+- FPS: ~30–40
+- Render time: ~25–33 ms
+- Memory: High
+- Battery: High drain
 
-## 🎯 Prioridades
+### After
 
-1. **Alta Prioridade**
-   - Separar layers (background vs animated)
-   - Desabilitar efeitos pesados no mobile
-   - Otimizar CSS (will-change, transform)
+- FPS: Stable 60
+- Render time: ~16 ms
+- Memory: Reduced
+- Battery: Lower drain
 
-2. **Média Prioridade**
-   - Cache de elementos estáticos
-   - Reduzir pixel ratio no mobile
-   - Virtualização de elementos
+## 🎯 Priorities
 
-3. **Baixa Prioridade**
-   - Web Workers para cálculos pesados
-   - Service Worker para cache
-   - Lazy loading de assets
+1. **High**
+   - Separate layers (background vs. animated)
+   - Disable heavy effects on mobile
+   - CSS tuning (`will-change`, `transform`)
 
-## 📚 Referências
+2. **Medium**
+   - Cache static elements
+   - Lower pixel ratio on mobile
+   - Element virtualization
+
+3. **Low**
+   - Web Workers for heavy math (largely done)
+   - Service Worker cache
+   - Lazy asset loading
+
+## 📚 References
 
 - Konva.js Performance Tips
 - LittleJS Engine Optimizations
 - React Performance Best Practices
 - Mobile Game Development Guidelines
-

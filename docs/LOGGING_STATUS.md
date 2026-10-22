@@ -1,109 +1,111 @@
-# Status da Implementação de Logging
+# Logging Implementation Status
 
-## ✅ Implementado
+> **Historical.** Snapshot from the logging rollout. Prefer [`LOGGING_SYSTEM.md`](./LOGGING_SYSTEM.md). Trust map: [`README.md`](./README.md).
 
-### 1. Sistema Base
+## ✅ Implemented
 
-- ✅ Utilitário de logging (`src/utils/logger.ts`)
-- ✅ Instalação do Pino
-- ✅ Configuração para browser
-- ✅ Contextos organizados por área
+### 1. Base System
+
+- ✅ Logging utility (`src/utils/logger.ts`)
+- ✅ Pino installed
+- ✅ Browser configuration
+- ✅ Contexts organized by area
 
 ### 2. useGameState
 
-- ✅ Logs de mudanças de estado
-- ✅ Logs de reset do jogo
-- ✅ Logs de pause/resume
-- ✅ Logs de inicialização
+- ✅ State change logs
+- ✅ Game reset logs
+- ✅ Pause/resume logs
+- ✅ Initialization logs
 
-### 3. Componentes de Transição
+### 3. Transition Components
 
-- ✅ `PhaseTransition` - logs de início e fim
-- ✅ `BossDefeatTransition` - logs de início e fim
-- ✅ `PhaseCompleteScreen` - logs de exibição
-- ✅ `DeathTransition` - logs de início e fim
+- ✅ `PhaseTransition` — start and end logs
+- ✅ `BossDefeatTransition` — start and end logs
+- ✅ `PhaseCompleteScreen` — display log
+- ✅ `DeathTransition` — start and end logs
 
-## 🚧 Pendente (Guias Criados)
+## 🚧 Pending (Guides Created)
 
-### useGameLoop - Eventos Principais
+### useGameLoop — Main Events
 
-Os logs devem ser adicionados nos seguintes pontos (guia completo em `LOGGING_IMPLEMENTATION_GUIDE.md`):
+Add logs at these points (full guide in `LOGGING_IMPLEMENTATION_GUIDE.md`):
 
-1. **Colisões** (linha ~665)
-   - Log quando há colisão (obstáculo/self)
-   - Log quando entra em estado DYING
-   - Log quando game over
+1. **Collisions** (~line 665)
+   - Log on collision (obstacle/self)
+   - Log when entering DYING
+   - Log on game over
 
-2. **Comida Consumida** (linha ~688-723)
-   - Log quando comida é consumida
-   - Log quando power-up é ativado
-   - Log de tipo de comida
+2. **Food consumed** (~lines 688–723)
+   - Log when food is eaten
+   - Log when a power-up activates
+   - Log food type
 
-3. **Level Up** (linha ~750)
-   - Log quando level aumenta
-   - Log de mudança de fase associada
+3. **Level up** (~line 750)
+   - Log when level increases
+   - Log associated phase change
 
-4. **Mudança de Fase** (linha ~755-766)
-   - Log quando fase muda
-   - Log de configuração da fase
+4. **Phase change** (~lines 755–766)
+   - Log when phase changes
+   - Log phase configuration
 
-5. **Boss Spawn** (linha ~848)
-   - Log quando boss aparece
-   - Log de recursos gerados
+5. **Boss spawn** (~line 848)
+   - Log when boss appears
+   - Log generated resources
 
-6. **Boss Defeat** (linha ~1016, 1129)
-   - Log quando boss é derrotado
-   - Log do método de derrota
-   - Log de recompensa
+6. **Boss defeat** (~lines 1016, 1129)
+   - Log when boss is defeated
+   - Log defeat method
+   - Log reward
 
-7. **Portal Teleport** (linha ~643-646)
-   - Log quando teleportação ocorre
+7. **Portal teleport** (~lines 643–646)
+   - Log on teleport
 
-8. **Poison Shot** (linha ~1123, 1162)
-   - Log quando poison atinge boss
-   - Log de parte atingida
+8. **Poison shot** (~lines 1123, 1162)
+   - Log when poison hits boss
+   - Log hit part
 
-9. **Game Over** (linha ~675, 1050)
-   - Log de estatísticas finais
+9. **Game over** (~lines 675, 1050)
+   - Log final statistics
 
-### Sistemas de Colisão e Combate
+### Collision and Combat Systems
 
-- [ ] `src/utils/obstacleDestruction.ts` - logs de destruição de obstáculos
-- [ ] `src/utils/poison.ts` - logs de criação e impacto de poison
-- [ ] `src/utils/bossSnake.ts` - logs de enfraquecimento de boss
+- [ ] `src/utils/obstacleDestruction.ts` — obstacle destruction logs
+- [ ] `src/utils/poison.ts` — poison creation and impact logs
+- [ ] `src/utils/bossSnake.ts` — boss weakening logs
 
-## 📝 Notas
+## 📝 Notes
 
-Todos os guias de implementação estão em:
+Implementation guides:
 
-- `LOGGING_IMPLEMENTATION_GUIDE.md` - Guia detalhado de implementação
-- `LOGGING_SYSTEM.md` - Documentação do sistema
+- `LOGGING_IMPLEMENTATION_GUIDE.md` — Detailed implementation guide
+- `LOGGING_SYSTEM.md` — System documentation
 
-Os logs são **não-intrusivos** e não alteram a lógica do jogo. Eles apenas registram eventos para observabilidade e debugging.
+Logs are **non-intrusive** and do not change game logic. They record events for observability and debugging.
 
-## 🔧 Como Adicionar Logs Restantes
+## 🔧 How to Add Remaining Logs
 
-1. Abra o arquivo onde deseja adicionar logs
-2. Importe o logger: `import { logGameEvent, createLogger, LogContext } from '@/utils/logger';`
-3. Crie um logger com contexto: `const logger = createLogger(LogContext.CONTEXT_NAME);`
-4. Adicione o log após o evento: `logGameEvent('event-name', { metadata });`
-5. Use `logger.debug()` para logs frequentes, `logger.info()` para eventos importantes
+1. Open the target file
+2. Import: `import { logGameEvent, createLogger, LogContext } from '@/utils/logger';`
+3. Create a contextual logger: `const logger = createLogger(LogContext.CONTEXT_NAME);`
+4. Log after the event: `logGameEvent('event-name', { metadata });`
+5. Use `logger.debug()` for frequent logs, `logger.info()` for important events
 
-## 📊 Exemplo de Log
+## 📊 Example
 
 ```typescript
-// Antes
+// Before
 if (ateFood) {
-  // processar comida
+  // process food
 }
 
-// Depois (com log)
+// After (with log)
 if (ateFood) {
   logGameEvent('food-eaten', {
     foodType: prev.food.type,
     score: newScore,
     level: prev.level,
   });
-  // processar comida
+  // process food
 }
 ```

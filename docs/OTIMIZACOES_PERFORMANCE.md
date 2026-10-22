@@ -1,68 +1,70 @@
-# Otimizações de Performance
+# Performance Optimizations
 
-Este documento descreve todas as otimizações de performance implementadas no jogo Snake.
+> **Historical.** Do not implement from this file. Current runtime: [`ARCHITECTURE.md`](./ARCHITECTURE.md). Trust map: [`README.md`](./README.md).
 
-## 🎯 Objetivos das Otimizações
+This document describes all performance optimizations implemented in the Snake game.
 
-- Manter 60 FPS durante o gameplay
-- Prevenir travamentos e lag na interface
-- Otimizar para dispositivos móveis
-- Reduzir uso de memória
-- Melhorar responsividade dos controles
+## 🎯 Optimization Goals
 
-## ✅ Otimizações Implementadas
+- Maintain 60 FPS during gameplay
+- Prevent UI freezes and lag
+- Optimize for mobile devices
+- Reduce memory use
+- Improve control responsiveness
+
+## ✅ Implemented Optimizations
 
 ### 1. Frame Buffering System
 
-**Problema**: O game loop rodava a cada frame e atualizava o estado React imediatamente, causando muitos re-renders e possível travamento da UI.
+**Problem:** The game loop updated React state every frame, causing many re-renders and possible UI stalls.
 
-**Solução**: Sistema de frame buffering que separa a lógica do jogo da renderização React.
+**Solution:** Frame buffering separates game logic from React rendering.
 
 ```typescript
-// Lógica do jogo roda internamente a 60fps
+// Game logic runs internally at 60fps
 internalGameStateRef.current = newState;
 
-// Renderização React é atualizada a cada frame (60fps também)
-// mas usa requestAnimationFrame para batching
+// React rendering updates every frame (60fps too)
+// but uses requestAnimationFrame for batching
 scheduleRenderUpdate();
 ```
 
-**Benefícios**:
+**Benefits:**
 
-- Lógica do jogo roda independente do ciclo de renderização React
-- Menos re-renders desnecessários
-- Interface mais responsiva
+- Game logic independent of React’s render cycle
+- Fewer unnecessary re-renders
+- More responsive UI
 
-### 2. Memoização de Componentes
+### 2. Component Memoization
 
-Componentes pesados foram memoizados com `React.memo`:
+Heavy components use `React.memo`:
 
-- `GameBoard` - Componente principal do tabuleiro
-- `SnakeSegment` - Cada segmento da cobra
-- `ObstacleComponent` - Obstáculos
-- `PoisonShot` - Disparos de veneno
+- `GameBoard` — Main board
+- `SnakeSegment` — Each snake segment
+- `ObstacleComponent` — Obstacles
+- `PoisonShot` — Poison projectiles
 
-**Benefícios**:
+**Benefits:**
 
-- Componentes só re-renderizam quando props realmente mudam
-- Redução significativa de re-renders
+- Re-render only when props actually change
+- Large reduction in re-renders
 
-### 3. Memoização de Cálculos
+### 3. Calculation Memoization
 
-Cálculos custosos são memoizados com `useMemo`:
+Expensive work uses `useMemo`:
 
-- `portalPairs` - Agrupamento de portais
-- Cálculos de fase e nível
-- Filtros de entidades ativas
+- `portalPairs` — Portal grouping
+- Phase and level calculations
+- Active entity filters
 
-**Benefícios**:
+**Benefits:**
 
-- Cálculos repetidos são evitados
-- Performance melhorada em loops
+- Avoid repeated computation
+- Better loop performance
 
-### 4. Limites de Entidades Ativas
+### 4. Active Entity Limits
 
-Limites implementados para prevenir sobrecarga:
+Caps prevent overload:
 
 ```typescript
 POISON_CONFIG.maxShotsSimultaneous = 50;
@@ -70,31 +72,31 @@ PERFORMANCE_CONFIG.maxParticles = 100;
 PERFORMANCE_CONFIG.maxPortals = 10;
 ```
 
-**Benefícios**:
+**Benefits:**
 
-- Controle de memória
-- Performance estável mesmo com muitas entidades
-- Remoção automática de entidades antigas
+- Memory control
+- Stable performance with many entities
+- Automatic cleanup of old entities
 
-### 5. Batching de Atualizações de Estado
+### 5. State Update Batching
 
-Atualizações de estado são agrupadas usando `requestAnimationFrame`:
+Updates are batched with `requestAnimationFrame`:
 
 ```typescript
-// Disparos de veneno são agrupados
+// Poison shots are batched
 pendingPoisonShotsRef.current.push(...newShots);
 scheduleBatchFlush();
 ```
 
-**Benefícios**:
+**Benefits:**
 
-- Menos atualizações de estado
-- Menos re-renders
-- Performance melhorada
+- Fewer state updates
+- Fewer re-renders
+- Better performance
 
-### 6. Otimização de Animações CSS
+### 6. CSS Animation Optimization
 
-Animações otimizadas para GPU:
+GPU-friendly animations:
 
 ```css
 .poisonShot {
@@ -104,43 +106,42 @@ Animações otimizadas para GPU:
 }
 ```
 
-**Benefícios**:
+**Benefits:**
 
-- Animações mais suaves
-- Menor uso de CPU
-- Melhor performance em dispositivos móveis
+- Smoother animation
+- Lower CPU use
+- Better on mobile
 
-### 7. Redução de Cálculos Condicionais
+### 7. Conditional Calculations
 
-Cálculos são feitos apenas quando necessário:
+Work runs only when needed:
 
 ```typescript
-// Só calcula se array tem itens
+// Only compute when the array has items
 const activePowerUps = prev.activePowerUps.length > 0 ? getActivePowerUps(prev.activePowerUps) : [];
 ```
 
-**Benefícios**:
+**Benefits:**
 
-- Menos processamento desnecessário
-- Performance melhorada no game loop
+- Less wasted work in the game loop
 
-### 8. Otimização de Logs
+### 8. Log Throttling
 
-Logs são throttled para não impactar performance:
+Logs are throttled to avoid gameplay impact:
 
 ```typescript
-// Logs de movimento a cada 500ms ou em mudança de direção
-// Logs de disparo a cada 5 disparos
+// Movement logs every 500ms or on direction change
+// Shot logs every 5 shots
 ```
 
-**Benefícios**:
+**Benefits:**
 
-- Logs não interferem no gameplay
-- Informações ainda são capturadas
+- Logging does not block gameplay
+- Events are still captured
 
-### 9. Grid Responsivo Otimizado
+### 9. Optimized Responsive Grid
 
-Grid se adapta ao tamanho da tela usando `ResizeObserver` e cálculos eficientes:
+Grid adapts via `ResizeObserver` and efficient sizing:
 
 ```typescript
 const cellSize = Math.min(
@@ -149,156 +150,156 @@ const cellSize = Math.min(
 );
 ```
 
-**Benefícios**:
+**Benefits:**
 
-- Grid sempre visível e proporcional
-- Não causa reflows desnecessários
+- Grid stays visible and proportional
+- Avoids unnecessary reflows
 
-### 10. Otimização de Loops
+### 10. Loop Optimization
 
-Substituição de `forEach` por loops `for` onde apropriado:
+`forEach` replaced with `for` where it matters:
 
 ```typescript
-// Mais rápido para arrays grandes
+// Faster for large arrays
 for (let i = 0; i < shots.length; i++) {
   // process shot
 }
 ```
 
-**Benefícios**:
+**Benefits:**
 
-- Melhor performance em loops grandes
-- Menor overhead
+- Better performance on large loops
+- Lower overhead
 
-### 11. Arquitetura Multi-Thread (Web Workers)
+### 11. Multi-Thread Architecture (Web Workers)
 
-**Problema**: A thread principal do navegador (UI Thread) estava sobrecarregada processando lógica do jogo, renderização React, eventos de touch, animações CSS e cálculos de física simultaneamente, causando quedas de FPS.
+**Problem:** The main browser thread handled game logic, React rendering, touch, CSS animations, and physics at once, causing FPS drops.
 
-**Solução**: Separação completa de responsabilidades em Workers dedicados:
+**Solution:** Dedicated workers:
 
-- **Game Worker**: Roda o loop de lógica (update position, collision, AI) a 60 ticks/s.
-- **Render Worker**: Recebe o estado do jogo e desenha no `OffscreenCanvas` (Snake, Comida, Obstáculos, Portais).
-- **Weather/Particle Workers**: Processam efeitos visuais pesados.
+- **Game Worker:** Logic loop (position, collision, AI) at 60 ticks/s
+- **Render Worker:** Draws to `OffscreenCanvas` (snake, food, obstacles, portals)
+- **Weather/Particle Workers:** Heavy visual effects
 
-**Benefícios**:
+**Benefits:**
 
-- A UI Thread fica livre para responder a inputs e animar elementos DOM (como o HUD).
-- O jogo mantém 60 FPS estáveis, especialmente em mobile.
-- Aproveitamento de múltiplos núcleos da CPU.
-- Renderização de milhares de partículas sem custo para a UI.
+- UI thread free for input and DOM HUD
+- Stable 60 FPS, especially on mobile
+- Uses multiple CPU cores
+- Thousands of particles without UI cost
 
-## 📊 Métricas de Performance
+## 📊 Performance Metrics
 
-### Antes das Otimizações
+### Before Optimizations
 
-- FPS: ~30-40 em dispositivos móveis
-- Re-renders: ~100+ por segundo
-- Lag perceptível durante gameplay intenso
-- Travamentos ocasionais
+- FPS: ~30–40 on mobile
+- Re-renders: ~100+ per second
+- Noticeable lag in intense gameplay
+- Occasional freezes
 
-### Depois das Otimizações
+### After Optimizations
 
-- FPS: 60 estável em desktop e mobile
-- Re-renders: ~60 por segundo (apenas quando necessário)
-- Sem lag perceptível
-- Sem travamentos
+- FPS: Stable 60 on desktop and mobile
+- Re-renders: ~60 per second (when needed)
+- No noticeable lag
+- No freezes
 
-## 🔧 Técnicas Utilizadas
+## 🔧 Techniques Used
 
-### React Optimizations
+### React
 
-- `React.memo` para componentes
-- `useMemo` para cálculos
-- `useCallback` para funções
-- Evitar criar novos objetos/arrays desnecessariamente
+- `React.memo` for components
+- `useMemo` for calculations
+- `useCallback` for functions
+- Avoid unnecessary new objects/arrays
 
-### JavaScript Optimizations
+### JavaScript
 
 - Early returns
-- Cálculos condicionais
-- Loops otimizados
-- Throttling e debouncing
+- Conditional calculations
+- Optimized loops
+- Throttling and debouncing
 
-### CSS Optimizations
+### CSS
 
-- `will-change` para propriedades animadas
-- `transform` em vez de `top/left`
-- `transform: translateZ(0)` para GPU
+- `will-change` on animated properties
+- `transform` instead of `top`/`left`
+- `transform: translateZ(0)` for GPU
 - `backface-visibility: hidden`
 
-### Game Loop Optimizations
+### Game Loop
 
 - Frame buffering
-- Batching de atualizações
-- Limites de entidades
-- Cálculos lazy
+- Update batching
+- Entity limits
+- Lazy calculations
 
-## 📱 Otimizações Específicas Mobile
+## 📱 Mobile-Specific Optimizations
 
-### Touch Performance
+### Touch
 
-- `touch-action: manipulation` para melhor resposta
-- Prevenção de pull-to-refresh
-- Otimização de eventos touch
+- `touch-action: manipulation` for faster response
+- Pull-to-refresh prevention
+- Optimized touch handlers
 
-### Layout Mobile
+### Layout
 
-- Grid adaptativo que não causa reflows
-- Controles sempre visíveis sem sobrepor modais
-- Layout otimizado para telas pequenas
+- Adaptive grid without extra reflows
+- Controls visible without covering modals
+- Layout tuned for small screens
 
-### Renderização Mobile
+### Rendering
 
-- Redução de efeitos visuais em mobile (opcional)
-- Limites mais conservadores de entidades
-- Otimização de animações
+- Optional reduction of visual effects on mobile
+- More conservative entity limits
+- Animation tuning
 
-## 🎯 Melhorias Futuras Possíveis
+## 🎯 Possible Future Improvements
 
-### Virtualização
+### Virtualization
 
-- Renderizar apenas entidades visíveis
-- Virtualização de listas grandes
+- Render only visible entities
+- Virtualize large lists
 
 ### Lazy Loading
 
-- Carregar assets sob demanda
-- Code splitting mais agressivo
+- Load assets on demand
+- More aggressive code splitting
 
 ### Service Worker
 
-- Cache de assets
+- Asset cache
 - Background sync
 - Offline support
 
-## 📝 Notas de Desenvolvimento
+## 📝 Development Notes
 
-### Decisões de Design
+### Design Decisions
 
-- **Frame Buffering**: Escolhido para manter responsividade sem sacrificar frame rate
-- **Limites de Entidades**: Balanceamento entre visual e performance
-- **Memoização**: Aplicada onde há benefício real, não em excesso
+- **Frame buffering:** Responsiveness without sacrificing frame rate
+- **Entity limits:** Balance visuals vs. performance
+- **Memoization:** Where it helps, not everywhere
 
 ### Trade-offs
 
-- Algumas otimizações podem reduzir um pouco a "beleza visual" (limites de partículas)
-- Memoização pode consumir mais memória, mas melhora CPU
-- Frame buffering adiciona complexidade, mas melhora significativamente a experiência
+- Some caps reduce visual richness (particle limits)
+- Memoization may use more memory but saves CPU
+- Frame buffering adds complexity but improves UX
 
-## 🔍 Monitoramento
+## 🔍 Monitoring
 
-Para monitorar performance:
+To monitor performance:
 
-1. Abra DevTools (F12)
-2. Vá para a aba Performance
-3. Grave uma sessão de jogo
-4. Analise:
-   - FPS durante gameplay
-   - Tempo de frame
-   - Re-renders do React
-   - Uso de memória
+1. Open DevTools (F12)
+2. Performance tab
+3. Record a gameplay session
+4. Review:
+   - FPS during play
+   - Frame time
+   - React re-renders
+   - Memory use
 
-## 📚 Referências
+## 📚 References
 
 - [React Performance Optimization](https://react.dev/learn/render-and-commit)
 - [CSS Performance](https://web.dev/animations/)

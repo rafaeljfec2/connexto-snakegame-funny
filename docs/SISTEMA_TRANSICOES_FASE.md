@@ -1,52 +1,49 @@
-# Sistema de Transições de Fase
+# Phase Transition Flow
 
-## Objetivo
+## Goal
 
-Quando o jogador derrota um boss:
+When the player defeats a boss:
 
-1. O jogo pausa automaticamente
-2. Mostra uma tela de fim de fase com estatísticas da fase que acabou
-3. Botão "Próxima Fase" para continuar
-4. Quando clica em "Próxima Fase", mostra tela de apresentação da nova fase com contador
-5. Após o contador, o jogo inicia automaticamente
+1. The game pauses
+2. Show a phase-complete screen with phase statistics
+3. “Next Phase” continues
+4. Show a phase-intro screen with a countdown
+5. After the countdown, gameplay resumes automatically
 
-## Componentes Criados
+## Components
 
-1. **PhaseCompleteScreen** - Tela de fim de fase com estatísticas
-2. **PhaseIntroScreen** - Tela de apresentação da nova fase com contador (3, 2, 1, GO!)
+1. **PhaseCompleteScreen** — end-of-phase stats
+2. **PhaseIntroScreen** — new-phase intro with 3, 2, 1, GO!
 
-## Novos Status no GameStatus
+## `GameStatus` values
 
-- `PHASE_COMPLETE` - Mostrando tela de fim de fase
-- `PHASE_INTRO` - Mostrando tela de apresentação da nova fase
+- `PHASE_COMPLETE` — end-of-phase UI
+- `PHASE_INTRO` — intro countdown UI
 
-## Fluxo de Implementação
+## Flow
 
-### 1. Quando o Boss é Derrotado
+### On boss defeat
 
-- Mudar status para `PHASE_COMPLETE`
-- Manter o snapshot da fase (já deve existir no GameState)
+- Set status to `PHASE_COMPLETE`
+- Keep the phase snapshot already on `GameState`
 
-### 2. Tela de Fim de Fase
+### Phase complete screen
 
-- Mostrar quando `status === PHASE_COMPLETE`
-- Calcular estatísticas da fase usando `calculatePhaseStatistics`
-- Botão "Próxima Fase" muda status para `PHASE_INTRO`
+- Visible when `status === PHASE_COMPLETE`
+- Stats via `calculatePhaseStatistics`
+- “Next Phase” sets status to `PHASE_INTRO`
 
-### 3. Tela de Apresentação
+### Phase intro screen
 
-- Mostrar quando `status === PHASE_INTRO`
-- Contador regressivo (3, 2, 1, GO!)
-- Após GO!, mudar status para `PLAYING` e criar novo snapshot da fase
+- Visible when `status === PHASE_INTRO`
+- Countdown 3 → 2 → 1 → GO!
+- After GO!, set status to `PLAYING` and create a new phase snapshot
 
-### 4. Snapshot da Fase
+### Phase snapshot
 
-- Criar quando a fase começa (quando muda de fase ou inicia jogo)
-- Salvar no GameState como `phaseStartSnapshot`
+- Created when a phase starts (phase change or new game)
+- Stored as `phaseStartSnapshot` on `GameState`
 
-## Pendências de Implementação
+## Note
 
-1. Modificar `useGameLoop` para mudar status para `PHASE_COMPLETE` quando boss é derrotado
-2. Adicionar lógica para criar snapshot quando a fase começa
-3. Integrar componentes no App.tsx
-4. Adicionar funções no useGameState para controlar transições
+Early drafts listed wiring gaps in `useGameLoop` / `App.tsx`. Treat this file as domain description; confirm the current wiring in `src/` before changing transitions.

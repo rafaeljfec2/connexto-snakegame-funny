@@ -25,6 +25,8 @@ src/
   types/        Shared TypeScript types (one file per domain)
   test/         Vitest setup
 docs/
+  README.md        Trust map (canonical vs domain vs historical)
+  ARCHITECTURE.md  Runtime map: main thread, four workers, clocks, message channels
   SDD/          Spec-Driven Development methodology, template, specs/
   ADR/          Architecture Decision Records
   CONVENTIONS.md, HARNESS_CHECKLIST.md, plus historical design docs
@@ -39,7 +41,7 @@ Path alias: `@/*` resolves to `src/*` (configured in `tsconfig.json` and `vite.c
 
 - **React 18** + **TypeScript strict** + **Vite 5**.
 - **pnpm** is the package manager. Never invoke `npm install` or `yarn`.
-- **Web Workers + `OffscreenCanvas` 2D** for game logic and rendering. Do not move logic back to the main thread.
+- **Web Workers + `OffscreenCanvas` 2D** for game logic and rendering. Do not move logic back to the main thread. The runtime map (five event loops, simulation vs paint clocks, `MessageChannel`, no shared game heap) is [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 - **CSS Modules** for component styling (`*.module.css` co-located with `*.tsx`). No CSS-in-JS, no Tailwind unless an ADR replaces this.
 - **`pino`** for structured logging via `src/utils/logger.ts` and `LogContext` enum. Never `console.log` in production code.
 - **`i18next`** for any user-facing string (PT-BR + EN-US must be added together).
@@ -77,11 +79,15 @@ Short version:
 5. **Harness**: run `bash scripts/harness/validate.sh` before declaring the task done.
 6. **PR**: title cites the spec ID; body fills the [`docs/HARNESS_CHECKLIST.md`](docs/HARNESS_CHECKLIST.md).
 
-Existing specs:
+Spec index (statuses, Archived vs Done): [`docs/SDD/README.md`](docs/SDD/README.md). Do not implement from an `Archived` spec (e.g. REF-03).
 
-- [REF-01 — Performance Observability Panel](docs/SDD/specs/REF-01-perf-observability.md)
-- [REF-02 — Audio (SFX) with Howler.js](docs/SDD/specs/REF-02-audio-howler.md)
-- [REF-03 — Texture Atlas on Canvas 2D](docs/SDD/specs/REF-03-texture-atlas.md)
+## 5.1 Agent reading order
+
+1. This file.
+2. [`docs/README.md`](docs/README.md) before trusting anything under `docs/`.
+3. [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) before changing workers, loops, or message contracts.
+4. The task’s `docs/SDD/specs/REF-XX-*.md` (`Approved` to code; `Done` for context).
+5. The matching skill under [`.cursor/skills/`](./.cursor/skills/) for the domain (see [`.cursor/rules/50-game-skills.mdc`](./.cursor/rules/50-game-skills.mdc)).
 
 ## 6. Canonical commands
 
@@ -136,11 +142,13 @@ When in doubt, ask the user.
 
 ## 10. Where to look when stuck
 
+- Which docs to trust → [`docs/README.md`](docs/README.md)
+- Runtime / threads / clocks → [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
 - Convention questions → [`docs/CONVENTIONS.md`](docs/CONVENTIONS.md)
 - "Is this feature done?" → [`docs/HARNESS_CHECKLIST.md`](docs/HARNESS_CHECKLIST.md)
 - "Why is the architecture like this?" → [`docs/ADR/`](docs/ADR/)
-- Game-design history (existing features) → `docs/IDEIAS_MELHORIAS.md`, `docs/SISTEMA_*.md`
-- Logging schema → `docs/LOGGING_SYSTEM.md`
-- i18n schema → `docs/I18N_SYSTEM.md`
+- Spec list and statuses → [`docs/SDD/README.md`](docs/SDD/README.md)
+- Domain notes (verify in code) → `docs/SISTEMA_*.md`, `docs/LOGGING_SYSTEM.md`, `docs/I18N_SYSTEM.md`
+- Idea backlog only (not a contract) → `docs/IDEIAS_MELHORIAS.md`
 
 If the answer is not in any of those, propose an ADR.

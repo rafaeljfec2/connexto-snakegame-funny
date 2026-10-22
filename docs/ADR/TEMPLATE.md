@@ -9,11 +9,11 @@
 | **Supersedes** | \<ADR-NNNN or "—"\> |
 | **Superseded by** | \<ADR-NNNN or "—"\> |
 
-> Status: `Proposed` → `Accepted` / `Rejected` / `Deprecated` / `Superseded by ADR-NNNN`.
+> Status: `Proposed` → `Accepted` / `Rejected` / `Deprecated` / `Superseded por ADR-NNNN`.
 
-## Context
+## Contexto
 
-What is the situation that demands a decision? What forces are at play (technical, business, team, regulatory)? Use evidence (file paths, metrics, benchmarks).
+What is the situation that demands a decision? What forces estão at play (technical, business, team, regulatory)? Use evidence (file paths, metrics, benchmarks).
 
 ## Decision
 

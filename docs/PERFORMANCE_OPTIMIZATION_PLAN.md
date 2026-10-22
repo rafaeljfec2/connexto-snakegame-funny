@@ -33,7 +33,7 @@ The multi-thread architecture uses these workers:
 
 ### 3. **Missing Memoization**
 
-- Components are not wrapped in `React.memo`
+- Components estão not wrapped in `React.memo`
 - Repeated calculations without `useMemo`
 - New objects/arrays created on every render
 
@@ -63,7 +63,7 @@ The multi-thread architecture uses these workers:
 
 **Disadvantages:**
 
-- ❌ Workers cannot access the DOM
+- ❌ Workers cannao access the DOM
 - ❌ Serialization overhead and complexity
 - ❌ Communication cost
 - ❌ Not all code can move (browser dependencies)

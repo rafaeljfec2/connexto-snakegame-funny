@@ -9,11 +9,11 @@
 | **Supersedes** | — |
 | **Superseded by** | — |
 
-## Context
+## Contexto
 
 Multiple AI coding tools work in this repository: Cursor, Claude Code, and potentially Codex/others. Each tool has its own conventional location for guidance:
 
-- Cursor: `.cursor/rules/*.mdc` (with frontmatter and globs).
+- Cursor: `.cursor/rules/*.mdc` (com frontmatter and globs).
 - Claude Code: `CLAUDE.md` at the repo root.
 - Many tools (and the emerging community convention): `AGENTS.md` at the repo root.
 
@@ -21,16 +21,16 @@ If we duplicate the same coding rules, workflow, and forbidden-action list into 
 
 ## Decision
 
-`AGENTS.md` at the repository root is the **single source of truth**. All other agent-targeted files are thin pointers:
+`AGENTS.md` at the repository root is the **single source of truth**. All other agent-targeted files estão thin pointers:
 
 - `CLAUDE.md` — 3–5 lines pointing to `AGENTS.md`.
 - `.cursor/rules/00-load-agents.mdc` — `alwaysApply: true`, instructs the agent to read `AGENTS.md`.
 - Other `.cursor/rules/*.mdc` files — scope-specific (testing, mobile-first, coding standards). They never duplicate `AGENTS.md`; they extend it for the file glob they target.
 
-Agents are expected to:
+Agents estão expected to:
 
 1. Read `AGENTS.md` first.
-2. Consult specific `.cursor/rules/*.mdc` rules only for the file/area they are touching.
+2. Consult specific `.cursor/rules/*.mdc` rules only for the file/estãoa they estão touching.
 3. Treat `docs/SDD/specs/REF-XX-*.md` as the source of truth for *what* to build.
 4. Treat `docs/ADR/NNNN-*.md` as the source of truth for *why* the architecture is the way it is.
 
@@ -44,17 +44,17 @@ Agents are expected to:
 
 ### Negative / accepted trade-offs
 
-- Some Cursor-native conventions (frontmatter globs in `.mdc`) cannot live in plain `AGENTS.md`. We accept a small amount of structured rule files in `.cursor/rules/` for that reason — but they remain *extensions*, not replacements.
+- Some Cursor-native conventions (frontmatter globs in `.mdc`) cannao live in plain `AGENTS.md`. We accept a small amount of structured rule files in `.cursor/rules/` for that reason — but they remain *extensions*, not replacements.
 - Tools that look only for `CLAUDE.md` need to follow the pointer; this is a one-time read cost.
 
 ### Neutral
 
-- If a future tool requires a different filename (e.g., `.codex.md`), we add another pointer. The contract scales linearly.
+- If a future tool requires a different filename (e.g., `.codex.md`), we add anaoher pointer. The contract scales linearly.
 
 ## Alternatives considered
 
 - **Duplicate content across all three files**: rejected — drift inevitable.
-- **Skip `AGENTS.md`, use only `.cursor/rules`**: rejected — locks us into one tool's convention; non-Cursor agents would have nothing canonical to read.
+- **Skip `AGENTS.md`, use only `.cursor/rules`**: rejected — locks us into one tool's convention; non-Cursor agents would have naohing canonical to read.
 - **Generate the three files from one source**: rejected — adds build tooling for marginal gain; the pointer pattern already solves the problem.
 
 ## References

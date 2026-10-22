@@ -15,7 +15,7 @@ Touch targets ≥ 44 px. Mobile-first CSS uses `min-width` queries. Respect `pre
 
 ## Invariants
 
-1. Handlers do not move the snake. They post commands; `game.worker` owns direction.
+1. Handlers of the not move the snake. They post commands; `game.worker` owns direction.
 2. Direction queue length ≤ 3; reverse-controls apply inside the worker.
 3. Hold-to-accelerate uses `CONTROL_CONFIG.speedBoostActivationDelay` (shorter on mobile).
 4. Poison fire: keyboard X/Space or D-pad center; `SET_FIRING_POISON` on release.

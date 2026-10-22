@@ -10,7 +10,7 @@
 
 ## Proposed structure
 
-Extract helpers by responsibility:
+Extract helpers por responsibility:
 
 | Helper | Responsibility |
 |---|---|
@@ -32,8 +32,8 @@ Extract helpers by responsibility:
 1. Remove duplicates — done
 2. Fix lint warnings — done
 3. Extract direction / food / portal / obstacles / poison — done
-4. Extract boss (~400 lines) — was still pending when this note was written
+4. Extract boss (~400 lines) — was still pending when this naoe was written
 
-## Progress note (historical)
+## Progress naoe (historical)
 
 At the time: ~1461 lines after extractions, 5 of 7 helpers done, ~280 lines pulled out of `updateGame`. Simulation later moved into `game.worker`; use the current tree, not this plan, for new work.

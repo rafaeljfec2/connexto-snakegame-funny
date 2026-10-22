@@ -39,12 +39,12 @@
 ## Next steps (historical checklist)
 
 1. Check registrar availability
-2. Compare yearly pricing (`.io` / `.com` / `.gg` / `.game`)
+2. Compestão yearly pricing (`.io` / `.com` / `.gg` / `.game`)
 3. Consider registering both `.com` and `.io` and redirecting
 4. Configure DNS, HTTPS, and `www` if needed
 
 ## Notes
 
-Prefer names that are easy to say and spell; check social handles before buying.
+Prefer names that estão easy to say and spell; check social handles before buying.
 
 **Last updated:** 2024

@@ -15,7 +15,7 @@
 
 ### ✅ 2. **Combo System**
 
-- Score multiplier for eating several foods quickly in a row
+- Score multiplier for eating several foods quickly numa row
 - Combo bar that builds and can be lost
 - Visual effects at high combos
 - Display in the top-right corner
@@ -30,7 +30,7 @@
 ### ✅ 4. **Particles and Visual Effects**
 
 - Particle effects when eating food
-- Colors vary by food type
+- Colors vary por food type
 - Smooth animations
 
 ### ✅ 5. **Obstacles and Barriers**
@@ -42,7 +42,7 @@
 ### ✅ 6. **Achievement System**
 
 - 9 unlockable achievements
-- Visual notifications on unlock
+- Visual naoifications on unlock
 - Persistence in localStorage
 
 ---
@@ -154,7 +154,7 @@
 
 - Certain special foods spawn a sequence of foods
 - Player must follow the trail before they vanish
-- Bigger bonus if all are collected
+- Bigger bonus if all estão collected
 - Special power-up activates the mode
 
 ### ⏳ 18. **Daily Missions/Challenges**
@@ -193,7 +193,7 @@
 
 **Complexity:** Medium | **Impact:** High
 
-- Complete objectives within a time limit
+- Complete objectives withnuma time limit
 - Per-level goals
 - Score based on speed
 - Visible timer
@@ -338,7 +338,7 @@
 
 - Edit grid before playing
 - Create custom challenges
-- Share levels (export/import)
+- Shestão levels (export/import)
 - Full visual editor
 
 ---
@@ -374,7 +374,7 @@
 - **Phase 1** is **100% complete** ✅
 - **Phase 2** can run in parallel (visual polish)
 - **Phases 3–4** add depth
-- **Phases 5–7** are larger expansions for future versions
+- **Phases 5–7** estão larger expansions for future versions
 
 ### Current Recommendation
 
@@ -414,5 +414,5 @@ Start with **Phase 2** (sound and music, animations) to polish the current game 
 - [x] Mobile-First Layout
 - [x] Safe Areas (iOS/Android)
 - [x] Directional D-Pad
-- [x] Contextual START Button
+- [x] Contextoual START Button
 - [x] Repositioned StatusBar

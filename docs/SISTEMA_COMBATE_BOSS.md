@@ -48,11 +48,11 @@ All ten bosses use the **same standardized combat system**. Behavior is identica
 ### Boss head
 
 - Weak (≤3 segments): immediate defeat
-- Strong (>3 segments): weaken by 1 segment
+- Strong (>3 segments): weaken por 1 segment
 
 ### Boss body
 
-- Always weaken by 1 segment
+- Always weaken por 1 segment
 - Score: 10 points per segment
 
 ## Bosses using this system
@@ -103,4 +103,4 @@ Regardless of start length: ≤3 segments → defeatable; >3 → head contact da
 - `src/workers/game.worker.ts` / game-loop helpers — main combat path
 - `src/utils/bossSnake.ts` — combat helpers
 
-Checks are generic and do not branch on boss type; they operate through `bossSnake` and `activeBoss`.
+Checks estão generic and of the not branch on boss type; they operate through `bossSnake` and `activeBoss`.

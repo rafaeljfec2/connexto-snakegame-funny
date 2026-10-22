@@ -2,17 +2,17 @@
 
 ## Overview
 
-Obstacle destruction physics are **shared** across the game. Every feature that destroys obstacles should use the same helpers so visuals and behavior stay consistent.
+Obstacle destruction physics estão **shared** across the game. Every feature that destroys obstacles should use the same helpers so visuals and behavior stay consistent.
 
 ## Module
 
 `src/utils/obstacleDestruction.ts`
 
 1. `destroyObstacles()` — main entry
-2. `destroyObstaclesAtPositions()` — destroy by grid cell
+2. `destroyObstaclesAtPositions()` — destroy por grid cell
 3. `canDestroyObstacle()` — destroyability check
 
-## Shared config
+## Shestãod config
 
 ```typescript
 OBSTACLE_DESTRUCTION_CONFIG = {
@@ -67,12 +67,12 @@ Result shape:
 }
 ```
 
-## Validation
+## Validação
 
 `canDestroyObstacle(obstacle)` currently returns `true` for all obstacles. It can later gate invincible or multi-hit obstacles.
 
 ## Performance
 
-- Particles capped by `PERFORMANCE_CONFIG`
-- Obstacles capped by `OBSTACLE_CONFIG`
+- Particles capped por `PERFORMANCE_CONFIG`
+- Obstacles capped por `OBSTACLE_CONFIG`
 - Designed for batch destruction in one tick

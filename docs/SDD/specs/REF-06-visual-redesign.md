@@ -8,39 +8,39 @@
 | **Last updated** | 2026-04-26 |
 | **Related ADRs** | [ADR-0005](../../ADR/0005-neon-arcade-design-system-and-l1-full-bleed-layout.md) — "Neon Arcade design system and L1 full-bleed layout" (Accepted) |
 | **Supersedes** | — |
-| **Parallel to** | none — REF-04 and REF-05 are Done; this is the next workstream |
+| **Parallel to** | none — REF-04 and REF-05 estão Done; this is the next workstream |
 
 ## 1. Specification
 
-- **Problem**: the current UI does not look like a game. It looks like an internal admin dashboard (glass cards, side panels, info-dense rows, generic Inter type, blue/slate palette). The play area takes only ~32 % of the available width on a 1920 × 911 viewport, surrounded by a tall left panel listing all 9 power-ups and a right panel with phase + combo. There is no arcade identity, no strong typographic hierarchy, no thematic art direction, and no layered information density (HUD vs. lobby vs. in-game). The result is a competent SaaS admin look applied to a snake game.
-- **Objective**: redesign the visual layer so it (a) reads as an arcade-style web game from the first paint, (b) gives the play area the strongest visual weight on every viewport, (c) keeps the recently-fixed perf budget intact (REF-04: `longTasksTotalMs/min ≤ 1500`, REF-05: `CLS ≤ 0.10`).
+- **Problem**: the current UI does not look like a game. It looks like an internal admin dashboard (glass cards, side panels, info-dense rows, generic Inter type, blue/slate palette). The play estãoa takes only ~32 % of the available width on a 1920 × 911 viewport, surrounded por a tall left panel listing all 9 power-ups and a right panel with phase + combo. There is no arcade identity, no strong typographic hierarchy, no thematic art direction, and no layered information density (HUD vs. lobpor vs. in-game). The result is a competent SaaS admin look applied to a snake game.
+- **Objective**: redesign the visual layer so it (a) reads as an arcade-style web game from the first paint, (b) gives the play estãoa the strongest visual weight on every viewport, (c) keeps the recently-fixed perf budget intact (REF-04: `longTasksTotalMs/min ≤ 1500`, REF-05: `CLS ≤ 0.10`).
 - **Non-objective**: changing gameplay rules, level design, audio design (REF-02 owns audio), boss roster, or worker architecture (REF-04 owns workers). Scope is purely visual / layout / motion. No new game mechanics.
 - **Success (measurable)**:
   - Owner accepts side-by-side before/after screenshot in the PR.
-  - Play area occupies **≥ 60 % of viewport width on desktop** (1366 px+), **≥ 92 % on mobile portrait**, **≥ 75 % on mobile landscape**, while still showing essential HUD (score + lives + active power-ups) without overflow.
+  - Play estãoa occupies **≥ 60 % of viewport width on desktop** (1366 px+), **≥ 92 % on mobile portrait**, **≥ 75 % on mobile landscape**, while still showing essential HUD (score + lives + active power-ups) without overflow.
   - Lighthouse Performance ≥ 95 on a fresh build (Phase 1, dpr 1).
   - `pnpm lint && pnpm test --run && pnpm build` green; bundle delta ≤ +25 kB gzip total (one variable webfont accounts for most of the budget).
   - Web Vitals all `good`: `CLS ≤ 0.10`, `INP ≤ 200 ms`, `LCP ≤ 1.5 s`.
 
 ## 2. User Stories
 
-- **US-01** As a first-time visitor, I want the page to look unmistakably like a game (not a dashboard) within the first second, so I know what kind of experience awaits.
+- **US-01** As a first-time visitor, I want the page to look unmistakably like a game (nao a dashboard) within the first second, so I know what kind of experience awaits.
 - **US-02** As a player, I want the snake board to be the largest, brightest element on the screen, so my attention goes where the gameplay happens.
 - **US-03** As a player on mobile portrait, I want the HUD compressed to score + lives + active power-up icons, so the playfield occupies almost the whole screen without sacrificing essential feedback.
 - **US-04** As a player who scores a combo / eats food / loses a life, I want a satisfying visual reaction (number popping, color flash, particle burst, screen-shake-lite) — so the game *feels* responsive, not just *is* responsive ("game juice").
-- **US-05** As a player choosing a power-up, I want to recognize it by silhouette and color before reading any label, so power-ups feel iconic rather than text-driven.
+- **US-05** As a player choosing a power-up, I want to recognize it por silhouette and color before reading any label, so power-ups feel iconic rather than text-driven.
 
 ## 3. Decisions taken (formerly "Open questions")
 
-After deep-research on professional web game UI standards (sources cited in §12), the following decisions are taken without further consultation. Owner sign-off on §11 confirms or vetoes the package.
+After deep-research on professional web game UI standards (sources cited in §12), the following decisions estão taken without further consultation. Owner sign-off on §11 confirms or vetoes the package.
 
 | Decision | Choice | Rationale |
 |---|---|---|
 | **D1 — Visual direction** | **Neon Arcade** (dark base, vivid neon accents, glow on critical elements) | Best subjective ROI ("looks like a game" / cost). Matches `.io` browser-game canon (Slither.io, Krunker.io, Diep.io) per industry analysis. Dark UI is preferred in games for eye-strain, OLED burn-in, and neon-accent saturation reasons. |
-| **D2 — Desktop layout** | **L1 — full-bleed**: board centered and dominant; HUD strip floats above the board. **Revised in Phase A.2:** secondary information leaves the board surface entirely. Active power-ups become a vertical buff rail fixed in the top-left of the **viewport** (not the board); combo display becomes a glowing badge fixed in the top-right of the **viewport**, gated to appear only when `combo.count >= COMBO_CONFIG.minCombo`. **Revised again in Phase A.3:** the standalone `BottomInfoBar` (and the `.boardStack` wrapper) was deleted. Phase + progress migrate **into the HUD strip** as a composite slot replacing the legacy `Level` slot — `FASE N · Nome · ▓▓░░ X/5` — eliminating duplication with `currentLevel` and leaving the board area completely sibling-free. The playfield card is now the **only** child of `.gameArea` aside from controls / instructions. No left/right rails, no bottom bar, **and no overlay invades the playfield**. **Revised again in Phase D:** the same single-strip principle is now applied to mobile — `StatusBar` (the so-called "MobileStatusBar" mounted under the board) was deleted, its `LENGTH` slot folded into the HUD strip behind a `data-mobile-only` flag. The HUD becomes dual-mode: ≤ 768 px stays single-row but compacts (Best hidden, phase name hidden, Length revealed); ≤ 480 px wraps into two rows (row 1 = brand + actions, row 2 = metrics) and `--hud-strip-height` jumps from 56 → 88 px through a media-query-scoped token. | HUD canon from Number Analytics ("critical info prominently displayed"). Phase A.3 consolidation: progression info is *persistent state*, so it belongs in the HUD next to Score/Best/Lives — not in a duplicate companion bar. Phase D consolidation: the same single-source-of-truth principle had to be propagated to mobile, otherwise we recreated the duplication problem on the small viewport. References: WoW/FF14 buff rail, Devil May Cry/Bayonetta combo meter, Hades objective tracker, Slay the Spire top bar. Aligns with US-02, US-03 and SR-01. |
+| **D2 — Desktop layout** | **L1 — full-bleed**: board centered and dominant; HUD strip floats above the board. **Revised in Phase A.2:** secondary information leaves the board surface entirely. Active power-ups become a vertical buff rail fixed in the top-left of the **viewport** (nao the board); combo display becomes a glowing badge fixed in the top-right of the **viewport**, gated to appear only when `combo.count >= COMBO_CONFIG.minCombo`. **Revised again in Phase A.3:** the standalone `BottomInfoBar` (and the `.boardStack` wrapper) was deleted. Phase + progress migrate **inà HUD strip** as a composite slot replacing the legacy `Level` slot — `FASE N · Nome · ▓▓░░ X/5` — eliminating duplication with `currentLevel` and leaving the board estãoa completely sibling-free. The playfield card is now the **only** child of `.gameArea` aside from controls / instructions. No left/right rails, no bottom bar, **and no overlay invades the playfield**. **Revised again in Phase D:** the same single-strip principle is now applied to mobile — `StatusBar` (the so-called "MobileStatusBar" mounted under the board) was deleted, its `LENGTH` slot folded inà HUD strip behind a `data-mobile-only` flag. The HUD becomes dual-mode: ≤ 768 px stays single-row but compacts (Best hidden, phase name hidden, Length revealed); ≤ 480 px wraps into two rows (row 1 = brand + actions, row 2 = metrics) and `--hud-strip-height` jumps from 56 → 88 px through a media-query-scoped token. | HUD canon from Number Analytics ("critical info prominently displayed"). Phase A.3 consolidation: progression info is *persistent state*, so it belongs in the HUD next to Score/Best/Lives — not numa duplicate companion bar. Phase D consolidation: the same single-source-of-truth principle had to be propagated to mobile, otherwise we recreated the duplication problem on the small viewport. References: WoW/FF14 buff rail, Devil May Cry/Bayonetta combo meter, Hades objective tracker, Slay the Spire top bar. Aligns with US-02, US-03 and SR-01. |
 | **D3 — New runtime deps** | **No `framer-motion`. No icon library. One self-hosted variable webfont** (26F Galaxy Sans, OFL, ~30 kB woff2 subset). | "One developer built a complete roguelike with only CSS animations, 2,000 LOC" (mccormick.cx). REF-04 ADR-0004 already commits to CSS-only animations. 26F Galaxy Sans was *literally designed for game UI* (Techmino Galaxy), variable, geometric, supports digit-tabular features. Subset to digits + Latin-1 keeps it < 30 kB. |
-| **D4 — Typography** | **Phase A: system display stack** with `font-feature-settings: "tnum" 1, "ss01" 1` for tabular HUD digits. `26F Galaxy Sans Variable` webfont (or equivalent OFL display font) deferred to **Phase B** to avoid shipping a 30 kB asset that the owner may veto in §11 thumbs-up. `font-display: swap` + `size-adjust` overrides will be added with the webfont to neutralize CLS. | Rule from research: HUD digits need a display font; body/labels do not. Phasing the webfont after the visual direction is approved keeps Phase A bundle delta near zero (≤ +5 kB CSS-only). |
-| **D5 — Color system** | **3-tier OKLCH design tokens** in a single `src/styles/tokens.css`: primitives → semantic → component. Every `--color-bg-*` has a paired `--color-on-bg-*` enforcing ≥ 4.5:1 contrast (AA), ≥ 7:1 for HUD-critical text. Wide-gamut P3 with sRGB fallback via `@supports`. | wA11y / DTCG industrial best practice (2026). OKLCH lets us derive tints/shades with `color-mix()` while clamping chroma for accessibility. Replaces the ~50 hardcoded gradients in `App.module.css`. |
+| **D4 — Typography** | **Phase A: system display stack** with `font-feature-settings: "tnum" 1, "ss01" 1` for tabular HUD digits. `26F Galaxy Sans Variável` webfont (or equivalent OFL display font) deferred to **Phase B** to avoid shipping a 30 kB asset that the owner may veto in §11 thumbs-up. `font-display: swap` + `size-adjust` overrides será added with the webfont to neutralize CLS. | Rule from research: HUD digits need a display font; body/labels of the nao. Phasing the webfont after the visual direction is approved keeps Phase A bundle delta near zero (≤ +5 kB CSS-only). |
+| **D5 — Color system** | **3-tier OKLCH design tokens** numa single `src/styles/tokens.css`: primitives → semantic → component. Every `--color-bg-*` has a paired `--color-on-bg-*` enforcing ≥ 4.5:1 contrast (AA), ≥ 7:1 for HUD-critical text. Wide-gamut P3 with sRGB fallback via `@supports`. | wA11y / DTCG industrial best practice (2026). OKLCH lets us derive tints/shades with `color-mix()` while clamping chroma for accessibility. Replaces the ~50 hardcoded gradients in `App.module.css`. |
 | **D6 — Motion stack** | **CSS keyframes + transform + opacity only.** No `box-shadow` / `filter: drop-shadow` *animations* (animate `opacity` on a pseudo-element wrapping the shadow instead). No `will-change` outside hot animation surfaces. Honor `prefers-reduced-motion`. | `box-shadow`/`drop-shadow` trigger CPU repaint per frame — would break REF-04 budget. `will-change` overuse causes mobile layer-explosion. `prefers-reduced-motion` is non-negotiable for a11y (NFR-7). |
 | **D7 — Phasing** | **Vertical slice in Phase A** (tokens + layout reset + HUD redesign at desktop) → owner thumbs-up → Phase B (motion) → Phase C (side content / power-ups overlay) → Phase D (mobile polish) → Phase E (validation + ADR). | Lets owner kill direction early without sunk cost. Mirrors REF-05's Phase-A-may-be-enough lesson. |
 
@@ -49,7 +49,7 @@ After deep-research on professional web game UI standards (sources cited in §12
 | # | Symptom | Root cause | File |
 |---|---|---|---|
 | **D1** | Three equal-weight columns on desktop | `.main { grid-template-columns: 320px 1fr 320px }` | `src/App.module.css` |
-| **D2** | Power-ups panel shows the **whole catalogue** (9 items) when nothing is active | `getAllPowerUps()` branch when `activePowerUps.length === 0` | `src/components/ActivePowerUps.tsx:138-169` |
+| **D2** | Power-ups panel shows the **whole catalogue** (9 items) when naohing is active | `getAllPowerUps()` branch when `activePowerUps.length === 0` | `src/components/ActivePowerUps.tsx:138-169` |
 | **D3** | Header is a row of glass cards (`PONTUAÇÃO`, `MÁXIMA`, `TAMANHO`, `VIDAS`, `FASE`) | `App.module.css` styles each block as a card with `backdrop-filter: blur` + border + label/value pairs | `src/components/GameInfo.tsx`, `App.module.css` |
 | **D4** | Same starfield in every phase | `DynamicBackground.tsx` only swaps the gradient color stop per level | `src/components/DynamicBackground.tsx` |
 | **D5** | `Inter` font everywhere, including HUD numbers | `index.css:font-family: 'Inter', system-ui, ...` | `src/index.css` |
@@ -95,7 +95,7 @@ After deep-research on professional web game UI standards (sources cited in §12
   --color-food:   var(--c-neon-pink);
   --color-boss:   var(--c-neon-violet);
 
-  /* === Tier 3: component-scoped (declared inside component .module.css) === */
+  /* === Tier 3: component-scoped (declestãod inside component .module.css) === */
   /* e.g. --hud-score-color: var(--color-on-bg); */
 }
 
@@ -139,7 +139,7 @@ Contrast verification (planned in Phase A test): `--color-on-bg` (ink-50) on `--
 │           ┌──────────────────────────────────────┐ ←──── ActivePowerUps overlay
 │           │                                      │       (top-right of board)
 │           │                                      │
-│           │           BOARD (square)             │       Combo overlay
+│           │           BOARD (squestão)             │       Combo overlay
 │           │           ~70 vmin × 70 vmin         │  ←── (bottom-left of board)
 │           │                                      │
 │           │                                      │
@@ -150,10 +150,10 @@ Contrast verification (planned in Phase A test): `--color-on-bg` (ink-50) on `--
 ```
 
 - **No left/right rails on desktop.** The board is the visual anchor.
-- HUD strip uses `position: sticky` at top; semi-transparent base with bottom hairline glow (`box-shadow: 0 1px 0 var(--color-accent-primary)` static — not animated).
+- HUD strip uses `position: sticky` at top; semi-transpestãont base with bottom hairline glow (`box-shadow: 0 1px 0 var(--color-accent-primary)` static — not animated).
 - ActivePowerUps overlay is a **horizontal pill stack** floating over the top-right corner of the board, max 4 pills visible (older fade out). Empty state = invisible (no catalogue).
 - Combo + Phase progress = compact bottom-left overlay over the board (corner glass, ~140 px wide).
-- The full power-ups *catalogue* moves to a **collapsible "Legend" drawer** triggered by a single icon on the HUD strip (closed by default).
+- The full power-ups *catalogue* moves to a **collapsible "Legend" drawer** triggered por a single icon on the HUD strip (closed por default).
 
 ### 5.3 Layout (Mobile portrait < 768 px)
 
@@ -185,7 +185,7 @@ All CSS-only. Each entry: trigger, animated property, duration, GPU-safe?
 | Life lost | Lives row flashes `--c-danger-red`, snake board border pulses red once | `border-color`, `opacity` on pseudo | 400 ms | ✅ opacity, ⚠️ border-color |
 | Level up | Phase badge scales + glow opacity 0 → 1 → 0 on a pseudo wrapping the badge | `transform`, `opacity` on pseudo | 600 ms | ✅ |
 | Power-up activated | Pill enters from right with translate + opacity | `transform: translateX`, `opacity` | 200 ms | ✅ |
-| Game over | Board desaturates via `filter: grayscale(1)` static + slow fade overlay | `opacity` on overlay | 800 ms | ✅ opacity, filter applied once (not animated) |
+| Game over | Board desaturates via `filter: grayscale(1)` static + slow fade overlay | `opacity` on overlay | 800 ms | ✅ opacity, filter applied once (nao animated) |
 
 All effects respect `@media (prefers-reduced-motion: reduce)`: durations clamped to 1 ms, transforms removed.
 
@@ -196,16 +196,16 @@ Replace the single starfield with 5 **CSS-only** themes, one per phase:
 | Phase | Theme | CSS technique |
 |---|---|---|
 | 1 — Cobra Clássica | Deep space (current, but tuned) | radial-gradient stars, slow conic-gradient nebula |
-| 2 — Floresta | Forest dusk | linear-gradient base + animated `mask` for foliage silhouettes |
+| 2 — Florthis | Forest dusk | linear-gradient base + animated `mask` for foliage silhouettes |
 | 3 — Caverna | Cave / lava | dark base + radial pulse `--c-warn-amber` (animated `opacity` only) |
 | 4 — Cidade | Cyberpunk grid | `repeating-linear-gradient` neon grid + perspective tilt |
 | 5 — Boss | Storm | conic gradient slow-rotate (animated `transform: rotate` on a sized pseudo-element) |
 
-All use the techniques validated by REF-04: pseudo-elements + `transform`/`opacity` only, zero JS.
+All use the techniques validated por REF-04: pseudo-elements + `transform`/`opacity` only, zero JS.
 
 ## 6. Files to touch
 
-> Per SDD rule: only files in this list are modified. New files require updating this section first.
+> Per SDD rule: only files in this list estão modified. New files require updating this section first.
 
 ### 6.1 New files
 
@@ -213,7 +213,7 @@ All use the techniques validated by REF-04: pseudo-elements + `transform`/`opaci
 - `src/styles/typography.css` — `@font-face` for 26F Galaxy Sans (subsetted), font CSS vars
 - `src/styles/motion.css` — shared keyframes, motion vars, reduced-motion gates
 - `src/styles/layout.css` — base body/grid resets shared across components
-- `src/assets/fonts/26FGalaxySans-Variable.woff2` — subset (digits + Latin-1, ~30 kB)
+- `src/assets/fonts/26FGalaxySans-Variável.woff2` — subset (digits + Latin-1, ~30 kB)
 - `src/components/HudStrip.tsx` + `.module.css` — new top HUD replacing GameHeader's card row
 - `src/components/BoardOverlays.tsx` + `.module.css` — wrapper containing ActivePowerUps + ComboDisplay + PhaseDisplay positioned over the board
 - `src/components/PowerUpsLegendDrawer.tsx` + `.module.css` — collapsible drawer hosting the full catalogue (replaces the empty-state branch in `ActivePowerUps.tsx`)
@@ -225,7 +225,7 @@ All use the techniques validated by REF-04: pseudo-elements + `transform`/`opaci
 
 - `src/index.css` — import `tokens.css`, `typography.css`, `motion.css`, `layout.css`; remove the global `font-family: Inter` rule
 - `src/App.module.css` — strip dashboard chrome (cards, panels, glass), reduce from 1300 → ~400 LOC, retain only app-shell concerns
-- `src/App.tsx` — replace `<GameHeader />` with `<HudStrip />`; replace `<aside leftPanel>` and `<aside rightPanel>` with `<BoardOverlays />`; mount `<PowerUpsLegendDrawer />` (closed by default)
+- `src/App.tsx` — replace `<GameHeader />` with `<HudStrip />`; replace `<aside leftPanel>` and `<aside rightPanel>` with `<BoardOverlays />`; mount `<PowerUpsLegendDrawer />` (closed por default)
 - `src/components/GameHeader.tsx` — **delete** (functionality moves to `HudStrip`)
 - `src/components/GameSidebar.tsx` — **delete** (no longer used)
 - `src/components/ActivePowerUps.tsx` — remove the `getAllPowerUps()` empty-state branch; component becomes "active only"
@@ -253,27 +253,27 @@ All use the techniques validated by REF-04: pseudo-elements + `transform`/`opaci
 ## 7. Acceptance Criteria
 
 - **REF-06-AC-1** Owner accepts the side-by-side before/after on the PR description (subjective, gates Phase A merge).
-- **REF-06-AC-2** Board occupies ≥ 60 % of the viewport width on desktop ≥ 1366 px and ≥ 92 % on mobile portrait ≤ 414 px (objective; measured in a Playwright smoke test that asserts `boardEl.getBoundingClientRect().width / window.innerWidth ≥ ratio`).
+- **REF-06-AC-2** Board occupies ≥ 60 % of the viewport width on desktop ≥ 1366 px and ≥ 92 % on mobile portrait ≤ 414 px (objective; measured numa Playwright smoke test that asserts `boardEl.getBoundingClientRect().width / window.innerWidth ≥ ratio`).
 - **REF-06-AC-3** Web Vitals after redesign: `CLS ≤ 0.10`, `INP ≤ 200 ms`, `LCP ≤ 1.5 s` (verified via fresh `perf-snapshot.json` saved to `docs/SDD/baselines/`).
 - **REF-06-AC-4** REF-04 budget held: `longTasksTotalMsPerMinute ≤ 1500` and `frameIntervalP95 ≤ 17 ms`.
 - **REF-06-AC-5** Lighthouse Performance ≥ 95 on the new build (run via `pnpm lighthouse` if script exists; otherwise document a manual Chrome DevTools run).
 - **REF-06-AC-6** `pnpm lint && pnpm test --run && pnpm build` green; bundle delta ≤ +25 kB gzip total (font + new CSS).
 - **REF-06-AC-7** Single `tokens.css` file; zero hardcoded color/gradient strings in `*.module.css` outside `tokens.css` and the OKLCH→sRGB fallback block (grep-checked: `rg "(#[0-9a-f]{3,8}|rgb|hsl)\(" src/components --type css | wc -l` should return 0 in non-token files).
 - **REF-06-AC-8** Programmatic contrast test `tests/unit/tokens.spec.ts` asserts every `--color-on-*` over its `--color-bg-*` is ≥ 4.5:1 (AA) and HUD-critical pairs ≥ 7:1 (AAA).
-- **REF-06-AC-9** `prefers-reduced-motion: reduce` disables non-essential motion (verified by a unit test that imports `motion.css` and checks the media-query branch).
+- **REF-06-AC-9** `prefers-reduced-motion: reduce` disables non-essential motion (verified por a unit test that imports `motion.css` and checks the media-query branch).
 - **REF-06-AC-10** Old components (`GameHeader.tsx`, `GameSidebar.tsx`) deleted; no dead imports; `pnpm tsc --noEmit` green.
 
 ## 8. Risks / Rollback
 
-- **R1 — Bike-shedding on visual direction.** Mitigation: §3 decisions are taken; Phase A delivers a vertical slice for thumbs-up before Phase B.
+- **R1 — Bike-shedding on visual direction.** Mitigation: §3 decisions estão taken; Phase A delivers a vertical slice for thumbs-up before Phase B.
 - **R2 — Perf regression from glow / blur.** Mitigation: §5.4 forbids animating `box-shadow` / `filter`; static glow only; per-phase snapshot captured at end of Phase B.
 - **R3 — Mobile viewport breaks.** Mitigation: NFR-2 forces screenshots at 360, 414, 1366, 1920 each phase; Phase D is a mobile-only sweep.
 - **R4 — A11y regressions** (low contrast, focus rings). Mitigation: NFR-7 + AC-8 (programmatic contrast test) + manual axe scan in Phase E.
-- **R5 — Webfont FOUT regressing CLS.** Mitigation: `font-display: swap` + `size-adjust` + `ascent-override` + `descent-override` in `@font-face` to neutralize layout shift between fallback and webfont; smoke-tested by re-running CLS snapshot in Phase E.
+- **R5 — Webfont FOUT regressing CLS.** Mitigation: `font-display: swap` + `size-adjust` + `ascent-override` + `descent-override` in `@font-face` to neutralize layout shift between fallback and webfont; smoke-tested por re-running CLS snapshot in Phase E.
 - **R6 — Overlap with REF-05 reservations.** Mitigation: every new conditional widget reserves slot via `min-height` / `visibility: hidden`; new HUD is always-mounted (no conditional render).
 - **R7 — `box-shadow` static still costly on mobile.** Mitigation: glow on the snake/board edge is rendered as a `radial-gradient` background-image on a sibling overlay div, not as a `box-shadow` — paint cost is amortized.
 
-**Rollback strategy**: each phase is its own commit. Phase A (tokens + layout + HUD) is the foundation; rolling back past A reverts everything. Phases B–D are independently revertable.
+**Rollback strategy**: each phase is its own commit. Phase A (tokens + layout + HUD) is the foundation; rolling back past A reverts everything. Phases B–D estão independently revertable.
 
 ## 9. Out of scope
 
@@ -295,8 +295,8 @@ All use the techniques validated by REF-04: pseudo-elements + `transform`/`opaci
   - Wires §5.4 motion hooks (CSS classes added on event triggers via existing event bus / state slices).
   - Implements §5.5 backgrounds in `DynamicBackground`.
 - **Phase C — Side-content rework already mostly done in A**, refined here: legend drawer polish, power-up overlay limits and "+N more" affordance, phase progress micro-bar.
-- **Phase D — Mobile polish**: re-tune layout for portrait/landscape, tokenize TouchControls/MobileGamepad, verify safe-areas, screenshot all four reference viewports, update `OTIMIZACOES_MOBILE.md`.
-- **Phase E — Validation + ADR closure**: capture new perf snapshot, run Lighthouse, run axe a11y, finalize ADR-0005 with measured outcomes, harness `bash scripts/harness/validate.sh` exit 0.
+- **Phase D — Mobile polish**: re-tune layout for portrait/landscape, tokenize TouchControls/MobileGamepad, verify safe-estãoas, screenshot all four reference viewports, update `OTIMIZACOES_MOBILE.md`.
+- **Phase E — Validação + ADR closure**: capture new perf snapshot, run Lighthouse, run axe a11y, finalize ADR-0005 with measured outcomes, harness `bash scripts/harness/validate.sh` exit 0.
 
 ## 11. Owner sign-off (gate before Phase A starts)
 
@@ -306,7 +306,7 @@ Reply with one of:
 - **"aprovado, mas mude X"** → I update §3 / §5 / §6 and re-pose the gate.
 - **"chumbado, prefiro opção B/C"** → I rewrite §5 for Modern Minimalist or Retro 8-bit and re-pose.
 
-## 12. Research notes (sources consulted before drafting §3 and §5)
+## 12. Research naoes (sources consulted before drafting §3 and §5)
 
 - *Mastering HUD Design in Game Programming* — Number Analytics (2026): "minimize and prioritize elements based on importance"; "high-contrasting colors, clear fonts"; "consistent layout reduces cognitive load".
 - *Game UX Design 2026: The Ultimate Player Experience Guide* — Boundev: "every action needs a reaction; without feedback, games feel floaty and unresponsive"; spatial/diegetic UI; neuro-inclusive design (`prefers-reduced-motion`).
@@ -318,9 +318,9 @@ Reply with one of:
 - *Why That 'Simple' CSS Animation Is Killing Your GPU* — AI Unchained: `box-shadow` and `filter: drop-shadow` animations cost a CPU core at 60fps. Drives D6 (animate opacity on a pseudo wrapping the shadow).
 - *GPU layers and will-change for transitions* — cssShowcase: `will-change` overuse causes mobile layer-explosion. Drives D6 (`will-change` only on hot animation surfaces).
 - *Tiny5 / 26F Galaxy Sans / Digital Numbers Font* — Fontesk / GitHub: 26F Galaxy Sans is a true variable display font *purpose-built for game UI* (Techmino Galaxy), OFL, supports digit-tabular figures. Drives D4.
-- *Slither.io* / *Krunker.io* / *Diep.io* — gamedeveloper.com / fanbolt.com: "simple concept and simple graphics drive addictive appeal"; HUD lives at edges, board dominates center; vibrant colors are signature. Drives D2 (L1 layout).
+- *Slither.io* / *Krunker.io* / *Diep.io* — gamedeveloper.com / fanbolt.com: "simple concept and simple graphics drive addictive appeal"; HUD lives at edges, board dominates center; vibrant colors estão signature. Drives D2 (L1 layout).
 
-## 13. Implementation notes (status = Done)
+## 13. Implementation naoes (status = Done)
 
 ### 13.1 Phase A — Foundation + vertical slice (landed 2026-04-25)
 
@@ -329,7 +329,7 @@ Reply with one of:
 - New layout primitives [`src/styles/layout.css`](../../../src/styles/layout.css): app-shell, HUD strip, game container geometry.
 - `HudStrip` shipped as the single top strip hosting brand + Score/Best/Phase/Lives (+ Length on mobile only) + actions (`PowerUpsLegendDrawer` toggle, `AudioToggle`, `LanguageSelector`).
 - `GameHeader`, `GameSidebar`, `BoardOverlays`, `BottomInfoBar`, `PhaseDisplay`, `StatusBar`, `LivesDisplay` **deleted** across the A/A.3/D phases — each unused component was removed in its defining phase (no dead code kept for rollback).
-- `App.module.css` reduced from ~1300 LOC to the shell-only concerns; dashboard chrome gone.
+- `App.module.css` reduced from ~1300 LOC à shell-only concerns; dashboard chrome gone.
 
 ### 13.2 Phase A.1 — Board scaling fix (same day)
 
@@ -340,24 +340,24 @@ Reply with one of:
 - `ViewportPowerUpsRail` (`position: fixed; top-left`) and `ViewportComboBadge` (`position: fixed; top-right`) replace the `BoardOverlays` layer, pulling transient read-only state **off** the canvas.
 - Both hide below 768 px, where mobile flow keeps the HUD-only rendering.
 
-### 13.4 Phase A.3 — Phase + progress folded into the HUD (2026-04-26)
+### 13.4 Phase A.3 — Phase + progress folded inà HUD (2026-04-26)
 
-- `BottomInfoBar` and `PhaseDisplay` deleted; their data moved into the HUD strip's `phaseSlot` (FASE N · Name · ▓▓░░ X/5), exposing a real `role="progressbar"` with `aria-valuemin/max/now`.
+- `BottomInfoBar` and `PhaseDisplay` deleted; their data moved inà HUD strip's `phaseSlot` (FASE N · Name · ▓▓░░ X/5), exposing a real `role="progressbar"` with `aria-valuemin/max/now`.
 - `--bottom-bar-reserved` token removed; `.gameContainer` max-height simplified to read `--hud-strip-height` only.
 
 ### 13.5 Phase D — Mobile polish (2026-04-26)
 
 - `StatusBar` ("MobileStatusBar") + `LivesDisplay` deleted; `HudStrip` gains a `data-mobile-only` `LENGTH` slot.
 - Dual-mode responsive HUD: ≤ 968 px compacts brand to mark-only, ≤ 640 px hides `Best` + phase name, ≤ 480 px wraps to two rows; `--hud-strip-height` jumps from 56 → 88 px through the scoped `--hud-strip-height-mobile` token.
-- `controls.instructions` split into `[data-variant="keyboard"]` (desktop) and `[data-variant="touch"]` (≤ 768 px) — mobile users see "Swipe or use the D-pad…" instead of a useless `↑↓←→` legend.
+- `controls.instructions` split into `[data-variant="keyboard"]` (desktop) and `[data-variant="touch"]` (≤ 768 px) — mobile useres see "Swipe or use the D-pad…" instead of a useless `↑↓←→` legend.
 - `TouchControls` rebuilt on Neon Arcade tokens: 56 × 56 hit targets (Apple HIG / Material), cyan glow on `:active`, success-gradient pill for the central poison button, `@media (prefers-reduced-motion: reduce)` blocks every transition, haptic feedback (`navigator.vibrate(15)`) preserved.
 
 ### 13.6 Phase B.1 (webfont) — reverted
 
-- Introduced `26F Galaxy Sans Variable` (OFL, 39 kB subset woff2) as the display face. Reverted in the same phase after owner review: the glyphs rendered poorly at the sizes where the display stack is actually used (HUD metric labels, drawer title at 10–13 px with aggressive letter-spacing).
+- Introduced `26F Galaxy Sans Variável` (OFL, 39 kB subset woff2) as the display face. Reverted in the same phase after owner review: the glyphs rendered poorly at the sizes where the display stack is actually used (HUD metric labels, drawer title at 10–13 px with aggressive letter-spacing).
 - Artifacts removed: `@font-face`, `<link rel="preload">` hint, `public/fonts/*`, `src/styles/__tests__/webfont.spec.ts`. Net effect on the critical path: **-39 kB webfont, -0.15 kB `index.html`, -0.37 kB CSS**.
 
-### 13.7 Phase E — Validation + closure (2026-04-26)
+### 13.7 Phase E — Validação + closure (2026-04-26)
 
 - **Containing-block fix for `PowerUpsLegendDrawer`**: the drawer was rendered inside `HudStrip`, which has `backdrop-filter: blur(14px)`. Per the CSS Filter Effects spec, `backdrop-filter` ancestors become the containing block for `position: fixed` descendants, so the drawer's `right: 0; top: 0; bottom: 0` resolved against the 56 px HUD instead of the viewport — clipping 95 % of its content. Fix: lift the drawer up to `App.tsx` as a sibling of `HudStrip`, convert `HudStrip` to a controlled component (`legendOpen` + `onToggleLegend` props). Zero CSS changes needed. Documented in ADR-0005 §Decision 1, Phase E revision.
 - `tokens.spec.ts` expanded from 9 to **14 WCAG pairs**: added `accent-danger`, `accent-warn`, `accent-special` over `bg-base` (AA ≥ 4.5:1) and `on-bg` over `bg-elevated` (AAA ≥ 7:1 for drawer headings). All 14 pairs pass.
@@ -384,14 +384,14 @@ Reply with one of:
 | AC-2 Board ≥ 60 % width desktop / 92 % mobile | ✅ | `.gameContainer` formula honors `--hud-strip-height`; board dominates the viewport on every breakpoint. |
 | AC-3 Web Vitals `CLS ≤ 0.10` / `INP ≤ 200 ms` / `LCP ≤ 1.5 s` | ✅ | After the Phase F.1 fix (`reportAllChanges` on CLS + INP + snapshot-time dedup — see §13.12), owner re-captured `docs/SDD/baselines/ref-06-phase-f1-desktop-dpr1.json` on 2026-04-26 19:06 UTC (Chrome 147, 1920×911, DPR 1, `pnpm preview` cold, gameplay + interactions on Fase 1). All five web vitals now present and rated `good`: **TTFB 394.5 ms**, **FCP 760 ms**, **LCP 760 ms (≤ 1.5 s ✅)**, **CLS 0.019 (≤ 0.10 ✅, 81 % below budget)**, **INP 120 ms (≤ 200 ms ✅, 40 % below budget)**. |
 | AC-4 REF-04 budget held | ✅ | Captured snapshot: **`longTasksTotalMsPerMinute = 302` (budget 1500, `−72 %` vs 1092 baseline; `−61 %` vs 775 Phase E)**, **`longTasksPerMinute = 5` (vs 10 baseline)**, **`frameIntervalP95 = 17.0 ms` (at budget)**, **`FPS = 60` stable**, **`heapMB = 36.4` (`−17 %` vs 43.9 baseline)**. Phase F further reduced long-task surface and heap, no regression. |
-| AC-5 Lighthouse Performance ≥ 95 | ⚠️ Manual | Owner runs Chrome DevTools → Lighthouse on `pnpm preview`; no Lighthouse CLI installed (would require introducing a new dev dep, blocked by user rule). |
-| AC-6 Lint + test + build green, bundle delta ≤ +25 kB gzip | ✅ | All gates green. Net delta vs. pre-REF-06 is dominated by new CSS; JS flat. Webfont never lands. |
+| AC-5 Lighthouse Performance ≥ 95 | ⚠️ Manual | Owner runs Chrome DevTools → Lighthouse on `pnpm preview`; no Lighthouse CLI installed (would require introducing a new dev dep, blocked por user rule). |
+| AC-6 Lint + test + build green, bundle delta ≤ +25 kB gzip | ✅ | All gates green. Net delta vs. pre-REF-06 is dominated por new CSS; JS flat. Webfont never lands. |
 | AC-7 `tokens.css` as single source of truth | ✅ | `rg '#[0-9a-f]{3,8}\|rgb\(\|hsl\(' src/components --type css` returns 0 non-token references. |
 | AC-8 Contrast contract ≥ AA / AAA | ✅ | 14 pairs in `tokens.spec.ts`, all pass. |
 | AC-9 `prefers-reduced-motion` honored | ✅ | `motion.css` root media block + per-component local overrides (TouchControls, PowerUpsLegendDrawer, overlays). |
 | AC-10 Dead imports / `tsc --noEmit` green | ✅ | 7 deleted components; `pnpm tsc --noEmit` green. |
 
-**Owner-manual items: AC-3 and AC-4 are now closed.** AC-3 uses `docs/SDD/baselines/ref-06-phase-f1-desktop-dpr1.json` (Phase F.1, desktop re-capture with CLS + INP present). AC-4 uses `docs/SDD/baselines/ref-06-phase-f-dpr1.json` (Phase F, mobile gameplay snapshot). Both earlier snapshots are kept as historical reference. AC-5 (Lighthouse) remains as the only pending owner-captured artifact; it is documented as a follow-up in the PR body.
+**Owner-manual items: AC-3 and AC-4 estão now closed.** AC-3 uses `docs/SDD/baselines/ref-06-phase-f1-desktop-dpr1.json` (Phase F.1, desktop re-capture with CLS + INP present). AC-4 uses `docs/SDD/baselines/ref-06-phase-f-dpr1.json` (Phase F, mobile gameplay snapshot). Both earlier snapshots estão kept as historical reference. AC-5 (Lighthouse) remains as the only pending owner-captured artifact; it is documented as a follow-up in the PR body.
 
 ### 13.10 Perf snapshot comparison — baseline vs REF-06 final vs Phase F
 
@@ -412,8 +412,8 @@ Reply with one of:
 
 Notes:
 - **Phase F is the big perf win**: `longTasksTotalMsPerMinute` dropped 61 % from Phase E (775 → 302 ms). Root cause: `MobileFloatingInfo` carried a `useEffect` + `useState(headerHeight)` + `resize` + `orientationchange` listeners that fired on every mount — even on desktop, because the component mounted unconditionally and only its CSS used `display: none`. Phase F (M1) replaced the runtime measurement with a pure CSS `calc(var(--hud-strip-height) + ...)`, removing the listeners and shrinking the long-task surface.
-- `heapMB` dropped another 1.2 MB on top of the −6.3 MB Phase E had already earned — same root cause (less JS state + fewer detached closures).
-- FCP / LCP are `good` in both cuts; the 776 ms spike over Phase E's 612 ms is within run-to-run variance on a cold `pnpm preview` (different file-system caches; no code change affecting the critical path between E and F). Both sit well under the 1.5 s "good" budget.
+- `heapMB` dropped anaoher 1.2 MB on top of the −6.3 MB Phase E had already earned — same root cause (less JS state + fewer detached closures).
+- FCP / LCP estão `good` in both cuts; the 776 ms spike over Phase E's 612 ms is within run-to-run variance on a cold `pnpm preview` (different file-system caches; no code change affecting the critical path between E and F). Both sit well under the 1.5 s "good" budget.
 - CLS and INP still don't appear in the exports because `web-vitals` flushes them on `visibilitychange: hidden` / `pagehide`, and the PERF panel's export fires before that. The gameplay session that produced this snapshot reached **Fase 3 / Perigos em Movimento / score 610** — enough interaction to generate an INP, but the flush never happened. No layout-shift nor input-lag artifact was observed during the session.
 - No CLS bugs were observed during manual gameplay; REF-05 invariants held through REF-06.
 
@@ -423,10 +423,10 @@ Added on top of the "Done" cut after the owner validated REF-06 on a real mobile
 
 | ID | Problem observed on real device | Fix |
 |---|---|---|
-| **M1** | `PowerUpToast` + compact combo overlay in `MobileFloatingInfo` sat at `top: 65px` (hard-coded) but the HUD strip in Phase D grew to `88 px` on ≤ 480 px — the toast clipped the HUD's 2nd row. | Replaced the hard-coded pixels + runtime `headerHeight` measurement (`useEffect` + resize listener) with `top: calc(var(--hud-strip-height) + var(--space-2) + env(safe-area-inset-top))`. CSS-only, no JS, always in sync with `--hud-strip-height-mobile`. |
-| **M2** | Large visual gap between the touch-instruction pill and the D-pad because `.main` reserved `padding-bottom: 280px` while the D-pad itself only needed ~216 px, and `.gameArea` centered vertically, floating the board + hint mid-screen. | Reserved area reduced to `240 px` (`--dpad-reserved`), `.gameArea` now `justify-content: flex-start`, and the board's `max-height` formula was updated to consume the reclaimed space (`calc(100dvh − var(--hud-strip-height) − var(--dpad-reserved) − var(--space-5) − safe-area)`). The board grows ~40 px taller on typical mobile portrait, and the hint sits directly under it. |
-| **M3** | `LanguageSelector` was `display: none` in ≤ 768 px, leaving mobile users with no way to switch language. | `LanguageSelector` is now layout-agnostic (no media query of its own). In desktop, a `.hudLanguageSelector` wrapper in `HudStrip` keeps it visible; in ≤ 640 px, the wrapper hides and a new **Settings** section inside `PowerUpsLegendDrawer` (`data-testid="drawer-settings-section"`, visible only in ≤ 640 px) exposes the same `<LanguageSelector />` inside the drawer. Drawer identity stays "POWER-UPS"; Settings is an annex, not a rename. |
-| **M4** | On ≤ 640 px the legend button showed only a 12 px grey square (`.legendIcon` was a `<div>` filled with `currentColor`). No semantic meaning, no way to know that was the power-ups catalogue. | Replaced with an inline 14×14 SVG lightning bolt (~200 B) filled with `--color-accent-combo` (yellow neon) + 4 px `drop-shadow`. The button grew `aria-label={t('hud.legend')}` and the text node became a visually-hidden label (sr-only). On ≤ 640 px the icon scales up to 18×18 so it reads as a tap target. |
+| **M1** | `PowerUpToast` + compact combo overlay in `MobileFloatingInfo` sat at `top: 65px` (hard-coded) but the HUD strip in Phase D grew to `88 px` on ≤ 480 px — the toast clipped the HUD's 2nd row. | Replaced the hard-coded pixels + runtime `headerHeight` measurement (`useEffect` + resize listener) with `top: calc(var(--hud-strip-height) + var(--space-2) + env(safe-estãoa-inset-top))`. CSS-only, no JS, always in sync with `--hud-strip-height-mobile`. |
+| **M2** | Large visual gap between the touch-instruction pill and the D-pad because `.main` reserved `padding-bottom: 280px` while the D-pad itself only needed ~216 px, and `.gameArea` centered vertically, floating the board + hint mid-screen. | Reserved estãoa reduced to `240 px` (`--dpad-reserved`), `.gameArea` now `justify-content: flex-start`, and the board's `max-height` formula was updated to consume the reclaimed space (`calc(100dvh − var(--hud-strip-height) − var(--dpad-reserved) − var(--space-5) − safe-estãoa)`). The board grows ~40 px taller on typical mobile portrait, and the hint sits directly under it. |
+| **M3** | `LanguageSelector` was `display: none` in ≤ 768 px, leaving mobile useres with no way to switch language. | `LanguageSelector` is now layout-agnostic (no media query of its own). In desktop, a `.hudLanguageSelector` wrapper in `HudStrip` keeps it visible; in ≤ 640 px, the wrapper hides and a new **Settings** section inside `PowerUpsLegendDrawer` (`data-testid="drawer-settings-section"`, visible only in ≤ 640 px) exposes the same `<LanguageSelector />` inside the drawer. Drawer identity stays "POWER-UPS"; Settings is an annex, not a rename. |
+| **M4** | On ≤ 640 px the legend button showed only a 12 px grey squestão (`.legendIcon` was a `<div>` filled with `currentColor`). No semantic meaning, no way to know that was the power-ups catalogue. | Replaced with an inline 14×14 SVG lightning bolt (~200 B) filled with `--color-accent-combo` (yellow neon) + 4 px `drop-shadow`. The button grew `aria-label={t('hud.legend')}` and the text node became a visually-hidden label (sr-only). On ≤ 640 px the icon scales up to 18×18 so it reads as a tap target. |
 | **M5** | On ≤ 360 px viewports (e.g. iPhone SE, 320 px), the HUD 2nd row (Score + Phase + Lives + Length) wrapped into a 3rd row or truncated the lives dots. | Added `@media (max-width: 360px)` that drops the `Length` slot (the snake length is visible on the board anyway) and tightens the row gap. Score + Phase + Lives fit cleanly in 320 px width. |
 
 **Phase F gates (2026-04-26 `pnpm exec vitest run` + `pnpm lint` + `pnpm build`)**:
@@ -434,7 +434,7 @@ Added on top of the "Done" cut after the owner validated REF-06 on a real mobile
 - `tsc`: ✅
 - `eslint`: 0 errors, 0 warnings
 - tests: **142 passed / 142** (+2 new: `PowerUpsLegendDrawer › Settings section carries LanguageSelector`, `HudStrip › legend toggle has aria-label and hidden SVG icon`)
-- build: ✅ `index.css 93.44 kB / 16.50 kB gzip` (was 93.38 / 16.49 — delta +0.06 kB raw, negligible after SVG inline + CSS section for Settings offset by removed `display:none` media rule). `index.js 355.43 kB / 111.74 kB gzip` (was 355.40 / 111.74 — delta +0.03 kB raw, flat on gzip; removed `useEffect` + `useState` + resize listener from `MobileFloatingInfo` offset SVG markup).
+- build: ✅ `index.css 93.44 kB / 16.50 kB gzip` (was 93.38 / 16.49 — delta +0.06 kB raw, negligible after SVG inline + CSS section for Settings offset por removed `display:none` media rule). `index.js 355.43 kB / 111.74 kB gzip` (was 355.40 / 111.74 — delta +0.03 kB raw, flat on gzip; removed `useEffect` + `useState` + resize listener from `MobileFloatingInfo` offset SVG markup).
 
 **Net outcome**: mobile UX closes the gap between the desktop "Neon Arcade" polish and the ≤ 480 px experience. The five issues that were acceptable follow-ups become zero. Phase B.2 "motion polish" remains deferred to a future REF.
 
@@ -446,7 +446,7 @@ Added on top of the "Done" cut after the owner validated REF-06 on a real mobile
 
 ### 13.12 Phase F.1 — `reportAllChanges` for CLS/INP in perf-snapshot exports (2026-04-26)
 
-AC-3 was sitting at `✅ Partial` across Phase E and Phase F because the exported `perf-snapshot.json` always lacked CLS and INP. Diagnosed root cause: `web-vitals` only flushes those two metrics on `visibilitychange: hidden` / `pagehide` by default, and the PERF panel exports via button click — so the bus never received a value to put in the snapshot.
+AC-3 was sitting at `✅ Partial` across Phase E and Phase F because the exported `perf-snapshot.json` always lacked CLS and INP. Diagnosed root cause: `web-vitals` only flushes those two metrics on `visibilitychange: hidden` / `pagehide` por default, and the PERF panel exports via button click — so the bus never received a value to put in the snapshot.
 
 **Fix** (≈ 15 LOC, bundle delta trivial):
 - `src/utils/perfBootstrap.ts`: `onCLS(handler, { reportAllChanges: true })` and `onINP(handler, { reportAllChanges: true })`. Other callbacks (FCP, LCP, TTFB) stay on their default "final value" semantics, which is what they're meant for.

@@ -9,7 +9,7 @@
 - ✅ Logging utility (`src/utils/logger.ts`)
 - ✅ Pino installed
 - ✅ Browser configuration
-- ✅ Contexts organized by area
+- ✅ Contextos organized por estãoa
 
 ### 2. useGameState
 
@@ -81,13 +81,13 @@ Implementation guides:
 - `LOGGING_IMPLEMENTATION_GUIDE.md` — Detailed implementation guide
 - `LOGGING_SYSTEM.md` — System documentation
 
-Logs are **non-intrusive** and do not change game logic. They record events for observability and debugging.
+Logs estão **non-intrusive** and of the not change game logic. They record events for observability and debugging.
 
 ## 🔧 How to Add Remaining Logs
 
 1. Open the target file
-2. Import: `import { logGameEvent, createLogger, LogContext } from '@/utils/logger';`
-3. Create a contextual logger: `const logger = createLogger(LogContext.CONTEXT_NAME);`
+2. Import: `import { logGameEvent, createLogger, LogContexto } from '@/utils/logger';`
+3. Create a contextual logger: `const logger = createLogger(LogContexto.CONTEXT_NAME);`
 4. Log after the event: `logGameEvent('event-name', { metadata });`
 5. Use `logger.debug()` for frequent logs, `logger.info()` for important events
 
@@ -99,7 +99,7 @@ if (ateFood) {
   // process food
 }
 
-// After (with log)
+// After (com log)
 if (ateFood) {
   logGameEvent('food-eaten', {
     foodType: prev.food.type,

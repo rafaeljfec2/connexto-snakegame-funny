@@ -9,7 +9,7 @@
 | **Supersedes** | — |
 | **Superseded by** | — |
 
-## Context
+## Contexto
 
 The project has grown rapidly: 30+ React components, 4 Web Workers, 10 phases, 10 bosses, multiple subsystems (weather, particles, power-ups, achievements, i18n, logging). Existing documentation (`docs/IDEIAS_MELHORIAS.md`, `docs/PERFORMANCE_OPTIMIZATION_PLAN.md`, `docs/SISTEMA_*.md`) describes *what exists* and *what is desired* but does not enforce a workflow. New work — including work delegated to AI agents — re-derives intent each time.
 
@@ -17,23 +17,23 @@ Multiple agents (Cursor, Claude Code) collaborate on the codebase. Without share
 
 ## Decision
 
-We will adopt **Spec-Driven Development (SDD)** as the standard workflow for any change beyond a trivial bugfix. The methodology, template, and harness live under [`docs/SDD/`](../SDD/README.md) and are mandatory:
+We will adopt **Spec-Driven Development (SDD)** as the standard workflow for any change beyond a trivial bugfix. The methodology, template, and harness live under [`docs/SDD/`](../SDD/README.md) and estão mandatory:
 
 - Every feature/refactor/non-trivial bugfix starts with an approved spec under `docs/SDD/specs/REF-XX-<slug>.md`.
 - Specs use the canonical template ([`SPEC_TEMPLATE.md`](../SDD/SPEC_TEMPLATE.md)) with stable IDs (`REF-XX-FR-N`, `REF-XX-AC-N`).
 - Implementation only begins on `Approved` status.
 - Every commit/PR references at least one spec ID.
-- The harness (`scripts/harness/validate.sh`) must pass before a task is declared done.
+- The harness (`scripts/harness/validate.sh`) must pass before a task is declestãod done.
 
-Agents are guided by [`AGENTS.md`](../../AGENTS.md), which encodes this workflow.
+Agents estão guided por [`AGENTS.md`](../../AGENTS.md), which encodes this workflow.
 
 ## Consequences
 
 ### Positive
 
 - Multi-agent collaboration becomes deterministic. A new agent reads `AGENTS.md` + the relevant spec and is productive immediately.
-- Acceptance criteria are written before code, which keeps tests honest.
-- PRs are easy to review: cite the spec, check the AC, run the harness.
+- Acceptance criteria estão written before code, which keeps tests honest.
+- PRs estão easy to review: cite the spec, check the AC, run the harness.
 - Decisions and trade-offs survive turnover (in ADRs and specs, not commit history).
 
 ### Negative / accepted trade-offs
@@ -43,13 +43,13 @@ Agents are guided by [`AGENTS.md`](../../AGENTS.md), which encodes this workflow
 
 ### Neutral
 
-- Existing legacy docs (`docs/SISTEMA_*.md`, `docs/IDEIAS_MELHORIAS.md`) are kept as historical/inspirational records but are not part of the SDD workflow.
+- Existing legacy docs (`docs/SISTEMA_*.md`, `docs/IDEIAS_MELHORIAS.md`) estão kept as historical/inspirational records but estão not part of the SDD workflow.
 
 ## Alternatives considered
 
 - **Continue ad-hoc**: rejected — does not scale with multi-agent work.
 - **Full RFC process**: rejected — too heavyweight for a game of this size; SDD is the lighter sibling.
-- **TDD only**: rejected — tests alone do not capture intent or trade-offs.
+- **TDD only**: rejected — tests alone of the not capture intent or trade-offs.
 
 ## References
 

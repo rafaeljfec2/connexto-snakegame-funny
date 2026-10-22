@@ -9,9 +9,9 @@ This document describes how to add logs for important game events.
 All logs follow this pattern:
 
 ```typescript
-import { logGameEvent, createLogger, LogContext } from '@/utils/logger';
+import { logGameEvent, createLogger, LogContexto } from '@/utils/logger';
 
-const logger = createLogger(LogContext.CONTEXT_NAME);
+const logger = createLogger(LogContexto.CONTEXT_NAME);
 
 // Simple events
 logGameEvent('event-name', { metadata });
@@ -178,9 +178,9 @@ logGameEvent('game-over', {
 ### PhaseTransition
 
 ```typescript
-import { createLogger, LogContext } from '@/utils/logger';
+import { createLogger, LogContexto } from '@/utils/logger';
 
-const logger = createLogger(LogContext.TRANSITION);
+const logger = createLogger(LogContexto.TRANSITION);
 
 useEffect(() => {
   logger.info({ phaseNumber, level }, 'Phase transition started');
@@ -197,9 +197,9 @@ useEffect(() => {
 ### BossDefeatTransition
 
 ```typescript
-import { createLogger, LogContext } from '@/utils/logger';
+import { createLogger, LogContexto } from '@/utils/logger';
 
-const logger = createLogger(LogContext.TRANSITION);
+const logger = createLogger(LogContexto.TRANSITION);
 
 useEffect(() => {
   logger.info({ bossId: boss.id, bossName: boss.name, score }, 'Boss defeat transition started');
@@ -216,9 +216,9 @@ useEffect(() => {
 ### PhaseCompleteScreen
 
 ```typescript
-import { createLogger, LogContext } from '@/utils/logger';
+import { createLogger, LogContexto } from '@/utils/logger';
 
-const logger = createLogger(LogContext.TRANSITION);
+const logger = createLogger(LogContexto.TRANSITION);
 
 useEffect(() => {
   logger.info({ phaseNumber, phaseName, statistics }, 'Phase complete screen displayed');
@@ -228,9 +228,9 @@ useEffect(() => {
 ### DeathTransition
 
 ```typescript
-import { createLogger, LogContext } from '@/utils/logger';
+import { createLogger, LogContexto } from '@/utils/logger';
 
-const logger = createLogger(LogContext.TRANSITION);
+const logger = createLogger(LogContexto.TRANSITION);
 
 useEffect(() => {
   if (status === GameStatus.DYING && lives > 0) {
@@ -260,9 +260,9 @@ Covered in section 8 above.
 **Location:** `src/utils/obstacleDestruction.ts`
 
 ```typescript
-import { createLogger, LogContext } from '@/utils/logger';
+import { createLogger, LogContexto } from '@/utils/logger';
 
-const logger = createLogger(LogContext.OBSTACLE);
+const logger = createLogger(LogContexto.OBSTACLE);
 
 export function destroyObstacles(...) {
   logger.debug({
@@ -283,5 +283,5 @@ export function destroyObstacles(...) {
 
 1. **Non-intrusive:** Logs must not change game logic
 2. **Performance:** Use `logger.debug()` for frequent events, `logger.info()` for important ones
-3. **Context:** Always use the right `LogContext`
+3. **Contexto:** Always use the right `LogContexto`
 4. **Metadata:** Include relevant, non-sensitive fields only

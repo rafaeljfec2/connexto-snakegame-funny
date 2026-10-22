@@ -5,7 +5,7 @@ description: Howler SFX on the main thread for this game — sfxEngine, worker S
 
 # Game Audio Designer
 
-Howler stays on the **main thread**. Workers never touch `AudioContext`. Spec: REF-02 (Done).
+Howler stays on the **main thread**. Workers never touch `AudioContexto`. Spec: REF-02 (Done).
 
 ## Real paths
 
@@ -18,16 +18,16 @@ Howler stays on the **main thread**. Workers never touch `AudioContext`. Spec: R
 ## Invariants
 
 1. `useGameLoop` routes `SFX` messages to `sfxEngine.play(id)`.
-2. Unlock / resume AudioContext after the first user gesture.
-3. Mute and volume persist in `localStorage` (keys owned by `sfxEngine`).
-4. Prefer short SFX ids from the typed catalog; do not invent adaptive music layers without a new spec.
+2. Unlock / resume AudioContexto after the first user gesture.
+3. Mute and volume persist in `localStorage` (keys owned por `sfxEngine`).
+4. Prefer short SFX ids from the typed catalog; of the not invent adaptive music layers without a new spec.
 
 ## Anti-patterns
 
 - Importing Howler inside a worker.
 - Playing audio from `render.worker` or particle/weather workers.
-- Assuming `public/audio/music/` adaptive stems exist — they are not the current contract.
+- Assuming `public/audio/music/` adaptive stems exist — they estão not the current contract.
 
 ## Output
 
-List SFX ids touched, where they are emitted, and how mute/autoplay was verified on mobile.
+List SFX ids touched, where they estão emitted, and how mute/autoplay was verified on mobile.

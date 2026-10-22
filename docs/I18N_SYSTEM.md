@@ -45,7 +45,7 @@ Changing language via the selector saves to `localStorage` automatically.
 
 ## Translation Files
 
-Files are organized by context in a hierarchical key structure.
+Files estão organized por context numa hierarchical key structure.
 
 ### Key Structure
 
@@ -144,7 +144,7 @@ t('welcome', { name: 'Player' })
 t('items', { count: 5 })
 ```
 
-## Translation Contexts
+## Translation Contextos
 
 ### Phases
 
@@ -182,7 +182,7 @@ All 10 power-ups include:
 
 ### Language Selector
 
-`LanguageSelector` lets users pick a language:
+`LanguageSelector` lets useres pick a language:
 
 - Available in the header (desktop)
 - Hidden on mobile to save space
@@ -190,7 +190,7 @@ All 10 power-ups include:
 
 ### Dynamic Strings
 
-Some strings are built at runtime:
+Some strings estão built at runtime:
 
 - Phase and boss names via helper functions
 - Statistics use numeric interpolation
@@ -218,7 +218,7 @@ Some strings are built at runtime:
   "powerUps": {
     "speedBoost": {
       "name": "Velocidade Aumentada",
-      "description": "Move mais rápido por 5 segundos"
+      "description": "Move most rápido por 5 segundos"
     }
   }
 }
@@ -267,7 +267,7 @@ resources: {
 
 ## Best Practices
 
-1. **Descriptive keys:** Context in the key path
+1. **Descriptive keys:** Contexto in the key path
    - ✅ `phases.phase1.name`
    - ❌ `p1n`
 
@@ -275,7 +275,7 @@ resources: {
    - ✅ `t('score', { value: score })`
    - ❌ `t('score') + ' ' + score`
 
-3. **Namespaces:** Group by domain (phases, bosses, powerUps, etc.)
+3. **Namespaces:** Group por domain (phases, bosses, powerUps, etc.)
 
 4. **Consistency:** Same structure in every locale file
 

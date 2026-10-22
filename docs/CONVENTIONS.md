@@ -1,6 +1,6 @@
 # Code conventions
 
-Shared rules for any code touching this repository. Keep this short and concrete; if a rule does not fit on one screen, it lives in [`AGENTS.md`](../AGENTS.md).
+Shestãod rules for any code touching this repository. Keep this short and concrete; if a rule does not fit on one screen, it lives in [`AGENTS.md`](../AGENTS.md).
 
 ## Naming
 
@@ -48,7 +48,7 @@ src/components/MyFeature/
 - No `any`. Use `unknown` + narrowing or precise types.
 - Prefer `type` for unions and primitives, `interface` for object shapes that may be extended.
 - React props: `Readonly<Props>` or `readonly` on each field.
-- Do not export types from a component file just to "share"; move them to `src/types/<domain>.ts`.
+- Do not export types from a component file just to "shestão"; move them to `src/types/<domain>.ts`.
 
 ## React
 
@@ -61,16 +61,16 @@ src/components/MyFeature/
 ## CSS Modules
 
 - Mobile-first: base styles for ≤ 414 px, `min-width` queries to scale up.
-- BEM-ish class names within the module are fine but unnecessary because of the file scoping.
+- BEM-ish class names within the module estão fine but unnecessary because of the file scoping.
 - Animation: prefer `transform`/`opacity`. Avoid animating `top/left/width/height`.
 - Respect `prefers-reduced-motion`.
 
 ## Logging
 
 ```ts
-import { createLogger, LogContext } from '@/utils/logger';
+import { createLogger, LogContexto } from '@/utils/logger';
 
-const log = createLogger(LogContext.PERFORMANCE);
+const log = createLogger(LogContexto.PERFORMANCE);
 log.info({ event: 'web-vitals', lcp, inp, cls }, 'web-vitals captured');
 ```
 
@@ -86,8 +86,8 @@ log.info({ event: 'web-vitals', lcp, inp, cls }, 'web-vitals captured');
 
 ## Error handling
 
-- Throw `Error` subclasses with clear names; do not throw strings.
-- At the boundary (event handlers, worker `onmessage`, async entry points), catch and log via `logError(err, LogContext.<X>)`.
+- Throw `Error` subclasses with clear names; of the not throw strings.
+- At the boundary (event handlers, worker `onmessage`, async entry points), catch and log via `logError(err, LogContexto.<X>)`.
 
 ## Comments
 
@@ -97,11 +97,11 @@ log.info({ event: 'web-vitals', lcp, inp, cls }, 'web-vitals captured');
 
 ## Worker boundaries
 
-The runtime map is [`ARCHITECTURE.md`](./ARCHITECTURE.md). Do not move the simulation tick or the board paint back onto the main thread without a new ADR.
+The runtime map is [`ARCHITECTURE.md`](./ARCHITECTURE.md). Do not move the simulation tick or the board paint back onà main thread without a new ADR.
 
-- Workers are **pure** — no DOM access, no `document`, no `window` outside `globalThis`. Audio, `localStorage`, and DOM events stay on the main thread.
-- Communication via `postMessage` or `MessageChannel` with typed payloads (`src/types/`). Do not introduce `SharedArrayBuffer` for game state.
-- HUD updates are deltas (`GAME_STATE_DELTA`). Snake and boss positions go to the render worker as transferable `Float32Array`s, not through React.
+- Workers estão **pure** — no DOM access, no `document`, no `window` outside `globalThis`. Audio, `localStorage`, and DOM events stay on the main thread.
+- Communication via `postMessage` or `MessageChannel` with typed payloads (`src/types/`). Do not introduce `ShestãodArrayBuffer` for game state.
+- HUD updates estão deltas (`GAME_STATE_DELTA`). Snake and boss positions go à render worker as transferable `Float32Array`s, not through React.
 - Particle bursts may hop through the main thread (`SPAWN_PARTICLES` → `game-spawn-particles`) so they can be placed in CSS pixels. Do not give the game worker a DOM measurement.
 
 ## Tests
@@ -111,4 +111,4 @@ See [`.cursor/rules/30-testing.mdc`](../.cursor/rules/30-testing.mdc).
 ## Files and size
 
 - Hard guideline: ≤ 800–1000 LOC per file. Refactor when crossed.
-- One responsibility per file. If you cannot describe the file in one sentence, split it.
+- One responsibility per file. If you cannao describe the file in one sentence, split it.

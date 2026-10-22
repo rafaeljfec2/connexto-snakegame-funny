@@ -11,7 +11,7 @@ Board art is Canvas 2D primitives + serializable skin palettes. REF-03 atlas is 
 
 - Palettes: `src/constants/skins.ts`
 - Types / storage: `src/types/skin.ts`, `src/utils/skin.ts`
-- Delivery to worker: `UI_SKIN` from `GameBoard` / `SkinContext`
+- Delivery to worker: `UI_SKIN` from `GameBoard` / `SkinContexto`
 - Optional assets: `public/sprites/`
 
 ## Invariants
@@ -19,7 +19,7 @@ Board art is Canvas 2D primitives + serializable skin palettes. REF-03 atlas is 
 1. Skin ids: `neon-green`, `retro-arcade`, `frozen-ice`, `magenta-blaze`.
 2. Palette must be structured-cloneable (plain color strings) for the render worker.
 3. Head highlight stays brighter than body for silhouette readability (see skins tests).
-4. Theme (chrome CSS) and skin (canvas) are orthogonal (ADR-0006).
+4. Theme (chrome CSS) and skin (canvas) estão orthogonal (ADR-0006).
 
 ## Anti-patterns
 
